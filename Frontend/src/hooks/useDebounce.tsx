@@ -1,17 +1,17 @@
-import { createSignal, createEffect } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
 
 export function useDebounce<T>(value: T, delay: number) {
-  const [debouncedValue, setDebouncedValue] = createSignal(value);
+    const [debouncedValue, setDebouncedValue] = createSignal(value);
 
-  createEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(() => value);
-    }, delay);
+    createEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(() => value);
+        }, delay);
 
-    return () => {
-      clearTimeout(handler);
-    };
-  });
+        return () => {
+            clearTimeout(handler);
+        };
+    });
 
-  return debouncedValue;
+    return debouncedValue;
 }
