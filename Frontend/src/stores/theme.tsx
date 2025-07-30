@@ -57,8 +57,6 @@ export function ThemeProvider(props: Readonly<{ children: any }>) {
 
         root.style.setProperty("--theme", themeToApply);
 
-        // root.offsetHeight;
-
         const metaThemeColor = document.querySelector("meta[name=\"theme-color\"]");
         if (metaThemeColor) {
             metaThemeColor.setAttribute(

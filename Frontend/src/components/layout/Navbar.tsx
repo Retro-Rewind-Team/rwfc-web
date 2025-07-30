@@ -20,7 +20,7 @@ export default function Navbar() {
                             class="text-xl font-bold text-gray-800 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                         >
                             <img
-                                src="/src/assets/RetroRewindLogo.png"
+                                src="/RetroRewindLogo.png"
                                 alt="Retro Rewind Logo"
                                 class="w-42 h-22 object-contain"
                             />

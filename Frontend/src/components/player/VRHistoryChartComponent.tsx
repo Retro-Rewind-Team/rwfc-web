@@ -17,8 +17,9 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
         refresh,
     } = useVRHistory(props.friendCode, props.initialDays);
 
-    const [hoveredPoint, setHoveredPoint] =
+    const [selectedPoint, setSelectedPoint] =
     createSignal<ProcessedVRHistory | null>(null);
+    const [showModal, setShowModal] = createSignal(false);
 
     // Calculate chart dimensions and scaling
     const getChartDimensions = () => {
@@ -82,23 +83,33 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
         return path;
     };
 
+    const handlePointClick = (point: ProcessedVRHistory) => {
+        setSelectedPoint(point);
+        setShowModal(true);
+    };
+
+    const closeModal = () => {
+        setShowModal(false);
+        setSelectedPoint(null);
+    };
+
     return (
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-gray-900/20 p-6 transition-colors">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-gray-900/20 p-4 md:p-6 transition-colors">
             {/* Header */}
-            <div class="flex flex-col md:flex-row md:items-center justify-between mb-6">
-                <div class="flex items-center mb-4 md:mb-0">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+            <div class="flex flex-col space-y-4 mb-6">
+                <div class="flex items-center">
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
             VR History
                     </h2>
                 </div>
 
-                {/* Period Selection */}
-                <div class="flex space-x-2">
+                {/* Period Selection - Mobile optimized */}
+                <div class="flex space-x-2 overflow-x-auto">
                     <For each={[7, 14, 30]}>
                         {(days) => (
                             <button
                                 onClick={() => changePeriod(days)}
-                                class={`px-4 py-2 rounded-lg font-medium transition-all ${
+                                class={`px-4 py-3 rounded-lg font-medium transition-all whitespace-nowrap min-w-[60px] ${
                                     selectedDays() === days
                                         ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
                                         : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
@@ -113,7 +124,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
 
             {/* Loading State */}
             <Show when={isLoading()}>
-                <div class="h-80 flex items-center justify-center">
+                <div class="h-64 md:h-80 flex items-center justify-center">
                     <div class="text-center">
                         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                         <p class="text-gray-600 dark:text-gray-400">
@@ -125,7 +136,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
 
             {/* Error State */}
             <Show when={error()}>
-                <div class="h-80 flex items-center justify-center">
+                <div class="h-64 md:h-80 flex items-center justify-center">
                     <div class="text-center">
                         <div class="text-red-600 dark:text-red-400 text-6xl mb-4">⚠️</div>
                         <p class="text-red-600 dark:text-red-400 font-medium mb-2">
@@ -136,7 +147,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                         </p>
                         <button
                             onClick={refresh}
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
                         >
               Try Again
                         </button>
@@ -146,7 +157,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
 
             {/* No Data State */}
             <Show when={!isLoading() && !error() && historyData().length === 0}>
-                <div class="h-80 flex items-center justify-center">
+                <div class="h-64 md:h-80 flex items-center justify-center">
                     <div class="text-center">
                         <div class="text-gray-400 dark:text-gray-500 text-6xl mb-4">📊</div>
                         <p class="text-gray-600 dark:text-gray-400 font-medium mb-2">
@@ -163,11 +174,11 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
             <Show
                 when={!isLoading() && !error() && historyData().length > 0 && stats()}
             >
-                {/* Stats Summary */}
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 text-center border border-blue-200 dark:border-blue-800">
+                {/* Stats Summary - Mobile responsive grid */}
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
+                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-3 md:p-4 text-center border border-blue-200 dark:border-blue-800">
                         <div
-                            class={`text-2xl font-bold mb-1 ${
+                            class={`text-lg md:text-2xl font-bold mb-1 ${
                 stats()!.totalChange >= 0
                     ? "text-green-600 dark:text-green-400"
                     : "text-red-600 dark:text-red-400"
@@ -176,42 +187,42 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                             {stats()!.totalChange >= 0 ? "+" : ""}
                             {stats()!.totalChange.toLocaleString()}
                         </div>
-                        <div class="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                        <div class="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium">
               Total Change
                         </div>
                     </div>
 
-                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
-                        <div class="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 md:p-4 text-center">
+                        <div class="text-lg md:text-2xl font-bold text-gray-900 dark:text-white mb-1">
                             {stats()!.highestVR.toLocaleString()}
                         </div>
-                        <div class="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                        <div class="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium">
               Peak VR
                         </div>
                     </div>
 
-                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
-                        <div class="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 md:p-4 text-center">
+                        <div class="text-lg md:text-2xl font-bold text-gray-900 dark:text-white mb-1">
                             {stats()!.lowestVR.toLocaleString()}
                         </div>
-                        <div class="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                        <div class="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium">
               Lowest VR
                         </div>
                     </div>
 
-                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
-                        <div class="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 md:p-4 text-center">
+                        <div class="text-lg md:text-2xl font-bold text-gray-900 dark:text-white mb-1">
                             {stats()!.changesCount}
                         </div>
-                        <div class="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                        <div class="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium">
               VR Changes
                         </div>
                     </div>
                 </div>
 
-                {/* Custom SVG Chart */}
+                {/* Custom SVG Chart - Mobile optimized */}
                 <div class="relative">
-                    <div class="h-80 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-700 dark:to-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                    <div class="h-64 md:h-80 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-700 dark:to-gray-800 rounded-lg p-2 md:p-4 border border-gray-200 dark:border-gray-600">
                         <svg
                             viewBox="0 0 100 100"
                             class="w-full h-full"
@@ -283,55 +294,88 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                                 />
                             </Show>
 
-                            {/* Data points */}
+                            {/* Data points - Mobile optimized with larger touch targets */}
                             <For each={historyData()}>
                                 {(point, index) => {
                                     const { x, y } = getPointPosition(point, index());
-                                    const isHovered = hoveredPoint() === point;
+                                    const isSelected = selectedPoint() === point;
                                     return (
-                                        <circle
-                                            cx={x}
-                                            cy={y}
-                                            r={isHovered ? "1" : "0.5"}
-                                            fill="#3B82F6"
-                                            stroke="#FFFFFF"
-                                            stroke-width="0.2"
-                                            class="cursor-pointer transition-all duration-200"
-                                            onMouseEnter={() => setHoveredPoint(point)}
-                                            onMouseLeave={() => setHoveredPoint(null)}
-                                        />
+                                        <>
+                                            {/* Invisible larger touch target for mobile */}
+                                            <circle
+                                                cx={x}
+                                                cy={y}
+                                                r="3"
+                                                fill="transparent"
+                                                class="cursor-pointer md:hidden"
+                                                onClick={() => handlePointClick(point)}
+                                            />
+                                            {/* Visible point */}
+                                            <circle
+                                                cx={x}
+                                                cy={y}
+                                                r={isSelected ? "1.2" : "0.8"}
+                                                fill={isSelected ? "#8B5CF6" : "#3B82F6"}
+                                                stroke="#FFFFFF"
+                                                stroke-width="0.2"
+                                                class="cursor-pointer transition-all duration-200 pointer-events-none md:pointer-events-auto"
+                                                onClick={() => handlePointClick(point)}
+                                            />
+                                        </>
                                     );
                                 }}
                             </For>
                         </svg>
                     </div>
 
-                    {/* Tooltip */}
-                    <Show when={hoveredPoint()}>
-                        <div class="absolute top-4 left-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 z-10">
-                            <p class="font-semibold text-gray-900 dark:text-white mb-2">
-                                {hoveredPoint()!.formattedDate}
+                    {/* Chart Legend - Updated for mobile */}
+                    <div class="mt-4 text-center text-xs md:text-sm text-gray-600 dark:text-gray-400">
+                        <p class="md:hidden">📱 Tap points to see detailed VR changes</p>
+                        <p class="hidden md:block">
+              💡 Click points to see detailed VR changes
+                        </p>
+                    </div>
+                </div>
+            </Show>
+
+            {/* Modal for point details - Mobile friendly */}
+            <Show when={showModal() && selectedPoint()}>
+                <div
+                    class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end md:items-center justify-center p-4"
+                    onClick={closeModal}
+                >
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-t-2xl md:rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-transform"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Handle bar for mobile */}
+                        <div class="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-4 md:hidden"></div>
+
+                        <div class="text-center">
+                            <p class="font-semibold text-gray-900 dark:text-white mb-3 text-lg">
+                                {selectedPoint()!.formattedDate}
                             </p>
-                            <p class="text-lg font-bold text-gray-900 dark:text-white mb-1">
-                                {hoveredPoint()!.totalVR.toLocaleString()} VR
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                                {selectedPoint()!.totalVR.toLocaleString()} VR
                             </p>
                             <p
-                                class={`font-medium ${
-                  hoveredPoint()!.vrChange >= 0
+                                class={`text-lg font-medium mb-4 ${
+                  selectedPoint()!.vrChange >= 0
                       ? "text-green-600 dark:text-green-400"
                       : "text-red-600 dark:text-red-400"
                                 }`}
                             >
-                                {hoveredPoint()!.vrChange >= 0 ? "+" : ""}
-                                {hoveredPoint()!.vrChange.toLocaleString()} VR
+                                {selectedPoint()!.vrChange >= 0 ? "+" : ""}
+                                {selectedPoint()!.vrChange.toLocaleString()} VR
                             </p>
+                            <button
+                                onClick={closeModal}
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+                            >
+                Close
+                            </button>
                         </div>
-                    </Show>
-                </div>
-
-                {/* Chart Legend */}
-                <div class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-                    <p>💡 Hover over points to see detailed VR changes</p>
+                    </div>
                 </div>
             </Show>
         </div>
