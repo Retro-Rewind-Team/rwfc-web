@@ -1,7 +1,7 @@
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 
-export default function Layout(props: { children: HTMLElement }) {
+export default function Layout(props: any) {
     return (
         <div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
             <Navbar />

@@ -26,7 +26,7 @@ const ThemeContext = createContext<{
           toggleTheme: () => {},
       });
 
-export function ThemeProvider(props: Readonly<{ children: HTMLElement }>) {
+export function ThemeProvider(props: Readonly<{ children: any }>) {
     const getSystemTheme = (): "light" | "dark" => {
         if (typeof window !== "undefined" && window.matchMedia) {
             return window.matchMedia("(prefers-color-scheme: dark)").matches
