@@ -220,9 +220,9 @@ export default function HomePage() {
               Powered by Retro WFC
                         </h3>
                         <p class="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto transition-colors">
-              Connect to dedicated Retro WFC servers provided by the WiiLink
-              Team for stable online racing. No Wiimmfi patching required - just
-              install and race with players worldwide.
+              Connect to dedicated Retro WFC servers for stable online racing.
+              No Wiimmfi patching required - just install and race with players
+              worldwide.
                         </p>
                     </div>
                 </div>
