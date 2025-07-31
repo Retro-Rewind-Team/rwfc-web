@@ -1,4 +1,41 @@
+import { createSignal } from "solid-js";
+
 export default function ContactPage() {
+    const [isDonationModalOpen, setIsDonationModalOpen] = createSignal(false);
+
+    const donationLinks = [
+        {
+            name: "ZPL",
+            role: "Head of Retro Rewind/Pack Developer",
+            url: "https://ko-fi.com/zpl__",
+            color: "bg-blue-600 hover:bg-blue-700",
+        },
+        {
+            name: "Renverse",
+            role: "Host of Retro WFC Server",
+            url: "https://streamlabs.com/renverse64/tip",
+            color: "bg-purple-600 hover:bg-purple-700",
+        },
+        {
+            name: "Lami",
+            role: "Retro WFC/Bot Developer",
+            url: "https://ko-fi.com/lilousky",
+            color: "bg-green-600 hover:bg-green-700",
+        },
+        {
+            name: "Ppeb",
+            role: "Retro WFC Developer/Status Page/Bot Developer",
+            url: "https://ko-fi.com/ppebb",
+            color: "bg-orange-600 hover:bg-orange-700",
+        },
+        {
+            name: "Wheelwizard Team",
+            role: "Wheelwizard Developers",
+            url: "https://ko-fi.com/wheelwizard",
+            color: "bg-indigo-600 hover:bg-indigo-700",
+        },
+    ];
+
     return (
         <div class="max-w-4xl mx-auto space-y-8">
             {/* Header */}
@@ -147,8 +184,11 @@ export default function ContactPage() {
               helping other players
                         </p>
                         <div class="space-y-3">
-                            <button class="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-medium py-3 px-4 rounded transition-colors">
-                Donate
+                            <button
+                                onClick={() => setIsDonationModalOpen(true)}
+                                class="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-medium py-3 px-4 rounded transition-colors"
+                            >
+                Support the Team
                             </button>
                             <a
                                 href="https://wiki.tockdom.com/wiki/Retro_Rewind"
@@ -202,6 +242,76 @@ export default function ContactPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Donation Modal */}
+            {isDonationModalOpen() && (
+                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        {/* Header */}
+                        <div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+                            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                Support the Retro Rewind Team
+                            </h3>
+                            <button
+                                onClick={() => setIsDonationModalOpen(false)}
+                                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                            >
+                                <svg
+                                    class="w-6 h-6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width={2}
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div class="p-6">
+                            <p class="text-gray-600 dark:text-gray-300 mb-6 text-center">
+                Choose who you'd like to support. Each team member contributes
+                to making Retro Rewind amazing!
+                            </p>
+
+                            <div class="space-y-4">
+                                {donationLinks.map((person) => (
+                                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                        <div>
+                                            <h4 class="font-semibold text-gray-900 dark:text-white">
+                                                {person.name}
+                                            </h4>
+                                            <p class="text-sm text-gray-600 dark:text-gray-300">
+                                                {person.role}
+                                            </p>
+                                        </div>
+                                        <a
+                                            href={person.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class={`${person.color} text-white px-4 py-2 rounded font-medium transition-colors`}
+                                        >
+                      Donate
+                                        </a>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div class="mt-6 text-center">
+                                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  💝 Every contribution helps keep Retro Rewind running and
+                  improving!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
