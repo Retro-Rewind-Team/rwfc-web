@@ -8,6 +8,8 @@ namespace RetroRewindWebsite.Services.External
         private readonly HttpClient _httpClient;
         private readonly ILogger<RetroWFCApiClient> _logger;
         private const string ApiUrl = "http://rwfc.net/api/groups";
+        private List<Group>? _cachedResponse;
+        private DateTime _cachedTimestamp = DateTime.MinValue;
 
         public RetroWFCApiClient(HttpClient httpClient, ILogger<RetroWFCApiClient> logger)
         {
@@ -19,6 +21,12 @@ namespace RetroRewindWebsite.Services.External
         {
             try
             {
+                if (_cachedResponse != null && _cachedTimestamp - DateTime.Now < new TimeSpan(0, minutes: 1, 0))
+                {
+                    _logger.LogDebug("Returning cached groups ({}) from Retro WFC API", _cachedTimestamp);
+                    return _cachedResponse;
+                }
+
                 _logger.LogDebug("Fetching active groups from Retro WFC API");
 
                 var response = await _httpClient.GetStringAsync(ApiUrl);
@@ -31,6 +39,8 @@ namespace RetroRewindWebsite.Services.External
                 }
 
                 _logger.LogDebug("Successfully fetched {GroupCount} groups from API", groups.Count);
+                _cachedResponse = groups;
+                _cachedTimestamp = DateTime.Now;
                 return groups;
             }
             catch (HttpRequestException ex)

@@ -147,6 +147,7 @@ builder.Services.AddScoped<ILeaderboardBackgroundService, LeaderboardBackgroundS
 
 // Register application services
 builder.Services.AddScoped<ILeaderboardManager, LeaderboardManager>();
+builder.Services.AddScoped<IGroupsExManager, GroupsExManager>();
 
 // Register health checks
 builder.Services.AddScoped<IHealthCheck, ExternalApiHealthCheck>();
