@@ -103,7 +103,7 @@ export default function TutorialsPage() {
                             rel="noopener noreferrer"
                             class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
                         >
-              Watch Video's
+              Watch Videos
                         </a>
                     </div>
                 </div>
