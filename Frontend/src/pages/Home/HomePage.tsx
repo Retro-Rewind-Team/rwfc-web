@@ -12,9 +12,9 @@ export default function HomePage() {
     }));
 
     return (
-        <div class="space-y-16">
+        <div class="space-y-12">
             {/* Hero Section */}
-            <section class="text-center py-16">
+            <section class="text-center py-12">
                 <div class="max-w-4xl mx-auto">
                     <h1 class="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 transition-colors">
             Welcome to{" "}
@@ -71,8 +71,8 @@ export default function HomePage() {
             </section>
 
             {/* Features Section */}
-            <section class="py-16">
-                <div class="text-center mb-12">
+            <section class="py-8">
+                <div class="text-center mb-8">
                     <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4 transition-colors">
             Everything You Need for Mario Kart Wii
                     </h2>
@@ -82,7 +82,7 @@ export default function HomePage() {
                     </p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/* VR Leaderboard */}
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg hover:shadow-xl dark:shadow-gray-900/20 p-6 transition-all">
                         <div class="text-4xl mb-4">🏆</div>
@@ -90,8 +90,8 @@ export default function HomePage() {
               VR Leaderboard
                         </h3>
                         <p class="text-gray-600 dark:text-gray-300 mb-4 transition-colors">
-              Track worldwide rankings and see who's dominating the Retro WFC
-              servers with up to 30,000 VR.
+              Track rankings and see who's dominating the Retro WFC servers with
+              up to 30,000 VR.
                         </p>
                         <A
                             href="/vr"
@@ -184,52 +184,68 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* About Section */}
-            <section class="py-16 bg-gray-50 dark:bg-gray-800/50 rounded-2xl transition-colors">
-                <div class="max-w-4xl mx-auto text-center px-6">
-                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6 transition-colors">
+            {/* About Section - Redesigned */}
+            <section class="py-8">
+                <div class="max-w-5xl mx-auto">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center transition-colors">
             About Retro Rewind
                     </h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-                        <div>
-                            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-                What is Retro Rewind?
-                            </h3>
-                            <p class="text-gray-600 dark:text-gray-300 transition-colors">
-                Retro Rewind is a custom track distribution created by ZPL that
-                features every retro track from Super Mario Kart to Mario Kart
-                7, plus tracks from Mario Kart 8, Tour, and Arcade GP. It uses
-                the Pulsar engine and connects to Retro WFC servers for online
-                play.
-                            </p>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800 transition-colors">
+                            <div class="flex items-start space-x-4">
+                                <div class="text-4xl flex-shrink-0">🎮</div>
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    What is Retro Rewind?
+                                    </h3>
+                                    <p class="text-gray-700 dark:text-gray-300 transition-colors">
+                    A custom track distribution by ZPL featuring every retro
+                    track from Super Mario Kart to Mario Kart 7, plus tracks
+                    from Mario Kart 8, Tour, and Arcade GP. Built on the Pulsar
+                    engine and connected to Retro WFC servers.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-                Advanced Features
-                            </h3>
-                            <p class="text-gray-600 dark:text-gray-300 transition-colors">
-                Experience 200cc and 500cc modes, brake drifting, ultra
-                mini-turbos, draggable blue shells, and advanced features like
-                Discord Rich Presence, input viewer, and customizable game modes
-                including Knockout Mode and Item Rain.
-                            </p>
+
+                        <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800 transition-colors">
+                            <div class="flex items-start space-x-4">
+                                <div class="text-4xl flex-shrink-0">⚡</div>
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    Advanced Features
+                                    </h3>
+                                    <p class="text-gray-700 dark:text-gray-300 transition-colors">
+                    Experience 200cc and 500cc modes, brake drifting, ultra
+                    mini-turbos, draggable blue shells, and custom modes like
+                    Knockout Mode and Item Rain.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="mt-8">
-                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-              Powered by Retro WFC
-                        </h3>
-                        <p class="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto transition-colors">
-              Connect to dedicated Retro WFC servers for stable online racing.
-              No Wiimmfi patching required - just install and race with players
-              worldwide.
-                        </p>
+
+                    <div class="bg-gradient-to-r from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-800/20 rounded-xl p-6 border border-green-200 dark:border-green-800 transition-colors">
+                        <div class="flex items-start space-x-4">
+                            <div class="text-4xl flex-shrink-0">🌐</div>
+                            <div class="flex-1">
+                                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  Powered by Retro WFC
+                                </h3>
+                                <p class="text-gray-700 dark:text-gray-300 transition-colors">
+                  Connect to dedicated Retro WFC servers for stable online
+                  racing with players worldwide. No Wiimmfi patching required -
+                  just install and race.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
 
             {/* Footer CTA */}
-            <section class="py-16 text-center">
+            <section class="py-8 text-center">
                 <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
                     <h2 class="text-3xl font-bold mb-4">Ready to Race?</h2>
                     <p class="text-xl mb-6 text-blue-100">
@@ -238,15 +254,9 @@ export default function HomePage() {
                     </p>
                     <A
                         href="/downloads"
-                        class="bg-white text-blue-600 hover:bg-gray-100 font-semibold py-3 px-8 rounded-lg transition-colors mr-4"
+                        class="bg-white text-blue-600 hover:bg-gray-100 font-semibold py-3 px-8 rounded-lg transition-colors inline-block"
                     >
             Download Now
-                    </A>
-                    <A
-                        href="/vr"
-                        class="bg-transparent border-2 border-white text-white hover:bg-white hover:text-blue-600 font-semibold py-3 px-8 rounded-lg transition-colors"
-                    >
-            View Leaderboard
                     </A>
                 </div>
             </section>

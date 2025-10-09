@@ -163,7 +163,8 @@ export default function DownloadsPage() {
             Track List
                     </h3>
                     <p class="text-gray-600 dark:text-gray-300 mb-4 transition-colors">
-            View all 184 retro tracks and 80 custom tracks included in v6.2.3
+            View all 184 retro tracks, 40 Battle Arenas and 80 custom tracks
+            included in v6.2.3
                     </p>
                     <a
                         href="https://docs.google.com/spreadsheets/d/1FelOidNHL1bqSaKeycZux1eQcDyrosONFC_qWVTYoog/edit?gid=0#gid=0"

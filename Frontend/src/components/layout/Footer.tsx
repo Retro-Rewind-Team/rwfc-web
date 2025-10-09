@@ -85,14 +85,14 @@ export default function Footer() {
                   Downloads
                                 </A>
                             </li>
-                            <li>
-                                <A
-                                    href="/tutorials"
-                                    class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
-                                >
-                  Tutorials
-                                </A>
-                            </li>
+                            <li></li>
+                        </ul>
+                    </div>
+
+                    {/* Support */}
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Support</h3>
+                        <ul class="space-y-2">
                             <li>
                                 <a
                                     href="https://discord.gg/gXYxgayGWx"
@@ -102,21 +102,6 @@ export default function Footer() {
                                 >
                   Discord Server
                                 </a>
-                            </li>
-                        </ul>
-                    </div>
-
-                    {/* Support */}
-                    <div>
-                        <h3 class="text-lg font-semibold mb-4">Support</h3>
-                        <ul class="space-y-2">
-                            <li>
-                                <A
-                                    href="/contact"
-                                    class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
-                                >
-                  Contact Us
-                                </A>
                             </li>
                         </ul>
                     </div>
@@ -131,7 +116,7 @@ export default function Footer() {
                         </div>
                         <div class="flex space-x-6 text-sm">
                             <a
-                                href="https://discord.gg/gXYxgayGWx"
+                                href="/rules"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
