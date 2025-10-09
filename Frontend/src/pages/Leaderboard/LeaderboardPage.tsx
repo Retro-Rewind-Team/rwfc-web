@@ -467,7 +467,6 @@ export default function LeaderboardPage() {
             {/* FAQ Section */}
             <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl shadow-lg p-8 border border-indigo-200 dark:border-indigo-800 transition-colors">
                 <div class="text-center mb-8">
-                    <span class="text-4xl mb-4 block">❓</span>
                     <h3 class="text-3xl font-bold text-gray-900 dark:text-white">
             Frequently Asked Questions
                     </h3>

@@ -10,7 +10,6 @@ import {
     PlayerDetailPage,
     RoomBrowserPage,
     TTLeaderboardPage,
-    TutorialsPage,
 } from "./pages";
 
 const queryClient = new QueryClient({
@@ -47,7 +46,6 @@ function App() {
 
                     {/* Community Pages */}
                     <Route path="/downloads" component={DownloadsPage} />
-                    <Route path="/tutorials" component={TutorialsPage} />
                     <Route path="/contact" component={ContactPage} />
                 </Router>
             </QueryClientProvider>

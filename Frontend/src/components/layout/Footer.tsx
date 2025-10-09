@@ -27,7 +27,7 @@ export default function Footer() {
                                 </svg>
                             </a>
                             <a
-                                href="https://github.com/Retro-Rewind-Team"
+                                href="https://github.com/Retro-Rewind-Team/rwfc-web"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
