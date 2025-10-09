@@ -9,6 +9,7 @@ import {
     LeaderboardPage,
     PlayerDetailPage,
     RoomBrowserPage,
+    RulesPage,
     TTLeaderboardPage,
 } from "./pages";
 
@@ -47,6 +48,7 @@ function App() {
                     {/* Community Pages */}
                     <Route path="/downloads" component={DownloadsPage} />
                     <Route path="/contact" component={ContactPage} />
+                    <Route path="/rules" component={RulesPage} />
                 </Router>
             </QueryClientProvider>
         </ThemeProvider>

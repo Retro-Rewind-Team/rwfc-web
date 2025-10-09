@@ -5,3 +5,4 @@ export { TTLeaderboardPage } from "./TTLeaderboard";
 export { RoomBrowserPage } from "./RoomBrowser";
 export { DownloadsPage } from "./Downloads";
 export { ContactPage } from "./Contact";
+export { RulesPage } from "./Rules";
