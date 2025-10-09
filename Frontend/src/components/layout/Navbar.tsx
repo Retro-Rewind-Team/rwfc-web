@@ -66,13 +66,6 @@ export default function Navbar() {
               Downloads
                         </A>
                         <A
-                            href="/tutorials"
-                            class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                            activeClass="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
-                        >
-              Tutorials
-                        </A>
-                        <A
                             href="/contact"
                             class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                             activeClass="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
@@ -158,15 +151,6 @@ export default function Navbar() {
                             end
                         >
                             <span>Downloads</span>
-                        </A>
-                        <A
-                            href="/tutorials"
-                            class="flex items-center space-x-3 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white dark:hover:bg-gray-600 font-medium py-2 px-4 rounded-lg transition-colors"
-                            activeClass="text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-600"
-                            onClick={() => setIsMenuOpen(false)}
-                            end
-                        >
-                            <span>Tutorials</span>
                         </A>
                         <A
                             href="/contact"
