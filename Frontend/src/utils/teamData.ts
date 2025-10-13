@@ -32,6 +32,20 @@ export const teamData: Record<string, TeamMember[]> = {
             role: "Retro WFC & Bot Developer",
             donation: "https://ko-fi.com/lilousky",
         },
+        {
+            name: "Gab",
+            discord: "4ab",
+            role: "Retro WFC Developer & Tool Developer",
+            image: "/profiles/Gab.png",
+            fc: "3484-8484-8484",
+        },
+        {
+            name: "konekurosawa",
+            discord: "konekurosawa",
+            role: "Retro WFC Developer",
+            image: "/profiles/konekurosawa.png",
+            fc: "2877-6281-0055",
+        },
     ],
     "Team WheelWizard": [
         {
@@ -194,13 +208,6 @@ export const teamData: Record<string, TeamMember[]> = {
             fc: "4646-6664-4446",
         },
         {
-            name: "Gab",
-            discord: "4ab",
-            role: "RWFC Moderator",
-            image: "/profiles/Gab.png",
-            fc: "3484-8484-8484",
-        },
-        {
             name: "BAMM99x",
             discord: "bamm99x",
             role: "RWFC Moderator",
@@ -241,12 +248,6 @@ export const teamData: Record<string, TeamMember[]> = {
             role: "RWFC Moderator",
             image: "/profiles/Flavian.png",
             fc: "1981-7080-7744",
-        },
-        {
-            name: "konekurosawa",
-            discord: "konekurosawa",
-            role: "RWFC Moderator",
-            image: "/profiles/konekurosawa.png",
         },
         {
             name: "Nobu",
@@ -319,13 +320,6 @@ export const teamData: Record<string, TeamMember[]> = {
             fc: "4646-6664-4446",
         },
         {
-            name: "Gab",
-            discord: "4ab",
-            role: "Tool Developer",
-            image: "/profiles/Gab.png",
-            fc: "3484-8484-8484",
-        },
-        {
             name: "Bodacious",
             discord: "bodacious12",
             role: "Mod Pack Developer",
@@ -366,12 +360,6 @@ export const teamData: Record<string, TeamMember[]> = {
             role: "Channel Developer",
             image: "/profiles/jacher.png",
             fc: "4215-0712-7201",
-        },
-        {
-            name: "konekurosawa",
-            discord: "konekurosawa",
-            role: "Developer",
-            image: "/profiles/konekurosawa.png",
         },
         {
             name: "Noël",
