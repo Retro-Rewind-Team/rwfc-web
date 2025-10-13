@@ -35,7 +35,7 @@ export const teamData: Record<string, TeamMember[]> = {
         {
             name: "Gab",
             discord: "4ab",
-            role: "Retro WFC Developer & Tool Developer",
+            role: "Retro WFC Developer",
             image: "/profiles/Gab.png",
             fc: "3484-8484-8484",
         },
@@ -318,6 +318,13 @@ export const teamData: Record<string, TeamMember[]> = {
             role: "Developer",
             image: "/profiles/Eppe.png",
             fc: "4646-6664-4446",
+        },
+        {
+            name: "Gab",
+            discord: "4ab",
+            role: "Tool Developer",
+            image: "/profiles/Gab.png",
+            fc: "3484-8484-8484",
         },
         {
             name: "Bodacious",
