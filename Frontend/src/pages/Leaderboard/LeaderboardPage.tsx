@@ -563,12 +563,6 @@ export default function LeaderboardPage() {
                         >
               Get Started
                         </A>
-                        <A
-                            href="/tutorials"
-                            class="bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-8 rounded-lg border border-white/30 transition-all"
-                        >
-              Learn More
-                        </A>
                     </div>
                 </div>
             </section>
