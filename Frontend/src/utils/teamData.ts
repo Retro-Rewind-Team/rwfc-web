@@ -31,6 +31,7 @@ export const teamData: Record<string, TeamMember[]> = {
             discord: "lamilemmy",
             role: "Retro WFC & Bot Developer",
             donation: "https://ko-fi.com/lilousky",
+            image: "/profiles/lami.png",
         },
         {
             name: "Gab",
@@ -71,7 +72,7 @@ export const teamData: Record<string, TeamMember[]> = {
         {
             name: "matellush",
             discord: "matellush",
-            role: "Placeholder role",
+            role: "WheelWizard Developer",
             image: "/profiles/matellush.png",
         },
     ],
@@ -413,12 +414,25 @@ export const teamData: Record<string, TeamMember[]> = {
             image: "/profiles/Rambo.png",
             fc: "0000-0080-0580",
         },
+        {
+            name: "Toadette Hack Fan",
+            discord: "toadettehackfan",
+            role: "Developer",
+            image: "/profiles/THF.png",
+            fc: "0000-0007-0426",
+        },
+        {
+            name: "Optllizer",
+            discord: "optllizer",
+            role: "Developer",
+            image: "/profiles/optllizer.png",
+        },
     ],
     Translators: [
         {
             name: "Eppe",
             discord: ".eppe.",
-            role: "Translation Leader",
+            role: "Translation Leader & French Translator",
             image: "/profiles/Eppe.png",
             fc: "4646-6664-4446",
         },
@@ -434,11 +448,12 @@ export const teamData: Record<string, TeamMember[]> = {
             discord: "bigpenguwin",
             role: "Czech Translator",
             image: "/profiles/pattyrix.png",
+            fc: "1638-1020-7535",
         },
         {
-            name: "Lumi",
+            name: "clavey",
             discord: "claveybun",
-            role: "Translator",
+            role: "Finnish Translator",
             image: "/profiles/lumi.png",
             fc: "2325-3086-1009",
         },
@@ -465,7 +480,7 @@ export const teamData: Record<string, TeamMember[]> = {
         {
             name: "Sep",
             discord: "ihavetheories",
-            role: "Translator",
+            role: "Italian Translator",
             image: "/profiles/SEP.png",
             fc: "3444-1000-2882",
         },
@@ -518,25 +533,25 @@ export const teamData: Record<string, TeamMember[]> = {
         {
             name: "OrangeCake_",
             discord: "notorangecake",
-            role: "Translator",
+            role: "Russian Translator",
             image: "/profiles/OrangeCake_.png",
         },
         {
             name: "Sinegia",
             discord: "sinseiga",
-            role: "Translator",
+            role: "Korean Translator",
             image: "/profiles/Sinegia.png",
         },
         {
             name: "StationAlpha",
             discord: "stationalpha",
-            role: "Translator",
+            role: "Korean Translator",
             image: "/profiles/StationAlpha.png",
         },
         {
             name: "StHydrated",
             discord: "sthydrated",
-            role: "Translator",
+            role: "Russian Translator",
             image: "/profiles/StHydrated.png",
         },
         {
@@ -563,7 +578,7 @@ export const teamData: Record<string, TeamMember[]> = {
         {
             name: "yawshi",
             discord: "yawshi__",
-            role: "Translator",
+            role: "French Translator",
             image: "/profiles/yawshi.png",
             fc: "4988-1688-6126",
         },
@@ -573,6 +588,12 @@ export const teamData: Record<string, TeamMember[]> = {
             role: "🤖",
             image: "/profiles/hine.png",
             fc: "1040-0101-2006",
+        },
+        {
+            name: "Krummers",
+            discord: "krummers",
+            role: "Dutch Translator",
+            image: "/profiles/krummers.png",
         },
     ],
     "Mogi Staff": [
@@ -617,12 +638,6 @@ export const teamData: Record<string, TeamMember[]> = {
             role: "Mogi Staff",
             image: "/profiles/Eggzact.png",
             fc: "2243-2234-2234",
-        },
-        {
-            name: "爽",
-            discord: "ihpy",
-            role: "Mogi Staff",
-            image: "/profiles/ihpy.png",
         },
         {
             name: "Zap",
@@ -705,7 +720,7 @@ export const teamData: Record<string, TeamMember[]> = {
         },
         {
             name: "Luna<3",
-            discord: "mafa47",
+            discord: "luna_47216",
             role: "Mogi Updater",
             image: "/profiles/mafa.png",
             fc: "1202-5913-6469",
