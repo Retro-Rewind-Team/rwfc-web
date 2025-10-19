@@ -308,7 +308,7 @@ export default function RulesPage() {
               Discord by creating a ticket.
                         </p>
                         <a
-                            href="https://discord.gg/gXYxgayGWx"
+                            href="https://discord.gg/retrorewind"
                             target="_blank"
                             rel="noopener noreferrer"
                             class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded transition-colors inline-flex items-center"

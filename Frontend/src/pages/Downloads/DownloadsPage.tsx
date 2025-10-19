@@ -268,7 +268,7 @@ export default function DownloadsPage() {
                         </p>
                         <div class="flex flex-col sm:flex-row gap-3">
                             <a
-                                href="https://discord.gg/gXYxgayGWx"
+                                href="https://discord.gg/retrorewind"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors inline-flex items-center"

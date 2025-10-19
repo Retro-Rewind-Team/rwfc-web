@@ -16,7 +16,7 @@ export default function Footer() {
                         </p>
                         <div class="flex space-x-4">
                             <a
-                                href="https://discord.gg/gXYxgayGWx"
+                                href="https://discord.gg/retrorewind"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
@@ -95,7 +95,7 @@ export default function Footer() {
                         <ul class="space-y-2">
                             <li>
                                 <a
-                                    href="https://discord.gg/gXYxgayGWx"
+                                    href="https://discord.gg/retrorewind"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
