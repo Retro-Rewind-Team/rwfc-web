@@ -282,19 +282,6 @@ export default function TeamPage() {
                     </section>
                 )}
             </For>
-
-            {/* Thank You Section with enhanced gradient */}
-            <div class="relative rounded-2xl p-10 text-white text-center mt-12 overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                <div class="relative max-w-2xl mx-auto">
-                    <h2 class="text-4xl font-bold mb-4">Thank You!</h2>
-                    <p class="text-xl text-blue-50">
-            To everyone who contributes to making Retro Rewind an amazing
-            experience for the community
-                    </p>
-                </div>
-            </div>
         </div>
     );
 }
