@@ -263,6 +263,37 @@ export default function RulesPage() {
                 </p>
             </div>
 
+            {/* Discord Enforcement Section */}
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/20 p-6 transition-colors">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 transition-colors">
+          Discord Enforcement
+                </h2>
+
+                <p class="text-gray-600 dark:text-gray-300 transition-colors">
+          In rare cases, rule violations on Retro WFC may result in sanctions on
+          the Discord server of the distribution where the violation occurred.
+          Enforcement on Discord is at the sole discretion of that
+          distribution's moderation team. In extreme situations, serious
+          violations on a distribution's Discord server may also lead to
+          corresponding action on Retro WFC.
+                </p>
+            </div>
+
+            {/* Competitive Integrity Section */}
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/20 p-6 transition-colors">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 transition-colors">
+          Competitive Integrity
+                </h2>
+
+                <p class="text-gray-600 dark:text-gray-300 transition-colors">
+          To avoid disrupting competitive leagues on Retro WFC, staff will
+          generally delay penalties for rule violations that occur during
+          matches until play concludes. However, in severe cases, staff may
+          impose immediate penalties, including temporary removal or bans,
+          during matches.
+                </p>
+            </div>
+
             {/* Appealing Section */}
             <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-6 transition-colors">
                 <div class="flex items-start space-x-3">
