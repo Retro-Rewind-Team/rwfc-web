@@ -145,7 +145,7 @@ export default function TeamPage() {
                                             <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl opacity-0 group-hover:opacity-20 blur transition-all duration-300"></div>
 
                                             {/* Main card */}
-                                            <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl p-6 transition-all duration-300 hover:-translate-y-1 border border-gray-200 dark:border-gray-700">
+                                            <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl p-6 transition-all duration-300 hover:-translate-y-1 border border-gray-200 dark:border-gray-700 h-full flex flex-col">
                                                 {/* Profile Picture with ring */}
                                                 <div class="relative w-24 h-24 mx-auto mb-4">
                                                     <div class="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-spin-slow"></div>
@@ -226,29 +226,31 @@ export default function TeamPage() {
                                                 )}
 
                                                 {/* Donation Link */}
-                                                {member.donation && (
-                                                    <div class="text-center">
-                                                        <a
-                                                            href={member.donation}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            class="group/btn relative inline-flex items-center justify-center w-full text-sm font-semibold px-4 py-2.5 rounded-lg transition-all overflow-hidden"
-                                                        >
-                                                            <div class="absolute inset-0 bg-gradient-to-r from-pink-500 to-rose-500 transition-transform group-hover/btn:scale-105"></div>
-                                                            <div class="absolute inset-0 bg-gradient-to-r from-pink-400 to-rose-400 opacity-0 group-hover/btn:opacity-100 transition-opacity"></div>
-                                                            <svg
-                                                                class="w-4 h-4 mr-2 relative z-10 text-white"
-                                                                fill="currentColor"
-                                                                viewBox="0 0 24 24"
+                                                <div class="mt-auto">
+                                                    {member.donation && (
+                                                        <div class="text-center">
+                                                            <a
+                                                                href={member.donation}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                class="group/btn relative inline-flex items-center justify-center w-full text-sm font-semibold px-4 py-2.5 rounded-lg transition-all overflow-hidden"
                                                             >
-                                                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                                                            </svg>
-                                                            <span class="relative z-10 text-white">
-                                Support
-                                                            </span>
-                                                        </a>
-                                                    </div>
-                                                )}
+                                                                <div class="absolute inset-0 bg-gradient-to-r from-pink-500 to-rose-500 transition-transform group-hover/btn:scale-105"></div>
+                                                                <div class="absolute inset-0 bg-gradient-to-r from-pink-400 to-rose-400 opacity-0 group-hover/btn:opacity-100 transition-opacity"></div>
+                                                                <svg
+                                                                    class="w-4 h-4 mr-2 relative z-10 text-white"
+                                                                    fill="currentColor"
+                                                                    viewBox="0 0 24 24"
+                                                                >
+                                                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                                                                </svg>
+                                                                <span class="relative z-10 text-white">
+                                  Support
+                                                                </span>
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     );
@@ -280,6 +282,19 @@ export default function TeamPage() {
                     </section>
                 )}
             </For>
+
+            {/* Thank You Section with enhanced gradient */}
+            <div class="relative rounded-2xl p-10 text-white text-center mt-12 overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                <div class="relative max-w-2xl mx-auto">
+                    <h2 class="text-4xl font-bold mb-4">Thank You!</h2>
+                    <p class="text-xl text-blue-50">
+            To everyone who contributes to making Retro Rewind an amazing
+            experience for the community
+                    </p>
+                </div>
+            </div>
         </div>
     );
 }

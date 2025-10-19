@@ -3,7 +3,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
 import { ThemeProvider } from "./stores/theme";
 import Layout from "./components/layout/Layout";
 import {
-    ContactPage,
     DownloadsPage,
     HomePage,
     LeaderboardPage,
@@ -48,7 +47,6 @@ function App() {
 
                     {/* Community Pages */}
                     <Route path="/downloads" component={DownloadsPage} />
-                    <Route path="/contact" component={ContactPage} />
                     <Route path="/rules" component={RulesPage} />
                     <Route path="/team" component={TeamPage} />
                 </Router>
