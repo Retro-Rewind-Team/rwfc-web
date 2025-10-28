@@ -121,7 +121,7 @@ export const teamData: Record<string, TeamMember[]> = {
             image: "/profiles/ppeb.png",
         },
         {
-            name: "Qsahab",
+            name: "QSahab",
             discord: "qsahab",
             role: "Discord Administrator",
             image: "/profiles/Qsahab.png",
@@ -279,7 +279,7 @@ export const teamData: Record<string, TeamMember[]> = {
             fc: "1809-9079-5136",
         },
         {
-            name: "Qsahab",
+            name: "QSahab",
             discord: "qsahab",
             role: "RWFC Moderator",
             image: "/profiles/Qsahab.png",
@@ -344,7 +344,7 @@ export const teamData: Record<string, TeamMember[]> = {
         {
             name: "Dynohack",
             discord: "dynohack",
-            role: "Bot Developer",
+            role: "RetroReader Developer",
             image: "/profiles/Dynohack.png",
             fc: "0001-0000-0011",
         },
@@ -607,7 +607,7 @@ export const teamData: Record<string, TeamMember[]> = {
         {
             name: "Roshi",
             discord: "bcwii",
-            role: "Mogi Staff",
+            role: "Mogi Staff & BDead Developer",
             image: "/profiles/Roshi.png",
             fc: "2277-7727-2227",
         },
