@@ -117,8 +117,6 @@ export default function Footer() {
                         <div class="flex space-x-6 text-sm">
                             <a
                                 href="/rules"
-                                target="_blank"
-                                rel="noopener noreferrer"
                                 class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
                             >
                 Community Guidelines
