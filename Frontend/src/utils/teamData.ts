@@ -596,6 +596,52 @@ export const teamData: Record<string, TeamMember[]> = {
             image: "/profiles/krummers.png",
         },
     ],
+    "BKT Updaters": [
+        {
+            name: "Eppe",
+            discord: ".eppe.",
+            role: "BKT Updater",
+            image: "/profiles/Eppe.png",
+            fc: "4646-6664-4446",
+        },
+        {
+            name: "Evy",
+            discord: "evy",
+            role: "BKT Updater",
+            image: "/profiles/evy.png",
+        },
+        {
+            name: "Fury",
+            discord: "forevrrfury",
+            role: "BKT Updater",
+            image: "/profiles/fury.png",
+        },
+        {
+            name: "justin",
+            discord: "jus2k",
+            role: "BKT Updater",
+            image: "/profiles/justin.png",
+        },
+        {
+            name: "Karson",
+            discord: "karsonwha",
+            role: "BKT Updater",
+            image: "/profiles/karson.png",
+        },
+        {
+            name: "penrosecat",
+            discord: "penrosecat",
+            role: "BKT Updater",
+            image: "/profiles/penrosecat.png",
+            fc: "2061-5844-4775",
+        },
+        {
+            name: "Shubs",
+            discord: "shubs",
+            role: "BKT Updater",
+            image: "/profiles/shubs.png",
+        },
+    ],
     "Mogi Staff": [
         {
             name: "Gab",
@@ -624,13 +670,6 @@ export const teamData: Record<string, TeamMember[]> = {
             role: "Mogi Staff",
             image: "/profiles/DARKCHAOS.png",
             fc: "1251-5641-0479",
-        },
-        {
-            name: "Dunx724",
-            discord: "dunx724",
-            role: "Mogi Staff",
-            image: "/profiles/Dunx.png",
-            fc: "2319-2823-4796",
         },
         {
             name: "Eggzact",
@@ -778,6 +817,13 @@ export const teamData: Record<string, TeamMember[]> = {
             role: "Mogi Updater",
             image: "/profiles/noel.png",
             fc: "3316-1616-1616",
+        },
+        {
+            name: "rafituki",
+            discord: "numberart110637",
+            role: "Mogi Updater",
+            image: "/profiles/rafituki.png",
+            fc: "2454-1391-4604",
         },
     ],
 };

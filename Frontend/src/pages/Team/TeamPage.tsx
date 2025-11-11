@@ -54,6 +54,11 @@ const sectionColors: Record<string, { color: string; accent: string; shadowColor
         accent: "border-violet-500",
         shadowColor: "124, 58, 237", // violet-600 RGB
     },
+    "BKT Updaters": {
+        color: "text-pink-600 dark:text-pink-400",
+        accent: "border-pink-500",
+        shadowColor: "219, 39, 119", // pink-600 RGB
+    },
     "Mogi Staff": {
         color: "text-pink-600 dark:text-pink-400",
         accent: "border-pink-500",
