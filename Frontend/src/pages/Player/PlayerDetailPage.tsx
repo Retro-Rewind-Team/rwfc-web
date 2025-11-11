@@ -40,11 +40,11 @@ export default function PlayerDetailPage() {
 
             {/* Loading State */}
             <Show when={playerQuery.isLoading}>
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
                     <div class="flex justify-center items-center py-12">
                         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400"></div>
                         <p class="ml-4 text-gray-600 dark:text-gray-300">
-              Loading player data...
+                            Loading player data...
                         </p>
                     </div>
                 </div>
@@ -55,7 +55,7 @@ export default function PlayerDetailPage() {
                 {(player) => (
                     <div class="space-y-6">
                         {/* Player Header Card */}
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
                             <div class="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
                                 <div class="flex items-center space-x-6">
                                     {/* Mii Image and VR Tier Number Plate */}
@@ -82,12 +82,12 @@ export default function PlayerDetailPage() {
                                             </h1>
                                             <Show when={!player().isActive}>
                                                 <span class="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full text-sm font-medium">
-                          Inactive
+                                                    Inactive
                                                 </span>
                                             </Show>
                                             <Show when={player().isSuspicious}>
                                                 <span class="bg-red-200 dark:bg-red-900 text-red-600 dark:text-red-300 px-3 py-1 rounded-full text-sm font-medium">
-                          ⚠️ Suspicious
+                                                    ⚠️ Suspicious
                                                 </span>
                                             </Show>
                                         </div>
@@ -116,16 +116,16 @@ export default function PlayerDetailPage() {
                                         {player().vr.toLocaleString()}
                                     </div>
                                     <div class="text-lg text-gray-600 dark:text-gray-400 font-medium">
-                    VR
+                                        VR
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* VR Tier Progress Card */}
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
                             <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                🏁 VR Tier Progress
+                                🏁 VR Tier Progress
                             </h2>
                             <VRTierInfo
                                 vr={player().vr}
@@ -136,7 +136,7 @@ export default function PlayerDetailPage() {
 
                         {/* VR Stats Cards */}
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center">
+                            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6 text-center">
                                 <div
                                     class={`text-3xl font-bold mb-2 ${getVRGainClass(player().vrStats.last24Hours)}`}
                                 >
@@ -144,11 +144,11 @@ export default function PlayerDetailPage() {
                                     {player().vrStats.last24Hours}
                                 </div>
                                 <div class="text-gray-600 dark:text-gray-400 font-medium">
-                  Last 24 Hours
+                                    Last 24 Hours
                                 </div>
                             </div>
 
-                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center">
+                            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6 text-center">
                                 <div
                                     class={`text-3xl font-bold mb-2 ${getVRGainClass(player().vrStats.lastWeek)}`}
                                 >
@@ -156,11 +156,11 @@ export default function PlayerDetailPage() {
                                     {player().vrStats.lastWeek}
                                 </div>
                                 <div class="text-gray-600 dark:text-gray-400 font-medium">
-                  Last Week
+                                    Last Week
                                 </div>
                             </div>
 
-                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center">
+                            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6 text-center">
                                 <div
                                     class={`text-3xl font-bold mb-2 ${getVRGainClass(player().vrStats.lastMonth)}`}
                                 >
@@ -168,43 +168,43 @@ export default function PlayerDetailPage() {
                                     {player().vrStats.lastMonth}
                                 </div>
                                 <div class="text-gray-600 dark:text-gray-400 font-medium">
-                  Last Month
+                                    Last Month
                                 </div>
                             </div>
                         </div>
 
                         {/* Player Stats Summary */}
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
                             <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                📊 Player Summary
+                                📊 Player Summary
                             </h2>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                    Rankings
+                                        Rankings
                                     </h3>
                                     <div class="space-y-2">
                                         <div class="flex justify-between">
                                             <span class="text-gray-600 dark:text-gray-400">
-                        Overall Rank:
+                                                Overall Rank:
                                             </span>
                                             <span class="font-medium text-gray-900 dark:text-white">
-                        #{player().rank}
+                                                #{player().rank}
                                             </span>
                                         </div>
                                         <Show when={player().activeRank}>
                                             <div class="flex justify-between">
                                                 <span class="text-gray-600 dark:text-gray-400">
-                          Active Rank:
+                                                    Active Rank:
                                                 </span>
                                                 <span class="font-medium text-gray-900 dark:text-white">
-                          #{player().activeRank}
+                                                    #{player().activeRank}
                                                 </span>
                                             </div>
                                         </Show>
                                         <div class="flex justify-between">
                                             <span class="text-gray-600 dark:text-gray-400">
-                        Current VR:
+                                                Current VR:
                                             </span>
                                             <span class="font-medium text-gray-900 dark:text-white">
                                                 {player().vr.toLocaleString()}
@@ -215,22 +215,22 @@ export default function PlayerDetailPage() {
 
                                 <div>
                                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                    Status
+                                        Status
                                     </h3>
                                     <div class="space-y-2">
                                         <div class="flex justify-between">
                                             <span class="text-gray-600 dark:text-gray-400">
-                        Status:
+                                                Status:
                                             </span>
                                             <span
-                                                class={`font-medium ${player().isActive ? "text-green-600 dark:text-green-400" : "text-gray-600 dark:text-gray-400"}`}
+                                                class={`font-medium ${player().isActive ? "text-emerald-600 dark:text-emerald-400" : "text-gray-600 dark:text-gray-400"}`}
                                             >
                                                 {player().isActive ? "Active" : "Inactive"}
                                             </span>
                                         </div>
                                         <div class="flex justify-between">
                                             <span class="text-gray-600 dark:text-gray-400">
-                        Last Online:
+                                                Last Online:
                                             </span>
                                             <span class="font-medium text-gray-900 dark:text-white">
                                                 {formatLastSeen(player().lastSeen)}
