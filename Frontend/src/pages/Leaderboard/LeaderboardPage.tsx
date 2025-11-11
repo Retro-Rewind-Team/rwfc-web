@@ -224,7 +224,7 @@ export default function LeaderboardPage() {
             <Show when={leaderboardQuery.data && !leaderboardQuery.isLoading}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
                     <div class="overflow-x-auto">
-                        <table class="w-full">
+                        <table class="w-full table-fixed">
                             <thead class="bg-blue-600 text-white">
                                 <tr>
                                     <th
@@ -238,7 +238,7 @@ export default function LeaderboardPage() {
                                             </Show>
                                         </div>
                                     </th>
-                                    <th class="px-6 py-4 text-left font-bold">User</th>
+                                    <th class="px-6 py-4 text-center font-bold">User</th>
                                     <th
                                         class="px-6 py-4 text-center cursor-pointer hover:bg-blue-700 transition-colors"
                                         onClick={() => handleSort("vr")}
@@ -335,38 +335,48 @@ export default function LeaderboardPage() {
                                                 </td>
 
                                                 <td class="px-6 py-4">
-                                                    <div class="flex items-center space-x-3">
-                                                        {/* Mii Image */}
-                                                        <MiiComponent
-                                                            playerName={player.name}
-                                                            friendCode={player.friendCode}
-                                                            size="md"
-                                                            className="flex-shrink-0"
-                                                            lazy={true}
-                                                        />
+                                                    <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-3">
+                                                        <A
+                                                            href={`/player/${player.friendCode}`}
+                                                            class="flex-shrink-0 mx-auto sm:mx-0"
+                                                        >
+                                                            <MiiComponent
+                                                                playerName={player.name}
+                                                                friendCode={player.friendCode}
+                                                                size="md"
+                                                                lazy={true}
+                                                            />
+                                                        </A>
 
                                                         {/* Player Info */}
-                                                        <div class="min-w-0 flex-1">
+                                                        <div class="min-w-0 flex-1 text-center sm:text-left mt-2 sm:mt-0">
                                                             <A
                                                                 href={`/player/${player.friendCode}`}
-                                                                class="font-bold text-lg text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-400 transition-colors truncate block"
+                                                                class="
+        block font-bold text-lg text-gray-900 dark:text-white
+        hover:text-red-600 dark:hover:text-red-400 transition-colors
+        break-words
+      "
                                                             >
                                                                 {player.name}
                                                             </A>
-                                                            <div class="flex space-x-2 mt-1">
+
+                                                            {/* Status labels hidden on mobile */}
+                                                            <div class="hidden sm:flex space-x-2 mt-1">
                                                                 <Show when={!player.isActive}>
                                                                     <span class="text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full font-medium">
-                                                                        Inactive
+          Inactive
                                                                     </span>
                                                                 </Show>
                                                                 <Show when={player.isSuspicious}>
                                                                     <span class="text-xs bg-red-200 dark:bg-red-800 text-red-600 dark:text-red-400 px-2 py-1 rounded-full font-medium">
-                                                                        ⚠️ Suspicious
+          ⚠️ Suspicious
                                                                     </span>
                                                                 </Show>
                                                             </div>
                                                         </div>
                                                     </div>
+
                                                 </td>
 
                                                 <td class="px-6 py-4 text-center">
@@ -423,41 +433,39 @@ export default function LeaderboardPage() {
 
                     {/* Pagination */}
                     <Show when={leaderboardQuery.data!.totalPages > 1}>
-                        <div class="bg-gray-50 dark:bg-gray-700 px-6 py-4 flex items-center justify-between border-t-2 border-gray-200 dark:border-gray-600">
-                            <div class="flex items-center space-x-3">
+                        <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t-2 border-gray-200 dark:border-gray-600 gap-2 sm:gap-0">
+                            {/* Buttons */}
+                            <div class="flex items-center justify-center sm:justify-start gap-2">
                                 <button
                                     onClick={() => setCurrentPage(Math.max(1, currentPage() - 1))}
                                     disabled={currentPage() === 1}
                                     class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    ← Previous
+      ← Previous
                                 </button>
-                                <span class="px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg font-medium border-2 border-gray-200 dark:border-gray-600">
-                                    Page {currentPage()} of {leaderboardQuery.data!.totalPages}
+                                <span class="px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg font-medium border-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
+      Page {currentPage()} of {leaderboardQuery.data!.totalPages}
                                 </span>
                                 <button
                                     onClick={() =>
                                         setCurrentPage(
                                             Math.min(
-                                                leaderboardQuery.data!.totalPages,
-                                                currentPage() + 1
+            leaderboardQuery.data!.totalPages,
+            currentPage() + 1
                                             )
                                         )
                                     }
                                     disabled={currentPage() === leaderboardQuery.data!.totalPages}
                                     class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    Next →
+      Next →
                                 </button>
                             </div>
 
-                            <div class="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                                Showing {(currentPage() - 1) * pageSize() + 1} -{" "}
-                                {Math.min(
-                                    currentPage() * pageSize(),
-                                    leaderboardQuery.data!.totalCount
-                                )}{" "}
-                                of {leaderboardQuery.data!.totalCount} racers
+                            {/* Showing count */}
+                            <div class="text-sm text-gray-600 dark:text-gray-400 font-medium text-center sm:text-right">
+    Showing {(currentPage() - 1) * pageSize() + 1} –{" "}
+                                {Math.min(currentPage() * pageSize(), leaderboardQuery.data!.totalCount)} of {leaderboardQuery.data!.totalCount} racers
                             </div>
                         </div>
                     </Show>
