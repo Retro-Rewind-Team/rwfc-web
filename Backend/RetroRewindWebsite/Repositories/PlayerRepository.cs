@@ -335,6 +335,7 @@ namespace RetroRewindWebsite.Repositories
         {
             _context.Players.UpdateRange(players);
             await _context.SaveChangesAsync();
+            _context.ChangeTracker.Clear();
         }
 
         public async Task UpdatePlayerActivityStatusAsync(DateTime cutoffDate)

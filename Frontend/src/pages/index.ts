@@ -6,3 +6,4 @@ export { RoomBrowserPage } from "./RoomBrowser";
 export { DownloadsPage } from "./Downloads";
 export { RulesPage } from "./Rules";
 export { TeamPage } from "./Team";
+export { NotFoundPage } from "./NotFound";

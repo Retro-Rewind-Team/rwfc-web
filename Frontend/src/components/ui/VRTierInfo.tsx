@@ -47,7 +47,7 @@ export default function VRTierInfo(props: Readonly<VRTierInfoProps>) {
             return "bg-gradient-to-r from-blue-500 to-blue-700";
         case "beginner":
             return "bg-gradient-to-r from-gray-400 to-gray-600";
-        case "mythic":
+        case "suspicious":
             return "bg-gradient-to-r from-red-500 to-red-700";
         default:
             return "bg-gradient-to-r from-blue-500 to-purple-600";

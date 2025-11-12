@@ -65,11 +65,13 @@ export const leaderboardApi = {
 
     async getPlayerHistory(
         friendCode: string,
-        days = 30
+        days: number | null = 30
     ): Promise<VRHistoryResponse> {
-        return apiRequest<VRHistoryResponse>(
-            `/leaderboard/player/${friendCode}/history?days=${days}`
-        );
+        // If days is null, don't include the parameter (for lifetime)
+        const url = days === null 
+            ? `/leaderboard/player/${friendCode}/history`
+            : `/leaderboard/player/${friendCode}/history?days=${days}`;
+        return apiRequest<VRHistoryResponse>(url);
     },
 
     async getPlayerRecentHistory(

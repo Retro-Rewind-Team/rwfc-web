@@ -59,7 +59,7 @@ namespace RetroRewindWebsite.Services.Background
 
                 // Check if it's time for maintenance tasks
                 var now = DateTime.UtcNow;
-                if (now.Hour == 0 && now.Minute == 0)
+                if (now.Hour == 11 && now.Minute == 0)
                 {
                     _logger.LogInformation("Performing daily maintenance tasks");
 
@@ -97,12 +97,6 @@ namespace RetroRewindWebsite.Services.Background
             if (maintenanceService != null)
             {
                 await maintenanceService.UpdateAllPlayerVRGainsAsync();
-
-                // Clean up old VR history on Sundays
-                if (DateTime.UtcNow.DayOfWeek == DayOfWeek.Sunday)
-                {
-                    await maintenanceService.CleanupOldVRHistoryAsync();
-                }
             }
         }
 
