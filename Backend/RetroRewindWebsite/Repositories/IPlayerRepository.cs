@@ -30,5 +30,8 @@ namespace RetroRewindWebsite.Repositories
         Task UpdatePlayerActivityStatusAsync(DateTime cutoffDate);
 
         Task<List<PlayerEntity>> GetPlayersByFriendCodesAsync(List<string> friendCodes);
+
+        Task<List<string>> GetPlayerPidsBatchAsync(int skip, int take);
+        Task UpdatePlayerVRGainsBatchAsync(Dictionary<string, (int gain24h, int gain7d, int gain30d)> vrGains);
     }
 }

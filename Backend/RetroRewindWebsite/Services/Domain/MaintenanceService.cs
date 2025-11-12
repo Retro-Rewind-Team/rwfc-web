@@ -24,45 +24,49 @@ namespace RetroRewindWebsite.Services.Domain
 
             try
             {
-                var batchSize = 50;
+                var batchSize = 100;
                 var skip = 0;
                 var totalProcessed = 0;
 
                 while (true)
                 {
-                    var playersBatch = await _playerRepository.GetPlayersBatchAsync(skip, batchSize);
+                    // Get just the PIDs, not full entities
+                    var playerPids = await _playerRepository.GetPlayerPidsBatchAsync(skip, batchSize);
 
-                    if (playersBatch.Count == 0)
-                        break; // No more players to process
+                    if (playerPids.Count == 0)
+                        break;
 
-                    _logger.LogDebug("Processing batch starting at {Skip}, {Count} players", skip, playersBatch.Count);
+                    _logger.LogDebug("Processing batch starting at {Skip}, {Count} players", skip, playerPids.Count);
 
-                    foreach (var player in playersBatch)
+                    // Calculate VR gains for all players in this batch
+                    var vrGainsBatch = new Dictionary<string, (int gain24h, int gain7d, int gain30d)>();
+
+                    foreach (var pid in playerPids)
                     {
                         try
                         {
-                            // Calculate VR gains for different time periods
-                            player.VRGainLast24Hours = await _vrHistoryRepository.CalculateVRGainAsync(
-                                player.Pid, TimeSpan.FromDays(1));
-                            player.VRGainLastWeek = await _vrHistoryRepository.CalculateVRGainAsync(
-                                player.Pid, TimeSpan.FromDays(7));
-                            player.VRGainLastMonth = await _vrHistoryRepository.CalculateVRGainAsync(
-                                player.Pid, TimeSpan.FromDays(30));
+                            var gain24h = await _vrHistoryRepository.CalculateVRGainAsync(pid, TimeSpan.FromDays(1));
+                            var gain7d = await _vrHistoryRepository.CalculateVRGainAsync(pid, TimeSpan.FromDays(7));
+                            var gain30d = await _vrHistoryRepository.CalculateVRGainAsync(pid, TimeSpan.FromDays(30));
+
+                            vrGainsBatch[pid] = (gain24h, gain7d, gain30d);
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning(ex, "Error calculating VR gains for player {PlayerName} ({Pid})",
-                                player.Name, player.Pid);
+                            _logger.LogWarning(ex, "Error calculating VR gains for player PID {Pid}", pid);
                         }
                     }
 
-                    // Update the batch
-                    await _playerRepository.UpdatePlayersAsync(playersBatch);
+                    // Batch update all players at once
+                    if (vrGainsBatch.Count > 0)
+                    {
+                        await _playerRepository.UpdatePlayerVRGainsBatchAsync(vrGainsBatch);
+                    }
 
-                    totalProcessed += playersBatch.Count;
+                    totalProcessed += playerPids.Count;
                     skip += batchSize;
 
-                    // Log progress every 10 batches (500 players)
+                    // Log progress every 500 players
                     if (totalProcessed % 500 == 0)
                     {
                         _logger.LogInformation("Updated VR gains for {Count} players so far", totalProcessed);

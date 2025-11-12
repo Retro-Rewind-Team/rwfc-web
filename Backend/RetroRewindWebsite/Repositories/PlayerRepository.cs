@@ -348,5 +348,44 @@ namespace RetroRewindWebsite.Repositories
                 .Where(p => p.LastSeen < cutoffDate && p.IsActive)
                 .ExecuteUpdateAsync(p => p.SetProperty(x => x.IsActive, false));
         }
+
+        public async Task<List<string>> GetPlayerPidsBatchAsync(int skip, int take)
+        {
+            return await _context.Players
+                .AsNoTracking()
+                .OrderBy(p => p.Id)
+                .Skip(skip)
+                .Take(take)
+                .Select(p => p.Pid)
+                .ToListAsync();
+        }
+
+        public async Task UpdatePlayerVRGainsBatchAsync(Dictionary<string, (int gain24h, int gain7d, int gain30d)> vrGains)
+        {
+            // Use a transaction for batch updates
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                foreach (var kvp in vrGains)
+                {
+                    await _context.Players
+                        .Where(p => p.Pid == kvp.Key)
+                        .ExecuteUpdateAsync(p => p
+                            .SetProperty(x => x.VRGainLast24Hours, kvp.Value.gain24h)
+                            .SetProperty(x => x.VRGainLastWeek, kvp.Value.gain7d)
+                            .SetProperty(x => x.VRGainLastMonth, kvp.Value.gain30d));
+                }
+
+                await transaction.CommitAsync();
+                _logger.LogDebug("Successfully committed VR gains batch update for {Count} players", vrGains.Count);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Failed to update VR gains batch, transaction rolled back");
+                throw;
+            }
+        }
     }
 }
