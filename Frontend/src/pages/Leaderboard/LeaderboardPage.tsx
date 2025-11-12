@@ -336,14 +336,18 @@ export default function LeaderboardPage() {
 
                                                 <td class="px-6 py-4 align-top">
                                                     <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 md:gap-6 w-full">
-                                                        {/* Mii Image */}
-                                                        <MiiComponent
-                                                            playerName={player.name}
-                                                            friendCode={player.friendCode}
-                                                            size="md"
-                                                            className="flex-shrink-0 mx-auto sm:mx-0"
-                                                            lazy={true}
-                                                        />
+                                                        <A
+                                                            href={`/player/${player.friendCode}`}
+                                                            class="flex-shrink-0 mx-auto sm:mx-0"
+                                                        >
+                                                            <MiiComponent
+                                                                playerName={player.name}
+                                                                friendCode={player.friendCode}
+                                                                size="md"
+                                                                className="transition-opacity hover:opacity-80"
+                                                                lazy={true}
+                                                            />
+                                                        </A>
 
                                                         {/* Player Info */}
                                                         <div class="w-full sm:flex-1 text-center sm:text-left">

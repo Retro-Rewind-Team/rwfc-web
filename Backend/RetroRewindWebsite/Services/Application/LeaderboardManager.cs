@@ -221,8 +221,8 @@ namespace RetroRewindWebsite.Services.Application
                     }
                 }
 
-                // Update activity status (players seen in last 7 days are active)
-                var cutoffDate = DateTime.UtcNow.AddDays(-7);
+                // Update activity status (players seen in last 14 days are active)
+                var cutoffDate = DateTime.UtcNow.AddDays(-14);
                 await _playerRepository.UpdatePlayerActivityStatusAsync(cutoffDate);
 
                 _logger.LogInformation("API refresh completed. New: {NewCount}, Updated: {UpdatedCount}",

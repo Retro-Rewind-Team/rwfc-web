@@ -59,7 +59,7 @@ namespace RetroRewindWebsite.Services.Background
 
                 // Check if it's time for maintenance tasks
                 var now = DateTime.UtcNow;
-                if (now.Hour == 0 && now.Minute == 0)
+                if (now.Hour == 11 && now.Minute == 0)
                 {
                     _logger.LogInformation("Performing daily maintenance tasks");
 
