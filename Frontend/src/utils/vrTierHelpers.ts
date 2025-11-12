@@ -93,7 +93,7 @@ export function getAllVRTiers(): readonly VRTierInfo[] {
 }
 
 export function tierHasGlow(tierName: string): boolean {
-    return ["maximum", "legendary", "grandmaster"].includes(tierName);
+    return ["master"].includes(tierName);
 }
 
 export function tierHasTab(tierName: string): boolean {

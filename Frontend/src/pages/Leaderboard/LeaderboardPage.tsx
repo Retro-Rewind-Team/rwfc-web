@@ -334,49 +334,45 @@ export default function LeaderboardPage() {
                                                     </div>
                                                 </td>
 
-                                                <td class="px-6 py-4">
-                                                    <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-3">
-                                                        <A
-                                                            href={`/player/${player.friendCode}`}
-                                                            class="flex-shrink-0 mx-auto sm:mx-0"
-                                                        >
-                                                            <MiiComponent
-                                                                playerName={player.name}
-                                                                friendCode={player.friendCode}
-                                                                size="md"
-                                                                lazy={true}
-                                                            />
-                                                        </A>
+                                                <td class="px-6 py-4 align-top">
+                                                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 md:gap-6 w-full">
+                                                        {/* Mii Image */}
+                                                        <MiiComponent
+                                                            playerName={player.name}
+                                                            friendCode={player.friendCode}
+                                                            size="md"
+                                                            className="flex-shrink-0 mx-auto sm:mx-0"
+                                                            lazy={true}
+                                                        />
 
                                                         {/* Player Info */}
-                                                        <div class="min-w-0 flex-1 text-center sm:text-left mt-2 sm:mt-0">
+                                                        <div class="w-full sm:flex-1 text-center sm:text-left">
                                                             <A
                                                                 href={`/player/${player.friendCode}`}
                                                                 class="
-        block font-bold text-lg text-gray-900 dark:text-white
-        hover:text-red-600 dark:hover:text-red-400 transition-colors
-        break-words
-      "
+                                                                        block font-bold text-lg text-gray-900 dark:text-white
+                                                                        hover:text-red-600 dark:hover:text-red-400 transition-colors
+                                                                        whitespace-normal break-words
+                                                                        "
                                                             >
                                                                 {player.name}
                                                             </A>
 
                                                             {/* Status labels hidden on mobile */}
-                                                            <div class="hidden sm:flex space-x-2 mt-1">
+                                                            <div class="hidden sm:flex space-x-2 mt-1 justify-center sm:justify-start">
                                                                 <Show when={!player.isActive}>
                                                                     <span class="text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full font-medium">
-          Inactive
+                                                                        Inactive
                                                                     </span>
                                                                 </Show>
                                                                 <Show when={player.isSuspicious}>
                                                                     <span class="text-xs bg-red-200 dark:bg-red-800 text-red-600 dark:text-red-400 px-2 py-1 rounded-full font-medium">
-          ⚠️ Suspicious
+                                                                        ⚠️ Suspicious
                                                                     </span>
                                                                 </Show>
                                                             </div>
                                                         </div>
                                                     </div>
-
                                                 </td>
 
                                                 <td class="px-6 py-4 text-center">
@@ -441,30 +437,30 @@ export default function LeaderboardPage() {
                                     disabled={currentPage() === 1}
                                     class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
-      ← Previous
+                                    ← Previous
                                 </button>
                                 <span class="px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg font-medium border-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
-      Page {currentPage()} of {leaderboardQuery.data!.totalPages}
+                                    Page {currentPage()} of {leaderboardQuery.data!.totalPages}
                                 </span>
                                 <button
                                     onClick={() =>
                                         setCurrentPage(
                                             Math.min(
-            leaderboardQuery.data!.totalPages,
-            currentPage() + 1
+                                                leaderboardQuery.data!.totalPages,
+                                                currentPage() + 1
                                             )
                                         )
                                     }
                                     disabled={currentPage() === leaderboardQuery.data!.totalPages}
                                     class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
-      Next →
+                                    Next →
                                 </button>
                             </div>
 
                             {/* Showing count */}
                             <div class="text-sm text-gray-600 dark:text-gray-400 font-medium text-center sm:text-right">
-    Showing {(currentPage() - 1) * pageSize() + 1} –{" "}
+                                Showing {(currentPage() - 1) * pageSize() + 1} –{" "}
                                 {Math.min(currentPage() * pageSize(), leaderboardQuery.data!.totalCount)} of {leaderboardQuery.data!.totalCount} racers
                             </div>
                         </div>
@@ -481,18 +477,6 @@ export default function LeaderboardPage() {
                 </div>
 
                 <div class="space-y-4 max-w-4xl mx-auto">
-                    <details class="bg-gray-50 dark:bg-gray-700/50 border-2 border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
-                        <summary class="px-6 py-4 font-semibold cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white transition-colors flex items-center">
-                            <span class="mr-3">🏆</span>
-                            What is the Retro WFC VR Leaderboard?
-                        </summary>
-                        <div class="px-6 py-4 border-t-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300">
-                            The Retro WFC VR Leaderboard tracks and ranks players based on
-                            their Virtual Ranking (VR) in the Retro WFC servers. It is updated
-                            regularly to show the most competitive players.
-                        </div>
-                    </details>
-
                     <details class="bg-gray-50 dark:bg-gray-700/50 border-2 border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
                         <summary class="px-6 py-4 font-semibold cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white transition-colors flex items-center">
                             <span class="mr-3">✨</span>

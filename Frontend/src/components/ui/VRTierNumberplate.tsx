@@ -5,7 +5,6 @@ import {
     isTopThreeRank,
     tierHasGlow,
     tierHasIcon,
-    tierHasTab,
 } from "../../utils/vrTierHelpers";
 import { VR_TIER_STYLES } from "../../utils/vrTiers";
 import { VR_TIER_SIZES, type VRTierSize } from "../../utils/constants";
@@ -76,23 +75,6 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
         ];
     };
 
-    const tabColor = () => {
-        if (isTopThree()) {
-            switch (props.rank) {
-            case 1:
-                return "bg-yellow-300 border-yellow-400";
-            case 2:
-                return "bg-gray-300 border-gray-400";
-            case 3:
-                return "bg-orange-300 border-orange-400";
-            }
-        }
-        return VR_TIER_STYLES.TAB_COLORS[
-      tier().tier as keyof typeof VR_TIER_STYLES.TAB_COLORS
-        ];
-    };
-
-    const shouldShowTab = () => tierHasTab(tier().tier) || isTopThree();
     const shouldShowIcon = () => tierHasIcon(tier().tier) || isTopThree();
 
     const getTextStyling = () => {
@@ -114,13 +96,6 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
         >
             <div class={`${plateClasses()} ${borderColor()}`}>
                 <div class="absolute inset-1 border border-white/20 rounded-md pointer-events-none"></div>
-
-                {/* Tab for elite tiers or top 3 */}
-                <Show when={shouldShowTab()}>
-                    <div
-                        class={`absolute top-0 left-1/2 transform -translate-x-1/2 ${config().tabPos} ${config().tab} ${tabColor()} rounded-t border shadow-sm`}
-                    ></div>
-                </Show>
 
                 {/* Icon for special tiers or top 3 ranks */}
                 <Show when={shouldShowIcon()}>

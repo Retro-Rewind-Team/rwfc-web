@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RetroRewindWebsite.Models.DTOs;
+using RetroRewindWebsite.Models.Entities;
 using RetroRewindWebsite.Repositories;
 using RetroRewindWebsite.Services.Application;
 using RetroRewindWebsite.Services.External;
@@ -176,7 +177,7 @@ namespace RetroRewindWebsite.Controllers
         [HttpGet("player/{fc}/history")]
         public async Task<ActionResult<VRHistoryRangeResponse>> GetPlayerHistory(
             string fc,
-            [FromQuery] int days = 30)
+            [FromQuery] int? days = 30)
         {
             try
             {
@@ -186,21 +187,47 @@ namespace RetroRewindWebsite.Controllers
                     return NotFound($"Player with Friend Code '{fc}' not found");
                 }
 
-                var toDate = DateTime.UtcNow;
-                var fromDate = toDate.AddDays(-days);
+                List<VRHistoryEntity> history;
+                DateTime fromDate;
+                DateTime toDate = DateTime.UtcNow;
 
-                var history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, fromDate, toDate);
+                if (days.HasValue)
+                {
+                    // Fixed period (24h, 7d, 30d)
+                    fromDate = toDate.AddDays(-days.Value);
+                    history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, fromDate, toDate);
+                }
+                else
+                {
+                    // Lifetime - get all history
+                    history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, int.MaxValue);
+                    fromDate = history.Count > 0 ? history.Min(h => h.Date) : toDate;
+                }
 
                 var historyDtos = history.Select(h => new VRHistoryDto
                 {
                     Date = h.Date,
                     VRChange = h.VRChange,
                     TotalVR = h.TotalVR
-                }).ToList();
+                }).OrderBy(h => h.Date).ToList();
 
+                // Calculate starting VR (the VR before the first change)
                 var startingVR = historyDtos.Count > 0 ? historyDtos.First().TotalVR - historyDtos.First().VRChange : player.VR;
                 var endingVR = historyDtos.Count > 0 ? historyDtos.Last().TotalVR : player.VR;
                 var totalChange = endingVR - startingVR;
+
+                // Add initial VR as a synthetic history entry (before first change)
+                if (historyDtos.Count > 0)
+                {
+                    var firstEntry = historyDtos.First();
+                    var initialEntry = new VRHistoryDto
+                    {
+                        Date = firstEntry.Date.AddSeconds(-1), // Just before first change
+                        VRChange = 0,
+                        TotalVR = startingVR
+                    };
+                    historyDtos.Insert(0, initialEntry);
+                }
 
                 return Ok(new VRHistoryRangeResponse
                 {

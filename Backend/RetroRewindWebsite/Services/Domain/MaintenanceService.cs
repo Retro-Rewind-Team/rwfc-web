@@ -77,24 +77,5 @@ namespace RetroRewindWebsite.Services.Domain
                 throw;
             }
         }
-
-        public async Task CleanupOldVRHistoryAsync()
-        {
-            _logger.LogInformation("Starting cleanup of old VR history records");
-
-            try
-            {
-                // Keep only the last 30 days of history
-                var cutoffDate = DateTime.UtcNow.AddDays(-30);
-                var deletedCount = await _vrHistoryRepository.CleanupOldRecordsAsync(cutoffDate);
-
-                _logger.LogInformation("Completed cleanup of old VR history records. Deleted: {Count} records", deletedCount);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during VR history cleanup");
-                throw;
-            }
-        }
     }
 }

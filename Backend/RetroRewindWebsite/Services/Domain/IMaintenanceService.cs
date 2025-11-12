@@ -3,6 +3,5 @@
     public interface IMaintenanceService
     {
         Task UpdateAllPlayerVRGainsAsync();
-        Task CleanupOldVRHistoryAsync();
     }
 }

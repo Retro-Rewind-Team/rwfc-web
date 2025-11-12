@@ -97,12 +97,6 @@ namespace RetroRewindWebsite.Services.Background
             if (maintenanceService != null)
             {
                 await maintenanceService.UpdateAllPlayerVRGainsAsync();
-
-                // Clean up old VR history on Sundays
-                if (DateTime.UtcNow.DayOfWeek == DayOfWeek.Sunday)
-                {
-                    await maintenanceService.CleanupOldVRHistoryAsync();
-                }
             }
         }
 
