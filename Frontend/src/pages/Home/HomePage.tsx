@@ -11,6 +11,13 @@ export default function HomePage() {
         refetchInterval: 300000, // 5 minutes
     }));
 
+    // Get Discord member count
+    const discordQuery = useQuery(() => ({
+        queryKey: ["discord-members"],
+        queryFn: () => api.getDiscordMemberCount(),
+        refetchInterval: 300000, // 5 minutes
+    }));
+
     return (
         <div class="space-y-12">
             {/* Hero Section */}
@@ -41,7 +48,7 @@ export default function HomePage() {
                             </div>
                             <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
                                 <div class="text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
-                                    8000+
+                                    {discordQuery.data?.toLocaleString() ?? "8000+"}
                                 </div>
                                 <div class="text-gray-600 dark:text-gray-400">
                                     Discord Members
@@ -233,7 +240,6 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
-
         </div>
     );
 }

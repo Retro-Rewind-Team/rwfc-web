@@ -132,4 +132,22 @@ export const leaderboardApi = {
 
         return { miis: allMiis };
     },
+
+    async getDiscordMemberCount(): Promise<number> {
+        try {
+            const response = await fetch(
+                "https://discord.com/api/v10/invites/retrorewind?with_counts=true"
+            );
+            
+            if (!response.ok) {
+                throw new Error("Discord API request failed");
+            }
+            
+            const data = await response.json();
+            return data.approximate_member_count;
+        } catch (error) {
+            console.warn("Failed to load Discord member count:", error);
+            return 8000; // Fallback
+        }
+    },
 };
