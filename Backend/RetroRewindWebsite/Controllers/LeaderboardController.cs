@@ -177,7 +177,7 @@ namespace RetroRewindWebsite.Controllers
         [HttpGet("player/{fc}/history")]
         public async Task<ActionResult<VRHistoryRangeResponse>> GetPlayerHistory(
             string fc,
-            [FromQuery] int? days = 30)
+            [FromQuery] int? days)
         {
             try
             {
