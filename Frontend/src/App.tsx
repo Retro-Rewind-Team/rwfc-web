@@ -6,6 +6,7 @@ import {
     DownloadsPage,
     HomePage,
     LeaderboardPage,
+    NotFoundPage,
     PlayerDetailPage,
     RoomBrowserPage,
     RulesPage,
@@ -16,9 +17,16 @@ import {
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
-            staleTime: 1000 * 60 * 2, // 2 minutes
-            gcTime: 1000 * 60 * 10, // 10 minutes
-            retry: 2,
+            staleTime: 1000 * 60 * 2, 
+            gcTime: 1000 * 60 * 10,
+            retry: (failureCount, error) => {
+                // Don't retry if it's a 404 error
+                if (error instanceof Error && error.message.includes("404")) {
+                    return false;
+                }
+                // Otherwise retry up to 2 times
+                return failureCount < 2;
+            },
         },
     },
 });
@@ -49,6 +57,9 @@ function App() {
                     <Route path="/downloads" component={DownloadsPage} />
                     <Route path="/rules" component={RulesPage} />
                     <Route path="/team" component={TeamPage} />
+
+                    {/* 404 Catch-All - MUST BE LAST */}
+                    <Route path="*" component={NotFoundPage} />
                 </Router>
             </QueryClientProvider>
         </ThemeProvider>

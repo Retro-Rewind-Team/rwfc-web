@@ -13,6 +13,14 @@ export default function PlayerDetailPage() {
     const params = useParams();
     const { playerQuery } = usePlayer(params.friendCode);
 
+    // Check if player was not found (404 error)
+    const isPlayerNotFound = () => {
+        return playerQuery.isError && 
+               playerQuery.error instanceof Error && 
+               (playerQuery.error.message.includes("404") || 
+                playerQuery.error.message.includes("not found"));
+    };
+
     return (
         <div class="space-y-6">
             {/* Back Button */}
@@ -46,6 +54,71 @@ export default function PlayerDetailPage() {
                         <p class="ml-4 text-gray-600 dark:text-gray-300">
                             Loading player data...
                         </p>
+                    </div>
+                </div>
+            </Show>
+
+            {/* Player Not Found State */}
+            <Show when={isPlayerNotFound()}>
+                <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-8">
+                    <div class="text-center space-y-4">
+                        <div class="text-6xl">❌</div>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                            Player Not Found
+                        </h2>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            No player found with friend code:{" "}
+                            <code class="font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                                {params.friendCode}
+                            </code>
+                        </p>
+                        <p class="text-sm text-gray-500 dark:text-gray-500">
+                            This player might not have registered on Retro WFC yet, or the friend code may be incorrect.
+                        </p>
+                        <div class="pt-4">
+                            <A
+                                href="/vr"
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors inline-flex items-center"
+                            >
+                                <svg
+                                    class="w-5 h-5 mr-2"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                                    />
+                                </svg>
+                                Browse Leaderboard
+                            </A>
+                        </div>
+                    </div>
+                </div>
+            </Show>
+
+            {/* Error State (non-404 errors) */}
+            <Show when={playerQuery.isError && !isPlayerNotFound()}>
+                <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-red-200 dark:border-red-800 p-8">
+                    <div class="text-center space-y-4">
+                        <div class="text-6xl">⚠️</div>
+                        <h2 class="text-2xl font-bold text-red-900 dark:text-red-100">
+                            Error Loading Player
+                        </h2>
+                        <p class="text-red-600 dark:text-red-400">
+                            An error occurred while loading player data.
+                        </p>
+                        <div class="pt-4">
+                            <button
+                                onClick={() => playerQuery.refetch()}
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+                            >
+                                Try Again
+                            </button>
+                        </div>
                     </div>
                 </div>
             </Show>
