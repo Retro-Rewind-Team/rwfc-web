@@ -29,7 +29,6 @@ namespace RetroRewindWebsite.Controllers
             {
                 _logger.LogWarning("Ban request received for PID: {Pid}", request.Pid);
 
-                // Find the player by PID
                 var player = await _playerRepository.GetByPidAsync(request.Pid);
 
                 if (player == null)
@@ -37,7 +36,6 @@ namespace RetroRewindWebsite.Controllers
                     return NotFound(new { Error = $"Player with PID {request.Pid} not found" });
                 }
 
-                // Store player info before deletion for the response
                 var playerInfo = new
                 {
                     ProfileId = player.Pid,
@@ -47,7 +45,6 @@ namespace RetroRewindWebsite.Controllers
                     LastIPAddress = "Hidden"
                 };
 
-                // Delete the player from the database
                 await _playerRepository.DeleteAsync(player.Id);
 
                 _logger.LogWarning(
@@ -81,7 +78,6 @@ namespace RetroRewindWebsite.Controllers
                     return NotFound(new { Error = $"Player with PID {request.Pid} not found" });
                 }
 
-                // Set suspicious flag to false
                 player.IsSuspicious = false;
 
                 await _playerRepository.UpdateAsync(player);
@@ -122,12 +118,10 @@ namespace RetroRewindWebsite.Controllers
                     return NotFound(new { Error = $"Player with PID {pid} not found" });
                 }
 
-                // Get VR history for the player
                 var history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, 1000);
 
-                // Filter for suspicious jumps (VR change >= 200)
                 var suspiciousJumps = history
-                    .Where(h => h.VRChange >= 200)
+                    .Where(h => Math.Abs(h.VRChange) >= 200)
                     .OrderByDescending(h => h.Date)
                     .Select(h => new
                     {
