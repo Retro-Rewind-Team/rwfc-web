@@ -5,12 +5,24 @@ body {
   margin: 0;
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
-    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    "CTMKF",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+
 code {
   font-family:
     source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+@font-face {
+    font-family: "CTMKF";
+    font-style: normal;
+    font-weight: 400;
+    src: local("CTMKF Regular"), local("CTMKF-Regular"), 
+         url("/fonts/CTMKF/ctmkf.woff2") format("woff2");
+    font-display: swap;
 }

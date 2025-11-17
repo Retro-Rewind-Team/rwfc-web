@@ -140,12 +140,25 @@ export default function HomePage() {
                             Knockout Mode, TTs Online, and Item Rain/Storm across all Retro
                             WFC packs.
                         </p>
-                        <div class="text-gray-500 dark:text-gray-500 font-medium inline-flex items-center">
-                            Coming Soon
-                            <div class="ml-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 text-xs px-2 py-1 rounded">
-                                Planned
-                            </div>
-                        </div>
+                        <A
+                            href="/rooms"
+                            class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium inline-flex items-center transition-colors"
+                        >
+                            Browse Rooms
+                            <svg
+                                class="w-4 h-4 ml-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 5l7 7-7 7"
+                                />
+                            </svg>
+                        </A>
                     </div>
 
                     {/* Downloads */}
