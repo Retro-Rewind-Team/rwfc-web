@@ -8,7 +8,7 @@ import {
     LeaderboardPage,
     NotFoundPage,
     PlayerDetailPage,
-    RoomBrowserPage,
+    RoomStatusPage,
     RulesPage,
     TeamPage,
     TTLeaderboardPage,
@@ -50,8 +50,8 @@ function App() {
                     <Route path="/tt" component={TTLeaderboardPage} />
 
                     {/* Future: Room Browser Routes */}
-                    <Route path="/room-browser" component={RoomBrowserPage} />
-                    <Route path="/rooms" component={RoomBrowserPage} />
+                    <Route path="/room-browser" component={RoomStatusPage} />
+                    <Route path="/rooms" component={RoomStatusPage} />
 
                     {/* Community Pages */}
                     <Route path="/downloads" component={DownloadsPage} />

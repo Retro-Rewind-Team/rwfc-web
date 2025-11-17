@@ -148,6 +148,12 @@ builder.Services.AddScoped<ILeaderboardBackgroundService, LeaderboardBackgroundS
 // Register application services
 builder.Services.AddScoped<ILeaderboardManager, LeaderboardManager>();
 
+// Room Status Services
+builder.Services.AddSingleton<IRoomStatusService, RoomStatusService>();
+builder.Services.AddSingleton<IRoomStatusBackgroundService, RoomStatusBackgroundService>();
+builder.Services.AddHostedService<RoomStatusBackgroundService>(sp =>
+    (RoomStatusBackgroundService)sp.GetRequiredService<IRoomStatusBackgroundService>());
+
 // Register health checks
 builder.Services.AddScoped<IHealthCheck, ExternalApiHealthCheck>();
 

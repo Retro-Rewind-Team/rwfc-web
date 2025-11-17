@@ -19,7 +19,7 @@ export default function DownloadsPage() {
                     <div class="text-2xl">📦</div>
                     <div class="flex-1">
                         <h2 class="text-2xl font-bold text-blue-900 dark:text-blue-100 mb-2">
-                            Retro Rewind v6.4
+                            Retro Rewind v6.4.2
                         </h2>
                         <p class="text-lg text-blue-800 dark:text-blue-200 mb-4">
                             Complete distribution with 184 retro tracks and 80 custom tracks
@@ -34,12 +34,12 @@ export default function DownloadsPage() {
                                 Full Download (First Install)
                             </a>
                             <a
-                                href="http://update.rwfc.net:8000/RetroRewind/zip/6.4.zip"
+                                href="http://update.rwfc.net:8000/RetroRewind/zip/6.4.2.zip"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 class="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-center"
                             >
-                                Update Only (v6.3.1 → v6.4)
+                                Update Only (v6.4 → v6.4.2)
                             </a>
                         </div>
                     </div>
