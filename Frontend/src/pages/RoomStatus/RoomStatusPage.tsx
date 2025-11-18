@@ -88,14 +88,14 @@ export default function RoomStatusPage() {
 
             {/* Navigation Controls */}
             <Show when={roomStatusQuery.data}>
-                <div class="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-sm p-4">
+                <div class="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-lg p-6">
                     <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                         {/* Navigation Buttons */}
                         <div class="flex items-center gap-2">
                             <button
                                 onClick={goToOldest}
                                 disabled={!canGoBackward()}
-                                class="p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-all hover:scale-105 disabled:hover:scale-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                class="p-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-all hover:shadow-lg disabled:hover:shadow-none disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                                 title="Jump to oldest"
                             >
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -105,7 +105,7 @@ export default function RoomStatusPage() {
                             <button
                                 onClick={goBackward}
                                 disabled={!canGoBackward()}
-                                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg font-medium transition-all hover:scale-105 disabled:hover:scale-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg font-semibold transition-all hover:shadow-lg disabled:hover:shadow-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md"
                             >
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" />
@@ -115,7 +115,7 @@ export default function RoomStatusPage() {
                             <button
                                 onClick={goForward}
                                 disabled={!canGoForward()}
-                                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg font-medium transition-all hover:scale-105 disabled:hover:scale-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg font-semibold transition-all hover:shadow-lg disabled:hover:shadow-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md"
                             >
                                 <span class="hidden sm:inline">Next</span>
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -125,16 +125,16 @@ export default function RoomStatusPage() {
                             <button
                                 onClick={goToLatest}
                                 disabled={isLatest()}
-                                class="p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-all hover:scale-105 disabled:hover:scale-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                class="p-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-all hover:shadow-lg disabled:hover:shadow-none disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                                 title="Jump to latest"
                             >
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" />
+                                    <path d="M11.555 5.168A1 1 0 0010 6v2.798L4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4z" />
                                 </svg>
                             </button>
 
                             <Show when={isLatest()}>
-                                <div class="ml-4 flex items-center bg-emerald-100 dark:bg-emerald-900/30 px-4 py-2 rounded-full">
+                                <div class="ml-4 flex items-center bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-600 px-4 py-2 rounded-lg shadow-md">
                                     <span class="w-3 h-3 bg-emerald-500 rounded-full mr-2 animate-pulse"></span>
                                     <span class="text-sm font-bold text-emerald-700 dark:text-emerald-300">
                     LIVE
