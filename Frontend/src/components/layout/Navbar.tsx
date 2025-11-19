@@ -30,14 +30,6 @@ export default function Navbar() {
                     {/* Desktop Navigation */}
                     <div class="hidden md:flex items-center space-x-8">
                         <A
-                            href="/"
-                            class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                            activeClass="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
-                            end
-                        >
-              Home
-                        </A>
-                        <A
                             href="/vr"
                             class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                             activeClass="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
@@ -114,15 +106,6 @@ export default function Navbar() {
                 {/* Mobile Navigation */}
                 <div class={isMenuOpen() ? "block md:hidden pb-6" : "hidden"}>
                     <div class="bg-gray-50 dark:bg-gray-700 rounded-lg mt-3 p-3 space-y-2 shadow-lg border border-gray-200 dark:border-gray-600 max-h-screen overflow-y-auto">
-                        <A
-                            href="/"
-                            class="flex items-center space-x-3 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white dark:hover:bg-gray-600 font-medium py-2 px-4 rounded-lg transition-colors"
-                            activeClass="text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-600"
-                            onClick={() => setIsMenuOpen(false)}
-                            end
-                        >
-                            <span>Home</span>
-                        </A>
                         <A
                             href="/vr"
                             class="flex items-center space-x-3 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white dark:hover:bg-gray-600 font-medium py-2 px-4 rounded-lg transition-colors"
