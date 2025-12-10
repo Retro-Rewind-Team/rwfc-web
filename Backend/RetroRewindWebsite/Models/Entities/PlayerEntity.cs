@@ -29,6 +29,25 @@ namespace RetroRewindWebsite.Models.Entities
         public virtual ICollection<VRHistoryEntity> VRHistory { get; set; } = [];
     }
 
+    [Table("LegacyPlayers")]
+    public class LegacyPlayerEntity
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+
+        public required string Pid { get; set; }
+        public required string Name { get; set; }
+        public required string Fc { get; set; }
+        public int Ev { get; set; }
+        public int Rank { get; set; }
+        public bool IsSuspicious { get; set; }
+        public required string MiiData { get; set; }
+
+        // Metadata
+        public DateTime SnapshotDate { get; set; }
+    }
+
 
     public class VRHistoryEntity
     {

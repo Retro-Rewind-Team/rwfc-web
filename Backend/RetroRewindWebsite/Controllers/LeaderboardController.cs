@@ -277,5 +277,90 @@ namespace RetroRewindWebsite.Controllers
                 return StatusCode(500, "An error occurred while retrieving recent VR history");
             }
         }
+
+        [HttpGet("legacy/available")]
+        public async Task<ActionResult<bool>> IsLegacyAvailable()
+        {
+            try
+            {
+                var hasSnapshot = await _leaderboardManager.HasLegacySnapshotAsync();
+                return Ok(hasSnapshot);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking legacy snapshot availability");
+                return StatusCode(500, "An error occurred while checking legacy snapshot");
+            }
+        }
+
+        [HttpGet("legacy")]
+        public async Task<ActionResult<LeaderboardResponseDto>> GetLegacyLeaderboard([FromQuery] LeaderboardRequest request)
+        {
+            try
+            {
+                var hasSnapshot = await _leaderboardManager.HasLegacySnapshotAsync();
+                if (!hasSnapshot)
+                {
+                    return NotFound("Legacy leaderboard snapshot not available");
+                }
+
+                var response = await _leaderboardManager.GetLegacyLeaderboardAsync(request);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting legacy leaderboard data");
+                return StatusCode(500, "An error occurred while retrieving legacy leaderboard data");
+            }
+        }
+
+        [HttpPost("legacy/miis/batch")]
+        public async Task<ActionResult<BatchMiiResponseDto>> GetLegacyPlayerMiisBatch([FromBody] BatchMiiRequestDto request)
+        {
+            try
+            {
+                var hasSnapshot = await _leaderboardManager.HasLegacySnapshotAsync();
+                if (!hasSnapshot)
+                {
+                    return NotFound("Legacy leaderboard snapshot not available");
+                }
+
+                if (request.FriendCodes == null || request.FriendCodes.Count == 0)
+                {
+                    return BadRequest("Friend codes list cannot be empty");
+                }
+
+                if (request.FriendCodes.Count > 25)
+                {
+                    return BadRequest("Maximum 25 friend codes allowed per batch request");
+                }
+
+                var cleanFriendCodes = request.FriendCodes
+                    .Where(fc => !string.IsNullOrWhiteSpace(fc))
+                    .Distinct()
+                    .ToList();
+
+                if (cleanFriendCodes.Count == 0)
+                {
+                    return Ok(new BatchMiiResponseDto { Miis = [] });
+                }
+
+                var miiImages = await _leaderboardManager.GetLegacyPlayerMiisBatchAsync(cleanFriendCodes);
+
+                Response.Headers.CacheControl = "public, max-age=1800";
+
+                return Ok(new BatchMiiResponseDto
+                {
+                    Miis = miiImages.Where(kvp => kvp.Value != null)
+                                   .ToDictionary(kvp => kvp.Key, kvp => kvp.Value!)
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting batch Mii images for {Count} legacy friend codes",
+                    request.FriendCodes?.Count ?? 0);
+                return StatusCode(500, "An error occurred while retrieving Mii images");
+            }
+        }
     }
 }

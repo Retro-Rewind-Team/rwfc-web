@@ -151,3 +151,59 @@ export const leaderboardApi = {
         }
     },
 };
+
+export const legacyLeaderboardApi = {
+    async isAvailable(): Promise<boolean> {
+        return apiRequest<boolean>("/leaderboard/legacy/available");
+    },
+
+    async getLeaderboard(
+        params: LeaderboardRequest = {}
+    ): Promise<LeaderboardResponse> {
+        const searchParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                searchParams.append(key, String(value));
+            }
+        });
+
+        return apiRequest<LeaderboardResponse>(`/leaderboard/legacy?${searchParams}`);
+    },
+
+    async getPlayerMiisBatch(friendCodes: string[]): Promise<BatchMiiResponse> {
+        if (friendCodes.length === 0) {
+            return { miis: {} };
+        }
+
+        const chunks = [];
+        for (let i = 0; i < friendCodes.length; i += 25) {
+            chunks.push(friendCodes.slice(i, i + 25));
+        }
+
+        const allMiis: Record<string, string> = {};
+
+        for (const chunk of chunks) {
+            try {
+                const response = await apiRequest<BatchMiiResponse>(
+                    "/leaderboard/legacy/miis/batch",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ friendCodes: chunk }),
+                    }
+                );
+
+                Object.assign(allMiis, response.miis);
+            } catch (error) {
+                console.warn(
+                    `Failed to load legacy Mii batch for ${chunk.length} players:`,
+                    error
+                );
+            }
+        }
+
+        return { miis: allMiis };
+    },
+};

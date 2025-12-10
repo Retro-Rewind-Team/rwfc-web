@@ -33,5 +33,16 @@ namespace RetroRewindWebsite.Repositories
 
         Task<List<string>> GetPlayerPidsBatchAsync(int skip, int take);
         Task UpdatePlayerVRGainsBatchAsync(Dictionary<string, (int gain24h, int gain7d, int gain30d)> vrGains);
+
+        Task<bool> HasLegacySnapshotAsync();
+        Task<PagedResult<LegacyPlayerEntity>> GetLegacyLeaderboardPageAsync(
+            int page,
+            int pageSize,
+            string? search,
+            string sortBy,
+            bool ascending);
+        Task<int> GetLegacyPlayersCountAsync();
+        Task<int> GetLegacySuspiciousPlayersCountAsync();
+        Task<List<LegacyPlayerEntity>> GetLegacyPlayersByFriendCodesAsync(List<string> friendCodes);
     }
 }
