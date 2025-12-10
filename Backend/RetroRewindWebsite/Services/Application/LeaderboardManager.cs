@@ -452,5 +452,100 @@ namespace RetroRewindWebsite.Services.Application
                 MiiImageBase64 = miiImageBase64
             };
         }
+
+        public async Task<bool> HasLegacySnapshotAsync()
+        {
+            return await _playerRepository.HasLegacySnapshotAsync();
+        }
+
+        public async Task<LeaderboardResponseDto> GetLegacyLeaderboardAsync(LeaderboardRequest request)
+        {
+            // Get paginated players from repository
+            var pagedResult = await _playerRepository.GetLegacyLeaderboardPageAsync(
+                request.Page,
+                request.PageSize,
+                request.Search,
+                request.SortBy,
+                request.Ascending);
+
+            // Get the snapshot date from first player
+            var snapshotDate = pagedResult.Items.FirstOrDefault()?.SnapshotDate ?? DateTime.UtcNow;
+
+            // Map to DTOs (without Mii images for fast loading)
+            var playerDtos = pagedResult.Items.Select(p => new PlayerDto
+            {
+                Pid = p.Pid,
+                Name = p.Name,
+                FriendCode = p.Fc,
+                VR = p.Ev,
+                Rank = p.Rank,
+                ActiveRank = null,
+                LastSeen = snapshotDate,
+                IsActive = true,
+                IsSuspicious = p.IsSuspicious,
+                VRStats = new VRStatsDto
+                {
+                    Last24Hours = 0,
+                    LastWeek = 0,
+                    LastMonth = 0
+                },
+                MiiImageBase64 = null
+            }).ToList();
+
+            // Get stats
+            var totalPlayers = await _playerRepository.GetLegacyPlayersCountAsync();
+            var suspiciousPlayers = await _playerRepository.GetLegacySuspiciousPlayersCountAsync();
+
+            var stats = new LeaderboardStatsDto
+            {
+                TotalPlayers = totalPlayers,
+                ActivePlayers = totalPlayers,
+                SuspiciousPlayers = suspiciousPlayers,
+                LastUpdated = snapshotDate
+            };
+
+            return new LeaderboardResponseDto
+            {
+                Players = playerDtos,
+                CurrentPage = pagedResult.CurrentPage,
+                TotalPages = pagedResult.TotalPages,
+                TotalCount = pagedResult.TotalCount,
+                PageSize = pagedResult.PageSize,
+                Stats = stats
+            };
+        }
+
+        public async Task<Dictionary<string, string?>> GetLegacyPlayerMiisBatchAsync(List<string> friendCodes)
+        {
+            var result = new Dictionary<string, string?>();
+
+            // Get legacy players with these friend codes
+            var legacyPlayers = await _playerRepository.GetLegacyPlayersByFriendCodesAsync(friendCodes);
+            var playerLookup = legacyPlayers.ToDictionary(p => p.Fc, p => p.MiiData);
+
+            var semaphore = new SemaphoreSlim(5, 5);
+            var tasks = new List<Task<(string fc, string? mii)>>();
+
+            foreach (var fc in friendCodes.Distinct())
+            {
+                if (playerLookup.TryGetValue(fc, out var miiData) && !string.IsNullOrEmpty(miiData))
+                {
+                    tasks.Add(GetMiiWithSemaphore(fc, miiData, semaphore));
+                }
+                else
+                {
+                    result[fc] = null;
+                }
+            }
+
+            var results = await Task.WhenAll(tasks);
+
+            foreach (var (fc, mii) in results)
+            {
+                result[fc] = mii;
+            }
+
+            return result;
+        }
     }
 }

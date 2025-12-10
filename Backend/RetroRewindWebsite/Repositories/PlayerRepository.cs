@@ -387,5 +387,73 @@ namespace RetroRewindWebsite.Repositories
                 throw;
             }
         }
+
+        public async Task<bool> HasLegacySnapshotAsync()
+        {
+            return await _context.LegacyPlayers.AnyAsync();
+        }
+
+        public async Task<PagedResult<LegacyPlayerEntity>> GetLegacyLeaderboardPageAsync(
+            int page,
+            int pageSize,
+            string? search,
+            string sortBy,
+            bool ascending)
+        {
+            var query = _context.LegacyPlayers.AsNoTracking();
+
+            // Search filter
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(p =>
+                    EF.Functions.ILike(p.Name, $"%{search}%") ||
+                    EF.Functions.ILike(p.Fc, $"%{search}%"));
+            }
+
+            // Sorting
+            query = sortBy.ToLower() switch
+            {
+                "name" => ascending ? query.OrderBy(p => p.Name) : query.OrderByDescending(p => p.Name),
+                "vr" => ascending ? query.OrderBy(p => p.Ev) : query.OrderByDescending(p => p.Ev),
+                _ => ascending ? query.OrderBy(p => p.Rank) : query.OrderByDescending(p => p.Rank)
+            };
+
+            var totalCount = await query.CountAsync();
+            var players = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<LegacyPlayerEntity>
+            {
+                Items = players,
+                TotalCount = totalCount,
+                CurrentPage = page,
+                PageSize = pageSize
+            };
+        }
+
+        public async Task<int> GetLegacyPlayersCountAsync()
+        {
+            return await _context.LegacyPlayers.CountAsync();
+        }
+
+        public async Task<int> GetLegacySuspiciousPlayersCountAsync()
+        {
+            return await _context.LegacyPlayers.CountAsync(p => p.IsSuspicious);
+        }
+
+        public async Task<List<LegacyPlayerEntity>> GetLegacyPlayersByFriendCodesAsync(List<string> friendCodes)
+        {
+            if (friendCodes == null || friendCodes.Count == 0)
+                return [];
+
+            var normalizedCodes = friendCodes.Select(fc => fc.Replace("-", "")).ToList();
+
+            return await _context.LegacyPlayers
+                .AsNoTracking()
+                .Where(p => normalizedCodes.Contains(p.Fc.Replace("-", "")))
+                .ToListAsync();
+        }
     }
 }

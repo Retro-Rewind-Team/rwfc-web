@@ -11,6 +11,7 @@ namespace RetroRewindWebsite.Data
 
         public DbSet<PlayerEntity> Players { get; set; }
         public DbSet<VRHistoryEntity> VRHistories { get; set; }
+        public DbSet<LegacyPlayerEntity> LegacyPlayers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -25,7 +26,17 @@ namespace RetroRewindWebsite.Data
                 entity.HasIndex(e => e.IsActive);
                 entity.HasIndex(e => e.IsSuspicious);
                 entity.HasIndex(e => e.LastSeen);
+                entity.Property(e => e.Name).HasMaxLength(100);
+                entity.Property(e => e.Fc).HasMaxLength(20);
+                entity.Property(e => e.Pid).HasMaxLength(50);
+            });
 
+            modelBuilder.Entity<LegacyPlayerEntity>(entity =>
+            {
+                entity.HasIndex(e => e.Pid);
+                entity.HasIndex(e => e.Fc);
+                entity.HasIndex(e => e.Rank);
+                entity.HasIndex(e => e.IsSuspicious);
                 entity.Property(e => e.Name).HasMaxLength(100);
                 entity.Property(e => e.Fc).HasMaxLength(20);
                 entity.Property(e => e.Pid).HasMaxLength(50);
@@ -36,10 +47,8 @@ namespace RetroRewindWebsite.Data
                 entity.HasIndex(e => e.PlayerId);
                 entity.HasIndex(e => e.Date);
                 entity.HasIndex(e => new { e.PlayerId, e.Date });
-
                 entity.Property(e => e.PlayerId).HasMaxLength(50);
                 entity.Property(e => e.Fc).HasMaxLength(20);
-
                 entity.HasOne(vh => vh.Player)
                       .WithMany(p => p.VRHistory)
                       .HasForeignKey(vh => vh.PlayerId)

@@ -10,9 +10,10 @@ namespace RetroRewindWebsite.Services.Application
         Task<LeaderboardStatsDto> GetStatsAsync();
         Task RefreshFromApiAsync();
         Task RefreshRankingsAsync();
-
-        // New Mii-specific methods
         Task<string?> GetPlayerMiiAsync(string fc);
         Task<Dictionary<string, string?>> GetPlayerMiisBatchAsync(List<string> friendCodes);
+        Task<bool> HasLegacySnapshotAsync();
+        Task<LeaderboardResponseDto> GetLegacyLeaderboardAsync(LeaderboardRequest request);
+        Task<Dictionary<string, string?>> GetLegacyPlayerMiisBatchAsync(List<string> friendCodes);
     }
 }
