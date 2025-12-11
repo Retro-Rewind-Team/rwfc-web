@@ -11,7 +11,11 @@ import {
 
 export default function PlayerDetailPage() {
     const params = useParams();
-    const { playerQuery } = usePlayer(params.friendCode);
+    const { 
+        playerQuery, 
+        legacyPlayer, 
+        hasLegacyData 
+    } = usePlayer(params.friendCode);
 
     // Check if player was not found (404 error)
     const isPlayerNotFound = () => {
@@ -183,14 +187,31 @@ export default function PlayerDetailPage() {
                                     </div>
                                 </div>
 
-                                {/* VR Display */}
+                                {/* VR Display - Current and Legacy */}
                                 <div class="text-center">
                                     <div class="text-5xl font-bold text-blue-600 dark:text-blue-400 mb-1">
                                         {player().vr.toLocaleString()}
                                     </div>
-                                    <div class="text-lg text-gray-600 dark:text-gray-400 font-medium">
-                                        VR
+                                    <div class="text-lg text-gray-600 dark:text-gray-400 font-medium mb-3">
+                                        Current VR
                                     </div>
+                                    
+                                    {/* Legacy VR Display */}
+                                    <Show when={hasLegacyData() && legacyPlayer()}>
+                                        {(legacy) => (
+                                            <div class="pt-3 border-t-2 border-gray-200 dark:border-gray-700">
+                                                <div class="flex items-center justify-center gap-2 mb-1">
+                                                    <span class="text-xl">🏆</span>
+                                                    <div class="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                                                        {legacy().vr.toLocaleString()}
+                                                    </div>
+                                                </div>
+                                                <div class="text-sm text-gray-500 dark:text-gray-500 font-medium">
+                                                    Legacy VR (#{legacy().rank})
+                                                </div>
+                                            </div>
+                                        )}
+                                    </Show>
                                 </div>
                             </div>
                         </div>
@@ -283,6 +304,30 @@ export default function PlayerDetailPage() {
                                                 {player().vr.toLocaleString()}
                                             </span>
                                         </div>
+                                        
+                                        {/* Legacy Rank in Summary */}
+                                        <Show when={hasLegacyData() && legacyPlayer()}>
+                                            {(legacy) => (
+                                                <>
+                                                    <div class="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
+                                                        <span class="text-gray-600 dark:text-gray-400">
+                                                            🏆 Legacy Rank:
+                                                        </span>
+                                                        <span class="font-medium text-amber-600 dark:text-amber-400">
+                                                            #{legacy().rank}
+                                                        </span>
+                                                    </div>
+                                                    <div class="flex justify-between">
+                                                        <span class="text-gray-600 dark:text-gray-400">
+                                                            🏆 Legacy VR:
+                                                        </span>
+                                                        <span class="font-medium text-amber-600 dark:text-amber-400">
+                                                            {legacy().vr.toLocaleString()}
+                                                        </span>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </Show>
                                     </div>
                                 </div>
 

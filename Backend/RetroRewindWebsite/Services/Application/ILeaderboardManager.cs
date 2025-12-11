@@ -15,5 +15,6 @@ namespace RetroRewindWebsite.Services.Application
         Task<bool> HasLegacySnapshotAsync();
         Task<LeaderboardResponseDto> GetLegacyLeaderboardAsync(LeaderboardRequest request);
         Task<Dictionary<string, string?>> GetLegacyPlayerMiisBatchAsync(List<string> friendCodes);
+        Task<PlayerDto?> GetLegacyPlayerAsync(string friendCode);
     }
 }
