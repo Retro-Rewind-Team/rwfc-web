@@ -59,6 +59,10 @@ export const leaderboardApi = {
         return apiRequest<Player>(`/leaderboard/player/${friendCode}`);
     },
 
+    async getLegacyPlayer(friendCode: string): Promise<Player> {
+        return apiRequest<Player>(`/leaderboard/legacy/player/${friendCode}`);
+    },
+
     async getStats(): Promise<LeaderboardStats> {
         return apiRequest<LeaderboardStats>("/leaderboard/stats");
     },
@@ -207,3 +211,4 @@ export const legacyLeaderboardApi = {
         return { miis: allMiis };
     },
 };
+

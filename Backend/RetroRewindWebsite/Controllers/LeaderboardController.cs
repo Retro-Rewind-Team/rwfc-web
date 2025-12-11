@@ -362,5 +362,32 @@ namespace RetroRewindWebsite.Controllers
                 return StatusCode(500, "An error occurred while retrieving Mii images");
             }
         }
+
+        [HttpGet("legacy/player/{friendCode}")]
+        public async Task<ActionResult<PlayerDto>> GetLegacyPlayer(string friendCode)
+        {
+            try
+            {
+                var hasSnapshot = await _leaderboardManager.HasLegacySnapshotAsync();
+                if (!hasSnapshot)
+                {
+                    return NotFound("Legacy leaderboard snapshot not available");
+                }
+
+                var legacyPlayer = await _leaderboardManager.GetLegacyPlayerAsync(friendCode);
+
+                if (legacyPlayer == null)
+                {
+                    return NotFound($"Player with friend code {friendCode} not found in legacy snapshot");
+                }
+
+                return Ok(legacyPlayer);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting legacy player data for friend code {friendCode}", friendCode);
+                return StatusCode(500, "An error occurred while retrieving legacy player data");
+            }
+        }
     }
 }

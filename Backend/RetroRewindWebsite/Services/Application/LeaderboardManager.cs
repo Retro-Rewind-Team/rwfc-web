@@ -547,5 +547,46 @@ namespace RetroRewindWebsite.Services.Application
 
             return result;
         }
+
+        public async Task<PlayerDto?> GetLegacyPlayerAsync(string friendCode)
+        {
+            var legacyPlayer = await _playerRepository.GetLegacyPlayerByFriendCodeAsync(friendCode);
+
+            if (legacyPlayer == null)
+            {
+                return null;
+            }
+
+            // Get Mii image
+            string? miiImage = null;
+            try
+            {
+                miiImage = await _miiService.GetMiiImageAsync(legacyPlayer.Fc, legacyPlayer.MiiData);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to get Mii image for legacy player {fc}", legacyPlayer.Fc);
+            }
+
+            return new PlayerDto
+            {
+                Pid = legacyPlayer.Pid,
+                Name = legacyPlayer.Name,
+                FriendCode = legacyPlayer.Fc,
+                VR = legacyPlayer.Ev,
+                Rank = legacyPlayer.Rank,
+                ActiveRank = null,
+                LastSeen = legacyPlayer.SnapshotDate,
+                IsActive = true,
+                IsSuspicious = legacyPlayer.IsSuspicious,
+                VRStats = new VRStatsDto
+                {
+                    Last24Hours = 0,
+                    LastWeek = 0,
+                    LastMonth = 0
+                },
+                MiiImageBase64 = miiImage
+            };
+        }
     }
 }

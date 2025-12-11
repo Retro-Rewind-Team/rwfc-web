@@ -455,5 +455,12 @@ namespace RetroRewindWebsite.Repositories
                 .Where(p => normalizedCodes.Contains(p.Fc.Replace("-", "")))
                 .ToListAsync();
         }
+
+        public async Task<LegacyPlayerEntity?> GetLegacyPlayerByFriendCodeAsync(string friendCode)
+        {
+            return await _context.LegacyPlayers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Fc == friendCode);
+        }
     }
 }
