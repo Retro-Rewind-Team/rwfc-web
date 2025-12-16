@@ -66,9 +66,12 @@ export default function Footer() {
                                 </span>
                             </li>
                             <li>
-                                <span class="text-gray-500 dark:text-gray-600">
-                  Room Browser (Soon)
-                                </span>
+                                <A
+                                    href="/rooms"
+                                    class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
+                                >
+                  Room Browser
+                                </A>
                             </li>
                         </ul>
                     </div>
