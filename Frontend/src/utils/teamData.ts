@@ -615,6 +615,7 @@ export const teamData: Record<string, TeamMember[]> = {
             discord: "forevrrfury",
             role: "BKT Updater",
             image: "/profiles/fury.png",
+            fc: "3656-7252-3106",
         },
         {
             name: "justin",

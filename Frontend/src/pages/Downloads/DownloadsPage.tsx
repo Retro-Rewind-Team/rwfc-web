@@ -27,7 +27,6 @@ export default function DownloadsPage() {
                         <div class="flex flex-col sm:flex-row gap-3">
                             <a
                                 href="http://update.rwfc.net:8000/RetroRewind/zip/RetroRewind.zip"
-                                target="_blank"
                                 rel="noopener noreferrer"
                                 class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-center"
                             >
@@ -35,7 +34,6 @@ export default function DownloadsPage() {
                             </a>
                             <a
                                 href="http://update.rwfc.net:8000/RetroRewind/zip/6.5.zip"
-                                target="_blank"
                                 rel="noopener noreferrer"
                                 class="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-center"
                             >
