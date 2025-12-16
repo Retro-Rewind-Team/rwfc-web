@@ -56,11 +56,11 @@ namespace RetroRewindWebsite.Services.Domain
             }
 
             // Check for impossible VR jump
-            if (vrJump > 275)
+            if (vrJump > 375)
             {
                 player.SuspiciousVRJumps++;
 
-                if (player.SuspiciousVRJumps >= 3)
+                if (player.SuspiciousVRJumps >= 5)
                 {
                     player.IsSuspicious = true;
                     _logger.LogWarning("Player flagged for multiple suspicious VR jumps: {Name} ({Fc}) - {JumpCount} jumps",
