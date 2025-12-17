@@ -15,7 +15,7 @@ export default function PlayerDetailPage() {
         playerQuery, 
         legacyPlayer, 
         hasLegacyData,
-        isPlayerNotFound, // Now from hook
+        isPlayerNotFound,
     } = usePlayer(params.friendCode);
 
     return (
@@ -180,7 +180,7 @@ export default function PlayerDetailPage() {
                                     </div>
                                 </div>
 
-                                {/* VR Display - Current and Legacy */}
+                                {/* VR Display */}
                                 <div class="text-center">
                                     <div class="text-5xl font-bold text-blue-600 dark:text-blue-400 mb-1">
                                         {player().vr.toLocaleString()}

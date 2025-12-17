@@ -89,7 +89,6 @@ export function useLegacyLeaderboard() {
         handlePageSizeChange,
         setCurrentPage,
         miiLoader,
-        // Legacy doesn't need these but keep for compatibility
         activeOnly: () => false,
         timePeriod: () => "24",
         handleActiveOnlyChange: () => {},

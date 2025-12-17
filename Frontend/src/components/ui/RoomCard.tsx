@@ -36,7 +36,7 @@ export default function RoomCard(props: RoomCardProps) {
                     {/* Left side: Main info */}
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-3 mb-3">
-                            {/* Room Type - Large and Prominent */}
+                            {/* Room Type */}
                             <Show when={props.room.roomType}>
                                 <h3 class="text-white text-2xl sm:text-3xl font-extrabold drop-shadow-lg truncate">
                                     {props.room.roomType}
@@ -51,7 +51,7 @@ export default function RoomCard(props: RoomCardProps) {
                             </Show>
                         </div>
 
-                        {/* Status row - individual colored badges */}
+                        {/* Status row*/}
                         <div class="flex flex-wrap items-center gap-2">
                             {/* Public/Private Badge */}
                             <div class={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs shadow-md ${
@@ -128,7 +128,7 @@ export default function RoomCard(props: RoomCardProps) {
                 </div>
             </button>
 
-            {/* Players Grid - Collapsible */}
+            {/* Players Grid */}
             <Show when={isExpanded()}>
                 <div class="p-5 bg-gray-50 dark:bg-gray-900/30">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
