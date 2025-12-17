@@ -381,15 +381,15 @@ export default function LeaderboardPage() {
                                                                 {player.name}
                                                             </A>
 
-                                                            <div class="hidden sm:flex space-x-2 mt-1 justify-center sm:justify-start">
+                                                            <div class="hidden sm:flex flex-wrap gap-2 mt-1 justify-center sm:justify-start">
                                                                 <Show when={!showLegacy() && !player.isActive}>
-                                                                    <span class="text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full font-medium">
-                                                                        Inactive
+                                                                    <span class="inline-flex items-center text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap">
+            Inactive
                                                                     </span>
                                                                 </Show>
                                                                 <Show when={player.isSuspicious}>
-                                                                    <span class="text-xs bg-red-200 dark:bg-red-800 text-red-600 dark:text-red-400 px-2 py-1 rounded-full font-medium">
-                                                                        ⚠️ Suspicious
+                                                                    <span class="inline-flex items-center text-xs bg-red-200 dark:bg-red-800 text-red-600 dark:text-red-400 px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap">
+            ⚠️ Suspicious
                                                                     </span>
                                                                 </Show>
                                                             </div>

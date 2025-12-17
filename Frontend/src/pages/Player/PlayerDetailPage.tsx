@@ -153,18 +153,18 @@ export default function PlayerDetailPage() {
 
                                     {/* Player Info */}
                                     <div>
-                                        <div class="flex items-center space-x-3 mb-2">
+                                        <div class="flex flex-wrap items-center gap-3 mb-2">
                                             <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
                                                 {player().name}
                                             </h1>
                                             <Show when={!player().isActive}>
-                                                <span class="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full text-sm font-medium">
-                                                    Inactive
+                                                <span class="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
+            Inactive
                                                 </span>
                                             </Show>
                                             <Show when={player().isSuspicious}>
-                                                <span class="bg-red-200 dark:bg-red-900 text-red-600 dark:text-red-300 px-3 py-1 rounded-full text-sm font-medium">
-                                                    ⚠️ Suspicious
+                                                <span class="bg-red-200 dark:bg-red-900 text-red-600 dark:text-red-300 px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
+            ⚠️ Suspicious
                                                 </span>
                                             </Show>
                                         </div>
