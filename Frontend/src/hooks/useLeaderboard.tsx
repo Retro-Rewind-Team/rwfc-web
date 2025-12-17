@@ -85,6 +85,23 @@ export function useLeaderboard() {
 
     const handleTimePeriodChange = (period: string) => {
         setTimePeriod(period);
+    
+        // Update sort field if currently sorting by VR gain
+        const currentSort = sortBy();
+        if (currentSort === "vrgain24" || currentSort === "vrgain7" || currentSort === "vrgain30") {
+        // Map the period to the correct VR gain field
+            let newSortField;
+            if (period === "24") {
+                newSortField = "vrgain24";
+            } else if (period === "week") {
+                newSortField = "vrgain7";
+            } else {
+                newSortField = "vrgain30";
+            }
+            setSortBy(newSortField);
+        }
+    
+        setCurrentPage(1);
     };
 
     const handlePageSizeChange = (size: number) => {
