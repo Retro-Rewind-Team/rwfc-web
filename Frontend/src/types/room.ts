@@ -29,6 +29,7 @@ export interface Room {
   averageVR: number | null;
   race: Race | null;
   roomType: string;
+  isSuspended: boolean;
   isPublic: boolean;
   isJoinable: boolean;
   isSplit: boolean;

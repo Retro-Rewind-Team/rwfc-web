@@ -205,6 +205,7 @@ namespace RetroRewindWebsite.Services.Application
                 Rk = group.Rk,
                 Players = players,
                 AverageVR = averageVR,
+                Suspend = group.Suspend,
                 Race = group.Race != null ? new RaceDto
                 {
                     Num = group.Race.Num,
