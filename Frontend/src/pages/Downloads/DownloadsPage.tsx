@@ -52,12 +52,16 @@ export default function DownloadsPage() {
                 <div class="flex flex-col sm:flex-row gap-3">
                     <a
                         href={downloadsApi.getFullDownloadUrl()}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-center"
                     >
                         Full Download (First Install)
                     </a>
                     <a
                         href={downloadsApi.getUpdateDownloadUrl()}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         class="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-center"
                     >
                         Update Only (v6.5 → v6.5.4)
