@@ -33,21 +33,25 @@ export default function LeaderboardPage() {
                     {/* Quick Stats Cards - Always show current stats */}
                     <Show when={currentLeaderboard.statsQuery.data}>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 p-6 transition-colors">
-                                <div class="text-4xl mb-2">👥</div>
-                                <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                                    {currentLeaderboard.statsQuery.data!.totalPlayers.toLocaleString()}
+                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 rounded-xl border-2 border-blue-200 dark:border-blue-800 p-6 transition-all hover:shadow-lg hover:scale-105">
+                                <div class="flex items-center justify-center gap-3 mb-2">
+                                    <span class="text-3xl">👥</span>
+                                    <div class="text-4xl font-bold text-blue-600 dark:text-blue-400">
+                                        {currentLeaderboard.statsQuery.data!.totalPlayers.toLocaleString()}
+                                    </div>
                                 </div>
-                                <div class="text-gray-600 dark:text-gray-400 font-medium">
+                                <div class="text-sm font-semibold text-blue-700 dark:text-blue-300">
                                     Total Racers
                                 </div>
                             </div>
-                            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 p-6 transition-colors">
-                                <div class="text-4xl mb-2">⚡</div>
-                                <div class="text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
-                                    {currentLeaderboard.statsQuery.data!.activePlayers.toLocaleString()}
+                            <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/30 rounded-xl border-2 border-emerald-200 dark:border-emerald-800 p-6 transition-all hover:shadow-lg hover:scale-105">
+                                <div class="flex items-center justify-center gap-3 mb-2">
+                                    <span class="text-3xl">⚡</span>
+                                    <div class="text-4xl font-bold text-emerald-600 dark:text-emerald-400">
+                                        {currentLeaderboard.statsQuery.data!.activePlayers.toLocaleString()}
+                                    </div>
                                 </div>
-                                <div class="text-gray-600 dark:text-gray-400 font-medium">
+                                <div class="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
                                     Active This Week
                                 </div>
                             </div>
@@ -489,88 +493,6 @@ export default function LeaderboardPage() {
                     </Show>
                 </div>
             </Show>
-
-            {/* FAQ Section */}
-            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-8">
-                <div class="text-center mb-8">
-                    <h3 class="text-3xl font-bold text-gray-900 dark:text-white">
-                        Frequently Asked Questions
-                    </h3>
-                </div>
-
-                <div class="space-y-4 max-w-4xl mx-auto">
-                    <details class="bg-gray-50 dark:bg-gray-700/50 border-2 border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
-                        <summary class="px-6 py-4 font-semibold cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white transition-colors flex items-center">
-                            <span class="mr-3">✨</span>
-                            What new features will be added?
-                        </summary>
-                        <div class="px-6 py-4 border-t-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300">
-                            For now no new features are planned, but I will keep the
-                            leaderboard updated and maintained. If you have any suggestions or
-                            ideas, feel free to reach out to me (Noël) on Discord.
-                        </div>
-                    </details>
-
-                    <details class="bg-gray-50 dark:bg-gray-700/50 border-2 border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
-                        <summary class="px-6 py-4 font-semibold cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white transition-colors flex items-center">
-                            <span class="mr-3">🔄</span>
-                            How often is the leaderboard updated?
-                        </summary>
-                        <div class="px-6 py-4 border-t-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300">
-                            The leaderboard database updates every minute. Try to refresh the
-                            page to see new changes.
-                        </div>
-                    </details>
-
-                    <details class="bg-gray-50 dark:bg-gray-700/50 border-2 border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
-                        <summary class="px-6 py-4 font-semibold cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white transition-colors flex items-center">
-                            <span class="mr-3">⚠️</span>
-                            Why is some of the data wrong?
-                        </summary>
-                        <div class="px-6 py-4 border-t-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300">
-                            The VR Gain data might be slightly inaccurate due to complex
-                            formulas. If your data hasn't been updated since your last race,
-                            it probably means you left Retro WFC before your data could get
-                            updated. Join a room again and it should be updated accordingly.
-                            Also note that there is a gap of about 4 weeks worth of missing
-                            data.
-                        </div>
-                    </details>
-
-                    <details class="bg-gray-50 dark:bg-gray-700/50 border-2 border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
-                        <summary class="px-6 py-4 font-semibold cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white transition-colors flex items-center">
-                            <span class="mr-3">🔍</span>I can't find my name on the
-                            leaderboard. What should I do?
-                        </summary>
-                        <div class="px-6 py-4 border-t-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300">
-                            Make sure to be in an online room for at least a few minutes. If
-                            you still can't see your name please contact me (Noël) on Discord.
-                        </div>
-                    </details>
-
-                    <details class="bg-gray-50 dark:bg-gray-700/50 border-2 border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
-                        <summary class="px-6 py-4 font-semibold cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white transition-colors flex items-center">
-                            <span class="mr-3">🚨</span>I am placed at the bottom of the
-                            leaderboard and displayed in red, why is that?
-                        </summary>
-                        <div class="px-6 py-4 border-t-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300">
-                            It probably means you tried to set your VR to a very high value.
-                            If you think I made a mistake, contact me (Noël) on Discord.
-                        </div>
-                    </details>
-
-                    <Show when={legacyLeaderboard.isAvailable()}>
-                        <details class="bg-gray-50 dark:bg-gray-700/50 border-2 border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
-                            <summary class="px-6 py-4 font-semibold cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white transition-colors flex items-center">
-                                <span class="mr-3">🏆</span>What is the Legacy Leaderboard?
-                            </summary>
-                            <div class="px-6 py-4 border-t-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300">
-                                The Legacy Leaderboard is a snapshot of the rankings before the VR cap expansion update. 
-                            </div>
-                        </details>
-                    </Show>
-                </div>
-            </div>
         </div>
     );
 }

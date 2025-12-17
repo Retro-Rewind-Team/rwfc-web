@@ -21,10 +21,10 @@ export default function DownloadsPage() {
                     <div class="text-2xl">📦</div>
                     <div class="flex-1">
                         <h2 class="text-2xl font-bold text-blue-900 dark:text-blue-100 mb-2">
-                            Retro Rewind v6.5
+                            Retro Rewind v6.5.4
                         </h2>
                         <p class="text-lg text-blue-800 dark:text-blue-200 mb-4">
-                            Complete distribution with 184 retro tracks and 80 custom tracks
+                            Complete distribution with 196 retro tracks and 88 custom tracks
                         </p>
                         <div class="flex flex-col sm:flex-row gap-3">
                             <a
@@ -37,7 +37,7 @@ export default function DownloadsPage() {
                                 href={downloadsApi.getUpdateDownloadUrl()}
                                 class="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-center"
                             >
-                                Update Only (v6.4.2 → v6.5)
+                                Update Only (v6.5 → v6.5.4)
                             </a>
                         </div>
                     </div>
@@ -186,7 +186,7 @@ export default function DownloadsPage() {
                         Track List
                     </h3>
                     <p class="text-gray-600 dark:text-gray-400 mb-4">
-                        View all 184 retro tracks, 40 Battle Arenas and 80 custom tracks
+                        View all 196 retro tracks, 40 Battle Arenas and 88 custom tracks
                         included in v6.2.3
                     </p>
                     <a

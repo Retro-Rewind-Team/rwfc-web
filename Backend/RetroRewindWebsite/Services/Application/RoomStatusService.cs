@@ -14,7 +14,7 @@ namespace RetroRewindWebsite.Services.Application
         private readonly SemaphoreSlim _refreshLock = new(1, 1);
         private const int MaxSnapshots = 60;
         private int _currentId = 0;
-        private readonly object _idLock = new();
+        private readonly Lock _idLock = new();
 
         public RoomStatusService(
             IServiceScopeFactory serviceScopeFactory,
@@ -148,7 +148,7 @@ namespace RetroRewindWebsite.Services.Application
                 {
                     Id = snapshotId,
                     Timestamp = DateTime.UtcNow,
-                    Rooms = new List<Group>()
+                    Rooms = []
                 };
 
                 _snapshots.Enqueue(failedSnapshot);
@@ -244,7 +244,7 @@ namespace RetroRewindWebsite.Services.Application
         {
             public int Id { get; set; }
             public DateTime Timestamp { get; set; }
-            public List<Group> Rooms { get; set; } = new();
+            public List<Group> Rooms { get; set; } = [];
         }
     }
 }

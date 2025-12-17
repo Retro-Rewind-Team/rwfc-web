@@ -14,7 +14,7 @@ namespace RetroRewindWebsite.Controllers
         private static readonly Dictionary<string, (string Url, string FileName)> AllowedFiles = new()
         {
             { "full", ("http://update.rwfc.net:8000/RetroRewind/zip/RetroRewind.zip", "RetroRewind.zip") },
-            { "update", ("http://update.rwfc.net:8000/RetroRewind/zip/6.5.zip", "RetroRewind-6.5.zip") }
+            { "update", ("http://update.rwfc.net:8000/RetroRewind/zip/6.5.4.zip", "RetroRewind-6.5.zip") }
         };
 
         public DownloadController(IHttpClientFactory httpClientFactory, ILogger<DownloadController> logger)
