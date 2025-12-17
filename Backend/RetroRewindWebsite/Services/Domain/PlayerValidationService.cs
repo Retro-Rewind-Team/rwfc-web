@@ -56,7 +56,7 @@ namespace RetroRewindWebsite.Services.Domain
             }
 
             // Check for impossible VR jump
-            if (vrJump > 375)
+            if (vrJump > 475)
             {
                 player.SuspiciousVRJumps++;
 
