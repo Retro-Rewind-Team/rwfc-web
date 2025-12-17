@@ -170,7 +170,7 @@ namespace RetroRewindWebsite.Controllers
                 var latestStatus = await _roomStatusService.GetLatestStatusAsync();
                 if (latestStatus == null)
                 {
-                    return Ok(new BatchMiiResponseDto { Miis = new Dictionary<string, string>() });
+                    return Ok(new BatchMiiResponseDto { Miis = [] });
                 }
 
                 // Build a lookup of FC -> Mii data from current rooms

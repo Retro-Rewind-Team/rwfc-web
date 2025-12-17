@@ -1,26 +1,29 @@
-﻿using System.Collections.Concurrent;
-using RetroRewindWebsite.Models.DTOs;
+﻿using RetroRewindWebsite.Models.DTOs;
 using RetroRewindWebsite.Models.External;
 using RetroRewindWebsite.Services.External;
+using System.Collections.Concurrent;
 
 namespace RetroRewindWebsite.Services.Application
 {
     public class RoomStatusService : IRoomStatusService
     {
+        private readonly ISplitRoomDetector _splitRoomDetector;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<RoomStatusService> _logger;
         private readonly ConcurrentQueue<RoomStatusSnapshot> _snapshots = new();
         private readonly SemaphoreSlim _refreshLock = new(1, 1);
         private const int MaxSnapshots = 60;
         private int _currentId = 0;
-        private readonly object _idLock = new();
+        private readonly Lock _idLock = new();
 
         public RoomStatusService(
             IServiceScopeFactory serviceScopeFactory,
-            ILogger<RoomStatusService> logger)
+            ILogger<RoomStatusService> logger,
+            ISplitRoomDetector splitRoomDetector)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
+            _splitRoomDetector = splitRoomDetector;
         }
 
         public async Task<RoomStatusResponseDto?> GetLatestStatusAsync()
@@ -145,7 +148,7 @@ namespace RetroRewindWebsite.Services.Application
                 {
                     Id = snapshotId,
                     Timestamp = DateTime.UtcNow,
-                    Rooms = new List<Group>()
+                    Rooms = []
                 };
 
                 _snapshots.Enqueue(failedSnapshot);
@@ -164,6 +167,9 @@ namespace RetroRewindWebsite.Services.Application
         private RoomStatusResponseDto CreateResponseDto(RoomStatusSnapshot snapshot)
         {
             var roomDtos = snapshot.Rooms.Select(MapToRoomDto).ToList();
+
+            // Apply split room detection
+            roomDtos = _splitRoomDetector.DetectAndSplitRooms(roomDtos);
 
             return new RoomStatusResponseDto
             {
@@ -210,6 +216,12 @@ namespace RetroRewindWebsite.Services.Application
 
         private RoomPlayerDto MapToRoomPlayerDto(ExternalPlayer player)
         {
+            var connectionMap = new List<string>();
+            if (!string.IsNullOrEmpty(player.Conn_map))
+            {
+                connectionMap = [.. player.Conn_map.Select(c => c.ToString())];
+            }
+
             return new RoomPlayerDto
             {
                 Pid = player.Pid,
@@ -219,6 +231,7 @@ namespace RetroRewindWebsite.Services.Application
                 BR = string.IsNullOrEmpty(player.Eb) ? null : player.BR,
                 IsOpenHost = player.IsOpenHost,
                 IsSuspended = player.IsSuspended,
+                ConnectionMap = connectionMap,
                 Mii = player.Mii?.FirstOrDefault() != null ? new MiiDto
                 {
                     Data = player.Mii[0].Data,
@@ -231,7 +244,7 @@ namespace RetroRewindWebsite.Services.Application
         {
             public int Id { get; set; }
             public DateTime Timestamp { get; set; }
-            public List<Group> Rooms { get; set; } = new();
+            public List<Group> Rooms { get; set; } = [];
         }
     }
 }

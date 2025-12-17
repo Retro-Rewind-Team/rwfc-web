@@ -1,8 +1,8 @@
 import { A, useParams } from "@solidjs/router";
 import { Show } from "solid-js";
 import { usePlayer } from "../../hooks";
-import { formatLastSeen, getVRGainClass } from "../../utils";
-import { VRHistoryChartComponent } from "../../components/player";
+import { formatLastSeen } from "../../utils";
+import { VRHistoryChartComponent, VRStatsCard } from "../../components/ui";
 import {
     MiiComponent,
     VRTierInfo,
@@ -14,16 +14,9 @@ export default function PlayerDetailPage() {
     const { 
         playerQuery, 
         legacyPlayer, 
-        hasLegacyData 
+        hasLegacyData,
+        isPlayerNotFound,
     } = usePlayer(params.friendCode);
-
-    // Check if player was not found (404 error)
-    const isPlayerNotFound = () => {
-        return playerQuery.isError && 
-               playerQuery.error instanceof Error && 
-               (playerQuery.error.message.includes("404") || 
-                playerQuery.error.message.includes("not found"));
-    };
 
     return (
         <div class="space-y-6">
@@ -153,17 +146,17 @@ export default function PlayerDetailPage() {
 
                                     {/* Player Info */}
                                     <div>
-                                        <div class="flex items-center space-x-3 mb-2">
+                                        <div class="flex flex-wrap items-center gap-3 mb-2">
                                             <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
                                                 {player().name}
                                             </h1>
                                             <Show when={!player().isActive}>
-                                                <span class="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full text-sm font-medium">
+                                                <span class="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
                                                     Inactive
                                                 </span>
                                             </Show>
                                             <Show when={player().isSuspicious}>
-                                                <span class="bg-red-200 dark:bg-red-900 text-red-600 dark:text-red-300 px-3 py-1 rounded-full text-sm font-medium">
+                                                <span class="bg-red-200 dark:bg-red-900 text-red-600 dark:text-red-300 px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
                                                     ⚠️ Suspicious
                                                 </span>
                                             </Show>
@@ -187,7 +180,7 @@ export default function PlayerDetailPage() {
                                     </div>
                                 </div>
 
-                                {/* VR Display - Current and Legacy */}
+                                {/* VR Display */}
                                 <div class="text-center">
                                     <div class="text-5xl font-bold text-blue-600 dark:text-blue-400 mb-1">
                                         {player().vr.toLocaleString()}
@@ -230,41 +223,18 @@ export default function PlayerDetailPage() {
 
                         {/* VR Stats Cards */}
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6 text-center">
-                                <div
-                                    class={`text-3xl font-bold mb-2 ${getVRGainClass(player().vrStats.last24Hours)}`}
-                                >
-                                    {player().vrStats.last24Hours >= 0 ? "+" : ""}
-                                    {player().vrStats.last24Hours}
-                                </div>
-                                <div class="text-gray-600 dark:text-gray-400 font-medium">
-                                    Last 24 Hours
-                                </div>
-                            </div>
-
-                            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6 text-center">
-                                <div
-                                    class={`text-3xl font-bold mb-2 ${getVRGainClass(player().vrStats.lastWeek)}`}
-                                >
-                                    {player().vrStats.lastWeek >= 0 ? "+" : ""}
-                                    {player().vrStats.lastWeek}
-                                </div>
-                                <div class="text-gray-600 dark:text-gray-400 font-medium">
-                                    Last Week
-                                </div>
-                            </div>
-
-                            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6 text-center">
-                                <div
-                                    class={`text-3xl font-bold mb-2 ${getVRGainClass(player().vrStats.lastMonth)}`}
-                                >
-                                    {player().vrStats.lastMonth >= 0 ? "+" : ""}
-                                    {player().vrStats.lastMonth}
-                                </div>
-                                <div class="text-gray-600 dark:text-gray-400 font-medium">
-                                    Last Month
-                                </div>
-                            </div>
+                            <VRStatsCard 
+                                value={player().vrStats.last24Hours} 
+                                label="Last 24 Hours" 
+                            />
+                            <VRStatsCard 
+                                value={player().vrStats.lastWeek} 
+                                label="Last Week" 
+                            />
+                            <VRStatsCard 
+                                value={player().vrStats.lastMonth} 
+                                label="Last Month" 
+                            />
                         </div>
 
                         {/* Player Stats Summary */}

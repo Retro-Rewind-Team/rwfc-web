@@ -37,3 +37,8 @@ export function getVRGainClass(gain: number): string {
     if (gain < 0) return "text-red-600 font-bold";
     return "text-gray-600";
 }
+
+export const formatTimestamp = (timestamp: string): string => {
+    const date = new Date(timestamp);
+    return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
+};

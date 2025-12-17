@@ -9,9 +9,9 @@
         public required string Type { get; set; }
         public bool Suspend { get; set; }
         public required string Host { get; set; }
-        public string? Rk { get; set; } // Optional - not all groups have this
+        public string? Rk { get; set; }
         public required Dictionary<string, ExternalPlayer> Players { get; set; }
-        public Race? Race { get; set; } // Optional race information
+        public Race? Race { get; set; }
     }
 
     public class Race

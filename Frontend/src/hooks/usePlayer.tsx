@@ -18,6 +18,13 @@ export function usePlayer(friendCode: string) {
         enabled: playerQuery.isSuccess, // Only fetch if current player exists
     }));
 
+    const isPlayerNotFound = () => {
+        return playerQuery.isError && 
+               playerQuery.error instanceof Error && 
+               (playerQuery.error.message.includes("404") || 
+                playerQuery.error.message.includes("not found"));
+    };
+
     // CreateMemo to make reactive
     const legacyPlayer = createMemo(() => legacyPlayerQuery.data);
     const hasLegacyData = createMemo(() => legacyPlayerQuery.isSuccess);
@@ -29,6 +36,8 @@ export function usePlayer(friendCode: string) {
         isError: playerQuery.isError,
         error: playerQuery.error,
         refetch: playerQuery.refetch,
+        
+        isPlayerNotFound,
         
         // Legacy data
         legacyPlayerQuery,

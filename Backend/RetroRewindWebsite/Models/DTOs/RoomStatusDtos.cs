@@ -19,14 +19,17 @@
         public required List<RoomPlayerDto> Players { get; set; }
         public int? AverageVR { get; set; }
         public RaceDto? Race { get; set; }
+        public bool IsSplit { get; set; }
+        public bool Suspend { get; set; }
+        public List<string> ConnectedPlayerIds { get; set; } = [];
+
         public string RoomType => GetRoomType(Rk);
         public bool IsPublic => Type == "anybody";
-        public bool IsJoinable => Players.Count < 12;
+        public bool IsJoinable => Players.Count < 12 && !IsSplit && Suspend;
 
         private static string GetRoomType(string? rk)
         {
             if (string.IsNullOrEmpty(rk)) return "Unknown Room Type";
-
             return rk switch
             {
                 "vs_10" => "Retro Tracks",
@@ -85,6 +88,7 @@
         public bool IsOpenHost { get; set; }
         public bool IsSuspended { get; set; }
         public MiiDto? Mii { get; set; }
+        public List<string> ConnectionMap { get; set; } = [];
     }
 
     public class MiiDto

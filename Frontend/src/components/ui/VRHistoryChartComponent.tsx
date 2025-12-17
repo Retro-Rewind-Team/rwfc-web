@@ -20,7 +20,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
     const [hoveredPoint, setHoveredPoint] = createSignal<ProcessedVRHistory | null>(null);
     const [hoveredPosition, setHoveredPosition] = createSignal<{ x: number; y: number } | null>(null);
     
-    // Detect mobile - check both screen size and touch capability
+    // Detect mobile
     const isMobile = () => {
         if (typeof window === "undefined") return false;
         return window.innerWidth < 768 || ("ontouchstart" in window) || (navigator.maxTouchPoints > 0);
@@ -41,7 +41,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
         };
     };
 
-    // Calculate scales - now just returns min and max
+    // Calculate scales
     const getScales = () => {
         const data = historyData();
         if (data.length === 0) {
@@ -87,7 +87,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
         return { x, y };
     };
 
-    // Generate Y-axis ticks - ONLY min and max
+    // Generate Y-axis ticks
     const getYAxisTicks = () => {
         const scales = getScales();
         const padding = getPadding();
@@ -98,7 +98,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
         ];
     };
 
-    // Generate X-axis ticks - ONLY first and last timestamps
+    // Generate X-axis ticks
     const getXAxisTicks = () => {
         const data = historyData();
         const days = selectedDays();
@@ -111,7 +111,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
         const lastPoint = pointToSVG(data[data.length - 1]);
         
         if (days === 1) {
-            // 24h - show time only
+            // 24h
             const firstLabel = `${String(firstDate.getHours()).padStart(2, "0")}:${String(firstDate.getMinutes()).padStart(2, "0")}`;
             const lastLabel = `${String(lastDate.getHours()).padStart(2, "0")}:${String(lastDate.getMinutes()).padStart(2, "0")}`;
             
@@ -120,7 +120,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                 { label: lastLabel, x: lastPoint.x }
             ];
         } else if (days === null) {
-            // Lifetime - show full date (dd-mm-yyyy)
+            // Lifetime
             const firstLabel = `${String(firstDate.getDate()).padStart(2, "0")}-${String(firstDate.getMonth() + 1).padStart(2, "0")}-${firstDate.getFullYear()}`;
             const lastLabel = `${String(lastDate.getDate()).padStart(2, "0")}-${String(lastDate.getMonth() + 1).padStart(2, "0")}-${lastDate.getFullYear()}`;
             
@@ -129,7 +129,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                 { label: lastLabel, x: lastPoint.x }
             ];
         } else {
-            // 7d, 30d - show date (dd/mm)
+            // 7d, 30d
             const firstLabel = `${String(firstDate.getDate()).padStart(2, "0")}/${String(firstDate.getMonth() + 1).padStart(2, "0")}`;
             const lastLabel = `${String(lastDate.getDate()).padStart(2, "0")}/${String(lastDate.getMonth() + 1).padStart(2, "0")}`;
             
@@ -156,7 +156,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
         return path;
     };
 
-    // Generate area path (for gradient fill)
+    // Generate area path for gradient fill
     const generateAreaPath = () => {
         const data = historyData();
         if (data.length === 0) return "";
@@ -353,7 +353,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                             </linearGradient>
                         </defs>
 
-                        {/* Grid lines - only at min and max */}
+                        {/* Grid lines*/}
                         <For each={getYAxisTicks()}>
                             {(tick) => {
                                 const padding = getPadding();
@@ -435,7 +435,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                             }}
                         </For>
 
-                        {/* Y-axis labels - only min and max */}
+                        {/* Y-axis labels */}
                         <For each={getYAxisTicks()}>
                             {(tick) => {
                                 const padding = getPadding();
@@ -453,7 +453,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                             }}
                         </For>
 
-                        {/* X-axis labels - only first and last */}
+                        {/* X-axis labels */}
                         <For each={getXAxisTicks()}>
                             {(tick) => {
                                 const padding = getPadding();
@@ -527,13 +527,13 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                                     let timestamp: string;
                                     
                                     if (days === 1) {
-                                        // 24h - show time (hh:mm)
+                                        // 24h
                                         timestamp = `${String(pointDate.getHours()).padStart(2, "0")}:${String(pointDate.getMinutes()).padStart(2, "0")}`;
                                     } else if (days === null) {
-                                        // Lifetime - show full date (dd/mm/yyyy)
+                                        // Lifetime
                                         timestamp = `${String(pointDate.getDate()).padStart(2, "0")}/${String(pointDate.getMonth() + 1).padStart(2, "0")}/${pointDate.getFullYear()}`;
                                     } else {
-                                        // 7d, 30d - show date (dd/mm)
+                                        // 7d, 30d
                                         timestamp = `${String(pointDate.getDate()).padStart(2, "0")}/${String(pointDate.getMonth() + 1).padStart(2, "0")}`;
                                     }
                                     

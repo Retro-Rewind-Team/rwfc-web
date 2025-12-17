@@ -1,3 +1,10 @@
 export { default as MiiComponent } from "./MiiComponent";
 export { default as VRTierNumberPlate } from "./VRTierNumberplate";
 export { default as VRTierInfo } from "./VRTierInfo";
+export { default as VRHistoryChartComponent } from "./VRHistoryChartComponent";
+export { default as PlayerCard } from "./PlayerCard";
+export { default as RoomCard } from "./RoomCard";
+export { default as TeamMemberCard } from "./TeamMemberCard";
+export { default as VRStatsCard } from "./vrStatsCard";
+export { default as TutorialCard } from "./TutorialCard";
+export { default as LeaderboardTable } from "./LeaderboardTable";

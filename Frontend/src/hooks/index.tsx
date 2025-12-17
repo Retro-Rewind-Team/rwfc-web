@@ -4,3 +4,4 @@ export { useDebounce } from "./useDebounce";
 export { useVRHistory } from "./useVRHistory";
 export { useMiiLoader } from "./useMiiLoader";
 export { useRoomStatus } from "./useRoom";
+export { useClipboard } from "./useClipboard";

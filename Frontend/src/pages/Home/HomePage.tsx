@@ -1,21 +1,20 @@
-import { A } from "@solidjs/router";
 import { Show } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
-import { api } from "../../services/api";
+import { leaderboardApi } from "../../services/api/leaderboard";
+import { StatCard } from "../../components/common";
+import { A } from "@solidjs/router";
 
 export default function HomePage() {
-    // Get basic stats for the hero section
     const statsQuery = useQuery(() => ({
         queryKey: ["stats"],
-        queryFn: () => api.getStats(),
-        refetchInterval: 300000, // 5 minutes
+        queryFn: () => leaderboardApi.getStats(),
+        refetchInterval: 300000,
     }));
 
-    // Get Discord member count
     const discordQuery = useQuery(() => ({
         queryKey: ["discord-members"],
-        queryFn: () => api.getDiscordMemberCount(),
-        refetchInterval: 300000, // 5 minutes
+        queryFn: () => leaderboardApi.getDiscordMemberCount(),
+        refetchInterval: 300000,
     }));
 
     return (
@@ -38,30 +37,21 @@ export default function HomePage() {
                     {/* Quick Stats */}
                     <Show when={statsQuery.data}>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
-                                <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                                    {statsQuery.data!.totalPlayers.toLocaleString()}
-                                </div>
-                                <div class="text-gray-600 dark:text-gray-400">
-                                    Registered Licenses
-                                </div>
-                            </div>
-                            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
-                                <div class="text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
-                                    {discordQuery.data?.toLocaleString() ?? "8000+"}
-                                </div>
-                                <div class="text-gray-600 dark:text-gray-400">
-                                    Discord Members
-                                </div>
-                            </div>
-                            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
-                                <div class="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
-                                    184
-                                </div>
-                                <div class="text-gray-600 dark:text-gray-400">
-                                    Retro Tracks Available
-                                </div>
-                            </div>
+                            <StatCard
+                                value={statsQuery.data!.totalPlayers.toLocaleString()}
+                                label="Registered Licenses"
+                                colorScheme="emerald"
+                            />
+                            <StatCard
+                                value={discordQuery.data?.toLocaleString() ?? "8000+"}
+                                label="Discord Members"
+                                colorScheme="blue"
+                            />
+                            <StatCard
+                                value="196"
+                                label="Retro Tracks Available"
+                                colorScheme="purple"
+                            />
                         </div>
                     </Show>
                 </div>
@@ -118,7 +108,7 @@ export default function HomePage() {
                             TT Leaderboard
                         </h3>
                         <p class="text-gray-600 dark:text-gray-400 mb-4">
-                            Compare the fastest times across all 184 retro tracks and 80
+                            Compare the fastest times across all 196 retro tracks and 88
                             custom tracks.
                         </p>
                         <div class="text-gray-500 dark:text-gray-500 font-medium inline-flex items-center">

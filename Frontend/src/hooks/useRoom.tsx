@@ -11,7 +11,7 @@ export function useRoomStatus() {
     const statsQuery = useQuery(() => ({
         queryKey: ["roomStatus", "stats"],
         queryFn: () => roomStatusApi.getStats(),
-        refetchInterval: 60000, // Refresh every minute
+        refetchInterval: 60000,
     }));
 
     const roomStatusQuery = useQuery(() => ({
@@ -20,7 +20,6 @@ export function useRoomStatus() {
         refetchInterval: () => (autoRefresh() && currentId() === undefined ? 60000 : false),
     }));
 
-    // Check if we're viewing the latest snapshot
     const isLatest = createMemo(() => {
         const data = roomStatusQuery.data;
         if (!data) return true;
@@ -30,7 +29,19 @@ export function useRoomStatus() {
     const canGoForward = createMemo(() => {
         const data = roomStatusQuery.data;
         if (!data) return false;
-        return currentId() !== undefined && currentId() !== data.maximumId;
+        
+        const current = currentId();
+        
+        // Can always go forward from "min"
+        if (current === "min") return true;
+        
+        // Can go forward if we're not at max
+        if (typeof current === "number") {
+            return current < data.maximumId;
+        }
+        
+        // If undefined (latest), check if current isn't max
+        return data.id < data.maximumId;
     });
 
     const canGoBackward = createMemo(() => {
@@ -39,13 +50,21 @@ export function useRoomStatus() {
         return data.minimumId < data.id;
     });
 
-    // Navigation handlers
     const goForward = () => {
         const data = roomStatusQuery.data;
         if (!data || !canGoForward()) return;
 
-        if (typeof currentId() === "number") {
-            const nextId = (currentId() as number) + 1;
+        const current = currentId();
+        
+        // Handle "min" case by going to minimumId + 1
+        if (current === "min") {
+            setCurrentId(data.minimumId + 1);
+            return;
+        }
+
+        // Handle number case
+        if (typeof current === "number") {
+            const nextId = current + 1;
             if (nextId <= data.maximumId) {
                 setCurrentId(nextId);
             }
@@ -57,6 +76,7 @@ export function useRoomStatus() {
         if (!data || !canGoBackward()) return;
 
         const current = currentId() ?? data.id;
+        
         if (typeof current === "number") {
             const prevId = current - 1;
             if (prevId >= data.minimumId) {
@@ -73,7 +93,6 @@ export function useRoomStatus() {
         setCurrentId("min");
     };
 
-    // Calculate room uptime
     const getRoomUptime = (createdDate: string): string => {
         const created = new Date(createdDate);
         const now = isLatest() ? new Date() : new Date(roomStatusQuery.data?.timestamp || Date.now());
@@ -86,7 +105,6 @@ export function useRoomStatus() {
         return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     };
 
-    // Get all unique friend codes for Mii loading
     const getAllFriendCodes = createMemo(() => {
         const rooms = roomStatusQuery.data?.rooms || [];
         const friendCodes = new Set<string>();
@@ -102,7 +120,6 @@ export function useRoomStatus() {
         return Array.from(friendCodes);
     });
 
-    // Force refresh
     const forceRefresh = async () => {
         try {
             await roomStatusApi.forceRefresh();
@@ -114,28 +131,19 @@ export function useRoomStatus() {
     };
 
     return {
-    // State
         currentId,
         autoRefresh,
         isLatest,
         canGoForward,
         canGoBackward,
-
-        // Queries
         statsQuery,
         roomStatusQuery,
-
-        // Computed
         getAllFriendCodes,
-
-        // Navigation
         goForward,
         goBackward,
         goToLatest,
         goToOldest,
         setAutoRefresh,
-
-        // Utilities
         getRoomUptime,
         forceRefresh,
     };
