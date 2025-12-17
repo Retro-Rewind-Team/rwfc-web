@@ -8,6 +8,7 @@ export interface RoomPlayer {
   br: number | null;
   isOpenHost: boolean;
   isSuspended: boolean;
+  connectionMap: string[];
   mii: {
     data: string;
     name: string;
@@ -32,6 +33,8 @@ export interface Room {
   roomType: string;
   isPublic: boolean;
   isJoinable: boolean;
+  isSplit: boolean;
+  connectedPlayerIds: string[];
 }
 
 export interface RoomStatusResponse {

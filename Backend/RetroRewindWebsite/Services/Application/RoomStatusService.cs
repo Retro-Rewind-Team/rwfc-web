@@ -1,12 +1,13 @@
-﻿using System.Collections.Concurrent;
-using RetroRewindWebsite.Models.DTOs;
+﻿using RetroRewindWebsite.Models.DTOs;
 using RetroRewindWebsite.Models.External;
 using RetroRewindWebsite.Services.External;
+using System.Collections.Concurrent;
 
 namespace RetroRewindWebsite.Services.Application
 {
     public class RoomStatusService : IRoomStatusService
     {
+        private readonly ISplitRoomDetector _splitRoomDetector;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<RoomStatusService> _logger;
         private readonly ConcurrentQueue<RoomStatusSnapshot> _snapshots = new();
@@ -17,10 +18,12 @@ namespace RetroRewindWebsite.Services.Application
 
         public RoomStatusService(
             IServiceScopeFactory serviceScopeFactory,
-            ILogger<RoomStatusService> logger)
+            ILogger<RoomStatusService> logger,
+            ISplitRoomDetector splitRoomDetector)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
+            _splitRoomDetector = splitRoomDetector;
         }
 
         public async Task<RoomStatusResponseDto?> GetLatestStatusAsync()
@@ -165,6 +168,9 @@ namespace RetroRewindWebsite.Services.Application
         {
             var roomDtos = snapshot.Rooms.Select(MapToRoomDto).ToList();
 
+            // Apply split room detection
+            roomDtos = _splitRoomDetector.DetectAndSplitRooms(roomDtos);
+
             return new RoomStatusResponseDto
             {
                 Rooms = roomDtos,
@@ -210,6 +216,12 @@ namespace RetroRewindWebsite.Services.Application
 
         private RoomPlayerDto MapToRoomPlayerDto(ExternalPlayer player)
         {
+            var connectionMap = new List<string>();
+            if (!string.IsNullOrEmpty(player.Conn_map))
+            {
+                connectionMap = [.. player.Conn_map.Select(c => c.ToString())];
+            }
+
             return new RoomPlayerDto
             {
                 Pid = player.Pid,
@@ -219,6 +231,7 @@ namespace RetroRewindWebsite.Services.Application
                 BR = string.IsNullOrEmpty(player.Eb) ? null : player.BR,
                 IsOpenHost = player.IsOpenHost,
                 IsSuspended = player.IsSuspended,
+                ConnectionMap = connectionMap,
                 Mii = player.Mii?.FirstOrDefault() != null ? new MiiDto
                 {
                     Data = player.Mii[0].Data,

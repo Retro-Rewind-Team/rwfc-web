@@ -159,6 +159,7 @@ builder.Services.AddScoped<ILeaderboardBackgroundService, LeaderboardBackgroundS
 builder.Services.AddScoped<ILeaderboardManager, LeaderboardManager>();
 
 // Room Status Services
+builder.Services.AddSingleton<ISplitRoomDetector, SplitRoomDetector>();
 builder.Services.AddSingleton<IRoomStatusService, RoomStatusService>();
 builder.Services.AddSingleton<IRoomStatusBackgroundService, RoomStatusBackgroundService>();
 builder.Services.AddHostedService<RoomStatusBackgroundService>(sp =>
@@ -259,7 +260,7 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 // Simple health check endpoint
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {
-    Predicate = _ => false 
+    Predicate = _ => false
 });
 
 // Detailed health check
