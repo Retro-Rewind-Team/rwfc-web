@@ -1,6 +1,6 @@
 import { createEffect, createMemo, createSignal } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
-import { api } from "../services/api";
+import { leaderboardApi } from "../services/api/leaderboard";
 import { LeaderboardRequest, Player } from "../types";
 import { useMiiLoader } from "./useMiiLoader";
 
@@ -44,13 +44,13 @@ export function useLeaderboard() {
     // Queries
     const statsQuery = useQuery(() => ({
         queryKey: ["stats"],
-        queryFn: () => api.getStats(),
+        queryFn: () => leaderboardApi.getStats(),
         refetchInterval: 60000,
     }));
 
     const leaderboardQuery = useQuery(() => ({
         queryKey: ["leaderboard", leaderboardRequest()],
-        queryFn: () => api.getLeaderboard(leaderboardRequest()),
+        queryFn: () => leaderboardApi.getLeaderboard(leaderboardRequest()),
         refetchInterval: 60000,
     }));
 

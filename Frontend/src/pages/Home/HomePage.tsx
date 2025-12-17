@@ -1,21 +1,20 @@
-import { A } from "@solidjs/router";
 import { Show } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
-import { api } from "../../services/api";
+import { leaderboardApi } from "../../services/api/leaderboard";
+import { StatCard } from "../../components/common";
+import { A } from "@solidjs/router";
 
 export default function HomePage() {
-    // Get basic stats for the hero section
     const statsQuery = useQuery(() => ({
         queryKey: ["stats"],
-        queryFn: () => api.getStats(),
-        refetchInterval: 300000, // 5 minutes
+        queryFn: () => leaderboardApi.getStats(),
+        refetchInterval: 300000,
     }));
 
-    // Get Discord member count
     const discordQuery = useQuery(() => ({
         queryKey: ["discord-members"],
-        queryFn: () => api.getDiscordMemberCount(),
-        refetchInterval: 300000, // 5 minutes
+        queryFn: () => leaderboardApi.getDiscordMemberCount(),
+        refetchInterval: 300000,
     }));
 
     return (
@@ -38,30 +37,21 @@ export default function HomePage() {
                     {/* Quick Stats */}
                     <Show when={statsQuery.data}>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                            <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/30 rounded-xl border-2 border-emerald-200 dark:border-emerald-800 p-6 transition-all hover:shadow-lg hover:scale-105">
-                                <div class="text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
-                                    {statsQuery.data!.totalPlayers.toLocaleString()}
-                                </div>
-                                <div class="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-                                    Registered Licenses
-                                </div>
-                            </div>
-                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 rounded-xl border-2 border-blue-200 dark:border-blue-800 p-6 transition-all hover:shadow-lg hover:scale-105">
-                                <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                                    {discordQuery.data?.toLocaleString() ?? "8000+"}
-                                </div>
-                                <div class="text-sm font-semibold text-blue-700 dark:text-blue-300">
-                                    Discord Members
-                                </div>
-                            </div>
-                            <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/30 rounded-xl border-2 border-purple-200 dark:border-purple-800 p-6 transition-all hover:shadow-lg hover:scale-105">
-                                <div class="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
-                                    196
-                                </div>
-                                <div class="text-sm font-semibold text-purple-700 dark:text-purple-300">
-                                    Retro Tracks Available
-                                </div>
-                            </div>
+                            <StatCard
+                                value={statsQuery.data!.totalPlayers.toLocaleString()}
+                                label="Registered Licenses"
+                                colorScheme="emerald"
+                            />
+                            <StatCard
+                                value={discordQuery.data?.toLocaleString() ?? "8000+"}
+                                label="Discord Members"
+                                colorScheme="blue"
+                            />
+                            <StatCard
+                                value="196"
+                                label="Retro Tracks Available"
+                                colorScheme="purple"
+                            />
                         </div>
                     </Show>
                 </div>

@@ -1,8 +1,9 @@
 import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
 import { useRoomStatus } from "../../hooks/useRoom";
 import { useMiiLoader } from "../../hooks/useMiiLoader";
-import { MiiComponent } from "../../components/ui";
-import type { Room, RoomPlayer } from "../../services/api/room";
+import { RoomCard } from "../../components/ui";
+import { formatTimestamp } from "../../utils/formatter";
+import { StatCard } from "../../components/common";
 
 export default function RoomStatusPage() {
     const {
@@ -59,12 +60,6 @@ export default function RoomStatusPage() {
         }
     });
 
-    // Format timestamp
-    const formatTimestamp = (timestamp: string) => {
-        const date = new Date(timestamp);
-        return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
-    };
-
     return (
         <div class="space-y-8">
             {/* Hero Header Section*/}
@@ -84,24 +79,18 @@ export default function RoomStatusPage() {
                     {/* Stats Grid */}
                     <Show when={statsQuery.data}>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-                            <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/30 rounded-xl border-2 border-emerald-200 dark:border-emerald-800 p-6 transition-all hover:shadow-lg hover:scale-105">
-                                <div class="flex items-center justify-center gap-3 mb-2">
-                                    <span class="text-3xl">👥</span>
-                                    <div class="text-4xl font-bold text-emerald-600 dark:text-emerald-400">
-                                        {statsQuery.data!.totalPlayers}
-                                    </div>
-                                </div>
-                                <div class="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Players Online</div>
-                            </div>
-                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 rounded-xl border-2 border-blue-200 dark:border-blue-800 p-6 transition-all hover:shadow-lg hover:scale-105">
-                                <div class="flex items-center justify-center gap-3 mb-2">
-                                    <span class="text-3xl">🏁</span>
-                                    <div class="text-4xl font-bold text-blue-600 dark:text-blue-400">
-                                        {statsQuery.data!.totalRooms}
-                                    </div>
-                                </div>
-                                <div class="text-sm font-semibold text-blue-700 dark:text-blue-300">Active Rooms</div>
-                            </div>
+                            <StatCard
+                                value={statsQuery.data!.totalPlayers}
+                                label="Players Online"
+                                colorScheme="emerald"
+                                icon="👥"
+                            />
+                            <StatCard
+                                value={statsQuery.data!.totalRooms}
+                                label="Active Rooms"
+                                colorScheme="blue"
+                                icon="🏁"
+                            />
                         </div>
                     </Show>
                 </div>
@@ -254,223 +243,17 @@ export default function RoomStatusPage() {
             >
                 <div class="space-y-6">
                     <For each={roomStatusQuery.data!.rooms}>
-                        {(room) => <RoomCard room={room} getRoomUptime={getRoomUptime} isLatest={isLatest()} tick={tick()} />}
+                        {(room) => (
+                            <RoomCard 
+                                room={room} 
+                                getRoomUptime={getRoomUptime} 
+                                isLatest={isLatest()} 
+                                tick={tick()} 
+                            />
+                        )}
                     </For>
                 </div>
             </Show>
         </div>
-    );
-}
-
-// Room Card Component
-function RoomCard(props: {
-    room: Room;
-    getRoomUptime: (created: string) => string;
-    isLatest: boolean;
-    tick: number;
-}) {
-    const [isExpanded, setIsExpanded] = createSignal(true);
-    const playerCount = () => props.room.players.length;
-    const isJoinable = () => props.room.isJoinable;
-    
-    // Force reactive dependency on tick for uptime updates
-    const uptime = () => {
-        if (props.isLatest) {
-            // Access tick to create dependency
-            void props.tick; // This creates the reactive dependency
-            return props.getRoomUptime(props.room.created);
-        }
-        return props.getRoomUptime(props.room.created);
-    };
-
-    return (
-        <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-2xl transition-all overflow-hidden hover:border-gray-300 dark:hover:border-gray-600">
-            {/* Room Header */}
-            <button
-                onClick={() => setIsExpanded(!isExpanded())}
-                class={`w-full p-5 text-left transition-all ${props.room.isSplit 
-                    ? "bg-gradient-to-r from-amber-500 to-orange-500 dark:from-amber-600 dark:to-orange-600" 
-                    : "bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700"
-                } hover:opacity-95`}
-            >
-                <div class="flex items-start justify-between gap-4">
-                    {/* Left side: Main info */}
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-3 mb-3">
-                            {/* Room Type - Large and Prominent */}
-                            <Show when={props.room.roomType}>
-                                <h3 class="text-white text-2xl sm:text-3xl font-extrabold drop-shadow-lg truncate">
-                                    {props.room.roomType}
-                                </h3>
-                            </Show>
-                            
-                            {/* Split warning */}
-                            <Show when={props.room.isSplit}>
-                                <span class="flex-shrink-0 px-3 py-1.5 bg-white rounded-lg text-amber-700 text-xs font-bold shadow-lg border-2 border-amber-200">
-                                    ⚠️ SPLIT
-                                </span>
-                            </Show>
-                        </div>
-
-                        {/* Status row - individual colored badges */}
-                        <div class="flex flex-wrap items-center gap-2">
-                            {/* Public/Private Badge */}
-                            <div class={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs shadow-md ${
-                                props.room.isPublic
-                                    ? "bg-emerald-500/90 text-white"
-                                    : "bg-red-500/90 text-white"
-                            }`}>
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <Show when={props.room.isPublic} fallback={
-                                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
-                                    }>
-                                        <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z" />
-                                    </Show>
-                                </svg>
-                                <span>{props.room.isPublic ? "Public" : "Private"}</span>
-                            </div>
-
-                            {/* Joinability Badge */}
-                            <div class={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs shadow-md ${
-                                props.room.isSplit 
-                                    ? "bg-amber-500/90 text-white"
-                                    : isJoinable()
-                                        ? "bg-emerald-500/90 text-white"
-                                        : "bg-gray-500/90 text-white"
-                            }`}>
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <Show when={isJoinable() && !props.room.isSplit} fallback={
-                                        props.room.isSplit ? (
-                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                        ) : (
-                                            <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd" />
-                                        )
-                                    }>
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                    </Show>
-                                </svg>
-                                <span>
-                                    {props.room.isSplit ? "Split Room" : isJoinable() ? "Joinable" : "Not Joinable"}
-                                </span>
-                            </div>
-
-                            {/* Player count Badge */}
-                            <div class="flex items-center gap-1.5 px-3 py-1.5 bg-white/25 backdrop-blur-sm rounded-lg font-bold text-xs text-white shadow-md">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                                </svg>
-                                <span>{playerCount()}/12 Players</span>
-                            </div>
-
-                            {/* Uptime Badge */}
-                            <Show when={props.isLatest}>
-                                <div class="flex items-center gap-1.5 px-3 py-1.5 bg-white/25 backdrop-blur-sm rounded-lg font-bold text-xs text-white shadow-md">
-                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
-                                    </svg>
-                                    <span>{uptime()}</span>
-                                </div>
-                            </Show>
-                        </div>
-                    </div>
-
-                    {/* Right side: Expand button */}
-                    <div class="flex-shrink-0">
-                        <div class="bg-white/25 backdrop-blur-sm p-2.5 rounded-lg hover:bg-white/35 transition-colors shadow-lg border border-white/30">
-                            <svg 
-                                class={`w-5 h-5 text-white transition-transform drop-shadow-md ${isExpanded() ? "rotate-180" : ""}`}
-                                fill="currentColor" 
-                                viewBox="0 0 20 20"
-                            >
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-            </button>
-
-            {/* Players Grid - Collapsible */}
-            <Show when={isExpanded()}>
-                <div class="p-5 bg-gray-50 dark:bg-gray-900/30">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                        <For each={props.room.players}>
-                            {(player) => <PlayerCard player={player} showOpenHost={props.room.isPublic} />}
-                        </For>
-                    </div>
-                </div>
-            </Show>
-        </div>
-    );
-}
-
-function PlayerCard(props: { player: RoomPlayer; showOpenHost: boolean }) {
-    const cardContent = (
-        <div class="flex items-center gap-3">
-            {/* Mii */}
-            <div class="flex-shrink-0">
-                <Show
-                    when={props.player.mii}
-                    fallback={
-                        <div class="w-14 h-14 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded-full flex items-center justify-center border-2 border-gray-300 dark:border-gray-600 shadow-md">
-                            <span class="text-sm font-bold text-gray-600 dark:text-gray-300">
-                                {props.player.name.substring(0, 2).toUpperCase()}
-                            </span>
-                        </div>
-                    }
-                >
-                    <MiiComponent
-                        playerName={props.player.name}
-                        friendCode={props.player.friendCode}
-                        size="sm"
-                        lazy={true}
-                    />
-                </Show>
-            </div>
-
-            {/* Player Info */}
-            <div class="flex-1 min-w-0">
-                <div class="font-bold text-gray-900 dark:text-white truncate text-sm">
-                    {props.player.mii?.name || props.player.name}
-                </div>
-                <code class="text-xs font-mono text-gray-500 dark:text-gray-400 block mb-1">
-                    {props.player.friendCode}
-                </code>
-                <div class="flex items-center flex-wrap gap-1.5">
-                    <span class="text-xs bg-blue-100 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-md font-semibold">
-                        VR {props.player.vr ?? "??"}
-                    </span>
-                    <span class="text-xs bg-cyan-100 dark:bg-cyan-900/40 border border-cyan-200 dark:border-cyan-800 text-cyan-700 dark:text-cyan-300 px-2 py-0.5 rounded-md font-semibold">
-                        BR {props.player.br ?? "??"}
-                    </span>
-                    <Show when={props.showOpenHost}>
-                        <span class={`text-xs border px-2 py-0.5 rounded-md font-semibold ${
-                            props.player.isOpenHost 
-                                ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300" 
-                                : "bg-red-100 dark:bg-red-900/40 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300"
-                        }`}>
-                            {props.player.isOpenHost ? "OH ✓" : "OH ✗"}
-                        </span>
-                    </Show>
-                </div>
-            </div>
-        </div>
-    );
-
-    return (
-        <Show
-            when={props.showOpenHost}
-            fallback={
-                <div class="bg-white dark:bg-gray-800 rounded-xl p-3.5 border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-all hover:shadow-md">
-                    {cardContent}
-                </div>
-            }
-        >
-            <a
-                href={`/player/${props.player.friendCode}`}
-                class="block bg-white dark:bg-gray-800 rounded-xl p-3.5 border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600 transition-all hover:shadow-md hover:scale-[1.02]"
-            >
-                {cardContent}
-            </a>
-        </Show>
     );
 }

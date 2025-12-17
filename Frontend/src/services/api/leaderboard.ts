@@ -1,39 +1,14 @@
 import { apiRequest } from "./client";
 import {
+    BatchMiiResponse,
     LeaderboardRequest,
     LeaderboardResponse,
     LeaderboardStats,
+    MiiResponse,
     Player,
+    VRHistoryEntry,
+    VRHistoryResponse,
 } from "../../types";
-
-export interface VRHistoryEntry {
-  date: string;
-  vrChange: number;
-  totalVR: number;
-}
-
-export interface VRHistoryResponse {
-  playerId: string;
-  fromDate: string;
-  toDate: string;
-  history: VRHistoryEntry[];
-  totalVRChange: number;
-  startingVR: number;
-  endingVR: number;
-}
-
-export interface MiiResponse {
-  friendCode: string;
-  miiImageBase64: string;
-}
-
-export interface BatchMiiRequest {
-  friendCodes: string[];
-}
-
-export interface BatchMiiResponse {
-  miis: Record<string, string>;
-}
 
 export const leaderboardApi = {
     async getLeaderboard(

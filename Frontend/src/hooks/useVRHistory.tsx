@@ -1,5 +1,6 @@
 import { createEffect, createSignal } from "solid-js";
-import { leaderboardApi, VRHistoryEntry } from "../services/api/leaderboard";
+import { leaderboardApi } from "../services/api/leaderboard";
+import { VRHistoryEntry } from "../types";
 
 export interface VRHistoryStats {
   totalChange: number;

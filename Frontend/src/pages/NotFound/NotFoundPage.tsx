@@ -1,4 +1,5 @@
 import { A } from "@solidjs/router";
+import { AlertBox } from "../../components/common";
 
 export default function NotFoundPage() {
     return (
@@ -45,17 +46,14 @@ export default function NotFoundPage() {
 
                     {/* Help Text */}
                     <div class="pt-8">
-                        <div class="bg-blue-50 dark:bg-blue-950/30 border-l-4 border-blue-500 rounded-r-lg p-4 inline-block text-left">
-                            <div class="flex items-start space-x-3">
-                                <div class="text-xl">💡</div>
-                                <div>
-                                    <p class="text-sm text-blue-800 dark:text-blue-200">
-                                        <strong>Looking for a player?</strong> Make sure you're
-                                        using their correct friend code in the format:
-                                        XXXX-XXXX-XXXX
-                                    </p>
-                                </div>
-                            </div>
+                        <div class="inline-block">
+                            <AlertBox type="info" icon="💡">
+                                <p class="text-sm">
+                                    <strong>Looking for a player?</strong> Make sure you're
+                                    using their correct friend code in the format:
+                                    XXXX-XXXX-XXXX
+                                </p>
+                            </AlertBox>
                         </div>
                     </div>
                 </div>

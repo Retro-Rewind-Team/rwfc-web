@@ -1,9 +1,8 @@
-import { createSignal, For, Show } from "solid-js";
-import { A } from "@solidjs/router";
+import { createSignal, Show } from "solid-js";
 import { useLeaderboard } from "../../hooks";
 import { useLegacyLeaderboard } from "../../hooks/useLegacyLeaderboard";
-import { formatLastSeen, getVRGainClass } from "../../utils";
-import { MiiComponent, VRTierNumberPlate } from "../../components/ui";
+import { AlertBox, StatCard } from "../../components/common";
+import { LeaderboardTable } from "../../components/ui";
 
 export default function LeaderboardPage() {
     const [showLegacy, setShowLegacy] = createSignal(false);
@@ -11,7 +10,6 @@ export default function LeaderboardPage() {
     const currentLeaderboard = useLeaderboard();
     const legacyLeaderboard = useLegacyLeaderboard();
 
-    // Use whichever leaderboard is active
     const activeLeaderboard = () => 
         showLegacy() ? legacyLeaderboard : currentLeaderboard;
 
@@ -30,31 +28,21 @@ export default function LeaderboardPage() {
                         </p>
                     </div>
 
-                    {/* Quick Stats Cards - Always show current stats */}
+                    {/* Quick Stats Cards */}
                     <Show when={currentLeaderboard.statsQuery.data}>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 rounded-xl border-2 border-blue-200 dark:border-blue-800 p-6 transition-all hover:shadow-lg hover:scale-105">
-                                <div class="flex items-center justify-center gap-3 mb-2">
-                                    <span class="text-3xl">👥</span>
-                                    <div class="text-4xl font-bold text-blue-600 dark:text-blue-400">
-                                        {currentLeaderboard.statsQuery.data!.totalPlayers.toLocaleString()}
-                                    </div>
-                                </div>
-                                <div class="text-sm font-semibold text-blue-700 dark:text-blue-300">
-                                    Total Racers
-                                </div>
-                            </div>
-                            <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/30 rounded-xl border-2 border-emerald-200 dark:border-emerald-800 p-6 transition-all hover:shadow-lg hover:scale-105">
-                                <div class="flex items-center justify-center gap-3 mb-2">
-                                    <span class="text-3xl">⚡</span>
-                                    <div class="text-4xl font-bold text-emerald-600 dark:text-emerald-400">
-                                        {currentLeaderboard.statsQuery.data!.activePlayers.toLocaleString()}
-                                    </div>
-                                </div>
-                                <div class="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-                                    Active This Week
-                                </div>
-                            </div>
+                            <StatCard
+                                value={currentLeaderboard.statsQuery.data!.totalPlayers.toLocaleString()}
+                                label="Total Racers"
+                                colorScheme="blue"
+                                icon="👥"
+                            />
+                            <StatCard
+                                value={currentLeaderboard.statsQuery.data!.activePlayers.toLocaleString()}
+                                label="Active This Week"
+                                colorScheme="emerald"
+                                icon="⚡"
+                            />
                         </div>
                     </Show>
                 </div>
@@ -109,20 +97,19 @@ export default function LeaderboardPage() {
                     </div>
                 </div>
 
-                {/* Legacy Banner (inside panel) */}
+                {/* Legacy Banner */}
                 <Show when={showLegacy()}>
-                    <div class="mb-6 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 rounded-r-lg p-4">
-                        <div class="flex items-start gap-3">
-                            <span class="text-2xl">🏆</span>
+                    <div class="mb-6">
+                        <AlertBox type="warning" icon="🏆">
                             <div>
-                                <div class="font-semibold text-amber-800 dark:text-amber-300 mb-1">
+                                <div class="font-semibold mb-1">
                                     Viewing Legacy Leaderboard
                                 </div>
-                                <p class="text-sm text-amber-700 dark:text-amber-400">
+                                <p class="text-sm">
                                     Snapshot from before the VR cap expansion
                                 </p>
                             </div>
-                        </div>
+                        </AlertBox>
                     </div>
                 </Show>
 
@@ -213,13 +200,12 @@ export default function LeaderboardPage() {
 
             {/* Error State */}
             <Show when={activeLeaderboard().leaderboardQuery.isError}>
-                <div class="bg-red-50 dark:bg-red-950/30 border-l-4 border-red-500 rounded-r-lg p-8">
+                <AlertBox type="error" icon="😵">
                     <div class="text-center">
-                        <div class="text-6xl mb-4">😵</div>
-                        <div class="text-red-600 dark:text-red-400 text-xl font-bold mb-2">
+                        <div class="text-xl font-bold mb-2">
                             Couldn't load the leaderboard
                         </div>
-                        <p class="text-red-500 dark:text-red-400 mb-6">
+                        <p class="mb-6">
                             {activeLeaderboard().leaderboardQuery.error?.message ||
                                 "Something went wrong on our end"}
                         </p>
@@ -230,217 +216,22 @@ export default function LeaderboardPage() {
                             Try Again
                         </button>
                     </div>
-                </div>
+                </AlertBox>
             </Show>
 
             {/* Leaderboard Table */}
             <Show when={activeLeaderboard().leaderboardQuery.data && !activeLeaderboard().leaderboardQuery.isLoading}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full table-fixed">
-                            <thead class={showLegacy() ? "bg-amber-600 text-white" : "bg-blue-600 text-white"}>
-                                <tr>
-                                    <th
-                                        class={`px-6 py-4 text-center cursor-pointer transition-colors ${
-                                            showLegacy() ? "hover:bg-amber-700" : "hover:bg-blue-700"
-                                        }`}
-                                        onClick={() => activeLeaderboard().handleSort("rank")}
-                                    >
-                                        <div class="flex items-center justify-center space-x-2">
-                                            <span class="font-bold">Rank</span>
-                                            <Show when={activeLeaderboard().sortBy() === "rank"}>
-                                                <span class="text-sm">{activeLeaderboard().ascending() ? "↑" : "↓"}</span>
-                                            </Show>
-                                        </div>
-                                    </th>
-                                    <th class="px-6 py-4 text-center font-bold">User</th>
-                                    <th
-                                        class={`px-6 py-4 text-center cursor-pointer transition-colors ${
-                                            showLegacy() ? "hover:bg-amber-700" : "hover:bg-blue-700"
-                                        }`}
-                                        onClick={() => activeLeaderboard().handleSort("vr")}
-                                    >
-                                        <div class="flex items-center justify-center space-x-2">
-                                            <span class="font-bold">VR</span>
-                                            <Show when={activeLeaderboard().sortBy() === "vr"}>
-                                                <span class="text-sm">{activeLeaderboard().ascending() ? "↓" : "↑"}</span>
-                                            </Show>
-                                        </div>
-                                    </th>
-                                    <th class="px-6 py-4 text-center hidden md:table-cell font-bold">
-                                        Friend Code
-                                    </th>
-                                    
-                                    {/* Show Last Seen only for current leaderboard */}
-                                    <Show when={!showLegacy()}>
-                                        <th
-                                            class="px-6 py-4 text-center cursor-pointer hover:bg-blue-700 transition-colors hidden md:table-cell"
-                                            onClick={() => currentLeaderboard.handleSort("lastSeen")}
-                                        >
-                                            <div class="flex items-center justify-center space-x-2">
-                                                <span class="font-bold">Last Seen</span>
-                                                <Show when={currentLeaderboard.sortBy() === "lastSeen"}>
-                                                    <span class="text-sm">{currentLeaderboard.ascending() ? "↓" : "↑"}</span>
-                                                </Show>
-                                            </div>
-                                        </th>
-                                    </Show>
-
-                                    {/* Show VR Change only for current leaderboard */}
-                                    <Show when={!showLegacy()}>
-                                        <th
-                                            class="px-6 py-4 text-center cursor-pointer hover:bg-blue-700 transition-colors"
-                                            onClick={() => {
-                                                let vrGainField;
-                                                if (currentLeaderboard.timePeriod() === "24") {
-                                                    vrGainField = "vrgain24";
-                                                } else if (currentLeaderboard.timePeriod() === "week") {
-                                                    vrGainField = "vrgain7";
-                                                } else {
-                                                    vrGainField = "vrgain30";
-                                                }
-                                                currentLeaderboard.handleSort(vrGainField);
-                                            }}
-                                        >
-                                            <div class="flex items-center justify-center space-x-2">
-                                                <span class="font-bold">
-                                                    VR Change (
-                                                    {(() => {
-                                                        const period = currentLeaderboard.timePeriod();
-                                                        if (period === "24") return "24h";
-                                                        if (period === "week") return "7d";
-                                                        return "30d";
-                                                    })()}
-                                                    )
-                                                </span>
-                                                <Show
-                                                    when={(() => {
-                                                        const currentTimePeriod = currentLeaderboard.timePeriod();
-                                                        let expectedSortField;
-                                                        if (currentTimePeriod === "24") {
-                                                            expectedSortField = "vrgain24";
-                                                        } else if (currentTimePeriod === "week") {
-                                                            expectedSortField = "vrgain7";
-                                                        } else {
-                                                            expectedSortField = "vrgain30";
-                                                        }
-                                                        return currentLeaderboard.sortBy() === expectedSortField;
-                                                    })()}
-                                                >
-                                                    <span class="text-sm">{currentLeaderboard.ascending() ? "↓" : "↑"}</span>
-                                                </Show>
-                                            </div>
-                                        </th>
-                                    </Show>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                <For each={activeLeaderboard().leaderboardQuery.data!.players}>
-                                    {(player) => {
-                                        const rankToUse = !showLegacy() && currentLeaderboard.activeOnly()
-                                            ? player.activeRank
-                                            : player.rank;
-                                        const vrGain = !showLegacy() ? currentLeaderboard.getVRGain(player) : 0;
-                                        const isOnline = !showLegacy() && formatLastSeen(player.lastSeen) === "Now Online";
-
-                                        return (
-                                            <tr
-                                                class={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${player.isSuspicious ? "bg-red-50 dark:bg-red-950/30 border-l-4 border-red-500" : ""}`}
-                                            >
-                                                <td class="px-6 py-4 text-center">
-                                                    <div class="flex items-center justify-center">
-                                                        <VRTierNumberPlate
-                                                            rank={rankToUse || player.rank}
-                                                            vr={player.vr}
-                                                            isSuspicious={player.isSuspicious}
-                                                            size="sm"
-                                                        />
-                                                    </div>
-                                                </td>
-
-                                                <td class="px-6 py-4 align-top">
-                                                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 md:gap-6 w-full">
-                                                        <A
-                                                            href={`/player/${player.friendCode}`}
-                                                            class="flex-shrink-0 mx-auto sm:mx-0"
-                                                        >
-                                                            <MiiComponent
-                                                                playerName={player.name}
-                                                                friendCode={player.friendCode}
-                                                                size="md"
-                                                                className="transition-opacity hover:opacity-80"
-                                                                lazy={true}
-                                                            />
-                                                        </A>
-
-                                                        <div class="w-full sm:flex-1 text-center sm:text-left">
-                                                            <A
-                                                                href={`/player/${player.friendCode}`}
-                                                                class="
-                                                                        block font-bold text-lg text-gray-900 dark:text-white
-                                                                        hover:text-red-600 dark:hover:text-red-400 transition-colors
-                                                                        whitespace-normal break-words
-                                                                        "
-                                                            >
-                                                                {player.name}
-                                                            </A>
-
-                                                            <div class="hidden sm:flex flex-wrap gap-2 mt-1 justify-center sm:justify-start">
-                                                                <Show when={!showLegacy() && !player.isActive}>
-                                                                    <span class="inline-flex items-center text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap">
-            Inactive
-                                                                    </span>
-                                                                </Show>
-                                                                <Show when={player.isSuspicious}>
-                                                                    <span class="inline-flex items-center text-xs bg-red-200 dark:bg-red-800 text-red-600 dark:text-red-400 px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap">
-            ⚠️ Suspicious
-                                                                    </span>
-                                                                </Show>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-
-                                                <td class="px-6 py-4 text-center">
-                                                    <span class="text-xl font-bold text-gray-900 dark:text-white">
-                                                        {player.vr.toLocaleString()}
-                                                    </span>
-                                                </td>
-
-                                                <td class="px-6 py-4 text-center hidden md:table-cell">
-                                                    <code class="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded text-sm font-mono text-gray-900 dark:text-white">
-                                                        {player.friendCode}
-                                                    </code>
-                                                </td>
-
-                                                <Show when={!showLegacy()}>
-                                                    <td
-                                                        class={`px-6 py-4 text-center hidden md:table-cell font-medium ${isOnline ? "text-emerald-600 dark:text-emerald-400" : "text-gray-600 dark:text-gray-400"}`}
-                                                    >
-                                                        {isOnline && (
-                                                            <span class="inline-flex items-center">
-                                                                <span class="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></span>
-                                                            </span>
-                                                        )}
-                                                        {formatLastSeen(player.lastSeen)}
-                                                    </td>
-
-                                                    <td class="px-6 py-4 text-center">
-                                                        <span
-                                                            class={`text-lg font-bold ${getVRGainClass(vrGain)}`}
-                                                        >
-                                                            {vrGain > 0 ? "+" : ""}
-                                                            {vrGain}
-                                                        </span>
-                                                    </td>
-                                                </Show>
-                                            </tr>
-                                        );
-                                    }}
-                                </For>
-                            </tbody>
-                        </table>
-                    </div>
+                    <LeaderboardTable
+                        players={activeLeaderboard().leaderboardQuery.data!.players}
+                        showLegacy={showLegacy()}
+                        activeOnly={currentLeaderboard.activeOnly()}
+                        sortBy={activeLeaderboard().sortBy()}
+                        ascending={activeLeaderboard().ascending()}
+                        timePeriod={currentLeaderboard.timePeriod()}
+                        onSort={activeLeaderboard().handleSort}
+                        getVRGain={currentLeaderboard.getVRGain}
+                    />
 
                     {/* No Results */}
                     <Show when={activeLeaderboard().leaderboardQuery.data!.players.length === 0}>
