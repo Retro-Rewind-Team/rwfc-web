@@ -1,3 +1,5 @@
+import { downloadsApi } from "../../services/api/download";
+
 export default function DownloadsPage() {
     return (
         <div class="max-w-4xl mx-auto space-y-8">
@@ -26,15 +28,13 @@ export default function DownloadsPage() {
                         </p>
                         <div class="flex flex-col sm:flex-row gap-3">
                             <a
-                                href="http://update.rwfc.net:8000/RetroRewind/zip/RetroRewind.zip"
-                                rel="noopener noreferrer"
+                                href={downloadsApi.getFullDownloadUrl()}
                                 class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-center"
                             >
                                 Full Download (First Install)
                             </a>
                             <a
-                                href="http://update.rwfc.net:8000/RetroRewind/zip/6.5.zip"
-                                rel="noopener noreferrer"
+                                href={downloadsApi.getUpdateDownloadUrl()}
                                 class="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-center"
                             >
                                 Update Only (v6.4.2 → v6.5)

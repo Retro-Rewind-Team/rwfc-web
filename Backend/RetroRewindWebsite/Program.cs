@@ -44,7 +44,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddRateLimiter(options =>
 {
-    // Default policy - 100 requests per minute per IP
+    // Default policy = 100 requests per minute per IP
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
         httpContext => RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -76,6 +76,16 @@ builder.Services.AddRateLimiter(options =>
                 Window = TimeSpan.FromMinutes(1)
             }));
 
+    options.AddPolicy("DownloadPolicy", httpContext =>
+    RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        factory: partition => new FixedWindowRateLimiterOptions
+        {
+            AutoReplenishment = true,
+            PermitLimit = 3, // 3 downloads per 5 minutes per IP
+            Window = TimeSpan.FromMinutes(5)
+        }));
+
     // What to do when rate limit is exceeded
     options.OnRejected = async (context, token) =>
     {
@@ -99,20 +109,20 @@ builder.Services.AddHealthChecks()
             : HealthCheckResult.Unhealthy($"High memory usage: {memoryUsed / 1024 / 1024}MB");
     });
 
-// Add services to the container.
+// Controllers
 builder.Services.AddControllers();
 
-// Configure DbContext for different environments
+// DbContext configuration for different environments
 if (builder.Environment.IsDevelopment())
 {
-    // Use PostgreSQL for development
+    // PostgreSQL for development
     var devConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     builder.Services.AddDbContext<LeaderboardDbContext>(options =>
         options.UseNpgsql(devConnectionString));
 }
 else
 {
-    // Use PostgreSQL for production
+    // PostgreSQL for production
     var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING")
         ?? builder.Configuration.GetConnectionString("Production");
 
@@ -125,27 +135,27 @@ else
         options.UseNpgsql(connectionString));
 }
 
-// Register HttpClient for external API calls
+// HttpClient for external API calls
 builder.Services.AddHttpClient();
 
-// Register repositories
+// Repositories
 builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
 builder.Services.AddScoped<IVRHistoryRepository, VRHistoryRepository>();
 
-// Register external services
+// External services
 builder.Services.AddScoped<IRetroWFCApiClient, RetroWFCApiClient>();
 
-// Register domain services
+// Domain services
 builder.Services.AddScoped<IPlayerValidationService, PlayerValidationService>();
 builder.Services.AddScoped<IMaintenanceService, MaintenanceService>();
 builder.Services.AddScoped<IMiiService, MiiService>();
 builder.Services.AddMemoryCache();
 
-// Register background service
+// Background service
 builder.Services.AddHostedService<LeaderboardBackgroundService>();
 builder.Services.AddScoped<ILeaderboardBackgroundService, LeaderboardBackgroundService>();
 
-// Register application services
+// Application services
 builder.Services.AddScoped<ILeaderboardManager, LeaderboardManager>();
 
 // Room Status Services
@@ -154,10 +164,10 @@ builder.Services.AddSingleton<IRoomStatusBackgroundService, RoomStatusBackground
 builder.Services.AddHostedService<RoomStatusBackgroundService>(sp =>
     (RoomStatusBackgroundService)sp.GetRequiredService<IRoomStatusBackgroundService>());
 
-// Register health checks
+// Health checks
 builder.Services.AddScoped<IHealthCheck, ExternalApiHealthCheck>();
 
-// Add memory cache for performance
+// Mmory cache for performance
 builder.Services.AddMemoryCache(options =>
 {
     options.SizeLimit = 1000; // Limit to 1000 items in cache
@@ -246,16 +256,16 @@ app.MapHealthChecks("/health", new HealthCheckOptions
     }
 });
 
-// Simple health check endpoint (just returns 200 OK)
+// Simple health check endpoint
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {
-    Predicate = _ => false // Don't run any checks, just return 200
+    Predicate = _ => false 
 });
 
-// Detailed health check (includes all checks)
+// Detailed health check
 app.MapHealthChecks("/health/ready");
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

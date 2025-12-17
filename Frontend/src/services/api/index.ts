@@ -12,3 +12,4 @@ export const api = {
 
 export { leaderboardApi } from "./leaderboard";
 export { ApiError } from "./client";
+export { downloadsApi } from "./download";
