@@ -17,6 +17,18 @@ export default function DownloadsPage() {
             videoUrl: "https://www.youtube.com/watch?v=BfuSe-_GpKk"
         },
         {
+            title: "Linux Setup Guide",
+            description: "Learn how to install and play Retro Rewind on Linux",
+            thumbnailUrl: "https://img.youtube.com/vi/pNneOrThK_c/maxresdefault.jpg",
+            videoUrl: "https://www.youtube.com/watch?v=pNneOrThK_c"
+        },
+        {
+            title: "macOS Setup Guide",
+            description: "Step-by-step guide for installing Retro Rewind on macOS",
+            thumbnailUrl: "https://img.youtube.com/vi/iuczt1o2kEo/maxresdefault.jpg",
+            videoUrl: "https://youtu.be/iuczt1o2kEo?si=pEEvZNiYbxF8tWp0"
+        },
+        {
             title: "Android Setup Guide",
             description: "Learn how to install and play Retro Rewind on Android devices",
             thumbnailUrl: "https://img.youtube.com/vi/21afHo3ji14/maxresdefault.jpg",
