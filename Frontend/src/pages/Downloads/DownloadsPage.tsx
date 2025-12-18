@@ -117,7 +117,7 @@ export default function DownloadsPage() {
                     </h3>
                     <p class="text-gray-600 dark:text-gray-400 mb-4">
                         View all 196 retro tracks, 40 Battle Arenas and 88 custom tracks
-                        included in v6.2.3
+                        included in v6.5.4
                     </p>
                     <a
                         href="https://docs.google.com/spreadsheets/d/1FelOidNHL1bqSaKeycZux1eQcDyrosONFC_qWVTYoog/edit?gid=0#gid=0"
@@ -148,7 +148,7 @@ export default function DownloadsPage() {
                         Time Trial Records
                     </h3>
                     <p class="text-gray-600 dark:text-gray-400 mb-4">
-                        Check out the fastest times and staff ghosts for every track
+                        Check out the fastest times for every track
                     </p>
                     <a
                         href="https://docs.google.com/spreadsheets/d/1XkHTTuUR3_10-C7geVhJ9TtCb4Bz_gE19NysbGnUOZs/edit?gid=0#gid=0"

@@ -23,7 +23,7 @@ export default function LeaderboardPage() {
                             RWFC VR Leaderboard
                         </h1>
                         <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                            Track the best Mario Kart Wii racers competing on RWFC servers
+                            Track the best racers competing on RWFC servers
                             worldwide
                         </p>
                     </div>

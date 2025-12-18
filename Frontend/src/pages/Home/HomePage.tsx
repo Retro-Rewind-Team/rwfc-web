@@ -61,12 +61,8 @@ export default function HomePage() {
             <section class="py-8">
                 <div class="text-center mb-8">
                     <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                        Everything You Need for Mario Kart Wii
+                        Explore Features & Tools
                     </h2>
-                    <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                        Comprehensive tools and data to enhance your Mario Kart Wii
-                        experience with Retro Rewind
-                    </p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -78,7 +74,7 @@ export default function HomePage() {
                         </h3>
                         <p class="text-gray-600 dark:text-gray-400 mb-4">
                             Track rankings and see who's dominating the Retro WFC servers with
-                            up to 30,000 VR.
+                            up to 1,000,000 VR.
                         </p>
                         <A
                             href="/vr"
@@ -127,7 +123,7 @@ export default function HomePage() {
                         </h3>
                         <p class="text-gray-600 dark:text-gray-400 mb-4">
                             Find and join active rooms with various game modes including
-                            Knockout Mode, TTs Online, and Item Rain/Storm across all Retro
+                            200cc, TTs Online, and Item Rain/Storm across all Retro
                             WFC packs.
                         </p>
                         <A
@@ -235,7 +231,7 @@ export default function HomePage() {
                                 </h3>
                                 <p class="text-gray-700 dark:text-gray-300">
                                     Connect to dedicated Retro WFC servers for stable online
-                                    racing with players worldwide. No Wiimmfi patching required -
+                                    racing with players worldwide. No patching required,
                                     just install and race.
                                 </p>
                             </div>
