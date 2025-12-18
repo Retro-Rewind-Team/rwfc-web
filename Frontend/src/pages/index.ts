@@ -7,3 +7,4 @@ export { DownloadsPage } from "./Downloads";
 export { RulesPage } from "./Rules";
 export { TeamPage } from "./Team";
 export { NotFoundPage } from "./NotFound";
+export { TracksPage } from "./Tracks";

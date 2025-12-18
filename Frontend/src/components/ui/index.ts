@@ -8,3 +8,4 @@ export { default as TeamMemberCard } from "./TeamMemberCard";
 export { default as VRStatsCard } from "./vrStatsCard";
 export { default as TutorialCard } from "./TutorialCard";
 export { default as LeaderboardTable } from "./LeaderboardTable";
+export { default as TrackCard } from "./TrackCard";
