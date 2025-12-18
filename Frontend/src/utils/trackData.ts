@@ -209,7 +209,7 @@ export const tracksData: TracksData = {
                 version: "v2.0",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/N64_Luigi_Raceway_(ZPL_%26_Skipper93653)",
-                youtubeUrl: null,
+                youtubeUrl: "https://youtu.be/PNt3BuWKDyk",
             },
             {
                 file: 21.0,
@@ -218,7 +218,7 @@ export const tracksData: TracksData = {
                 version: "v1.12",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/N64_Moo_Moo_Farm_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=09hfE7-GqQc",
             },
             {
                 file: 22.0,
@@ -227,7 +227,7 @@ export const tracksData: TracksData = {
                 version: "v1.1c",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/N64_Koopa_Troopa_Beach_(zilly)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=bvnPX2Sk0ro",
             },
             {
                 file: 23.0,
@@ -236,7 +236,7 @@ export const tracksData: TracksData = {
                 version: "v1.0-alt2",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/N64_Kalimari_Desert_(Sniki)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=y2E1PcFO_II",
             },
             {
                 file: 24.0,
@@ -245,7 +245,7 @@ export const tracksData: TracksData = {
                 version: "v2.3",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/N64_Toad%27s_Turnpike_(AltairYoshi)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=dbACs7j8jnQ",
             },
             {
                 file: 25.0,
@@ -254,7 +254,7 @@ export const tracksData: TracksData = {
                 version: "v1.41",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/N64_Frappe_Snowland_(AltairYoshi)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=75PesF69ME0",
             },
             {
                 file: 26.0,
@@ -263,7 +263,7 @@ export const tracksData: TracksData = {
                 version: "v1.1",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/N64_Choco_Mountain_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=VOsSsTIgF_4",
             },
             {
                 file: 27.0,
@@ -271,7 +271,7 @@ export const tracksData: TracksData = {
                 authors: "Nintendo",
                 version: "-",
                 laps: "-",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=lP2ni0_5YfY",
             },
             {
                 file: 28.0,
@@ -280,7 +280,7 @@ export const tracksData: TracksData = {
                 version: "v1.2",
                 laps: 2.0,
                 wikiUrl: "https://wiki.tockdom.com/wiki/N64_Wario_Stadium_(bugsy)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=0J3GcKYU67U",
             },
             {
                 file: 29.0,
@@ -288,7 +288,7 @@ export const tracksData: TracksData = {
                 authors: "Nintendo",
                 version: "-",
                 laps: "-",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=DPLHekt2QKo",
             },
             {
                 file: 30.0,
@@ -297,7 +297,7 @@ export const tracksData: TracksData = {
                 version: "v1.1-alt",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/N64_Royal_Raceway_(Paratroopa3)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=0Bb5QOR0oG4",
             },
             {
                 file: 31.0,
@@ -305,7 +305,7 @@ export const tracksData: TracksData = {
                 authors: "Nintendo",
                 version: "-",
                 laps: "-",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=5FlywL605a0",
             },
             {
                 file: 32.0,
@@ -313,7 +313,7 @@ export const tracksData: TracksData = {
                 authors: "Nintendo",
                 version: "-",
                 laps: "-",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=dFtS8Q8cgCQ",
             },
             {
                 file: 33.0,
@@ -322,7 +322,7 @@ export const tracksData: TracksData = {
                 version: "v1.5",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/N64_Yoshi_Valley_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=cqGgtxNDgco",
             },
             {
                 file: 34.0,
@@ -331,7 +331,7 @@ export const tracksData: TracksData = {
                 version: "v2.2",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/N64_Banshee_Boardwalk_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=Smp_BC9CaBo",
             },
             {
                 file: 35.0,
@@ -340,7 +340,7 @@ export const tracksData: TracksData = {
                 version: "v1.2.1",
                 laps: 2.0,
                 wikiUrl: "https://wiki.tockdom.com/wiki/N64_Rainbow_Road_(cpfusion)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=Zqyl14p83RA",
             }
         ],
         "GBA": [
@@ -351,7 +351,7 @@ export const tracksData: TracksData = {
                 version: "v1.0",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GBA_Peach_Circuit_(cpfusion)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=_VODL9JWaFQ",
             },
             {
                 file: 37.0,
@@ -359,7 +359,7 @@ export const tracksData: TracksData = {
                 authors: "Nintendo",
                 version: "-",
                 laps: "-",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=kcFGrSxiLpk",
             },
             {
                 file: 38.0,
@@ -368,7 +368,7 @@ export const tracksData: TracksData = {
                 version: "v1.11",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GBA_Riverside_Park_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=NUhYG29Fnf0",
             },
             {
                 file: 39.0,
@@ -377,7 +377,7 @@ export const tracksData: TracksData = {
                 version: "v3.0",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GBA_Bowser_Castle_1_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=a7FN1FNbf8c",
             },
             {
                 file: 40.0,
@@ -386,7 +386,7 @@ export const tracksData: TracksData = {
                 version: "v1.01",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GBA_Mario_Circuit_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=h5LLbv5rgzQ",
             },
             {
                 file: "gMC",
@@ -395,7 +395,7 @@ export const tracksData: TracksData = {
                 version: "v1.2",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GBA_Mario_Circuit_(MysterE99)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=cH5Mb4EexOA",
             },
             {
                 file: 41.0,
@@ -404,7 +404,7 @@ export const tracksData: TracksData = {
                 version: "v2.3",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GBA_Boo_Lake_(Slimeserver)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=NwTuyfqhtNo",
             },
             {
                 file: 42.0,
@@ -413,7 +413,7 @@ export const tracksData: TracksData = {
                 version: "v4.0",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GBA_Cheese_Land_(ChaosShadow23)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=6s6MlMt95IQ",
             },
             {
                 file: 43.0,
@@ -422,7 +422,7 @@ export const tracksData: TracksData = {
                 version: "v1.1.1",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GBA_Bowser_Castle_2_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=R5fdcMtj7DY",
             },
             {
                 file: 44.0,
@@ -431,7 +431,7 @@ export const tracksData: TracksData = {
                 version: "v2.2",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GBA_Luigi_Circuit_(Flint)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=Mzk-ddCSPvU",
             },
             {
                 file: 45.0,
@@ -440,7 +440,7 @@ export const tracksData: TracksData = {
                 version: "v1.0",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GBA_Sky_Garden_(acaruso)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=bPKFAO0GFkk",
             },
             {
                 file: 46.0,
@@ -449,7 +449,7 @@ export const tracksData: TracksData = {
                 version: "v1.0-alt2",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GBA_Cheep-Cheep_Island_(ChaosShadow23)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=iGgBdNsL5bg",
             },
             {
                 file: 47.0,
@@ -458,7 +458,7 @@ export const tracksData: TracksData = {
                 version: "v2.0-fix",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GBA_Sunset_Wilds_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=iq-S-2LVgaU",
             },
             {
                 file: 48.0,
@@ -467,7 +467,7 @@ export const tracksData: TracksData = {
                 version: "v2.1.1",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GBA_Snow_Land_(cpfusion)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=YVXTJUedjR8",
             },
             {
                 file: 49.0,
@@ -476,7 +476,7 @@ export const tracksData: TracksData = {
                 version: "v1.0",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GBA_Ribbon_Road_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=rvmVhSTd2yg",
             },
             {
                 file: 50.0,
@@ -485,7 +485,7 @@ export const tracksData: TracksData = {
                 version: "v2.0.1",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GBA_Yoshi_Desert_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=Pyxd_BmL4gw",
             },
             {
                 file: 51.0,
@@ -493,7 +493,7 @@ export const tracksData: TracksData = {
                 authors: "Nintendo",
                 version: "-",
                 laps: "-",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=_lgudvdfC6k",
             },
             {
                 file: 52.0,
@@ -502,7 +502,7 @@ export const tracksData: TracksData = {
                 version: "v3.0.rr2",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GBA_Lakeside_Park_(ChaosShadow23)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=8Va7SB5N88I",
             },
             {
                 file: 53.0,
@@ -511,7 +511,7 @@ export const tracksData: TracksData = {
                 version: "v1.12",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GBA_Broken_Pier_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=MlUOoDI4Ztk",
             },
             {
                 file: 54.0,
@@ -520,7 +520,7 @@ export const tracksData: TracksData = {
                 version: "v4.1-rr",
                 laps: 2.0,
                 wikiUrl: "https://wiki.tockdom.com/wiki/GBA_Bowser_Castle_4_(ChaosShadow23)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=EF_2b51WqW0",
             },
             {
                 file: 55.0,
@@ -549,7 +549,7 @@ export const tracksData: TracksData = {
                 version: "v1.7",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GCN_Luigi_Circuit_(Tock)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=M7T4Zsvb1U0",
             },
             {
                 file: 57.0,
@@ -557,7 +557,7 @@ export const tracksData: TracksData = {
                 authors: "Nintendo",
                 version: "-",
                 laps: "-",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=K14a1QcruKo",
             },
             {
                 file: 58.0,
@@ -566,7 +566,7 @@ export const tracksData: TracksData = {
                 version: "v1.11-alt",
                 laps: 7.0,
                 wikiUrl: "https://wiki.tockdom.com/wiki/GCN_Baby_Park_(maczkopeti)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=_9ETY1jah3s",
             },
             {
                 file: 59.0,
@@ -575,7 +575,7 @@ export const tracksData: TracksData = {
                 version: "v1.0haz-pit",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GCN_Dry_Dry_Desert_(UltraWario)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=ZOXFsq1TcO4",
             },
             {
                 file: 60.0,
@@ -584,7 +584,7 @@ export const tracksData: TracksData = {
                 version: "v1.7",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GCN_Mushroom_Bridge_(Tock)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=Clz5scsZx0c",
             },
             {
                 file: 61.0,
@@ -592,7 +592,7 @@ export const tracksData: TracksData = {
                 authors: "Nintendo",
                 version: "-",
                 laps: "-",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=6zxhQKOx4mg",
             },
             {
                 file: 62.0,
@@ -601,7 +601,7 @@ export const tracksData: TracksData = {
                 version: "v1.0",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GCN_Daisy_Cruiser_(Tock)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=fNhSHlfJPhM",
             },
             {
                 file: 63.0,
@@ -609,7 +609,7 @@ export const tracksData: TracksData = {
                 authors: "Nintendo",
                 version: "-",
                 laps: "-",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=LPFDDYFTXzM",
             },
             {
                 file: 64.0,
@@ -618,7 +618,7 @@ export const tracksData: TracksData = {
                 version: "v4.68",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GCN_Sherbet_Land_(Tock)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=no7bl425j-E",
             },
             {
                 file: 65.0,
@@ -627,7 +627,7 @@ export const tracksData: TracksData = {
                 version: "v1.1-rr",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GCN_Mushroom_City_(Torran)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=1sZCSAIYZQU",
             },
             {
                 file: 66.0,
@@ -636,7 +636,7 @@ export const tracksData: TracksData = {
                 version: "v2.1",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GCN_Yoshi_Circuit_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=MBWsRlpdZPA",
             },
             {
                 file: 67.0,
@@ -644,7 +644,7 @@ export const tracksData: TracksData = {
                 authors: "Nintendo",
                 version: "-",
                 laps: "-",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=rk6T7Zcy54E",
             },
             {
                 file: 68.0,
@@ -653,7 +653,7 @@ export const tracksData: TracksData = {
                 version: "v1.3-alt2",
                 laps: 2.0,
                 wikiUrl: "https://wiki.tockdom.com/wiki/GCN_Wario_Colosseum_(MKDasher)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=KPg61WZBigA",
             },
             {
                 file: 69.0,
@@ -662,7 +662,7 @@ export const tracksData: TracksData = {
                 version: "v1.5.ctgp",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/GCN_Dino_Dino_Jungle_(Tock)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=kXtZ4F4Q3Ac",
             },
             {
                 file: 70.0,
@@ -671,7 +671,7 @@ export const tracksData: TracksData = {
                 version: "v1.2",
                 laps: 2.0,
                 wikiUrl: "https://wiki.tockdom.com/wiki/GCN_Bowser%27s_Castle_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=miPciVQw8i4",
             },
             {
                 file: 71.0,
@@ -680,7 +680,7 @@ export const tracksData: TracksData = {
                 version: "v1.23",
                 laps: 2.0,
                 wikiUrl: "https://wiki.tockdom.com/wiki/GCN_Rainbow_Road_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=8Nt-EDYlDRY",
             }
         ],
         "DS": [
