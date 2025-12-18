@@ -20,7 +20,7 @@ export const tracksData: TracksData = {
                 version: "v2.7",
                 laps: 5.0,
                 wikiUrl: "https://wiki.tockdom.com/wiki/SNES_Mario_Circuit_1_(ZPL_%26_Jasperr)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=N3lTIsmheSE",
             },
             {
                 file: 1.0,
@@ -29,7 +29,7 @@ export const tracksData: TracksData = {
                 version: "v1.0",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/SNES_Donut_Plains_1_(Luca)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=8nsQOlz6QSo",
             },
             {
                 file: 2.0,
@@ -38,7 +38,7 @@ export const tracksData: TracksData = {
                 version: "v1.1",
                 laps: 5.0,
                 wikiUrl: "https://wiki.tockdom.com/wiki/SNES_Ghost_Valley_1_(MilanDK)",
-                youtubeUrl: null,
+                youtubeUrl: "https://youtu.be/YgtCFdsa2r0",
             },
             {
                 file: 3.0,
@@ -47,7 +47,7 @@ export const tracksData: TracksData = {
                 version: "v1.2",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/SNES_Bowser_Castle_1_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=ZIOSvMDtx2Y",
             },
             {
                 file: 4.0,
@@ -56,7 +56,7 @@ export const tracksData: TracksData = {
                 version: "v1.1",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/SNES_Mario_Circuit_2_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=TfU6P8lsByA",
             },
             {
                 file: 5.0,
@@ -65,7 +65,7 @@ export const tracksData: TracksData = {
                 version: "v1.0",
                 laps: 5.0,
                 wikiUrl: "https://wiki.tockdom.com/wiki/SNES_Choco_Island_1_(SpyKid)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=Lq6oYfCu69E",
             },
             {
                 file: 6.0,
@@ -73,7 +73,7 @@ export const tracksData: TracksData = {
                 authors: "Nintendo",
                 version: "-",
                 laps: "-",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=ianhfCmt9WM",
             },
             {
                 file: 7.0,
@@ -82,7 +82,7 @@ export const tracksData: TracksData = {
                 version: "v2.1",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/SNES_Donut_Plains_2_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=rk09BDuoDXw",
             },
             {
                 file: 8.0,
@@ -91,7 +91,7 @@ export const tracksData: TracksData = {
                 version: "v1.0",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/SNES_Bowser_Castle_2_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=jOW7jQsQusM",
             },
             {
                 file: 9.0,
@@ -99,7 +99,7 @@ export const tracksData: TracksData = {
                 authors: "Nintendo",
                 version: "-",
                 laps: "-",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=no5I-3DTWSQ",
             },
             {
                 file: 10.0,
@@ -108,7 +108,7 @@ export const tracksData: TracksData = {
                 version: "v1.1",
                 laps: 5.0,
                 wikiUrl: "https://wiki.tockdom.com/wiki/SNES_Koopa_Beach_1_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=fpiOkRcApy0",
             },
             {
                 file: 11.0,
@@ -117,7 +117,7 @@ export const tracksData: TracksData = {
                 version: "v3.1",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/SNES_Choco_Island_2_(Slimeserver)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=d8Z0ZW1FZQA",
             },
             {
                 file: 12.0,
@@ -126,7 +126,7 @@ export const tracksData: TracksData = {
                 version: "v1.8",
                 laps: 5.0,
                 wikiUrl: "https://wiki.tockdom.com/wiki/SNES_Vanilla_Lake_1_(SquireTurnbolt)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=h4n7emwR91g",
             },
             {
                 file: 13.0,
@@ -135,7 +135,7 @@ export const tracksData: TracksData = {
                 version: "v3.3-rr",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/SNES_Bowser_Castle_3_(DasFragezeichen_%26_Tock)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=QWDYYTiEMbc",
             },
             {
                 file: 14.0,
@@ -144,7 +144,7 @@ export const tracksData: TracksData = {
                 version: "v1.3",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/SNES_Mario_Circuit_4_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=6nCwe9Xlesk",
             },
             {
                 file: 15.0,
@@ -153,7 +153,7 @@ export const tracksData: TracksData = {
                 version: "v2.11",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/SNES_Donut_Plains_3_(Bear_%26_ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=1Rp0LTcpkQ4",
             },
             {
                 file: 16.0,
@@ -162,7 +162,7 @@ export const tracksData: TracksData = {
                 version: "v1.3",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/SNES_Koopa_Beach_2_(Luca)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=nX_ArmBC9zk",
             },
             {
                 file: 17.0,
@@ -171,7 +171,7 @@ export const tracksData: TracksData = {
                 version: "v1.2.1",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/SNES_Ghost_Valley_3_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=saSqQ9GdfYU",
             },
             {
                 file: 18.0,
@@ -180,7 +180,7 @@ export const tracksData: TracksData = {
                 version: "v1.2",
                 laps: 5.0,
                 wikiUrl: "https://wiki.tockdom.com/wiki/SNES_Vanilla_Lake_2_(ZPL)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=5LsygcT8T7w",
             },
             {
                 file: 19.0,
@@ -189,7 +189,7 @@ export const tracksData: TracksData = {
                 version: "v1.2.2",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/SNES_Rainbow_Road_(NiAlBlack)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=zxOJFEL77u8",
             },
             {
                 file: "sfcRR",
@@ -198,7 +198,7 @@ export const tracksData: TracksData = {
                 version: "v2.8.1",
                 laps: "-",
                 wikiUrl: "https://wiki.tockdom.com/wiki/SNES_Rainbow_Road_(ZPL_%26_Bear)",
-                youtubeUrl: null,
+                youtubeUrl: "https://www.youtube.com/watch?v=3OwqkDDSOuU",
             }
         ],
         "N64": [
