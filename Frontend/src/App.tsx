@@ -11,6 +11,7 @@ import {
     RoomStatusPage,
     RulesPage,
     TeamPage,
+    TracksPage,
     TTLeaderboardPage,
 } from "./pages";
 
@@ -55,6 +56,7 @@ function App() {
 
                     {/* Community Pages */}
                     <Route path="/downloads" component={DownloadsPage} />
+                    <Route path="/tracks" component={TracksPage} />
                     <Route path="/rules" component={RulesPage} />
                     <Route path="/team" component={TeamPage} />
 

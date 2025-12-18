@@ -132,12 +132,10 @@ export default function DownloadsPage() {
                         included in v6.5.4
                     </p>
                     <a
-                        href="https://docs.google.com/spreadsheets/d/1FelOidNHL1bqSaKeycZux1eQcDyrosONFC_qWVTYoog/edit?gid=0#gid=0"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        href="/tracks"
                         class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium inline-flex items-center"
                     >
-                        View Track List
+                        Browse Tracks
                         <svg
                             class="w-4 h-4 ml-1"
                             fill="none"
@@ -148,7 +146,7 @@ export default function DownloadsPage() {
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
                                 stroke-width="2"
-                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                d="M9 5l7 7-7 7"
                             />
                         </svg>
                     </a>
@@ -160,7 +158,7 @@ export default function DownloadsPage() {
                         Time Trial Records
                     </h3>
                     <p class="text-gray-600 dark:text-gray-400 mb-4">
-                        Check out the fastest times for every track
+                        Check out the all of the fastest times for every track in Retro Rewind
                     </p>
                     <a
                         href="https://docs.google.com/spreadsheets/d/1XkHTTuUR3_10-C7geVhJ9TtCb4Bz_gE19NysbGnUOZs/edit?gid=0#gid=0"
@@ -251,6 +249,108 @@ export default function DownloadsPage() {
                     </a>
                 </div>
             </AlertBox>
+
+            {/* Other RWFC Packs */}
+            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                    Other RWFC Distributions
+                </h2>
+                <p class="text-gray-600 dark:text-gray-400 mb-6">
+                    These custom track distributions also use Retro WFC servers, make sure to check them out!
+                </p>
+    
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Wack Track Pack */}
+                    <div class="border-2 border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+                        <a href="https://www.youtube.com/watch?v=SaqpXDXpydE" target="_blank" rel="noopener noreferrer">
+                            <img 
+                                src="https://img.youtube.com/vi/SaqpXDXpydE/maxresdefault.jpg" 
+                                alt="Wack Track Pack"
+                                class="w-full aspect-video object-cover"
+                            />
+                        </a>
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                Wack Track Pack
+                            </h3>
+                            <a
+                                href="https://discord.com/invite/XB6YmGhyNA"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium inline-flex items-center"
+                            >
+                                    Join Discord
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    {/* Insane Kart Wii */}
+                    <div class="border-2 border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+                        <a href="https://www.youtube.com/watch?v=eaMplFPkqN8" target="_blank" rel="noopener noreferrer">
+                            <img 
+                                src="https://img.youtube.com/vi/eaMplFPkqN8/maxresdefault.jpg" 
+                                alt="Insane Kart Wii"
+                                class="w-full aspect-video object-cover"
+                            />
+                        </a>
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                Insane Kart Wii
+                            </h3>
+                            <a
+                                href="https://discord.com/invite/kSyHsQGUWf"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium inline-flex items-center"
+                            >
+                                    Join Discord
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    {/* OptPack */}
+                    <div class="border-2 border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                            OptPack
+                        </h3>
+                        <a
+                            href="https://discord.gg/37p93TtZHZ"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium inline-flex items-center"
+                        >
+                                Join Discord
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                        </a>
+                    </div>
+
+                    {/* Luminous */}
+                    <div class="border-2 border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                            Luminous
+                        </h3>
+                        <a
+                            href="https://discord.gg/ZCuny29DQk"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium inline-flex items-center"
+                        >
+                            Join Discord
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
