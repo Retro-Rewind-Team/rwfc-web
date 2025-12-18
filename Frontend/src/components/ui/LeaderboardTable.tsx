@@ -2,7 +2,7 @@ import { For, Show } from "solid-js";
 import { A } from "@solidjs/router";
 import { Player } from "../../types";
 import { formatLastSeen, getVRGainClass } from "../../utils";
-import { MiiComponent, VRTierNumberPlate } from "../ui";
+import { MiiComponent, PlayerBadges, VRTierNumberPlate } from "../ui";
 
 interface LeaderboardTableProps {
     players: Player[];
@@ -151,6 +151,12 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                                                             ⚠️ Suspicious
                                                         </span>
                                                     </Show>
+                                                    
+                                                    {/*Player Badges */}
+                                                    <PlayerBadges 
+                                                        friendCode={player.friendCode} 
+                                                        size="sm"
+                                                    />
                                                 </div>
                                             </div>
                                         </div>

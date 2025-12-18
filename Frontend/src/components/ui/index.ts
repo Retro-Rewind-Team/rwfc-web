@@ -9,3 +9,5 @@ export { default as VRStatsCard } from "./vrStatsCard";
 export { default as TutorialCard } from "./TutorialCard";
 export { default as LeaderboardTable } from "./LeaderboardTable";
 export { default as TrackCard } from "./TrackCard";
+export { default as PlayerBadges } from "./PlayerBadges";
+export { default as Badge } from "./Badge";
