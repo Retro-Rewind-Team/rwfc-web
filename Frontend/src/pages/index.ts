@@ -8,3 +8,7 @@ export { RulesPage } from "./Rules";
 export { TeamPage } from "./Team";
 export { NotFoundPage } from "./NotFound";
 export { TracksPage } from "./Tracks";
+export { ToolsPage } from "./Tools";
+export { RankCalculatorPage } from "./Tools/RankCalculator";
+export { RatingEditorPage } from "./Tools/RatingEditor";
+export { FontPatcherPage } from "./Tools/FontPatcher";

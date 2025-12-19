@@ -104,7 +104,7 @@ export default function HomePage() {
                             TT Leaderboard
                         </h3>
                         <p class="text-gray-600 dark:text-gray-400 mb-4">
-                            Compare the fastest times across all 196 retro tracks and 88
+                            Compare the fastest times across all 198 retro tracks and 88
                             custom tracks.
                         </p>
                         <div class="text-gray-500 dark:text-gray-500 font-medium inline-flex items-center">

@@ -4,13 +4,16 @@ import { ThemeProvider } from "./stores/theme";
 import Layout from "./components/layout/Layout";
 import {
     DownloadsPage,
+    FontPatcherPage,
     HomePage,
     LeaderboardPage,
     NotFoundPage,
     PlayerDetailPage,
-    RoomStatusPage,
-    RulesPage,
-    TeamPage,
+    // RankCalculatorPage,
+    RatingEditorPage,
+    RoomStatusPage, RulesPage, 
+    TeamPage, 
+    ToolsPage,
     TracksPage,
     TTLeaderboardPage,
 } from "./pages";
@@ -50,7 +53,7 @@ function App() {
                     <Route path="/tt-leaderboard" component={TTLeaderboardPage} />
                     <Route path="/tt" component={TTLeaderboardPage} />
 
-                    {/* Future: Room Browser Routes */}
+                    {/* Room Browser Routes */}
                     <Route path="/room-browser" component={RoomStatusPage} />
                     <Route path="/rooms" component={RoomStatusPage} />
 
@@ -60,7 +63,13 @@ function App() {
                     <Route path="/rules" component={RulesPage} />
                     <Route path="/team" component={TeamPage} />
 
-                    {/* 404 Catch-All - MUST BE LAST */}
+                    {/* Tools Pages */}
+                    <Route path="/tools" component={ToolsPage} />
+                    {/* <Route path="tools/rank-calculator" component={RankCalculatorPage} /> */}
+                    <Route path="tools/font-patcher" component={FontPatcherPage} />
+                    <Route path="tools/rating-editor" component={RatingEditorPage} />
+
+                    {/* 404 Catch-All */}
                     <Route path="*" component={NotFoundPage} />
                 </Router>
             </QueryClientProvider>
