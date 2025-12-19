@@ -59,7 +59,7 @@ export default function DownloadsPage() {
             {/* Main Download */}
             <AlertBox type="info" icon="📦" title="Retro Rewind v6.5.4">
                 <p class="text-lg mb-4">
-                    Complete distribution with 196 retro tracks and 88 custom tracks
+                    Complete distribution with 198 retro tracks and 88 custom tracks
                 </p>
                 <div class="flex flex-col sm:flex-row gap-3">
                     <a
@@ -128,8 +128,8 @@ export default function DownloadsPage() {
                         Track List
                     </h3>
                     <p class="text-gray-600 dark:text-gray-400 mb-4">
-                        View all 196 retro tracks, 40 Battle Arenas and 88 custom tracks
-                        included in v6.5.4
+                        View all 198 retro tracks, 40 Battle Arenas and 88 custom tracks
+                        included in v6.5.5
                     </p>
                     <a
                         href="/tracks"
@@ -153,32 +153,20 @@ export default function DownloadsPage() {
                 </div>
 
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 p-6 transition-colors">
-                    <div class="text-3xl mb-3">🏆</div>
+                    <div class="text-3xl mb-3">🛠️</div>
                     <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-                        Time Trial Records
+                            Community Tools
                     </h3>
                     <p class="text-gray-600 dark:text-gray-400 mb-4">
-                        Check out the all of the fastest times for every track in Retro Rewind
+                            Rank calculator, save file editor, font patcher, and more community-made tools
                     </p>
                     <a
-                        href="https://docs.google.com/spreadsheets/d/1XkHTTuUR3_10-C7geVhJ9TtCb4Bz_gE19NysbGnUOZs/edit?gid=0#gid=0"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        href="/tools"
                         class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium inline-flex items-center"
                     >
-                        View Records
-                        <svg
-                            class="w-4 h-4 ml-1"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                            />
+                            Browse Tools
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </a>
                 </div>

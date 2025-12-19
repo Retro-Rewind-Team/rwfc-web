@@ -59,7 +59,7 @@ export default function TracksPage() {
                         Track List
                     </h1>
                     <p class="text-lg text-gray-600 dark:text-gray-400">
-                        Browse all 324 tracks in Retro Rewind v6.5.4
+                        Browse all 326 tracks in Retro Rewind v6.5.5
                     </p>
                 </div>
             </div>
