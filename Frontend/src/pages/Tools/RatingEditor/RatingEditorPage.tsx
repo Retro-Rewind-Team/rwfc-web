@@ -333,6 +333,13 @@ export default function RatingEditorPage() {
                         <li>Select rows and click "Clear Selected" to reset entries</li>
                         <li>Download the modified file when done</li>
                     </ol>
+                    <div class="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800">
+                        <p class="font-medium mb-2">File Location:</p>
+                        <ul class="space-y-1 text-sm">
+                            <li><strong>Dolphin:</strong> <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">Dolphin Emulator\Wii\shared2\Pulsar\RetroRewind6\RRRating.pul</code></li>
+                            <li><strong>Wii:</strong> <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">SD Card\RetroRewind6\RRRating.pul</code></li>
+                        </ul>
+                    </div>
                 </AlertBox>
             </Show>
 
