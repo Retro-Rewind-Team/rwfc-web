@@ -75,7 +75,7 @@ export default function RoomCard(props: RoomCardProps) {
                                 props.room.isSplit 
                                     ? "bg-amber-500/90 text-white"
                                     : isVoting()
-                                        ? "bg-purple-500/90 text-white" // Changed: distinct color for voting
+                                        ? "bg-purple-500/90 text-white"
                                         : isJoinable()
                                             ? "bg-emerald-500/90 text-white"
                                             : "bg-gray-500/90 text-white"
@@ -127,6 +127,17 @@ export default function RoomCard(props: RoomCardProps) {
                                     <span>{uptime()}</span>
                                 </div>
                             </Show>
+
+                            { /* Average VR Badge */
+                                <Show when={props.room.averageVR !== null}>
+                                    <div class="flex items-center gap-1.5 px-3 py-1.5 bg-white/25 backdrop-blur-sm rounded-lg font-bold text-xs text-white shadow-md">
+                                        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M13 7H7v6h6V7z" />
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 110-12 6 6 0 010 12z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span>Avg VR: {Math.round(props.room.averageVR!)}</span>
+                                    </div>
+                                </Show>}
                         </div>
                     </div>
 
