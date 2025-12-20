@@ -86,6 +86,17 @@ builder.Services.AddRateLimiter(options =>
             Window = TimeSpan.FromMinutes(5)
         }));
 
+    // ADD THIS: Ghost download rate limit
+    options.AddPolicy("GhostDownloadPolicy", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 10, // 10 ghost downloads per 5 minutes per IP
+                Window = TimeSpan.FromMinutes(5)
+            }));
+
     // What to do when rate limit is exceeded
     options.OnRejected = async (context, token) =>
     {
@@ -141,6 +152,8 @@ builder.Services.AddHttpClient();
 // Repositories
 builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
 builder.Services.AddScoped<IVRHistoryRepository, VRHistoryRepository>();
+// ADD THIS: Time Trial Repository
+builder.Services.AddScoped<ITimeTrialRepository, TimeTrialRepository>();
 
 // External services
 builder.Services.AddScoped<IRetroWFCApiClient, RetroWFCApiClient>();
@@ -149,6 +162,8 @@ builder.Services.AddScoped<IRetroWFCApiClient, RetroWFCApiClient>();
 builder.Services.AddScoped<IPlayerValidationService, PlayerValidationService>();
 builder.Services.AddScoped<IMaintenanceService, MaintenanceService>();
 builder.Services.AddScoped<IMiiService, MiiService>();
+// ADD THIS: Ghost File Service
+builder.Services.AddScoped<IGhostFileService, GhostFileService>();
 builder.Services.AddMemoryCache();
 
 // Background service
@@ -168,7 +183,7 @@ builder.Services.AddHostedService<RoomStatusBackgroundService>(sp =>
 // Health checks
 builder.Services.AddScoped<IHealthCheck, ExternalApiHealthCheck>();
 
-// Mmory cache for performance
+// Memory cache for performance
 builder.Services.AddMemoryCache(options =>
 {
     options.SizeLimit = 1000; // Limit to 1000 items in cache
