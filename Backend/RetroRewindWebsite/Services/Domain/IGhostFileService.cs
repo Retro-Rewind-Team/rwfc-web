@@ -4,7 +4,6 @@
     {
         Task<GhostFileParseResult> ParseGhostFileAsync(Stream fileStream);
         Task<string> SaveGhostFileAsync(Stream fileStream, int trackId, short cc, string discordUserId);
-        string GetGhostDownloadPath(string ghostFilePath);
     }
 
     public class GhostFileParseResult

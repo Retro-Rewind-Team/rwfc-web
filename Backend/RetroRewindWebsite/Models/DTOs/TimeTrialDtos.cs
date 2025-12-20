@@ -34,6 +34,7 @@
         public required string DisplayName { get; set; }
         public int TotalSubmissions { get; set; }
         public int CurrentWorldRecords { get; set; }
+        public int CountryCode { get; set; }
     }
 
     public class GhostSubmissionDto

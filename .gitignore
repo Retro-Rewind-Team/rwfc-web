@@ -184,3 +184,4 @@ dist
 .yarn/install-state.gz
 .pnp.*
 Backend/.editorconfig
+/Backend/RetroRewindWebsite/ghosts

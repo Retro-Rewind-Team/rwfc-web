@@ -50,6 +50,7 @@ namespace RetroRewindWebsite.Models.Entities
         public int TotalSubmissions { get; set; } = 0;
 
         public int CurrentWorldRecords { get; set; } = 0;
+        public int CountryCode { get; set; } = 0;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

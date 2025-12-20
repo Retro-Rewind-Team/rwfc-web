@@ -197,15 +197,18 @@ namespace RetroRewindWebsite.Controllers
                     return NotFound("Ghost submission not found");
                 }
 
-                var filePath = _ghostFileService.GetGhostDownloadPath(submission.GhostFilePath);
-                if (!System.IO.File.Exists(filePath))
+                if (!System.IO.File.Exists(submission.GhostFilePath))
                 {
-                    _logger.LogWarning("Ghost file not found on disk: {FilePath}", filePath);
+                    _logger.LogWarning("Ghost file not found on disk: {FilePath}", submission.GhostFilePath);
                     return NotFound("Ghost file not found");
                 }
 
-                var fileName = $"{submission.Track?.Name ?? "ghost"}_{submission.CC}cc_{submission.FinishTimeDisplay.Replace(":", "-")}.rkg";
-                var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+                // Convert "1:51.891" to "1m51s891.rkg"
+                var fileName = submission.FinishTimeDisplay
+                    .Replace(":", "m")
+                    .Replace(".", "s") + ".rkg";
+
+                var fileStream = new FileStream(submission.GhostFilePath, FileMode.Open, FileAccess.Read);
 
                 return File(fileStream, "application/octet-stream", fileName);
             }
@@ -233,7 +236,8 @@ namespace RetroRewindWebsite.Controllers
                     DiscordUserId = profile.DiscordUserId,
                     DisplayName = profile.DisplayName,
                     TotalSubmissions = profile.TotalSubmissions,
-                    CurrentWorldRecords = profile.CurrentWorldRecords
+                    CurrentWorldRecords = profile.CurrentWorldRecords,
+                    CountryCode = profile.CountryCode
                 });
             }
             catch (Exception ex)
@@ -269,7 +273,6 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
-        // Helper method to map entity to DTO
         private static GhostSubmissionDto MapToDto(GhostSubmissionEntity entity)
         {
             return new GhostSubmissionDto

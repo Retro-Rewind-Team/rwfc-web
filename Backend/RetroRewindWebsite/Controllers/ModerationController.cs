@@ -1,34 +1,34 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs;
 using RetroRewindWebsite.Models.Entities;
 using RetroRewindWebsite.Models.External;
 using RetroRewindWebsite.Repositories;
 using RetroRewindWebsite.Services.Domain;
-using System.Text.Json;
 
 namespace RetroRewindWebsite.Controllers
 {
     [ApiController]
-    [Route("api/moderation")]
+    [Route("api/[controller]")]
     public class ModerationController : ControllerBase
     {
         private readonly IPlayerRepository _playerRepository;
         private readonly IVRHistoryRepository _vrHistoryRepository;
-        private readonly ILogger<ModerationController> _logger;
-        private readonly ITimeTrialRepository _timeTrialRepository;
         private readonly IGhostFileService _ghostFileService;
+        private readonly ITimeTrialRepository _timeTrialRepository;
+        private readonly ILogger<ModerationController> _logger;
 
         public ModerationController(
             IPlayerRepository playerRepository,
             IVRHistoryRepository vrHistoryRepository,
-            ITimeTrialRepository timeTrialRepository,
             IGhostFileService ghostFileService,
+            ITimeTrialRepository timeTrialRepository,
             ILogger<ModerationController> logger)
         {
             _playerRepository = playerRepository;
             _vrHistoryRepository = vrHistoryRepository;
-            _timeTrialRepository = timeTrialRepository;
             _ghostFileService = ghostFileService;
+            _timeTrialRepository = timeTrialRepository;
             _logger = logger;
         }
 
@@ -209,24 +209,14 @@ namespace RetroRewindWebsite.Controllers
         }
 
         [HttpPost("timetrial/submit")]
-        public async Task<ActionResult<GhostSubmissionResponse>> SubmitGhost(
-    [FromForm] int trackId,
-    [FromForm] short cc,
-    [FromForm] string discordUserId,
-    [FromForm] IFormFile ghostFile)
+        public async Task<IActionResult> SubmitTimeTrialGhost(
+            IFormFile ghostFile,
+            int trackId,
+            int cc,
+            string discordId)
         {
             try
             {
-                // Validate inputs
-                if (cc != 150 && cc != 200)
-                {
-                    return BadRequest(new GhostSubmissionResponse
-                    {
-                        Success = false,
-                        Message = "CC must be either 150 or 200"
-                    });
-                }
-
                 if (ghostFile == null || ghostFile.Length == 0)
                 {
                     return BadRequest(new GhostSubmissionResponse
@@ -245,163 +235,194 @@ namespace RetroRewindWebsite.Controllers
                     });
                 }
 
-                // Verify track exists
+                if (cc != 150 && cc != 200)
+                {
+                    return BadRequest(new GhostSubmissionResponse
+                    {
+                        Success = false,
+                        Message = "CC must be either 150 or 200"
+                    });
+                }
+
                 var track = await _timeTrialRepository.GetTrackByIdAsync(trackId);
                 if (track == null)
                 {
-                    return NotFound(new GhostSubmissionResponse
+                    return BadRequest(new GhostSubmissionResponse
                     {
                         Success = false,
-                        Message = $"Track with ID {trackId} not found"
+                        Message = $"Track ID {trackId} not found"
                     });
                 }
 
                 // Parse ghost file
-                using var fileStream = ghostFile.OpenReadStream();
-                var parseResult = await _ghostFileService.ParseGhostFileAsync(fileStream);
+                GhostFileParseResult ghostData;
+                using (var memoryStream = new MemoryStream())
+                {
+                    await ghostFile.CopyToAsync(memoryStream);
+                    memoryStream.Position = 0;
+                    ghostData = await _ghostFileService.ParseGhostFileAsync(memoryStream);
+                }
 
-                if (!parseResult.Success)
+                if (!ghostData.Success)
                 {
                     return BadRequest(new GhostSubmissionResponse
                     {
                         Success = false,
-                        Message = parseResult.ErrorMessage ?? "Failed to parse ghost file"
+                        Message = ghostData.ErrorMessage
                     });
                 }
 
-                // Validate course ID matches track
-                if (parseResult.CourseId != track.CourseId)
+                // Validate track slot matches
+                var rkgTrackSlotName = MarioKartMappings.GetTrackSlotName(ghostData.CourseId);
+                if (rkgTrackSlotName == null)
                 {
                     return BadRequest(new GhostSubmissionResponse
                     {
                         Success = false,
-                        Message = $"Ghost file course ID ({parseResult.CourseId}) does not match selected track (expected {track.CourseId})"
+                        Message = $"Invalid course ID in ghost file: {ghostData.CourseId}"
                     });
                 }
 
-                // Get or create TT profile
-                var profile = await _timeTrialRepository.GetTTProfileByDiscordIdAsync(discordUserId);
-                if (profile == null)
+                if (rkgTrackSlotName != track.TrackSlot)
                 {
-                    profile = new TTProfileEntity
+                    _logger.LogWarning(
+                        "Track slot mismatch: Ghost has {GhostSlot} but track {TrackName} uses {TrackSlot}",
+                        rkgTrackSlotName, track.Name, track.TrackSlot);
+
+                    return BadRequest(new GhostSubmissionResponse
                     {
-                        DiscordUserId = discordUserId,
-                        DisplayName = discordUserId // Default to Discord ID, can be updated later
+                        Success = false,
+                        Message = $"Track slot mismatch: This ghost was recorded on '{rkgTrackSlotName}' but you submitted it for '{track.Name}' which uses '{track.TrackSlot}'"
+                    });
+                }
+
+                // Get or create TT Profile
+                var ttProfile = await _timeTrialRepository.GetTTProfileByDiscordIdAsync(discordId);
+
+                if (ttProfile == null)
+                {
+                    ttProfile = new TTProfileEntity
+                    {
+                        DiscordUserId = discordId,
+                        DisplayName = ghostData.MiiName,
+                        TotalSubmissions = 0,
+                        CurrentWorldRecords = 0,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
                     };
-                    await _timeTrialRepository.AddTTProfileAsync(profile);
+                    await _timeTrialRepository.AddTTProfileAsync(ttProfile);
                 }
 
-                // Save ghost file
-                fileStream.Seek(0, SeekOrigin.Begin);
-                var filePath = await _ghostFileService.SaveGhostFileAsync(fileStream, trackId, cc, discordUserId);
+                string ghostFilePath;
+                using (var fileStream = ghostFile.OpenReadStream())
+                {
+                    ghostFilePath = await _ghostFileService.SaveGhostFileAsync(
+                        fileStream,
+                        trackId,
+                        (short)cc,
+                        discordId);
+                }
 
-                // Create submission entity
                 var submission = new GhostSubmissionEntity
                 {
                     TrackId = trackId,
-                    TTProfileId = profile.Id,
-                    CC = cc,
-                    FinishTimeMs = parseResult.FinishTimeMs,
-                    FinishTimeDisplay = parseResult.FinishTimeDisplay,
-                    VehicleId = parseResult.VehicleId,
-                    CharacterId = parseResult.CharacterId,
-                    ControllerType = parseResult.ControllerType,
-                    DriftType = parseResult.DriftType,
-                    MiiName = parseResult.MiiName,
-                    LapCount = parseResult.LapCount,
-                    LapSplitsMs = JsonSerializer.Serialize(parseResult.LapSplitsMs),
-                    GhostFilePath = filePath,
-                    DateSet = parseResult.DateSet,
-                    SubmittedByDiscordId = discordUserId
+                    TTProfileId = ttProfile.Id,
+                    CC = (short)cc,
+                    FinishTimeMs = ghostData.FinishTimeMs,
+                    FinishTimeDisplay = ghostData.FinishTimeDisplay,
+                    VehicleId = ghostData.VehicleId,
+                    CharacterId = ghostData.CharacterId,
+                    ControllerType = ghostData.ControllerType,
+                    DriftType = ghostData.DriftType,
+                    MiiName = ghostData.MiiName,
+                    LapCount = ghostData.LapCount,
+                    LapSplitsMs = System.Text.Json.JsonSerializer.Serialize(ghostData.LapSplitsMs), // Serialize to JSON
+                    GhostFilePath = ghostFilePath,
+                    DateSet = ghostData.DateSet,
+                    SubmittedByDiscordId = discordId,
+                    SubmittedAt = DateTime.UtcNow
                 };
 
                 await _timeTrialRepository.AddGhostSubmissionAsync(submission);
 
                 // Update profile stats
-                profile.TotalSubmissions = await _timeTrialRepository.GetProfileSubmissionsCountAsync(profile.Id);
-                profile.CurrentWorldRecords = await _timeTrialRepository.GetProfileWorldRecordsCountAsync(profile.Id);
-                await _timeTrialRepository.UpdateTTProfileAsync(profile);
+                ttProfile.TotalSubmissions++;
+                await _timeTrialRepository.UpdateTTProfileAsync(ttProfile);
 
                 _logger.LogInformation(
-                    "Ghost submission successful: Track {TrackId}, CC {CC}, Time {Time}, User {UserId}",
-                    trackId, cc, parseResult.FinishTimeDisplay, discordUserId);
+                    "Ghost submitted successfully: Track {TrackId}, Player {PlayerId}, Time {Time}ms",
+                    trackId, ttProfile.Id, ghostData.FinishTimeMs);
 
-                // Reload submission with navigation properties
-                var savedSubmission = await _timeTrialRepository.GetGhostSubmissionByIdAsync(submission.Id);
-
-                return Ok(new GhostSubmissionResponse
+                return Ok(new
                 {
-                    Success = true,
-                    Message = "Ghost submitted successfully",
-                    Submission = savedSubmission != null ? MapToDto(savedSubmission) : null
+                    success = true,
+                    message = "Ghost submitted successfully",
+                    submission = new
+                    {
+                        id = submission.Id,
+                        trackId = submission.TrackId,
+                        trackName = track.Name,
+                        ttProfileId = submission.TTProfileId,
+                        playerName = ttProfile.DisplayName,
+                        cc = submission.CC,
+                        finishTimeMs = submission.FinishTimeMs,
+                        finishTimeDisplay = submission.FinishTimeDisplay,
+
+                        // Raw IDs
+                        vehicleId = submission.VehicleId,
+                        characterId = submission.CharacterId,
+                        controllerType = submission.ControllerType,
+                        driftType = submission.DriftType,
+                        trackSlot = ghostData.CourseId,
+
+                        // Human-readable names
+                        vehicleName = MarioKartMappings.GetVehicleName(submission.VehicleId),
+                        characterName = MarioKartMappings.GetCharacterName(submission.CharacterId),
+                        controllerName = MarioKartMappings.GetControllerName(submission.ControllerType),
+                        driftTypeName = MarioKartMappings.GetDriftTypeName(submission.DriftType),
+                        trackSlotName = MarioKartMappings.GetTrackSlotName(ghostData.CourseId),
+
+                        miiName = submission.MiiName,
+                        lapCount = submission.LapCount,
+                        lapSplitsMs = ghostData.LapSplitsMs, 
+                        ghostFilePath = submission.GhostFilePath,
+                        dateSet = submission.DateSet,
+                        submittedAt = submission.SubmittedAt
+                    }
                 });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error submitting ghost for track {TrackId}", trackId);
-                return StatusCode(500, new GhostSubmissionResponse
-                {
-                    Success = false,
-                    Message = "An error occurred while submitting ghost"
-                });
+                return StatusCode(500, new { error = "An error occurred while submitting the ghost" });
             }
         }
 
-        [HttpDelete("timetrial/ghost/{id}")]
-        public async Task<IActionResult> DeleteGhost(int id)
+        [HttpDelete("timetrial/submission/{id}")]
+        public async Task<IActionResult> DeleteGhostSubmission(int id)
         {
             try
             {
                 var submission = await _timeTrialRepository.GetGhostSubmissionByIdAsync(id);
                 if (submission == null)
+                    return NotFound(new { error = $"Submission {id} not found" });
+
+                if (System.IO.File.Exists(submission.GhostFilePath))
                 {
-                    return NotFound(new { Error = "Ghost submission not found" });
+                    System.IO.File.Delete(submission.GhostFilePath);
                 }
 
-                // Delete file from disk
-                var filePath = _ghostFileService.GetGhostDownloadPath(submission.GhostFilePath);
-                if (System.IO.File.Exists(filePath))
-                {
-                    System.IO.File.Delete(filePath);
-                }
-
-                // Delete from database
                 await _timeTrialRepository.DeleteGhostSubmissionAsync(id);
 
-                _logger.LogWarning("Deleted ghost submission {GhostId} for track {TrackId}", id, submission.TrackId);
+                _logger.LogInformation("Ghost submission {SubmissionId} deleted", id);
 
-                return Ok(new { Success = true, Message = "Ghost submission deleted successfully" });
+                return Ok(new { success = true, message = "Ghost submission deleted successfully" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting ghost {GhostId}", id);
-                return StatusCode(500, new { Error = "An error occurred while deleting ghost" });
+                _logger.LogError(ex, "Error deleting ghost submission {SubmissionId}", id);
+                return StatusCode(500, new { error = "An error occurred while deleting the ghost submission" });
             }
-        }
-
-        private static GhostSubmissionDto MapToDto(GhostSubmissionEntity entity)
-        {
-            return new GhostSubmissionDto
-            {
-                Id = entity.Id,
-                TrackId = entity.TrackId,
-                TrackName = entity.Track?.Name ?? "Unknown",
-                TTProfileId = entity.TTProfileId,
-                PlayerName = entity.TTProfile?.DisplayName ?? "Unknown",
-                CC = entity.CC,
-                FinishTimeMs = entity.FinishTimeMs,
-                FinishTimeDisplay = entity.FinishTimeDisplay,
-                VehicleId = entity.VehicleId,
-                CharacterId = entity.CharacterId,
-                ControllerType = entity.ControllerType,
-                DriftType = entity.DriftType,
-                MiiName = entity.MiiName,
-                LapCount = entity.LapCount,
-                LapSplitsMs = JsonSerializer.Deserialize<List<int>>(entity.LapSplitsMs) ?? [],
-                GhostFilePath = entity.GhostFilePath,
-                DateSet = entity.DateSet,
-                SubmittedAt = entity.SubmittedAt
-            };
         }
     }
 }

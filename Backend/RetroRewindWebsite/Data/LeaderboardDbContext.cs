@@ -13,7 +13,6 @@ namespace RetroRewindWebsite.Data
         public DbSet<VRHistoryEntity> VRHistories { get; set; }
         public DbSet<LegacyPlayerEntity> LegacyPlayers { get; set; }
 
-        // Time Trial DbSets
         public DbSet<TrackEntity> Tracks { get; set; }
         public DbSet<TTProfileEntity> TTProfiles { get; set; }
         public DbSet<GhostSubmissionEntity> GhostSubmissions { get; set; }
@@ -65,7 +64,6 @@ namespace RetroRewindWebsite.Data
                       .OnDelete(DeleteBehavior.SetNull);
             });
 
-            // Time Trial Entity Configurations
             modelBuilder.Entity<TrackEntity>(entity =>
             {
                 entity.HasIndex(e => e.CourseId);
