@@ -294,7 +294,9 @@ namespace RetroRewindWebsite.Controllers
                 LapSplitsMs = JsonSerializer.Deserialize<List<int>>(entity.LapSplitsMs) ?? [],
                 GhostFilePath = entity.GhostFilePath,
                 DateSet = entity.DateSet,
-                SubmittedAt = entity.SubmittedAt
+                SubmittedAt = entity.SubmittedAt,
+                Shroomless = entity.Shroomless,
+                Glitch = entity.Glitch,
             };
         }
     }

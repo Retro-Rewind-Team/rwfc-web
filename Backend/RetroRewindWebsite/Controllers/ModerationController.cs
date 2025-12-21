@@ -213,7 +213,9 @@ namespace RetroRewindWebsite.Controllers
             IFormFile ghostFile,
             int trackId,
             int cc,
-            string discordId)
+            string discordId,
+            bool shroomless = false,
+            bool glitch = false)
         {
             try
             {
@@ -251,6 +253,15 @@ namespace RetroRewindWebsite.Controllers
                     {
                         Success = false,
                         Message = $"Track ID {trackId} not found"
+                    });
+                }
+
+                if (track.Category.Equals("retro", StringComparison.OrdinalIgnoreCase) && glitch)
+                {
+                    return BadRequest(new GhostSubmissionResponse
+                    {
+                        Success = false,
+                        Message = "Glitch runs are not allowed for Retro Tracks"
                     });
                 }
 
@@ -340,7 +351,9 @@ namespace RetroRewindWebsite.Controllers
                     GhostFilePath = ghostFilePath,
                     DateSet = ghostData.DateSet,
                     SubmittedByDiscordId = discordId,
-                    SubmittedAt = DateTime.UtcNow
+                    SubmittedAt = DateTime.UtcNow,
+                    Shroomless = shroomless,
+                    Glitch = !track.Category.Equals("retro", StringComparison.OrdinalIgnoreCase) && glitch
                 };
 
                 await _timeTrialRepository.AddGhostSubmissionAsync(submission);
@@ -387,7 +400,9 @@ namespace RetroRewindWebsite.Controllers
                         lapSplitsMs = ghostData.LapSplitsMs, 
                         ghostFilePath = submission.GhostFilePath,
                         dateSet = submission.DateSet,
-                        submittedAt = submission.SubmittedAt
+                        submittedAt = submission.SubmittedAt,
+                        shroomless = submission.Shroomless,
+                        glitch = submission.Glitch
                     }
                 });
             }

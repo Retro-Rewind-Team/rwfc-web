@@ -51,6 +51,8 @@
         public short CharacterId { get; set; }
         public short ControllerType { get; set; }
         public short DriftType { get; set; }
+        public bool Shroomless { get; set; } = false;
+        public bool Glitch { get; set; } = false;
         public required string MiiName { get; set; }
         public short LapCount { get; set; }
         public List<int> LapSplitsMs { get; set; } = [];

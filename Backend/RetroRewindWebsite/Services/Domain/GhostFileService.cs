@@ -134,22 +134,38 @@ namespace RetroRewindWebsite.Services.Domain
                 // Parse lap splits (offset 0x11 - 8 laps × 3 bytes each)
                 var lapSplitsMs = new List<int>();
 
-                for (int i = 0; i < 8; i++)
+                for (int i = 0; i < Math.Min((int)lapCount, 5); i++)
                 {
                     int offset = 0x11 + (i * 3);
 
-                    // Combine 3 bytes into a 24-bit value
                     uint lapValue = ((uint)bytes[offset] << 16) |
                                    ((uint)bytes[offset + 1] << 8) |
                                    bytes[offset + 2];
 
-                    // Extract time components
                     var lapMinutes = (byte)((lapValue >> 17) & 0x7F);      // Bits 17-23: Minutes
                     var lapSeconds = (byte)((lapValue >> 10) & 0x7F);      // Bits 10-16: Seconds
                     var lapMilliseconds = (ushort)(lapValue & 0x3FF);      // Bits 0-9: Milliseconds
 
                     int lapTotalMs = (lapMinutes * 60 * 1000) + (lapSeconds * 1000) + lapMilliseconds;
                     lapSplitsMs.Add(lapTotalMs);
+                }
+
+                // For tracks with more than 5 laps, estimate remaining laps (Baby Park)
+                if (lapCount > 5)
+                {
+                    int sumOfFirst5Laps = lapSplitsMs.Sum();
+                    int remainingTime = finishTimeMs - sumOfFirst5Laps;
+                    int remainingLaps = lapCount - 5;
+
+                    // Distribute remaining time across remaining laps
+                    int avgTime = remainingTime / remainingLaps;
+                    int remainder = remainingTime % remainingLaps;
+
+                    for (int i = 0; i < remainingLaps; i++)
+                    {
+                        // Add 1ms to first few laps to account for rounding
+                        lapSplitsMs.Add(avgTime + (i < remainder ? 1 : 0));
+                    }
                 }
 
                 // Parse Mii name (offset 0x3C for Mii data, name starts at +0x02)

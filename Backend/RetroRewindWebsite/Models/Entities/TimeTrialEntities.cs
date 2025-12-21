@@ -68,12 +68,10 @@ namespace RetroRewindWebsite.Models.Entities
         public int Id { get; set; }
 
         public int TrackId { get; set; }
-
         public int TTProfileId { get; set; }
 
         // Race details
         public short CC { get; set; } // 150 or 200
-
         public int FinishTimeMs { get; set; }
 
         [Required]
@@ -82,11 +80,8 @@ namespace RetroRewindWebsite.Models.Entities
 
         // Extracted from ghost file
         public short VehicleId { get; set; }
-
         public short CharacterId { get; set; }
-
         public short ControllerType { get; set; } // 0=Wheel, 1=Wiimote+Nunchuck, 2=Classic, 3=GC
-
         public short DriftType { get; set; } // 0=Manual, 1=Hybrid
 
         [Required]
@@ -98,6 +93,10 @@ namespace RetroRewindWebsite.Models.Entities
 
         [Column(TypeName = "jsonb")]
         public required string LapSplitsMs { get; set; } // JSON array: [25340, 25890, 26120]
+
+        // Category flags
+        public bool Shroomless { get; set; } = false;
+        public bool Glitch { get; set; } = false;
 
         // File metadata
         [Required]
@@ -115,7 +114,6 @@ namespace RetroRewindWebsite.Models.Entities
 
         // Navigation properties
         public virtual TrackEntity? Track { get; set; }
-
         public virtual TTProfileEntity? TTProfile { get; set; }
     }
 }
