@@ -27,7 +27,6 @@ namespace RetroRewindWebsite.Controllers
         [EnableRateLimiting("DownloadPolicy")]
         public async Task<IActionResult> ProxyDownload(string fileKey)
         {
-            // Validate the file key
             if (!AllowedFiles.TryGetValue(fileKey.ToLowerInvariant(), out var fileInfo))
             {
                 _logger.LogWarning("Invalid download file key requested: {FileKey}", fileKey);
@@ -37,26 +36,66 @@ namespace RetroRewindWebsite.Controllers
             try
             {
                 var httpClient = _httpClientFactory.CreateClient();
-                httpClient.Timeout = TimeSpan.FromMinutes(10); // Large files need time
+                httpClient.Timeout = TimeSpan.FromMinutes(10);
+
+                // Check if client is requesting a range (resume)
+                var rangeHeader = Request.Headers.Range;
+
+                var request = new HttpRequestMessage(HttpMethod.Get, fileInfo.Url);
+                if (rangeHeader.Count > 0)
+                {
+                    request.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(
+                        rangeHeader[0]!.Split('=')[1].Split('-')[0] != ""
+                            ? long.Parse(rangeHeader[0]!.Split('=')[1].Split('-')[0])
+                            : (long?)null,
+                        rangeHeader[0]!.Split('-').Length > 1 && rangeHeader[0]!.Split('-')[1] != ""
+                            ? long.Parse(rangeHeader[0]!.Split('-')[1])
+                            : (long?)null
+                    );
+                    _logger.LogInformation("Range request for {FileKey}: {Range}", fileKey, rangeHeader[0]);
+                }
 
                 _logger.LogInformation("Proxying download for {FileKey} from {Url}", fileKey, fileInfo.Url);
 
-                // Stream the file directly to avoid loading it all into memory
-                var response = await httpClient.GetAsync(fileInfo.Url, HttpCompletionOption.ResponseHeadersRead);
+                var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 
-                if (!response.IsSuccessStatusCode)
+                if (!response.IsSuccessStatusCode && response.StatusCode != System.Net.HttpStatusCode.PartialContent)
                 {
                     _logger.LogError("Failed to fetch file from external server: {StatusCode}", response.StatusCode);
                     return StatusCode((int)response.StatusCode, "Failed to fetch file from download server");
                 }
 
-                // Get content type from source or default to zip
                 var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/zip";
+                var contentLength = response.Content.Headers.ContentLength;
 
-                // Stream the response directly to the client
+                Response.RegisterForDispose(response);
+
+                // Copy all relevant headers
+                if (contentLength.HasValue)
+                {
+                    Response.ContentLength = contentLength.Value;
+                }
+
+                Response.Headers.Append("Accept-Ranges", "bytes");
+                Response.Headers.Append("Content-Disposition", $"attachment; filename=\"{fileInfo.FileName}\"");
+
+                // If upstream sent partial content, forward that status
+                if (response.StatusCode == System.Net.HttpStatusCode.PartialContent)
+                {
+                    Response.StatusCode = 206;
+                    if (response.Content.Headers.ContentRange != null)
+                    {
+                        Response.Headers.Append("Content-Range", response.Content.Headers.ContentRange.ToString());
+                    }
+                }
+
                 var stream = await response.Content.ReadAsStreamAsync();
 
-                return File(stream, contentType, fileInfo.FileName);
+                return new FileStreamResult(stream, contentType)
+                {
+                    FileDownloadName = fileInfo.FileName,
+                    EnableRangeProcessing = true
+                };
             }
             catch (HttpRequestException ex)
             {
