@@ -48,6 +48,31 @@ export default function LeaderboardPage() {
                 </div>
             </section>
 
+            {/* VR Multiplier Info */}
+            <div class="mb-6">
+                <AlertBox type="info" icon="⭐">
+                    <div>
+                        <div class="font-semibold mb-1">
+                VR Multipliers Active
+                        </div>
+                        <p class="text-sm mb-2">
+                Earn bonus VR during special events and competitive matches!
+                        </p>
+                        <ul class="text-sm space-y-1 ml-4">
+                            <li>• <span class="font-medium">2x VR</span> during special events:</li>
+                            <li class="ml-4">- St. Patrick's Day: Mar 13 - Mar 17</li>
+                            <li class="ml-4">- MKWii Birthday: Apr 10 - Apr 14</li>
+                            <li class="ml-4">- Start of Summer: Jun 5 - Jun 8</li>
+                            <li class="ml-4">- End of Summer: Aug 23 - Aug 29</li>
+                            <li class="ml-4">- Halloween: Oct 25 - Oct 31</li>
+                            <li class="ml-4">- Christmas/New Year: Dec 23 - Jan 3</li>
+                            <li>• <span class="font-medium">Up to 1.83x VR</span> in Battle Elimination with 6+ players</li>
+                            <li>• <span class="font-medium">Up to 2.83x VR</span> when both multipliers combine!</li>
+                        </ul>
+                    </div>
+                </AlertBox>
+            </div>
+
             {/* Unified Control Panel */}
             <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
                 {/* Header Row: Title + Actions */}

@@ -27,6 +27,8 @@ export default function VRTierInfo(props: Readonly<VRTierInfoProps>) {
         if (!next) return "bg-gradient-to-r from-amber-400 to-yellow-500";
 
         switch (next.tier) {
+        case "god":
+            return "bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500";
         case "master":
             return "bg-gradient-to-r from-purple-500 via-blue-500 to-green-500";
         case "legendary":
