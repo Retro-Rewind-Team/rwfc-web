@@ -174,7 +174,7 @@ builder.Services.AddMemoryCache(options =>
     options.SizeLimit = 1000; // Limit to 1000 items in cache
 });
 
-// Add Swagger/OpenAPI support
+// Swagger/OpenAPI support
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -225,7 +225,7 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         logger.LogError(ex, "An error occurred while applying migrations");
-        // In development, you might want to throw, but in production continue
+        // In development, might want to throw, but in production continue
         if (app.Environment.IsDevelopment())
         {
             throw;

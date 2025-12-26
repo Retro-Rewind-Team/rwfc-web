@@ -24,7 +24,7 @@ namespace RetroRewindWebsite.Services.Domain
                 return true;
 
             // Flag any jump >= 200 VR (impossible in single race)
-            return vrChange >= 200;
+            return vrChange >= 475;
         }
 
         public bool ShouldFlagPlayer(PlayerEntity player, int previousVR)
