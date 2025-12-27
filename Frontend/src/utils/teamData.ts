@@ -305,6 +305,13 @@ export const teamData: Record<string, TeamMember[]> = {
             image: "/profiles/wrkus.png",
             fc: "3006-4772-3801",
         },
+        {
+            name: "TheBeefBai",
+            discord: "thebeefbai",
+            role: "RWFC Moderator",
+            image: "/profiles/TheBeefBai.png",
+            fc: "5242-6660-9436",
+        },
     ],
     Developers: [
         {
@@ -426,6 +433,13 @@ export const teamData: Record<string, TeamMember[]> = {
             discord: "optllizer",
             role: "Developer",
             image: "/profiles/optllizer.png",
+        },
+        {
+            name: "TheBeefBai",
+            discord: "thebeefbai",
+            role: "RWFC Moderator",
+            image: "/profiles/TheBeefBai.png",
+            fc: "5242-6660-9436",
         },
     ],
     Translators: [

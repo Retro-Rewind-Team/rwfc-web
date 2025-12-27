@@ -1,4 +1,3 @@
-import { downloadsApi } from "../../services/api/download";
 import { AlertBox } from "../../components/common";
 import { TutorialCard } from "../../components/ui/";
 
@@ -57,13 +56,13 @@ export default function DownloadsPage() {
             </div>
 
             {/* Main Download */}
-            <AlertBox type="info" icon="📦" title="Retro Rewind v6.5.4">
+            <AlertBox type="info" icon="📦" title="Retro Rewind v6.5.6">
                 <p class="text-lg mb-4">
                     Complete distribution with 198 retro tracks and 88 custom tracks
                 </p>
                 <div class="flex flex-col sm:flex-row gap-3">
                     <a
-                        href={downloadsApi.getFullDownloadUrl()}
+                        href="https://rwfc.net/updates/RetroRewind/zip/RetroRewind.zip"
                         target="_blank"
                         rel="noopener noreferrer"
                         class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-center"
@@ -71,12 +70,12 @@ export default function DownloadsPage() {
                         Full Download (First Install)
                     </a>
                     <a
-                        href={downloadsApi.getUpdateDownloadUrl()}
+                        href="https://rwfc.net/updates/RetroRewind/zip/6.5.6.zip"
                         target="_blank"
                         rel="noopener noreferrer"
                         class="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-center"
                     >
-                        Update Only (v6.5 → v6.5.4)
+                        Update Only (v6.5.5 → v6.5.6)
                     </a>
                 </div>
             </AlertBox>
@@ -129,7 +128,7 @@ export default function DownloadsPage() {
                     </h3>
                     <p class="text-gray-600 dark:text-gray-400 mb-4">
                         View all 198 retro tracks, 40 Battle Arenas and 88 custom tracks
-                        included in v6.5.5
+                        included in v6.5.6
                     </p>
                     <a
                         href="/tracks"
@@ -246,8 +245,8 @@ export default function DownloadsPage() {
                 <p class="text-gray-600 dark:text-gray-400 mb-6">
                     These custom track distributions also use Retro WFC servers, make sure to check them out!
                 </p>
-    
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Wack Track Pack */}
                     <div class="border-2 border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
                         <a href="https://www.youtube.com/watch?v=SaqpXDXpydE" target="_blank" rel="noopener noreferrer">
@@ -267,34 +266,7 @@ export default function DownloadsPage() {
                                 rel="noopener noreferrer"
                                 class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium inline-flex items-center"
                             >
-                                    Join Discord
-                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                </svg>
-                            </a>
-                        </div>
-                    </div>
-
-                    {/* Insane Kart Wii */}
-                    <div class="border-2 border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
-                        <a href="https://www.youtube.com/watch?v=eaMplFPkqN8" target="_blank" rel="noopener noreferrer">
-                            <img 
-                                src="https://img.youtube.com/vi/eaMplFPkqN8/maxresdefault.jpg" 
-                                alt="Insane Kart Wii"
-                                class="w-full aspect-video object-cover"
-                            />
-                        </a>
-                        <div class="p-4">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                                Insane Kart Wii
-                            </h3>
-                            <a
-                                href="https://discord.com/invite/kSyHsQGUWf"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium inline-flex items-center"
-                            >
-                                    Join Discord
+                                Join Discord
                                 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                 </svg>
@@ -303,39 +275,57 @@ export default function DownloadsPage() {
                     </div>
 
                     {/* OptPack */}
-                    <div class="border-2 border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                            OptPack
-                        </h3>
-                        <a
-                            href="https://discord.gg/37p93TtZHZ"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium inline-flex items-center"
-                        >
-                                Join Discord
-                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
+                    <div class="border-2 border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+                        <a href="https://youtu.be/FYk-CdbDrok" target="_blank" rel="noopener noreferrer">
+                            <img 
+                                src="https://i.ytimg.com/vi/FYk-CdbDrok/hqdefault.jpg" 
+                                alt="OptPack"
+                                class="w-full aspect-video object-cover"
+                            />
                         </a>
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                OptPack
+                            </h3>
+                            <a
+                                href="https://discord.gg/37p93TtZHZ"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium inline-flex items-center"
+                            >
+                                Join Discord
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
+                        </div>
                     </div>
 
                     {/* Luminous */}
-                    <div class="border-2 border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                            Luminous
-                        </h3>
-                        <a
-                            href="https://discord.gg/ZCuny29DQk"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium inline-flex items-center"
-                        >
-                            Join Discord
-                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
+                    <div class="border-2 border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+                        <a href="https://youtu.be/lJXAeXQb0Bc" target="_blank" rel="noopener noreferrer">
+                            <img 
+                                src="https://img.youtube.com/vi/lJXAeXQb0Bc/maxresdefault.jpg" 
+                                alt="Luminous"
+                                class="w-full aspect-video object-cover"
+                            />
                         </a>
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                Luminous
+                            </h3>
+                            <a
+                                href="https://discord.gg/ZCuny29DQk"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium inline-flex items-center"
+                            >
+                                Join Discord
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

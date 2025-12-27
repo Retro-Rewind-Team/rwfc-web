@@ -76,16 +76,6 @@ builder.Services.AddRateLimiter(options =>
                 Window = TimeSpan.FromMinutes(1)
             }));
 
-    options.AddPolicy("DownloadPolicy", httpContext =>
-        RateLimitPartition.GetConcurrencyLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: partition => new ConcurrencyLimiterOptions
-            {
-                PermitLimit = 2,
-                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                QueueLimit = 1
-            }));
-
     // What to do when rate limit is exceeded
     options.OnRejected = async (context, token) =>
     {
