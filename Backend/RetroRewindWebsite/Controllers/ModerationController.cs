@@ -104,6 +104,46 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
+        [HttpPost("flag")]
+        public async Task<ActionResult> FlagUser([FromBody] FlagRequest request)
+        {
+            try
+            {
+                _logger.LogWarning("Flag request received for PID: {Pid}", request.Pid);
+
+                var player = await _playerRepository.GetByPidAsync(request.Pid);
+
+                if (player == null)
+                {
+                    return NotFound(new { Error = $"Player with PID {request.Pid} not found" });
+                }
+
+                player.IsSuspicious = true;
+
+                await _playerRepository.UpdateAsync(player);
+
+                _logger.LogWarning("Player {Name} ({Pid}) flagged by moderator {Moderator}. Reason: {Reason}",
+                    player.Name, player.Pid, request.Moderator, request.Reason);
+
+                return Ok(new
+                {
+                    Success = true,
+                    User = new
+                    {
+                        ProfileId = player.Pid,
+                        player.Name,
+                        player.Fc,
+                        player.IsSuspicious
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error flagging user with PID {Pid}", request.Pid);
+                return StatusCode(500, new { Error = "An error occurred while flagging the user" });
+            }
+        }
+
         [HttpGet("suspicious-jumps/{pid}")]
         public async Task<ActionResult> GetSuspiciousJumps(string pid)
         {
