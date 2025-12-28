@@ -122,8 +122,8 @@ namespace RetroRewindWebsite.Controllers
 
                 await _playerRepository.UpdateAsync(player);
 
-                _logger.LogWarning("Player {Name} ({Pid}) flagged by moderator {Moderator}. Reason: {Reason}",
-                    player.Name, player.Pid, request.Moderator, request.Reason);
+                _logger.LogWarning("Player {Name} ({Pid}) flagged by moderator {Moderator}.",
+                    player.Name, player.Pid, request.Moderator);
 
                 return Ok(new
                 {
