@@ -44,43 +44,26 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddRateLimiter(options =>
 {
-    // Default policy = 100 requests per minute per IP
+    // Single global limit
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
         httpContext => RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: partition => new FixedWindowRateLimiterOptions
             {
                 AutoReplenishment = true,
-                PermitLimit = 100,
+                PermitLimit = 300,
                 Window = TimeSpan.FromMinutes(1)
             }));
 
-    // Specific policies for different endpoints
-    options.AddPolicy("SearchPolicy", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: partition => new FixedWindowRateLimiterOptions
-            {
-                AutoReplenishment = true,
-                PermitLimit = 50, // More restrictive for search
-                Window = TimeSpan.FromMinutes(1)
-            }));
-
-    options.AddPolicy("RefreshPolicy", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: partition => new FixedWindowRateLimiterOptions
-            {
-                AutoReplenishment = true,
-                PermitLimit = 5, // Very restrictive for admin operations
-                Window = TimeSpan.FromMinutes(1)
-            }));
-
-    // What to do when rate limit is exceeded
     options.OnRejected = async (context, token) =>
     {
-        context.HttpContext.Response.StatusCode = 429; // Too Many Requests
-        await context.HttpContext.Response.WriteAsync("Rate limit exceeded. Please try again later.", token);
+        context.HttpContext.Response.StatusCode = 429;
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
+            context.HttpContext.Response.Headers.RetryAfter = retryAfter.TotalSeconds.ToString();
+        }
+        await context.HttpContext.Response.WriteAsync(
+            "Rate limit exceeded. Please try again later.", token);
     };
 });
 
