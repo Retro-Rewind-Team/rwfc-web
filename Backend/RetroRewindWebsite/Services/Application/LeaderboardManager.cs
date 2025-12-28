@@ -411,7 +411,8 @@ namespace RetroRewindWebsite.Services.Application
                     LastWeek = entity.VRGainLastWeek,
                     LastMonth = entity.VRGainLastMonth
                 },
-                MiiImageBase64 = null // No Mii image for fast loading
+                MiiImageBase64 = null, // No Mii image for fast loading
+                MiiData = entity.MiiData
             };
         }
 
@@ -449,7 +450,8 @@ namespace RetroRewindWebsite.Services.Application
                     LastWeek = entity.VRGainLastWeek,
                     LastMonth = entity.VRGainLastMonth
                 },
-                MiiImageBase64 = miiImageBase64
+                MiiImageBase64 = miiImageBase64,
+                MiiData = entity.MiiData
             };
         }
 
@@ -489,7 +491,8 @@ namespace RetroRewindWebsite.Services.Application
                     LastWeek = 0,
                     LastMonth = 0
                 },
-                MiiImageBase64 = null
+                MiiImageBase64 = null,
+                MiiData = p.MiiData
             }).ToList();
 
             // Get stats
@@ -585,7 +588,8 @@ namespace RetroRewindWebsite.Services.Application
                     LastWeek = 0,
                     LastMonth = 0
                 },
-                MiiImageBase64 = miiImage
+                MiiImageBase64 = miiImage,
+                MiiData = legacyPlayer.MiiData
             };
         }
     }

@@ -13,6 +13,7 @@
         public bool IsSuspicious { get; set; }
         public VRStatsDto VRStats { get; set; } = new();
         public string? MiiImageBase64 { get; set; }
+        public string? MiiData { get; set; }
     }
 
     public class VRStatsDto
