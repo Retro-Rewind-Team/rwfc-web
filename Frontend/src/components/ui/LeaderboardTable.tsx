@@ -7,7 +7,6 @@ import { MiiComponent, PlayerBadges, VRTierNumberPlate } from "../ui";
 interface LeaderboardTableProps {
     players: Player[];
     showLegacy: boolean;
-    activeOnly: boolean;
     sortBy: string;
     ascending: boolean;
     timePeriod: string;
@@ -94,9 +93,6 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                     <For each={props.players}>
                         {(player) => {
-                            const rankToUse = !props.showLegacy && props.activeOnly
-                                ? player.activeRank
-                                : player.rank;
                             const vrGain = !props.showLegacy ? props.getVRGain(player) : 0;
                             const isOnline = !props.showLegacy && formatLastSeen(player.lastSeen) === "Now Online";
 
@@ -109,7 +105,7 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                                     <td class="px-6 py-4 text-center">
                                         <div class="flex items-center justify-center">
                                             <VRTierNumberPlate
-                                                rank={rankToUse || player.rank}
+                                                rank={player.rank}
                                                 vr={player.vr}
                                                 isSuspicious={player.isSuspicious}
                                                 size="sm"
@@ -141,11 +137,6 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                                                 </A>
 
                                                 <div class="hidden sm:flex flex-wrap gap-2 mt-1 justify-center sm:justify-start">
-                                                    <Show when={!props.showLegacy && !player.isActive}>
-                                                        <span class="inline-flex items-center text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap">
-                                                            Inactive
-                                                        </span>
-                                                    </Show>
                                                     <Show when={player.isSuspicious}>
                                                         <span class="inline-flex items-center text-xs bg-red-200 dark:bg-red-800 text-red-600 dark:text-red-400 px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap">
                                                             ⚠️ Suspicious

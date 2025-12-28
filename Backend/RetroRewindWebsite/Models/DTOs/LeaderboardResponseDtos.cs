@@ -15,7 +15,6 @@ namespace RetroRewindWebsite.Models.DTOs
     public class LeaderboardStatsDto
     {
         public int TotalPlayers { get; set; }
-        public int ActivePlayers { get; set; }
         public int SuspiciousPlayers { get; set; }
         public DateTime LastUpdated { get; set; }
     }
@@ -27,8 +26,6 @@ namespace RetroRewindWebsite.Models.DTOs
 
         [Range(1, 50, ErrorMessage = "Page size must be between 1 and 50")]
         public int PageSize { get; set; } = 50;
-
-        public bool ActiveOnly { get; set; } = false;
 
         [StringLength(100, ErrorMessage = "Search term cannot exceed 100 characters")]
         public string? Search { get; set; }

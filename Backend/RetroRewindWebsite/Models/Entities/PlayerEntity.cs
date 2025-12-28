@@ -16,13 +16,11 @@ namespace RetroRewindWebsite.Models.Entities
         public required string MiiData { get; set; }
         public DateTime LastSeen { get; set; }
         public int Rank { get; set; }
-        public int ActiveRank { get; set; }
         public int VRGainLast24Hours { get; set; }
         public int VRGainLastWeek { get; set; }
         public int VRGainLastMonth { get; set; }
         public DateTime LastUpdated { get; set; }
         public bool IsSuspicious { get; set; }
-        public bool IsActive { get; set; }
         public int SuspiciousVRJumps { get; set; }
 
         // Navigation properties

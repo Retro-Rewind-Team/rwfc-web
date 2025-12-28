@@ -4,9 +4,7 @@ export interface Player {
   friendCode: string;
   vr: number;
   rank: number;
-  activeRank: number | null;
   lastSeen: string;
-  isActive: boolean;
   isSuspicious: boolean;
   vrStats: VRStats;
   miiImageBase64?: string;
@@ -23,7 +21,6 @@ export interface PlayerSearchResult {
   friendCode: string;
   vr: number;
   rank: number;
-  isActive: boolean;
   isSuspicious: boolean;
   lastSeen: string;
 }

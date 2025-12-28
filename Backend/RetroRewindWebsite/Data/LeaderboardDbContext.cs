@@ -22,8 +22,6 @@ namespace RetroRewindWebsite.Data
                 entity.HasIndex(e => e.Pid).IsUnique();
                 entity.HasIndex(e => e.Fc);
                 entity.HasIndex(e => e.Rank);
-                entity.HasIndex(e => e.ActiveRank);
-                entity.HasIndex(e => e.IsActive);
                 entity.HasIndex(e => e.IsSuspicious);
                 entity.HasIndex(e => e.LastSeen);
                 entity.Property(e => e.Name).HasMaxLength(100);

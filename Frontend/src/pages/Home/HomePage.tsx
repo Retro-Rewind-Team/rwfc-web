@@ -48,7 +48,7 @@ export default function HomePage() {
                                 colorScheme="blue"
                             />
                             <StatCard
-                                value="196"
+                                value="198"
                                 label="Retro Tracks Available"
                                 colorScheme="purple"
                             />

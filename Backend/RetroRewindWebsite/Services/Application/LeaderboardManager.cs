@@ -34,21 +34,13 @@ namespace RetroRewindWebsite.Services.Application
 
         public async Task<LeaderboardResponseDto> GetLeaderboardAsync(LeaderboardRequest request)
         {
-            // Get paginated players from repository
             var pagedResult = await _playerRepository.GetLeaderboardPageAsync(
-                request.Page, request.PageSize, request.ActiveOnly,
+                request.Page, request.PageSize,
                 request.Search, request.SortBy, request.Ascending);
 
-            // Get stats for the response
             var stats = await GetStatsAsync();
 
-            // Map entities to DTOs - WITHOUT Mii images for fast loading
-            var playerDtos = new List<PlayerDto>();
-            foreach (var entity in pagedResult.Items)
-            {
-                var dto = MapToDtoWithoutMii(entity);
-                playerDtos.Add(dto);
-            }
+            var playerDtos = pagedResult.Items.Select(MapToDtoWithoutMii).ToList();
 
             return new LeaderboardResponseDto
             {
@@ -61,18 +53,10 @@ namespace RetroRewindWebsite.Services.Application
             };
         }
 
-        public async Task<List<PlayerDto>> GetTopPlayersAsync(int count, bool activeOnly = false)
+        public async Task<List<PlayerDto>> GetTopPlayersAsync(int count)
         {
-            var players = await _playerRepository.GetTopPlayersAsync(count, activeOnly);
-            var playerDtos = new List<PlayerDto>();
-
-            foreach (var player in players)
-            {
-                var dto = MapToDtoWithoutMii(player);
-                playerDtos.Add(dto);
-            }
-
-            return playerDtos;
+            var players = await _playerRepository.GetTopPlayersAsync(count);
+            return [.. players.Select(MapToDtoWithoutMii)];
         }
 
         public async Task<PlayerDto?> GetPlayerAsync(string fc)
@@ -153,13 +137,11 @@ namespace RetroRewindWebsite.Services.Application
         public async Task<LeaderboardStatsDto> GetStatsAsync()
         {
             var totalPlayers = await _playerRepository.GetTotalPlayersCountAsync();
-            var activePlayers = await _playerRepository.GetActivePlayersCountAsync();
             var suspiciousPlayers = await _playerRepository.GetSuspiciousPlayersCountAsync();
 
             return new LeaderboardStatsDto
             {
                 TotalPlayers = totalPlayers,
-                ActivePlayers = activePlayers,
                 SuspiciousPlayers = suspiciousPlayers,
                 LastUpdated = DateTime.UtcNow
             };
@@ -171,7 +153,6 @@ namespace RetroRewindWebsite.Services.Application
 
             try
             {
-                // Fetch live data from external API
                 var groups = await _apiClient.GetActiveGroupsAsync();
                 var apiPlayers = ExtractPlayersFromGroups(groups);
 
@@ -180,17 +161,14 @@ namespace RetroRewindWebsite.Services.Application
                 var updatedCount = 0;
                 var newCount = 0;
 
-                // Process each player
                 foreach (var apiPlayer in apiPlayers)
                 {
                     var existingPlayer = await _playerRepository.GetByPidAsync(apiPlayer.Pid);
 
                     if (existingPlayer == null)
                     {
-                        // New player
                         var newPlayer = CreatePlayerEntity(apiPlayer);
 
-                        // Check if new player is suspicious
                         if (_validationService.IsSuspiciousNewPlayer(newPlayer.Ev))
                         {
                             newPlayer.IsSuspicious = true;
@@ -203,8 +181,7 @@ namespace RetroRewindWebsite.Services.Application
                     }
                     else
                     {
-                        // Existing player - check for updates
-                        var previousVR = existingPlayer.Ev; // Store the old VR before updating
+                        var previousVR = existingPlayer.Ev;
                         var hasChanges = UpdateExistingPlayer(existingPlayer, apiPlayer);
 
                         if (hasChanges)
@@ -212,7 +189,6 @@ namespace RetroRewindWebsite.Services.Application
                             await _playerRepository.UpdateAsync(existingPlayer);
                             updatedCount++;
 
-                            // Track VR history if VR actually changed
                             if (existingPlayer.Ev != previousVR)
                             {
                                 await TrackVRHistoryForPlayerAsync(existingPlayer, previousVR);
@@ -220,10 +196,6 @@ namespace RetroRewindWebsite.Services.Application
                         }
                     }
                 }
-
-                // Update activity status (players seen in last 14 days are active)
-                var cutoffDate = DateTime.UtcNow.AddDays(-14);
-                await _playerRepository.UpdatePlayerActivityStatusAsync(cutoffDate);
 
                 _logger.LogInformation("API refresh completed. New: {NewCount}, Updated: {UpdatedCount}",
                     newCount, updatedCount);
@@ -242,7 +214,6 @@ namespace RetroRewindWebsite.Services.Application
             try
             {
                 await _playerRepository.UpdatePlayerRanksAsync();
-                await _playerRepository.UpdateActivePlayerRanksAsync();
 
                 _logger.LogInformation("Player rankings refreshed successfully");
             }
@@ -296,11 +267,9 @@ namespace RetroRewindWebsite.Services.Application
                 MiiData = miiData,
                 LastSeen = DateTime.UtcNow,
                 LastUpdated = DateTime.UtcNow,
-                IsActive = true,
                 IsSuspicious = false,
                 SuspiciousVRJumps = 0,
-                Rank = 0, // Will be calculated during ranking update
-                ActiveRank = 0,
+                Rank = int.MaxValue,
                 VRGainLast24Hours = 0,
                 VRGainLastWeek = 0,
                 VRGainLastMonth = 0
@@ -350,7 +319,6 @@ namespace RetroRewindWebsite.Services.Application
             // Always update last seen and last updated if player is found in API
             existingPlayer.LastSeen = DateTime.UtcNow;
             existingPlayer.LastUpdated = DateTime.UtcNow;
-            existingPlayer.IsActive = true;
 
             return hasChanges || true; // Always save to update LastSeen
         }
@@ -401,9 +369,7 @@ namespace RetroRewindWebsite.Services.Application
                 FriendCode = entity.Fc,
                 VR = entity.Ev,
                 Rank = entity.Rank,
-                ActiveRank = entity.IsActive ? entity.ActiveRank : null,
                 LastSeen = entity.LastSeen,
-                IsActive = entity.IsActive,
                 IsSuspicious = entity.IsSuspicious,
                 VRStats = new VRStatsDto
                 {
@@ -440,9 +406,7 @@ namespace RetroRewindWebsite.Services.Application
                 FriendCode = entity.Fc,
                 VR = entity.Ev,
                 Rank = entity.Rank,
-                ActiveRank = entity.IsActive ? entity.ActiveRank : null,
                 LastSeen = entity.LastSeen,
-                IsActive = entity.IsActive,
                 IsSuspicious = entity.IsSuspicious,
                 VRStats = new VRStatsDto
                 {
@@ -481,9 +445,7 @@ namespace RetroRewindWebsite.Services.Application
                 FriendCode = p.Fc,
                 VR = p.Ev,
                 Rank = p.Rank,
-                ActiveRank = null,
                 LastSeen = snapshotDate,
-                IsActive = true,
                 IsSuspicious = p.IsSuspicious,
                 VRStats = new VRStatsDto
                 {
@@ -502,7 +464,6 @@ namespace RetroRewindWebsite.Services.Application
             var stats = new LeaderboardStatsDto
             {
                 TotalPlayers = totalPlayers,
-                ActivePlayers = totalPlayers,
                 SuspiciousPlayers = suspiciousPlayers,
                 LastUpdated = snapshotDate
             };
@@ -578,9 +539,7 @@ namespace RetroRewindWebsite.Services.Application
                 FriendCode = legacyPlayer.Fc,
                 VR = legacyPlayer.Ev,
                 Rank = legacyPlayer.Rank,
-                ActiveRank = null,
                 LastSeen = legacyPlayer.SnapshotDate,
-                IsActive = true,
                 IsSuspicious = legacyPlayer.IsSuspicious,
                 VRStats = new VRStatsDto
                 {

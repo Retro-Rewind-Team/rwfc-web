@@ -44,16 +44,14 @@ namespace RetroRewindWebsite.Controllers
         }
 
         [HttpGet("top/{count}")]
-        public async Task<ActionResult<List<PlayerDto>>> GetTopPlayers(
-            int count = 10,
-            [FromQuery] bool activeOnly = false)
+        public async Task<ActionResult<List<PlayerDto>>> GetTopPlayers(int count = 10)
         {
             try
             {
                 if (count < 1) count = 10;
                 if (count > 50) count = 50;
 
-                var players = await _leaderboardManager.GetTopPlayersAsync(count, activeOnly);
+                var players = await _leaderboardManager.GetTopPlayersAsync(count);
                 return Ok(players);
             }
             catch (Exception ex)

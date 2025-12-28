@@ -84,35 +84,29 @@ namespace RetroRewindWebsite.Repositories
         public async Task<PagedResult<PlayerEntity>> GetLeaderboardPageAsync(
             int page,
             int pageSize,
-            bool activeOnly,
             string? search,
             string sortBy,
             bool ascending)
         {
             var query = _context.Players.AsNoTracking();
 
-            // Apply filters at database level
-            if (activeOnly)
-                query = query.Where(p => p.IsActive);
-
+            // Search filter
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(p =>
                     EF.Functions.ILike(p.Name, $"%{search}%") ||
                     EF.Functions.ILike(p.Fc, $"%{search}%"));
 
-            // Apply sorting at database level
+            // Apply sorting
             query = sortBy.ToLower() switch
             {
-                "rank" => activeOnly
-                    ? (ascending ? query.OrderBy(p => p.ActiveRank) : query.OrderByDescending(p => p.ActiveRank))
-                    : (ascending ? query.OrderBy(p => p.Rank) : query.OrderByDescending(p => p.Rank)),
+                "rank" => ascending ? query.OrderBy(p => p.Rank) : query.OrderByDescending(p => p.Rank),
                 "name" => ascending ? query.OrderBy(p => p.Name) : query.OrderByDescending(p => p.Name),
                 "vr" => ascending ? query.OrderBy(p => p.Ev) : query.OrderByDescending(p => p.Ev),
                 "lastseen" => ascending ? query.OrderBy(p => p.LastSeen) : query.OrderByDescending(p => p.LastSeen),
                 "vrgain24" => ascending ? query.OrderBy(p => p.VRGainLast24Hours) : query.OrderByDescending(p => p.VRGainLast24Hours),
                 "vrgain7" => ascending ? query.OrderBy(p => p.VRGainLastWeek) : query.OrderByDescending(p => p.VRGainLastWeek),
                 "vrgain30" => ascending ? query.OrderBy(p => p.VRGainLastMonth) : query.OrderByDescending(p => p.VRGainLastMonth),
-                _ => query.OrderBy(p => activeOnly ? p.ActiveRank : p.Rank)
+                _ => query.OrderBy(p => p.Rank)
             };
 
             var totalCount = await query.CountAsync();
@@ -130,47 +124,31 @@ namespace RetroRewindWebsite.Repositories
             };
         }
 
-        public async Task<List<PlayerEntity>> GetTopPlayersAsync(int count, bool activeOnly = false)
+        public async Task<List<PlayerEntity>> GetTopPlayersAsync(int count)
         {
-            var query = _context.Players.AsNoTracking();
-
-            if (activeOnly)
-                query = query.Where(p => p.IsActive);
-
-            return await query
-                .Where(p => !p.IsSuspicious) // Only clean players for "top"
-                .OrderBy(p => activeOnly ? p.ActiveRank : p.Rank)
+            return await _context.Players
+                .AsNoTracking()
+                .Where(p => !p.IsSuspicious)
+                .OrderBy(p => p.Rank)
                 .Take(count)
                 .ToListAsync();
         }
 
-        public async Task<List<PlayerEntity>> GetPlayersAroundRankAsync(int rank, int window, bool activeOnly = false)
+        public async Task<List<PlayerEntity>> GetPlayersAroundRankAsync(int rank, int window)
         {
-            var query = _context.Players.AsNoTracking();
-
-            if (activeOnly)
-                query = query.Where(p => p.IsActive);
-
-            var rankColumn = activeOnly ? "ActiveRank" : "Rank";
             var startRank = Math.Max(1, rank - window);
             var endRank = rank + window;
 
-            return await query
-                .Where(p => activeOnly ?
-                    (p.ActiveRank >= startRank && p.ActiveRank <= endRank) :
-                    (p.Rank >= startRank && p.Rank <= endRank))
-                .OrderBy(p => activeOnly ? p.ActiveRank : p.Rank)
+            return await _context.Players
+                .AsNoTracking()
+                .Where(p => p.Rank >= startRank && p.Rank <= endRank)
+                .OrderBy(p => p.Rank)
                 .ToListAsync();
         }
 
         public async Task<int> GetTotalPlayersCountAsync()
         {
             return await _context.Players.CountAsync();
-        }
-
-        public async Task<int> GetActivePlayersCountAsync()
-        {
-            return await _context.Players.CountAsync(p => p.IsActive);
         }
 
         public async Task<int> GetSuspiciousPlayersCountAsync()
@@ -250,78 +228,6 @@ namespace RetroRewindWebsite.Repositories
             }
         }
 
-        public async Task UpdateActivePlayerRanksAsync()
-        {
-            try
-            {
-                // Clear any existing tracked entities to avoid conflicts
-                _context.ChangeTracker.Clear();
-
-                var batchSize = 100;
-                int activeRank = 1;
-
-                // Process non-suspicious active players first
-                var nonSuspiciousActivePlayers = await _context.Players
-                    .AsNoTracking()
-                    .Where(p => !p.IsSuspicious && p.IsActive)
-                    .OrderByDescending(p => p.Ev)
-                    .ThenByDescending(p => p.LastSeen)
-                    .ToListAsync();
-
-                for (int i = 0; i < nonSuspiciousActivePlayers.Count; i += batchSize)
-                {
-                    var batch = nonSuspiciousActivePlayers.Skip(i).Take(batchSize).ToList();
-
-                    foreach (var player in batch)
-                    {
-                        player.ActiveRank = activeRank++;
-
-                        // Attach the entity and mark only ActiveRank as modified
-                        _context.Players.Attach(player);
-                        _context.Entry(player).Property(p => p.ActiveRank).IsModified = true;
-                    }
-
-                    await _context.SaveChangesAsync();
-
-                    // Clear the change tracker after each batch
-                    _context.ChangeTracker.Clear();
-                }
-
-                // Then process suspicious active players
-                var suspiciousActivePlayers = await _context.Players
-                    .AsNoTracking()
-                    .Where(p => p.IsSuspicious && p.IsActive)
-                    .OrderByDescending(p => p.Ev)
-                    .ToListAsync();
-
-                for (int i = 0; i < suspiciousActivePlayers.Count; i += batchSize)
-                {
-                    var batch = suspiciousActivePlayers.Skip(i).Take(batchSize).ToList();
-
-                    foreach (var player in batch)
-                    {
-                        player.ActiveRank = activeRank++;
-
-                        // Attach the entity and mark only ActiveRank as modified
-                        _context.Players.Attach(player);
-                        _context.Entry(player).Property(p => p.ActiveRank).IsModified = true;
-                    }
-
-                    await _context.SaveChangesAsync();
-
-                    // Clear the change tracker after each batch
-                    _context.ChangeTracker.Clear();
-                }
-
-                _logger.LogInformation("Successfully updated active player ranks");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating active player ranks");
-                throw;
-            }
-        }
-
         public async Task<List<PlayerEntity>> GetPlayersBatchAsync(int skip, int take)
         {
             return await _context.Players
@@ -336,17 +242,6 @@ namespace RetroRewindWebsite.Repositories
             _context.Players.UpdateRange(players);
             await _context.SaveChangesAsync();
             _context.ChangeTracker.Clear();
-        }
-
-        public async Task UpdatePlayerActivityStatusAsync(DateTime cutoffDate)
-        {
-            await _context.Players
-                .Where(p => p.LastSeen >= cutoffDate && !p.IsActive)
-                .ExecuteUpdateAsync(p => p.SetProperty(x => x.IsActive, true));
-
-            await _context.Players
-                .Where(p => p.LastSeen < cutoffDate && p.IsActive)
-                .ExecuteUpdateAsync(p => p.SetProperty(x => x.IsActive, false));
         }
 
         public async Task<List<string>> GetPlayerPidsBatchAsync(int skip, int take)

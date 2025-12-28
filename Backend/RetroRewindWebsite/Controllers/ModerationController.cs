@@ -217,9 +217,7 @@ namespace RetroRewindWebsite.Controllers
                         player.Fc,
                         VR = player.Ev,
                         player.Rank,
-                        ActiveRank = player.IsActive ? player.ActiveRank : (int?)null,
                         player.LastSeen,
-                        player.IsActive,
                         player.IsSuspicious,
                         player.SuspiciousVRJumps,
                         VRStats = new

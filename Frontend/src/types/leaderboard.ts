@@ -11,7 +11,6 @@ export interface LeaderboardResponse {
 
 export interface LeaderboardStats {
   totalPlayers: number;
-  activePlayers: number;
   suspiciousPlayers: number;
   lastUpdated: string;
 }
@@ -19,7 +18,6 @@ export interface LeaderboardStats {
 export interface LeaderboardRequest {
   page?: number;
   pageSize?: number;
-  activeOnly?: boolean;
   search?: string;
   sortBy?: string;
   ascending?: boolean;
