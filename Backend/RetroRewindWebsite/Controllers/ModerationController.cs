@@ -161,7 +161,7 @@ namespace RetroRewindWebsite.Controllers
                 var history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, 1000);
 
                 var suspiciousJumps = history
-                    .Where(h => Math.Abs(h.VRChange) > 519)
+                    .Where(h => Math.Abs(h.VRChange) > 529)
                     .OrderByDescending(h => h.Date)
                     .Select(h => new
                     {
