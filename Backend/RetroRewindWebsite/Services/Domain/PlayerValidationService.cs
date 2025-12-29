@@ -23,8 +23,8 @@ namespace RetroRewindWebsite.Services.Domain
             if (currentVR >= 20000 && vrChange >= 5000)
                 return true;
 
-            // Flag any jump >= 200 VR (impossible in single race)
-            return vrChange >= 475;
+            // Flag any jump > 519 VR (impossible in single race)
+            return vrChange > 519;
         }
 
         public bool ShouldFlagPlayer(PlayerEntity player, int previousVR)
@@ -56,7 +56,7 @@ namespace RetroRewindWebsite.Services.Domain
             }
 
             // Check for impossible VR jump
-            if (vrJump > 475)
+            if (vrJump > 519)
             {
                 player.SuspiciousVRJumps++;
 
