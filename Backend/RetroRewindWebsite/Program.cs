@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using RetroRewindWebsite;
 using RetroRewindWebsite.Data;
 using RetroRewindWebsite.HealthChecks;
 using RetroRewindWebsite.Repositories;

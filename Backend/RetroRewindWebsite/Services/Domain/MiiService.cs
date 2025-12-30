@@ -11,7 +11,7 @@ namespace RetroRewindWebsite.Services.Domain
         private readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = new();
         private readonly ILogger<MiiService> _logger;
 
-        private static readonly SemaphoreSlim _rc24Semaphore = new SemaphoreSlim(5, 5);
+        private static readonly SemaphoreSlim _rc24Semaphore = new(5, 5);
 
         public MiiService(IHttpClientFactory httpClientFactory, IMemoryCache memoryCache, ILogger<MiiService> logger)
         {
