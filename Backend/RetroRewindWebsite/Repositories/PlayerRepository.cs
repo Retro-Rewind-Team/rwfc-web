@@ -377,5 +377,28 @@ namespace RetroRewindWebsite.Repositories
                     .ToListAsync();
             }
         }
+
+        public async Task<List<PlayerEntity>> GetPlayersNeedingMiiImagesAsync(int count)
+        {
+            return await _context.Players
+                .AsNoTracking()
+                .Where(p =>
+                    !string.IsNullOrEmpty(p.MiiData) &&
+                    (p.MiiImageBase64 == null ||
+                     p.MiiImageFetchedAt == null ||
+                     p.MiiImageFetchedAt < DateTime.UtcNow.AddDays(-7)))
+                .OrderBy(p => p.MiiImageFetchedAt ?? DateTime.MinValue)
+                .Take(count)
+                .ToListAsync();
+        }
+
+        public async Task UpdatePlayerMiiImageAsync(string pid, string miiImageBase64)
+        {
+            await _context.Players
+                .Where(p => p.Pid == pid)
+                .ExecuteUpdateAsync(p => p
+                    .SetProperty(x => x.MiiImageBase64, miiImageBase64)
+                    .SetProperty(x => x.MiiImageFetchedAt, DateTime.UtcNow));
+        }
     }
 }

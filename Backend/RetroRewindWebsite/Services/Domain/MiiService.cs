@@ -18,9 +18,11 @@ namespace RetroRewindWebsite.Services.Domain
             _httpClientFactory = httpClientFactory;
             _cache = memoryCache;
             _logger = logger;
+
+            // Extended cache duration since Mii data rarely changes
             _cacheOptions = new MemoryCacheEntryOptions()
-                .SetSlidingExpiration(TimeSpan.FromMinutes(30))
-                .SetAbsoluteExpiration(TimeSpan.FromHours(1))
+                .SetSlidingExpiration(TimeSpan.FromDays(1))
+                .SetAbsoluteExpiration(TimeSpan.FromDays(7))
                 .SetSize(1);
         }
 
@@ -29,6 +31,7 @@ namespace RetroRewindWebsite.Services.Domain
             if (string.IsNullOrEmpty(friendCode) || string.IsNullOrEmpty(miiData))
                 return null;
 
+            // Check memory cache first
             if (_cache.TryGetValue(friendCode, out string? cachedMiiImage))
             {
                 return cachedMiiImage;
@@ -40,6 +43,7 @@ namespace RetroRewindWebsite.Services.Domain
             {
                 await semaphore.WaitAsync();
 
+                // Double-check cache after acquiring lock
                 if (_cache.TryGetValue(friendCode, out cachedMiiImage))
                 {
                     return cachedMiiImage;
@@ -90,6 +94,7 @@ namespace RetroRewindWebsite.Services.Domain
                     var imageBytes = await imageResponse.Content.ReadAsByteArrayAsync();
                     var base64Image = Convert.ToBase64String(imageBytes);
 
+                    // Cache in memory
                     _cache.Set(friendCode, base64Image, _cacheOptions);
 
                     _logger.LogInformation("Successfully fetched and cached Mii for {FriendCode}", friendCode);

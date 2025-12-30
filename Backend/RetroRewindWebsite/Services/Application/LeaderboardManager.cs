@@ -40,7 +40,7 @@ namespace RetroRewindWebsite.Services.Application
 
             var stats = await GetStatsAsync();
 
-            var playerDtos = pagedResult.Items.Select(MapToDtoWithoutMii).ToList();
+            var playerDtos = pagedResult.Items.Select(MapToDto).ToList();
 
             return new LeaderboardResponseDto
             {
@@ -56,24 +56,56 @@ namespace RetroRewindWebsite.Services.Application
         public async Task<List<PlayerDto>> GetTopPlayersAsync(int count)
         {
             var players = await _playerRepository.GetTopPlayersAsync(count);
-            return [.. players.Select(MapToDtoWithoutMii)];
+            return [.. players.Select(MapToDto)];
         }
 
         public async Task<PlayerDto?> GetPlayerAsync(string fc)
         {
             var player = await _playerRepository.GetByFcAsync(fc);
-            return player != null ? MapToDtoWithoutMii(player) : null;
+            return player != null ? MapToDto(player) : null;
         }
 
         public async Task<string?> GetPlayerMiiAsync(string fc)
         {
             var player = await _playerRepository.GetByFcAsync(fc);
+
+            // Player not found or no Mii data
             if (player == null || string.IsNullOrEmpty(player.MiiData))
+            {
+                _logger.LogDebug("No Mii data available for player {fc}", fc);
                 return null;
+            }
+
+            // Return cached database image if available and fresh
+            if (!string.IsNullOrEmpty(player.MiiImageBase64) &&
+                player.MiiImageFetchedAt.HasValue &&
+                player.MiiImageFetchedAt.Value > DateTime.UtcNow.AddDays(-7))
+            {
+                return player.MiiImageBase64;
+            }
 
             try
             {
-                return await _miiService.GetMiiImageAsync(player.Fc, player.MiiData);
+                var miiImage = await _miiService.GetMiiImageAsync(player.Fc, player.MiiData);
+
+                if (miiImage != null)
+                {
+                    // Store in database (fire and forget)
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _playerRepository.UpdatePlayerMiiImageAsync(player.Pid, miiImage);
+                            _logger.LogDebug("Stored Mii image in database for {fc}", fc);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Failed to store Mii image in database for {fc}", fc);
+                        }
+                    });
+                }
+
+                return miiImage;
             }
             catch (Exception ex)
             {
@@ -87,32 +119,88 @@ namespace RetroRewindWebsite.Services.Application
             var result = new Dictionary<string, string?>();
 
             var players = await _playerRepository.GetPlayersByFriendCodesAsync(friendCodes);
-            var playerLookup = players.ToDictionary(p => p.Fc, p => p.MiiData);
+            var playerLookup = players.ToDictionary(p => p.Fc, p => p);
 
-            var semaphore = new SemaphoreSlim(5, 5);
+            // Process each friend code
             var tasks = new List<Task<(string fc, string? mii)>>();
 
             foreach (var fc in friendCodes.Distinct())
             {
-                if (playerLookup.TryGetValue(fc, out var miiData) && !string.IsNullOrEmpty(miiData))
+                if (playerLookup.TryGetValue(fc, out var player))
                 {
-                    tasks.Add(GetMiiWithSemaphore(fc, miiData, semaphore));
+                    // No Mii data available - skip
+                    if (string.IsNullOrEmpty(player.MiiData))
+                    {
+                        result[fc] = null;
+                        continue;
+                    }
+
+                    // Check if we have a cached image in database
+                    if (!string.IsNullOrEmpty(player.MiiImageBase64))
+                    {
+                        result[fc] = player.MiiImageBase64;
+                    }
+                    else
+                    {
+                        // Need to fetch - MiiService handles throttling
+                        tasks.Add(FetchAndStoreMiiAsync(player));
+                    }
                 }
                 else
                 {
-                    // No Mii data available for this friend code
+                    // Player not found
                     result[fc] = null;
                 }
             }
 
-            var results = await Task.WhenAll(tasks);
+            // Wait for all fetch operations
+            var fetchResults = await Task.WhenAll(tasks);
 
-            foreach (var (fc, mii) in results)
+            foreach (var (fc, mii) in fetchResults)
             {
                 result[fc] = mii;
             }
 
             return result;
+        }
+
+        private async Task<(string fc, string? mii)> FetchAndStoreMiiAsync(PlayerEntity player)
+        {
+            try
+            {
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                var miiImage = await _miiService.GetMiiImageAsync(player.Fc, player.MiiData!)
+                    .WaitAsync(cts.Token);
+
+                if (miiImage != null)
+                {
+                    // Store in database for future use (fire and forget)
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _playerRepository.UpdatePlayerMiiImageAsync(player.Pid, miiImage);
+                            _logger.LogDebug("Stored Mii image in database for {fc}", player.Fc);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Failed to store Mii image in database for {fc}", player.Fc);
+                        }
+                    });
+                }
+
+                return (player.Fc, miiImage);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Timeout fetching Mii for {fc} in batch request", player.Fc);
+                return (player.Fc, null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to get Mii image for player {fc}", player.Fc);
+                return (player.Fc, null);
+            }
         }
 
         private async Task<(string fc, string? mii)> GetMiiWithSemaphore(string fc, string miiData, SemaphoreSlim semaphore)
@@ -330,7 +418,14 @@ namespace RetroRewindWebsite.Services.Application
                 var firstMii = apiPlayer.Mii.FirstOrDefault();
                 if (firstMii?.Data != null && existingPlayer.MiiData != firstMii.Data)
                 {
+                    // MiiData changed - invalidate cached image
                     existingPlayer.MiiData = firstMii.Data;
+                    existingPlayer.MiiImageBase64 = null; // Clear cached image
+                    existingPlayer.MiiImageFetchedAt = null; // Mark as needing refresh
+
+                    _logger.LogInformation("Mii data changed for {Name} ({Fc}), cached image invalidated",
+                        existingPlayer.Name, existingPlayer.Fc);
+
                     hasChanges = true;
                 }
             }
@@ -378,8 +473,7 @@ namespace RetroRewindWebsite.Services.Application
             }
         }
 
-        // Fast mapping without Mii images for leaderboard
-        private static PlayerDto MapToDtoWithoutMii(PlayerEntity entity)
+        private static PlayerDto MapToDto(PlayerEntity entity)
         {
             return new PlayerDto
             {
@@ -396,44 +490,7 @@ namespace RetroRewindWebsite.Services.Application
                     LastWeek = entity.VRGainLastWeek,
                     LastMonth = entity.VRGainLastMonth
                 },
-                MiiImageBase64 = null, // No Mii image for fast loading
-                MiiData = entity.MiiData
-            };
-        }
-
-        private async Task<PlayerDto> MapToDtoAsync(PlayerEntity entity)
-        {
-            string? miiImageBase64 = null;
-
-            // Only fetch Mii image if data is available
-            if (!string.IsNullOrEmpty(entity.MiiData))
-            {
-                try
-                {
-                    miiImageBase64 = await _miiService.GetMiiImageAsync(entity.Fc, entity.MiiData);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to get Mii image for player {Name} ({Pid})", entity.Name, entity.Pid);
-                }
-            }
-
-            return new PlayerDto
-            {
-                Pid = entity.Pid,
-                Name = entity.Name,
-                FriendCode = entity.Fc,
-                VR = entity.Ev,
-                Rank = entity.Rank,
-                LastSeen = entity.LastSeen,
-                IsSuspicious = entity.IsSuspicious,
-                VRStats = new VRStatsDto
-                {
-                    Last24Hours = entity.VRGainLast24Hours,
-                    LastWeek = entity.VRGainLastWeek,
-                    LastMonth = entity.VRGainLastMonth
-                },
-                MiiImageBase64 = miiImageBase64,
+                MiiImageBase64 = entity.MiiImageBase64,
                 MiiData = entity.MiiData
             };
         }
@@ -502,18 +559,31 @@ namespace RetroRewindWebsite.Services.Application
         {
             var result = new Dictionary<string, string?>();
 
-            // Get legacy players with these friend codes
             var legacyPlayers = await _playerRepository.GetLegacyPlayersByFriendCodesAsync(friendCodes);
-            var playerLookup = legacyPlayers.ToDictionary(p => p.Fc, p => p.MiiData);
+            var playerLookup = legacyPlayers.ToDictionary(p => p.Fc, p => p);
 
-            var semaphore = new SemaphoreSlim(5, 5);
             var tasks = new List<Task<(string fc, string? mii)>>();
 
             foreach (var fc in friendCodes.Distinct())
             {
-                if (playerLookup.TryGetValue(fc, out var miiData) && !string.IsNullOrEmpty(miiData))
+                if (playerLookup.TryGetValue(fc, out var player))
                 {
-                    tasks.Add(GetMiiWithSemaphore(fc, miiData, semaphore));
+                    // No Mii data available
+                    if (string.IsNullOrEmpty(player.MiiData))
+                    {
+                        result[fc] = null;
+                        continue;
+                    }
+
+                    // Check cached image
+                    if (!string.IsNullOrEmpty(player.MiiImageBase64))
+                    {
+                        result[fc] = player.MiiImageBase64;
+                    }
+                    else
+                    {
+                        tasks.Add(FetchLegacyMiiAsync(fc, player.MiiData));
+                    }
                 }
                 else
                 {
@@ -521,14 +591,30 @@ namespace RetroRewindWebsite.Services.Application
                 }
             }
 
-            var results = await Task.WhenAll(tasks);
+            var fetchResults = await Task.WhenAll(tasks);
 
-            foreach (var (fc, mii) in results)
+            foreach (var (fc, mii) in fetchResults)
             {
                 result[fc] = mii;
             }
 
             return result;
+        }
+
+        private async Task<(string fc, string? mii)> FetchLegacyMiiAsync(string fc, string miiData)
+        {
+            try
+            {
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                var miiImage = await _miiService.GetMiiImageAsync(fc, miiData)
+                    .WaitAsync(cts.Token);
+                return (fc, miiImage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to get legacy Mii image for {fc}", fc);
+                return (fc, null);
+            }
         }
 
         public async Task<PlayerDto?> GetLegacyPlayerAsync(string friendCode)
@@ -572,7 +658,7 @@ namespace RetroRewindWebsite.Services.Application
 
             var players = await _playerRepository.GetTopVRGainersAsync(count, timeSpan);
 
-            return [.. players.Select(MapToDtoWithoutMii)];
+            return [.. players.Select(MapToDto)];
         }
     }
 }

@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Options;
-using RetroRewindWebsite;
 using RetroRewindWebsite.Data;
 using RetroRewindWebsite.HealthChecks;
 using RetroRewindWebsite.Repositories;
@@ -90,27 +88,19 @@ builder.Services.AddHealthChecks()
 builder.Services.AddControllers();
 
 // DbContext configuration for different environments
-if (builder.Environment.IsDevelopment())
-{
-    // PostgreSQL for development
-    var devConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    builder.Services.AddDbContext<LeaderboardDbContext>(options =>
-        options.UseNpgsql(devConnectionString));
-}
-else
-{
-    // PostgreSQL for production
-    var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING")
-        ?? builder.Configuration.GetConnectionString("Production");
+var connectionString = builder.Environment.IsDevelopment()
+    ? builder.Configuration.GetConnectionString("DefaultConnection")
+    : Environment.GetEnvironmentVariable("CONNECTION_STRING")
+      ?? builder.Configuration.GetConnectionString("Production");
 
-    if (string.IsNullOrEmpty(connectionString))
-    {
-        throw new InvalidOperationException("Production connection string is not set.");
-    }
-
-    builder.Services.AddDbContext<LeaderboardDbContext>(options =>
-        options.UseNpgsql(connectionString));
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new InvalidOperationException(
+        $"{(builder.Environment.IsDevelopment() ? "Development" : "Production")} connection string is not set.");
 }
+
+builder.Services.AddDbContext<LeaderboardDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 // HttpClient for external API calls
 builder.Services.AddHttpClient();
@@ -126,11 +116,13 @@ builder.Services.AddScoped<IRetroWFCApiClient, RetroWFCApiClient>();
 builder.Services.AddScoped<IPlayerValidationService, PlayerValidationService>();
 builder.Services.AddScoped<IMaintenanceService, MaintenanceService>();
 builder.Services.AddScoped<IMiiService, MiiService>();
-builder.Services.AddMemoryCache();
 
 // Background service
 builder.Services.AddHostedService<LeaderboardBackgroundService>();
 builder.Services.AddScoped<ILeaderboardBackgroundService, LeaderboardBackgroundService>();
+builder.Services.AddSingleton<IMiiPreFetchBackgroundService, MiiPreFetchBackgroundService>();
+builder.Services.AddHostedService<MiiPreFetchBackgroundService>(sp =>
+    (MiiPreFetchBackgroundService)sp.GetRequiredService<IMiiPreFetchBackgroundService>());
 
 // Application services
 builder.Services.AddScoped<ILeaderboardManager, LeaderboardManager>();
@@ -145,7 +137,7 @@ builder.Services.AddHostedService<RoomStatusBackgroundService>(sp =>
 // Health checks
 builder.Services.AddScoped<IHealthCheck, ExternalApiHealthCheck>();
 
-// Mmory cache for performance
+// Memory cache for performance
 builder.Services.AddMemoryCache(options =>
 {
     options.SizeLimit = 1000; // Limit to 1000 items in cache
@@ -251,8 +243,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRateLimiter();
 app.UseAuthorization();
 app.MapControllers();
-app.UseRateLimiter();
 
 app.Run();
