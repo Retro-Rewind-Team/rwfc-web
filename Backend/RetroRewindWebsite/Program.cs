@@ -109,16 +109,7 @@ else
 }
 
 // HttpClient for external API calls
-builder.Services.AddHttpClient<IMiiService, MiiService>()
-    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
-    {
-        PooledConnectionLifetime = TimeSpan.FromMinutes(2), // Force DNS refresh every 2 minutes
-        ConnectTimeout = TimeSpan.FromSeconds(15),
-    })
-    .ConfigureHttpClient(client =>
-    {
-        client.Timeout = TimeSpan.FromSeconds(30); // Reasonable timeout
-    });
+builder.Services.AddHttpClient();
 
 // Repositories
 builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
