@@ -156,12 +156,17 @@ namespace RetroRewindWebsite.Services.Application
                 var groups = await _apiClient.GetActiveGroupsAsync();
                 var apiPlayers = ExtractPlayersFromGroups(groups);
 
-                _logger.LogInformation("Found {PlayerCount} active players from API", apiPlayers.Count);
+                var uniqueApiPlayers = apiPlayers
+                    .GroupBy(p => p.Pid)
+                    .Select(g => g.First())
+                    .ToList();
+
+                _logger.LogInformation("Found {PlayerCount} active players from API", uniqueApiPlayers.Count);
 
                 var updatedCount = 0;
                 var newCount = 0;
 
-                foreach (var apiPlayer in apiPlayers)
+                foreach (var apiPlayer in uniqueApiPlayers)
                 {
                     var existingPlayer = await _playerRepository.GetByPidAsync(apiPlayer.Pid);
 
