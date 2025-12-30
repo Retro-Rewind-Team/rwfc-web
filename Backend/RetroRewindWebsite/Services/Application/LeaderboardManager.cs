@@ -551,5 +551,19 @@ namespace RetroRewindWebsite.Services.Application
                 MiiData = legacyPlayer.MiiData
             };
         }
+
+        public async Task<List<PlayerDto>> GetTopVRGainersAsync(int count, string period)
+        {
+            TimeSpan timeSpan = period.ToLower() switch
+            {
+                "24h" or "24" or "day" => TimeSpan.FromDays(1),
+                "7d" or "week" => TimeSpan.FromDays(7),
+                _ => TimeSpan.FromDays(1)
+            };
+
+            var players = await _playerRepository.GetTopVRGainersAsync(count, timeSpan);
+
+            return [.. players.Select(MapToDtoWithoutMii)];
+        }
     }
 }

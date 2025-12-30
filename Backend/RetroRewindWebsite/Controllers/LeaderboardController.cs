@@ -387,5 +387,20 @@ namespace RetroRewindWebsite.Controllers
                 return StatusCode(500, "An error occurred while retrieving legacy player data");
             }
         }
+
+        [HttpGet("top-gainers")]
+        public async Task<ActionResult<List<PlayerDto>>> GetTopVRGainers([FromQuery] string period = "24h")
+        {
+            try
+            {
+                var players = await _leaderboardManager.GetTopVRGainersAsync(50, period);
+                return Ok(players);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting top VR gainers for period {period}", period);
+                return StatusCode(500, "An error occurred while retrieving top VR gainers");
+            }
+        }
     }
 }

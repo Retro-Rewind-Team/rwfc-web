@@ -357,5 +357,25 @@ namespace RetroRewindWebsite.Repositories
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Fc == friendCode);
         }
+
+        public async Task<List<PlayerEntity>> GetTopVRGainersAsync(int count, TimeSpan period)
+        {
+            var query = _context.Players.AsNoTracking();
+
+            if (period.TotalHours <= 24)
+            {
+                return await query
+                    .OrderByDescending(p => p.VRGainLast24Hours)
+                    .Take(count)
+                    .ToListAsync();
+            }
+            else
+            {
+                return await query
+                    .OrderByDescending(p => p.VRGainLastWeek)
+                    .Take(count)
+                    .ToListAsync();
+            }
+        }
     }
 }

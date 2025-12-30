@@ -42,5 +42,6 @@ namespace RetroRewindWebsite.Repositories
         Task<int> GetLegacySuspiciousPlayersCountAsync();
         Task<List<LegacyPlayerEntity>> GetLegacyPlayersByFriendCodesAsync(List<string> friendCodes);
         Task<LegacyPlayerEntity?> GetLegacyPlayerByFriendCodeAsync(string friendCode);
+        Task<List<PlayerEntity>> GetTopVRGainersAsync(int count, TimeSpan period);
     }
 }
