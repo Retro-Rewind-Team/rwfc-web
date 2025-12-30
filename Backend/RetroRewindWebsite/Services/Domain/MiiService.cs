@@ -5,17 +5,17 @@ namespace RetroRewindWebsite.Services.Domain
 {
     public class MiiService : IMiiService
     {
-        private readonly HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IMemoryCache _cache;
         private readonly MemoryCacheEntryOptions _cacheOptions;
         private readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = new();
         private readonly ILogger<MiiService> _logger;
 
-        private static readonly SemaphoreSlim _rc24Semaphore = new(5, 5); // Max 5 concurrent requests
+        private static readonly SemaphoreSlim _rc24Semaphore = new SemaphoreSlim(5, 5);
 
-        public MiiService(HttpClient httpClient, IMemoryCache memoryCache, ILogger<MiiService> logger)
+        public MiiService(IHttpClientFactory httpClientFactory, IMemoryCache memoryCache, ILogger<MiiService> logger)
         {
-            _httpClient = httpClient;
+            _httpClientFactory = httpClientFactory;
             _cache = memoryCache;
             _logger = logger;
             _cacheOptions = new MemoryCacheEntryOptions()
@@ -29,26 +29,22 @@ namespace RetroRewindWebsite.Services.Domain
             if (string.IsNullOrEmpty(friendCode) || string.IsNullOrEmpty(miiData))
                 return null;
 
-            // Check cache first
             if (_cache.TryGetValue(friendCode, out string? cachedMiiImage))
             {
                 return cachedMiiImage;
             }
 
-            // Use a semaphore to prevent multiple simultaneous requests for the same Mii
             var semaphore = _locks.GetOrAdd(friendCode, _ => new SemaphoreSlim(1, 1));
 
             try
             {
                 await semaphore.WaitAsync();
 
-                // Double-check cache after acquiring lock
                 if (_cache.TryGetValue(friendCode, out cachedMiiImage))
                 {
                     return cachedMiiImage;
                 }
 
-                // Wait for a slot in the global RC24 request limiter
                 _logger.LogInformation("Waiting for RC24 slot for {FriendCode}", friendCode);
                 await _rc24Semaphore.WaitAsync();
 
@@ -56,14 +52,15 @@ namespace RetroRewindWebsite.Services.Domain
                 {
                     _logger.LogInformation("Got RC24 slot for {FriendCode}, sending request", friendCode);
 
-                    // Create the multipart form data
+                    using var httpClient = _httpClientFactory.CreateClient();
+                    httpClient.Timeout = TimeSpan.FromSeconds(30);
+
                     using var content = new MultipartFormDataContent();
                     var fileContent = new ByteArrayContent(Convert.FromBase64String(miiData));
                     content.Add(fileContent, "data", "mii.dat");
                     content.Add(new StringContent("wii"), "platform");
 
-                    // Post to the Mii studio service
-                    var response = await _httpClient.PostAsync("https://miicontestp.wii.rc24.xyz/cgi-bin/studio.cgi", content);
+                    var response = await httpClient.PostAsync("https://miicontestp.wii.rc24.xyz/cgi-bin/studio.cgi", content);
 
                     _logger.LogInformation("Received RC24 response for {FriendCode}: {StatusCode}", friendCode, response.StatusCode);
 
@@ -81,10 +78,9 @@ namespace RetroRewindWebsite.Services.Domain
                         return null;
                     }
 
-                    // Get the image from Nintendo
                     var miiImageUrl = $"https://studio.mii.nintendo.com/miis/image.png?data={jsonResponse.Mii}&type=face&expression=normal&width=270&bgColor=FFFFFF00";
 
-                    var imageResponse = await _httpClient.GetAsync(miiImageUrl);
+                    var imageResponse = await httpClient.GetAsync(miiImageUrl);
                     if (!imageResponse.IsSuccessStatusCode)
                     {
                         _logger.LogWarning("Failed to get image from Nintendo: {StatusCode}", imageResponse.StatusCode);
@@ -94,7 +90,6 @@ namespace RetroRewindWebsite.Services.Domain
                     var imageBytes = await imageResponse.Content.ReadAsByteArrayAsync();
                     var base64Image = Convert.ToBase64String(imageBytes);
 
-                    // Cache the result
                     _cache.Set(friendCode, base64Image, _cacheOptions);
 
                     _logger.LogInformation("Successfully fetched and cached Mii for {FriendCode}", friendCode);
@@ -116,7 +111,6 @@ namespace RetroRewindWebsite.Services.Domain
             {
                 semaphore.Release();
 
-                // Clean up the lock if no one else is waiting
                 if (semaphore.CurrentCount == 1)
                 {
                     _locks.TryRemove(friendCode, out _);
