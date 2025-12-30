@@ -13,6 +13,8 @@ using RetroRewindWebsite.Services.External;
 using Serilog;
 using System.Threading.RateLimiting;
 
+AppContext.SetSwitch("System.Net.DisableIPv6", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, configuration) =>
