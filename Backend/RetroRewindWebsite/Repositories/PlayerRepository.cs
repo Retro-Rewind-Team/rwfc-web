@@ -160,66 +160,33 @@ namespace RetroRewindWebsite.Repositories
         {
             try
             {
-                // Clear any existing tracked entities to avoid conflicts
-                _context.ChangeTracker.Clear();
+                await using var transaction = await _context.Database.BeginTransactionAsync();
 
-                var batchSize = 100;
-                int rank = 1;
+                await _context.Database.ExecuteSqlRawAsync(@"
+                    WITH RankedPlayers AS (
+                        SELECT 
+                            ""Id"",
+                            ROW_NUMBER() OVER (
+                                PARTITION BY ""IsSuspicious""
+                                ORDER BY 
+                                    CASE WHEN ""IsSuspicious"" = false THEN 0 ELSE 1 END,
+                                    ""Ev"" DESC,
+                                    ""LastSeen"" DESC
+                            ) + 
+                            CASE WHEN ""IsSuspicious"" = true 
+                                THEN (SELECT COUNT(*) FROM ""Players"" WHERE ""IsSuspicious"" = false)
+                                ELSE 0 
+                            END as NewRank
+                        FROM ""Players""
+                    )
+                    UPDATE ""Players"" p
+                    SET ""Rank"" = rp.NewRank
+                    FROM RankedPlayers rp
+                    WHERE p.""Id"" = rp.""Id""
+        ");
 
-                // Process non-suspicious players first
-                var nonSuspiciousPlayers = await _context.Players
-                    .AsNoTracking()
-                    .Where(p => !p.IsSuspicious)
-                    .OrderByDescending(p => p.Ev)
-                    .ThenByDescending(p => p.LastSeen)
-                    .ToListAsync();
-
-                for (int i = 0; i < nonSuspiciousPlayers.Count; i += batchSize)
-                {
-                    var batch = nonSuspiciousPlayers.Skip(i).Take(batchSize).ToList();
-
-                    foreach (var player in batch)
-                    {
-                        player.Rank = rank++;
-
-                        // Attach the entity and mark only Rank as modified
-                        _context.Players.Attach(player);
-                        _context.Entry(player).Property(p => p.Rank).IsModified = true;
-                    }
-
-                    await _context.SaveChangesAsync();
-
-                    // Clear the change tracker after each batch
-                    _context.ChangeTracker.Clear();
-                }
-
-                // Then process suspicious players
-                var suspiciousPlayers = await _context.Players
-                    .AsNoTracking()
-                    .Where(p => p.IsSuspicious)
-                    .OrderByDescending(p => p.Ev)
-                    .ToListAsync();
-
-                for (int i = 0; i < suspiciousPlayers.Count; i += batchSize)
-                {
-                    var batch = suspiciousPlayers.Skip(i).Take(batchSize).ToList();
-
-                    foreach (var player in batch)
-                    {
-                        player.Rank = rank++;
-
-                        // Attach the entity and mark only Rank as modified
-                        _context.Players.Attach(player);
-                        _context.Entry(player).Property(p => p.Rank).IsModified = true;
-                    }
-
-                    await _context.SaveChangesAsync();
-
-                    // Clear the change tracker after each batch
-                    _context.ChangeTracker.Clear();
-                }
-
-                _logger.LogInformation("Successfully updated player ranks");
+                await transaction.CommitAsync();
+                _logger.LogInformation("Successfully updated player ranks using SQL");
             }
             catch (Exception ex)
             {
@@ -255,30 +222,48 @@ namespace RetroRewindWebsite.Repositories
                 .ToListAsync();
         }
 
-        public async Task UpdatePlayerVRGainsBatchAsync(Dictionary<string, (int gain24h, int gain7d, int gain30d)> vrGains)
+        public async Task UpdatePlayerVRGainsBatchAsync(
+            Dictionary<string, (int gain24h, int gain7d, int gain30d)> vrGains)
         {
-            // Use a transaction for batch updates
             using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                foreach (var kvp in vrGains)
-                {
-                    await _context.Players
-                        .Where(p => p.Pid == kvp.Key)
-                        .ExecuteUpdateAsync(p => p
-                            .SetProperty(x => x.VRGainLast24Hours, kvp.Value.gain24h)
-                            .SetProperty(x => x.VRGainLastWeek, kvp.Value.gain7d)
-                            .SetProperty(x => x.VRGainLastMonth, kvp.Value.gain30d));
-                }
+                // Create temp table
+                await _context.Database.ExecuteSqlRawAsync(@"
+                    CREATE TEMP TABLE temp_vr_gains (
+                        pid VARCHAR(50),
+                        gain24h INT,
+                        gain7d INT,
+                        gain30d INT
+            )
+        ");
+
+                // Bulk insert
+                var sql = "INSERT INTO temp_vr_gains (pid, gain24h, gain7d, gain30d) VALUES ";
+                var values = string.Join(", ", vrGains.Select((kvp, i) =>
+                    $"('{kvp.Key}', {kvp.Value.gain24h}, {kvp.Value.gain7d}, {kvp.Value.gain30d})"));
+
+                await _context.Database.ExecuteSqlRawAsync(sql + values);
+
+                // Single UPDATE
+                await _context.Database.ExecuteSqlRawAsync(@"
+                    UPDATE ""Players"" p
+                    SET 
+                        ""VRGainLast24Hours"" = t.gain24h,
+                        ""VRGainLastWeek"" = t.gain7d,
+                        ""VRGainLastMonth"" = t.gain30d
+                    FROM temp_vr_gains t
+                    WHERE p.""Pid"" = t.pid
+        ");
 
                 await transaction.CommitAsync();
-                _logger.LogDebug("Successfully committed VR gains batch update for {Count} players", vrGains.Count);
+                _logger.LogDebug("Successfully updated VR gains for {Count} players", vrGains.Count);
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                _logger.LogError(ex, "Failed to update VR gains batch, transaction rolled back");
+                _logger.LogError(ex, "Failed to update VR gains batch");
                 throw;
             }
         }

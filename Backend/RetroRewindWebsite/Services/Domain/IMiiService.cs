@@ -2,6 +2,9 @@
 {
     public interface IMiiService
     {
-        Task<string?> GetMiiImageAsync(string friendCode, string miiData);
+        Task<string?> GetMiiImageAsync(
+            string friendCode,
+            string miiData,
+            CancellationToken cancellationToken = default);
     }
 }

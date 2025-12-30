@@ -128,7 +128,6 @@ builder.Services.AddHostedService<MiiPreFetchBackgroundService>(sp =>
 builder.Services.AddScoped<ILeaderboardManager, LeaderboardManager>();
 
 // Room Status Services
-builder.Services.AddSingleton<ISplitRoomDetector, SplitRoomDetector>();
 builder.Services.AddSingleton<IRoomStatusService, RoomStatusService>();
 builder.Services.AddSingleton<IRoomStatusBackgroundService, RoomStatusBackgroundService>();
 builder.Services.AddHostedService<RoomStatusBackgroundService>(sp =>

@@ -7,7 +7,6 @@ namespace RetroRewindWebsite.Services.Application
 {
     public class RoomStatusService : IRoomStatusService
     {
-        private readonly ISplitRoomDetector _splitRoomDetector;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<RoomStatusService> _logger;
         private readonly ConcurrentQueue<RoomStatusSnapshot> _snapshots = new();
@@ -18,12 +17,10 @@ namespace RetroRewindWebsite.Services.Application
 
         public RoomStatusService(
             IServiceScopeFactory serviceScopeFactory,
-            ILogger<RoomStatusService> logger,
-            ISplitRoomDetector splitRoomDetector)
+            ILogger<RoomStatusService> logger)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
-            _splitRoomDetector = splitRoomDetector;
         }
 
         public async Task<RoomStatusResponseDto?> GetLatestStatusAsync()
@@ -109,11 +106,7 @@ namespace RetroRewindWebsite.Services.Application
 
                 var groups = await retroWFCApiClient.GetActiveGroupsAsync();
 
-                int snapshotId;
-                lock (_idLock)
-                {
-                    snapshotId = _currentId++;
-                }
+                var snapshotId = Interlocked.Increment(ref _currentId);
 
                 var snapshot = new RoomStatusSnapshot
                 {
@@ -167,9 +160,6 @@ namespace RetroRewindWebsite.Services.Application
         private RoomStatusResponseDto CreateResponseDto(RoomStatusSnapshot snapshot)
         {
             var roomDtos = snapshot.Rooms.Select(MapToRoomDto).ToList();
-
-            // Apply split room detection
-            roomDtos = _splitRoomDetector.DetectAndSplitRooms(roomDtos);
 
             return new RoomStatusResponseDto
             {

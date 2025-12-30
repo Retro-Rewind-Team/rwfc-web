@@ -19,10 +19,7 @@
         public required List<RoomPlayerDto> Players { get; set; }
         public int? AverageVR { get; set; }
         public RaceDto? Race { get; set; }
-        public bool IsSplit = false; // Broken
         public bool Suspend { get; set; }
-        public List<string> ConnectedPlayerIds { get; set; } = [];
-
         public string RoomType => GetRoomType(Rk);
         public bool IsPublic => Type == "anybody";
         public bool IsJoinable => Players.Count < 12 && !Suspend;
