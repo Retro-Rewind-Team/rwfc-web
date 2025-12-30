@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
 using RetroRewindWebsite.Data;
 using RetroRewindWebsite.HealthChecks;
 using RetroRewindWebsite.Repositories;
@@ -109,7 +110,16 @@ else
 }
 
 // HttpClient for external API calls
-builder.Services.AddHttpClient();
+builder.Services.AddHttpClient(Options.DefaultName)
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+    {
+        PooledConnectionLifetime = TimeSpan.FromMinutes(2),
+    })
+    .ConfigureHttpClient(client =>
+    {
+        client.DefaultRequestVersion = new Version(1, 1);
+        client.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
+    });
 
 // Repositories
 builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
@@ -178,6 +188,21 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+app.MapGet("/test-mii-connection", async () =>
+{
+    var output = new System.Text.StringBuilder();
+    var originalOut = Console.Out;
+
+    using var writer = new StringWriter(output);
+    Console.SetOut(writer);
+
+    await MiiConnectionTest.RunAllTests();
+
+    Console.SetOut(originalOut);
+
+    return Results.Text(output.ToString(), "text/plain");
+});
 
 app.UseCors("AllowFrontend");
 
