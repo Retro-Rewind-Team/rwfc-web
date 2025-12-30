@@ -53,7 +53,7 @@ namespace RetroRewindWebsite.Services.Domain
                 content.Add(new StringContent("wii"), "platform");
 
                 // Post to the Mii studio service
-                var response = await _httpClient.PostAsync("http://miicontestp.wii.rc24.xyz/cgi-bin/studio.cgi", content);
+                var response = await _httpClient.PostAsync("https://miicontestp.wii.rc24.xyz/cgi-bin/studio.cgi", content);
 
                 if (!response.IsSuccessStatusCode)
                 {
