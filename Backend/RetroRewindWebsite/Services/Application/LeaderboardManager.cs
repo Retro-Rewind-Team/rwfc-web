@@ -62,7 +62,7 @@ namespace RetroRewindWebsite.Services.Application
         public async Task<PlayerDto?> GetPlayerAsync(string fc)
         {
             var player = await _playerRepository.GetByFcAsync(fc);
-            return player != null ? await MapToDtoAsync(player) : null;
+            return player != null ? MapToDtoWithoutMii(player) : null;
         }
 
         public async Task<string?> GetPlayerMiiAsync(string fc)
@@ -120,8 +120,22 @@ namespace RetroRewindWebsite.Services.Application
             await semaphore.WaitAsync();
             try
             {
-                var miiImage = await _miiService.GetMiiImageAsync(fc, miiData);
-                return (fc, miiImage);
+                // 10-second timeout for each Mii request
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                var miiTask = _miiService.GetMiiImageAsync(fc, miiData);
+
+                var completedTask = await Task.WhenAny(miiTask, Task.Delay(Timeout.Infinite, cts.Token));
+
+                if (completedTask == miiTask)
+                {
+                    var miiImage = await miiTask;
+                    return (fc, miiImage);
+                }
+                else
+                {
+                    _logger.LogWarning("Timeout fetching Mii for {fc} in batch request", fc);
+                    return (fc, null);
+                }
             }
             catch (Exception ex)
             {
@@ -526,17 +540,7 @@ namespace RetroRewindWebsite.Services.Application
                 return null;
             }
 
-            // Get Mii image
-            string? miiImage = null;
-            try
-            {
-                miiImage = await _miiService.GetMiiImageAsync(legacyPlayer.Fc, legacyPlayer.MiiData);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to get Mii image for legacy player {fc}", legacyPlayer.Fc);
-            }
-
+            // Don't fetch Mii image - let frontend use batch endpoint
             return new PlayerDto
             {
                 Pid = legacyPlayer.Pid,
@@ -552,7 +556,7 @@ namespace RetroRewindWebsite.Services.Application
                     LastWeek = 0,
                     LastMonth = 0
                 },
-                MiiImageBase64 = miiImage,
+                MiiImageBase64 = null, // Always null
                 MiiData = legacyPlayer.MiiData
             };
         }
