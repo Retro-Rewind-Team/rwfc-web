@@ -7,6 +7,7 @@ namespace RetroRewindWebsite.Services.External
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<RetroWFCApiClient> _logger;
+
         private const string ApiUrl = "http://rwfc.net/api/groups";
 
         public RetroWFCApiClient(HttpClient httpClient, ILogger<RetroWFCApiClient> logger)
@@ -31,6 +32,7 @@ namespace RetroRewindWebsite.Services.External
                 }
 
                 _logger.LogDebug("Successfully fetched {GroupCount} groups from API", groups.Count);
+
                 return groups;
             }
             catch (HttpRequestException ex)

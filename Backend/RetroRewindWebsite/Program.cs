@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Options;
-using RetroRewindWebsite;
 using RetroRewindWebsite.Data;
 using RetroRewindWebsite.HealthChecks;
 using RetroRewindWebsite.Repositories;
@@ -11,12 +9,14 @@ using RetroRewindWebsite.Services.Background;
 using RetroRewindWebsite.Services.Domain;
 using RetroRewindWebsite.Services.External;
 using Serilog;
+using System.Text.Json;
 using System.Threading.RateLimiting;
 
 AppContext.SetSwitch("System.Net.DisableIPv6", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ===== LOGGING =====
 builder.Host.UseSerilog((context, configuration) =>
 {
     configuration
@@ -24,6 +24,7 @@ builder.Host.UseSerilog((context, configuration) =>
         .Enrich.FromLogContext();
 });
 
+// ===== CORS =====
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -46,9 +47,9 @@ builder.Services.AddCors(options =>
     });
 });
 
+// ===== RATE LIMITING =====
 builder.Services.AddRateLimiter(options =>
 {
-    // Single global limit
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
         httpContext => RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -61,97 +62,93 @@ builder.Services.AddRateLimiter(options =>
 
     options.OnRejected = async (context, token) =>
     {
-        context.HttpContext.Response.StatusCode = 429;
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+
         if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
         {
             context.HttpContext.Response.Headers.RetryAfter = retryAfter.TotalSeconds.ToString();
         }
+
         await context.HttpContext.Response.WriteAsync(
             "Rate limit exceeded. Please try again later.", token);
     };
 });
 
+// ===== HEALTH CHECKS =====
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<LeaderboardDbContext>() // Check if EF can connect
-    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!) // Direct DB check
-    .AddCheck<ExternalApiHealthCheck>("retro-wfc-api") // Custom check for external API
+    .AddDbContextCheck<LeaderboardDbContext>()
+    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!)
+    .AddCheck<ExternalApiHealthCheck>("retro-wfc-api")
     .AddCheck("memory", () =>
     {
-        // Check if memory usage is reasonable
-        var memoryUsed = GC.GetTotalMemory(false);
-        var memoryLimitMB = 1024 * 1024 * 500; // 500MB limit
+        var memoryUsed = GC.GetTotalMemory(forceFullCollection: false);
+        const long memoryLimitBytes = 500L * 1024 * 1024; // 500MB
 
-        return memoryUsed < memoryLimitMB
+        return memoryUsed < memoryLimitBytes
             ? HealthCheckResult.Healthy($"Memory usage: {memoryUsed / 1024 / 1024}MB")
             : HealthCheckResult.Unhealthy($"High memory usage: {memoryUsed / 1024 / 1024}MB");
     });
 
-// Controllers
+// ===== CONTROLLERS =====
 builder.Services.AddControllers();
 
-// DbContext configuration for different environments
-if (builder.Environment.IsDevelopment())
-{
-    // PostgreSQL for development
-    var devConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    builder.Services.AddDbContext<LeaderboardDbContext>(options =>
-        options.UseNpgsql(devConnectionString));
-}
-else
-{
-    // PostgreSQL for production
-    var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING")
-        ?? builder.Configuration.GetConnectionString("Production");
+// ===== DATABASE =====
+var connectionString = builder.Environment.IsDevelopment()
+    ? builder.Configuration.GetConnectionString("DefaultConnection")
+    : Environment.GetEnvironmentVariable("CONNECTION_STRING")
+      ?? builder.Configuration.GetConnectionString("Production");
 
-    if (string.IsNullOrEmpty(connectionString))
-    {
-        throw new InvalidOperationException("Production connection string is not set.");
-    }
-
-    builder.Services.AddDbContext<LeaderboardDbContext>(options =>
-        options.UseNpgsql(connectionString));
+if (string.IsNullOrEmpty(connectionString))
+{
+    var environment = builder.Environment.IsDevelopment() ? "Development" : "Production";
+    throw new InvalidOperationException($"{environment} connection string is not configured.");
 }
 
-// HttpClient for external API calls
+builder.Services.AddDbContext<LeaderboardDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+// ===== HTTP CLIENT =====
 builder.Services.AddHttpClient();
 
-// Repositories
+// ===== REPOSITORIES =====
 builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
 builder.Services.AddScoped<IVRHistoryRepository, VRHistoryRepository>();
 
-// External services
+// ===== EXTERNAL SERVICES =====
 builder.Services.AddScoped<IRetroWFCApiClient, RetroWFCApiClient>();
 
-// Domain services
+// ===== DOMAIN SERVICES =====
 builder.Services.AddScoped<IPlayerValidationService, PlayerValidationService>();
 builder.Services.AddScoped<IMaintenanceService, MaintenanceService>();
 builder.Services.AddScoped<IMiiService, MiiService>();
-builder.Services.AddMemoryCache();
 
-// Background service
-builder.Services.AddHostedService<LeaderboardBackgroundService>();
-builder.Services.AddScoped<ILeaderboardBackgroundService, LeaderboardBackgroundService>();
-
-// Application services
+// ===== APPLICATION SERVICES =====
 builder.Services.AddScoped<ILeaderboardManager, LeaderboardManager>();
-
-// Room Status Services
-builder.Services.AddSingleton<ISplitRoomDetector, SplitRoomDetector>();
 builder.Services.AddSingleton<IRoomStatusService, RoomStatusService>();
+
+// ===== CACHING =====
+builder.Services.AddMemoryCache(options =>
+{
+    options.SizeLimit = 1000;
+});
+
+// ===== BACKGROUND SERVICES =====
+builder.Services.AddSingleton<ILeaderboardBackgroundService, LeaderboardBackgroundService>();
+builder.Services.AddHostedService<LeaderboardBackgroundService>(sp =>
+    (LeaderboardBackgroundService)sp.GetRequiredService<ILeaderboardBackgroundService>());
+
+builder.Services.AddSingleton<IMiiPreFetchBackgroundService, MiiPreFetchBackgroundService>();
+builder.Services.AddHostedService<MiiPreFetchBackgroundService>(sp =>
+    (MiiPreFetchBackgroundService)sp.GetRequiredService<IMiiPreFetchBackgroundService>());
+
 builder.Services.AddSingleton<IRoomStatusBackgroundService, RoomStatusBackgroundService>();
 builder.Services.AddHostedService<RoomStatusBackgroundService>(sp =>
     (RoomStatusBackgroundService)sp.GetRequiredService<IRoomStatusBackgroundService>());
 
-// Health checks
+// ===== HEALTH CHECK IMPLEMENTATIONS =====
 builder.Services.AddScoped<IHealthCheck, ExternalApiHealthCheck>();
 
-// Mmory cache for performance
-builder.Services.AddMemoryCache(options =>
-{
-    options.SizeLimit = 1000; // Limit to 1000 items in cache
-});
-
-// Swagger/OpenAPI support
+// ===== SWAGGER / OPENAPI =====
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -181,13 +178,14 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+// ===== BUILD APP =====
 var app = builder.Build();
 
+// ===== MIDDLEWARE PIPELINE =====
 app.UseCors("AllowFrontend");
-
 app.UseMiddleware<RetroRewindWebsite.Middleware.ApiKeyAuthenticationMiddleware>();
 
-// Apply migrations automatically on startup
+// ===== DATABASE MIGRATIONS =====
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<LeaderboardDbContext>();
@@ -202,7 +200,7 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         logger.LogError(ex, "An error occurred while applying migrations");
-        // In development, might want to throw, but in production continue
+
         if (app.Environment.IsDevelopment())
         {
             throw;
@@ -210,40 +208,20 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Health check endpoints
-app.MapHealthChecks("/health", new HealthCheckOptions
+// ===== HEALTH CHECK ENDPOINTS =====
+app.MapHealthChecks("api/health", new HealthCheckOptions
 {
-    ResponseWriter = async (context, report) =>
-    {
-        context.Response.ContentType = "application/json";
-
-        var response = new
-        {
-            status = report.Status.ToString(),
-            checks = report.Entries.Select(entry => new
-            {
-                name = entry.Key,
-                status = entry.Value.Status.ToString(),
-                description = entry.Value.Description,
-                duration = entry.Value.Duration.TotalMilliseconds
-            }),
-            totalDuration = report.TotalDuration.TotalMilliseconds
-        };
-
-        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
-    }
+    ResponseWriter = WriteHealthCheckResponse
 });
 
-// Simple health check endpoint
-app.MapHealthChecks("/health/live", new HealthCheckOptions
+app.MapHealthChecks("api/health/live", new HealthCheckOptions
 {
     Predicate = _ => false
 });
 
-// Detailed health check
-app.MapHealthChecks("/health/ready");
+app.MapHealthChecks("api/health/ready");
 
-// Configure the HTTP request pipeline
+// ===== CONFIGURE PIPELINE =====
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -251,8 +229,29 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRateLimiter();
 app.UseAuthorization();
 app.MapControllers();
-app.UseRateLimiter();
 
 app.Run();
+
+// ===== HELPER METHODS =====
+static async Task WriteHealthCheckResponse(HttpContext context, HealthReport report)
+{
+    context.Response.ContentType = "application/json";
+
+    var response = new
+    {
+        status = report.Status.ToString(),
+        checks = report.Entries.Select(entry => new
+        {
+            name = entry.Key,
+            status = entry.Value.Status.ToString(),
+            description = entry.Value.Description,
+            duration = entry.Value.Duration.TotalMilliseconds
+        }),
+        totalDuration = report.TotalDuration.TotalMilliseconds
+    };
+
+    await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+}

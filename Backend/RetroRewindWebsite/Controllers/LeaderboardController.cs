@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using RetroRewindWebsite.Models.DTOs;
-using RetroRewindWebsite.Models.Entities;
-using RetroRewindWebsite.Repositories;
 using RetroRewindWebsite.Services.Application;
-using RetroRewindWebsite.Services.External;
 
 namespace RetroRewindWebsite.Controllers
 {
@@ -12,24 +10,26 @@ namespace RetroRewindWebsite.Controllers
     public class LeaderboardController : ControllerBase
     {
         private readonly ILeaderboardManager _leaderboardManager;
-        private readonly IRetroWFCApiClient _retroWFCApiClient;
-        private readonly IVRHistoryRepository _vrHistoryRepository;
         private readonly ILogger<LeaderboardController> _logger;
+
+        private const int MinTopPlayersCount = 1;
+        private const int MaxTopPlayersCount = 50;
+        private const int DefaultTopPlayersCount = 10;
+        private const int MaxBatchMiiCount = 25;
 
         public LeaderboardController(
             ILeaderboardManager leaderboardManager,
-            IRetroWFCApiClient retroWFCApiClient,
-            IVRHistoryRepository vrHistoryRepository,
             ILogger<LeaderboardController> logger)
         {
             _leaderboardManager = leaderboardManager;
-            _retroWFCApiClient = retroWFCApiClient;
-            _vrHistoryRepository = vrHistoryRepository;
             _logger = logger;
         }
 
+        // ===== LEADERBOARD ENDPOINTS =====
+
         [HttpGet]
-        public async Task<ActionResult<LeaderboardResponseDto>> GetLeaderboard([FromQuery] LeaderboardRequest request)
+        public async Task<ActionResult<LeaderboardResponseDto>> GetLeaderboard(
+            [FromQuery] LeaderboardRequest request)
         {
             try
             {
@@ -38,122 +38,44 @@ namespace RetroRewindWebsite.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting leaderboard data");
-                return StatusCode(500, "An error occurred while retrieving leaderboard data");
+                _logger.LogError(ex, "Error retrieving leaderboard data");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while retrieving leaderboard data");
             }
         }
 
         [HttpGet("top/{count}")]
-        public async Task<ActionResult<List<PlayerDto>>> GetTopPlayers(int count = 10)
+        public async Task<ActionResult<List<PlayerDto>>> GetTopPlayers(int count = DefaultTopPlayersCount)
         {
             try
             {
-                if (count < 1) count = 10;
-                if (count > 50) count = 50;
+                count = Math.Clamp(count, MinTopPlayersCount, MaxTopPlayersCount);
 
                 var players = await _leaderboardManager.GetTopPlayersAsync(count);
                 return Ok(players);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting top players");
-                return StatusCode(500, "An error occurred while retrieving top players");
+                _logger.LogError(ex, "Error retrieving top {Count} players", count);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while retrieving top players");
             }
         }
 
-        [HttpGet("player/{fc}")]
-        public async Task<ActionResult<PlayerDto>> GetPlayer(string fc)
+        [HttpGet("top-gainers")]
+        public async Task<ActionResult<List<PlayerDto>>> GetTopVRGainers(
+            [FromQuery] string period = "24h")
         {
             try
             {
-                var player = await _leaderboardManager.GetPlayerAsync(fc);
-
-                if (player == null)
-                {
-                    return NotFound($"Player with Friend Code '{fc}' not found");
-                }
-
-                return Ok(player);
+                var players = await _leaderboardManager.GetTopVRGainersAsync(50, period);
+                return Ok(players);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting player {fc}", fc);
-                return StatusCode(500, "An error occurred while retrieving player data");
-            }
-        }
-
-        [HttpGet("player/{fc}/mii")]
-        public async Task<ActionResult<MiiResponseDto>> GetPlayerMii(string fc)
-        {
-            try
-            {
-                var miiImage = await _leaderboardManager.GetPlayerMiiAsync(fc);
-
-                if (miiImage == null)
-                {
-                    return NotFound($"Mii image not found for player with Friend Code '{fc}'");
-                }
-
-                // Set aggressive caching headers for Mii images
-                Response.Headers.CacheControl = "public, max-age=3600"; // 1 hour
-                Response.Headers.ETag = $"\"{fc.GetHashCode()}\"";
-
-                return Ok(new MiiResponseDto
-                {
-                    FriendCode = fc,
-                    MiiImageBase64 = miiImage
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting Mii for player {fc}", fc);
-                return StatusCode(500, "An error occurred while retrieving Mii image");
-            }
-        }
-
-        [HttpPost("miis/batch")]
-        public async Task<ActionResult<BatchMiiResponseDto>> GetPlayerMiisBatch([FromBody] BatchMiiRequestDto request)
-        {
-            try
-            {
-                if (request.FriendCodes == null || request.FriendCodes.Count == 0)
-                {
-                    return BadRequest("Friend codes list cannot be empty");
-                }
-
-                // Limit batch size to prevent abuse and reduce load
-                if (request.FriendCodes.Count > 25) // Reduced from 50 to be safer
-                {
-                    return BadRequest("Maximum 25 friend codes allowed per batch request");
-                }
-
-                // Remove duplicates and null/empty values
-                var cleanFriendCodes = request.FriendCodes
-                    .Where(fc => !string.IsNullOrWhiteSpace(fc))
-                    .Distinct()
-                    .ToList();
-
-                if (cleanFriendCodes.Count == 0)
-                {
-                    return Ok(new BatchMiiResponseDto { Miis = [] });
-                }
-
-                var miiImages = await _leaderboardManager.GetPlayerMiisBatchAsync(cleanFriendCodes);
-
-                // Set caching headers
-                Response.Headers.CacheControl = "public, max-age=1800"; // 30 minutes
-
-                return Ok(new BatchMiiResponseDto
-                {
-                    Miis = miiImages.Where(kvp => kvp.Value != null)
-                                   .ToDictionary(kvp => kvp.Key, kvp => kvp.Value!)
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting batch Mii images for {Count} friend codes",
-                    request.FriendCodes?.Count ?? 0);
-                return StatusCode(500, "An error occurred while retrieving Mii images");
+                _logger.LogError(ex, "Error retrieving top VR gainers for period {Period}", period);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while retrieving top VR gainers");
             }
         }
 
@@ -167,8 +89,33 @@ namespace RetroRewindWebsite.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting leaderboard stats");
-                return StatusCode(500, "An error occurred while retrieving stats");
+                _logger.LogError(ex, "Error retrieving leaderboard stats");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while retrieving stats");
+            }
+        }
+
+        // ===== PLAYER ENDPOINTS =====
+
+        [HttpGet("player/{fc}")]
+        public async Task<ActionResult<PlayerDto>> GetPlayer(string fc)
+        {
+            try
+            {
+                var player = await _leaderboardManager.GetPlayerAsync(fc);
+
+                if (player == null)
+                {
+                    return NotFound($"Player with friend code '{fc}' not found");
+                }
+
+                return Ok(player);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving player {FriendCode}", fc);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while retrieving player data");
             }
         }
 
@@ -179,69 +126,20 @@ namespace RetroRewindWebsite.Controllers
         {
             try
             {
-                var player = await _leaderboardManager.GetPlayerAsync(fc);
-                if (player == null)
+                var response = await _leaderboardManager.GetPlayerHistoryAsync(fc, days);
+
+                if (response == null)
                 {
-                    return NotFound($"Player with Friend Code '{fc}' not found");
+                    return NotFound($"Player with friend code '{fc}' not found");
                 }
 
-                List<VRHistoryEntity> history;
-                DateTime fromDate;
-                DateTime toDate = DateTime.UtcNow;
-
-                if (days.HasValue)
-                {
-                    // Fixed period (24h, 7d, 30d)
-                    fromDate = toDate.AddDays(-days.Value);
-                    history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, fromDate, toDate);
-                }
-                else
-                {
-                    // Lifetime - get all history
-                    history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, int.MaxValue);
-                    fromDate = history.Count > 0 ? history.Min(h => h.Date) : toDate;
-                }
-
-                var historyDtos = history.Select(h => new VRHistoryDto
-                {
-                    Date = h.Date,
-                    VRChange = h.VRChange,
-                    TotalVR = h.TotalVR
-                }).OrderBy(h => h.Date).ToList();
-
-                // Calculate starting VR (the VR before the first change)
-                var startingVR = historyDtos.Count > 0 ? historyDtos.First().TotalVR - historyDtos.First().VRChange : player.VR;
-                var endingVR = historyDtos.Count > 0 ? historyDtos.Last().TotalVR : player.VR;
-                var totalChange = endingVR - startingVR;
-
-                // Add initial VR as a synthetic history entry (before first change)
-                if (historyDtos.Count > 0)
-                {
-                    var firstEntry = historyDtos.First();
-                    var initialEntry = new VRHistoryDto
-                    {
-                        Date = firstEntry.Date.AddSeconds(-1), // Just before first change
-                        VRChange = 0,
-                        TotalVR = startingVR
-                    };
-                    historyDtos.Insert(0, initialEntry);
-                }
-
-                return Ok(new VRHistoryRangeResponse
-                {
-                    PlayerId = player.Pid,
-                    FromDate = fromDate,
-                    ToDate = toDate,
-                    History = historyDtos,
-                    TotalVRChange = totalChange,
-                    StartingVR = startingVR,
-                    EndingVR = endingVR
-                });
+                return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting VR history for player {fc}", fc);
-                return StatusCode(500, "An error occurred while retrieving VR history");
+                _logger.LogError(ex, "Error retrieving VR history for player {FriendCode}", fc);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while retrieving VR history");
             }
         }
 
@@ -252,29 +150,96 @@ namespace RetroRewindWebsite.Controllers
         {
             try
             {
-                var player = await _leaderboardManager.GetPlayerAsync(fc);
-                if (player == null)
+                var history = await _leaderboardManager.GetPlayerRecentHistoryAsync(fc, count);
+
+                if (history == null)
                 {
-                    return NotFound($"Player with Friend Code '{fc}' not found");
+                    return NotFound($"Player with friend code '{fc}' not found");
                 }
 
-                var history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, count);
-
-                var historyDtos = history.Select(h => new VRHistoryDto
-                {
-                    Date = h.Date,
-                    VRChange = h.VRChange,
-                    TotalVR = h.TotalVR
-                }).OrderBy(h => h.Date).ToList();
-
-                return Ok(historyDtos);
+                return Ok(history);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting recent VR history for player {fc}", fc);
-                return StatusCode(500, "An error occurred while retrieving recent VR history");
+                _logger.LogError(ex, "Error retrieving recent VR history for player {FriendCode}", fc);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while retrieving recent VR history");
             }
         }
+
+        // ===== MII ENDPOINTS =====
+
+        [HttpGet("player/{fc}/mii")]
+        public async Task<ActionResult<MiiResponseDto>> GetPlayerMii(string fc)
+        {
+            try
+            {
+                var miiImage = await _leaderboardManager.GetPlayerMiiAsync(fc);
+
+                if (miiImage == null)
+                {
+                    return NotFound($"Mii image not found for player with friend code '{fc}'");
+                }
+
+                Response.Headers.CacheControl = "public, max-age=3600";
+                Response.Headers.ETag = $"\"{fc.GetHashCode()}\"";
+
+                return Ok(new MiiResponseDto
+                {
+                    FriendCode = fc,
+                    MiiImageBase64 = miiImage
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Mii for player {FriendCode}", fc);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while retrieving Mii image");
+            }
+        }
+
+        [HttpPost("miis/batch")]
+        public async Task<ActionResult<BatchMiiResponseDto>> GetPlayerMiisBatch(
+            [FromBody] BatchMiiRequestDto request)
+        {
+            try
+            {
+                var validationResult = ValidateBatchMiiRequest(request);
+                if (validationResult != null)
+                {
+                    return validationResult;
+                }
+
+                var cleanFriendCodes = request.FriendCodes
+                    .Where(fc => !string.IsNullOrWhiteSpace(fc))
+                    .Distinct()
+                    .ToList();
+
+                if (cleanFriendCodes.Count == 0)
+                {
+                    return Ok(new BatchMiiResponseDto { Miis = [] });
+                }
+
+                var miiImages = await _leaderboardManager.GetPlayerMiisBatchAsync(cleanFriendCodes);
+
+                Response.Headers.CacheControl = "public, max-age=1800";
+
+                return Ok(new BatchMiiResponseDto
+                {
+                    Miis = miiImages.Where(kvp => kvp.Value != null)
+                                   .ToDictionary(kvp => kvp.Key, kvp => kvp.Value!)
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving batch Mii images for {Count} friend codes",
+                    request.FriendCodes?.Count ?? 0);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while retrieving Mii images");
+            }
+        }
+
+        // ===== LEGACY ENDPOINTS =====
 
         [HttpGet("legacy/available")]
         public async Task<ActionResult<bool>> IsLegacyAvailable()
@@ -287,50 +252,63 @@ namespace RetroRewindWebsite.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error checking legacy snapshot availability");
-                return StatusCode(500, "An error occurred while checking legacy snapshot");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while checking legacy snapshot");
             }
         }
 
         [HttpGet("legacy")]
-        public async Task<ActionResult<LeaderboardResponseDto>> GetLegacyLeaderboard([FromQuery] LeaderboardRequest request)
+        [RequireLegacySnapshot]
+        public async Task<ActionResult<LeaderboardResponseDto>> GetLegacyLeaderboard(
+            [FromQuery] LeaderboardRequest request)
         {
             try
             {
-                var hasSnapshot = await _leaderboardManager.HasLegacySnapshotAsync();
-                if (!hasSnapshot)
-                {
-                    return NotFound("Legacy leaderboard snapshot not available");
-                }
-
                 var response = await _leaderboardManager.GetLegacyLeaderboardAsync(request);
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting legacy leaderboard data");
-                return StatusCode(500, "An error occurred while retrieving legacy leaderboard data");
+                _logger.LogError(ex, "Error retrieving legacy leaderboard data");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while retrieving legacy leaderboard data");
+            }
+        }
+
+        [HttpGet("legacy/player/{friendCode}")]
+        [RequireLegacySnapshot]
+        public async Task<ActionResult<PlayerDto>> GetLegacyPlayer(string friendCode)
+        {
+            try
+            {
+                var legacyPlayer = await _leaderboardManager.GetLegacyPlayerAsync(friendCode);
+
+                if (legacyPlayer == null)
+                {
+                    return NotFound($"Player with friend code '{friendCode}' not found in legacy snapshot");
+                }
+
+                return Ok(legacyPlayer);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving legacy player data for friend code {FriendCode}", friendCode);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while retrieving legacy player data");
             }
         }
 
         [HttpPost("legacy/miis/batch")]
-        public async Task<ActionResult<BatchMiiResponseDto>> GetLegacyPlayerMiisBatch([FromBody] BatchMiiRequestDto request)
+        [RequireLegacySnapshot]
+        public async Task<ActionResult<BatchMiiResponseDto>> GetLegacyPlayerMiisBatch(
+            [FromBody] BatchMiiRequestDto request)
         {
             try
             {
-                var hasSnapshot = await _leaderboardManager.HasLegacySnapshotAsync();
-                if (!hasSnapshot)
+                var validationResult = ValidateBatchMiiRequest(request);
+                if (validationResult != null)
                 {
-                    return NotFound("Legacy leaderboard snapshot not available");
-                }
-
-                if (request.FriendCodes == null || request.FriendCodes.Count == 0)
-                {
-                    return BadRequest("Friend codes list cannot be empty");
-                }
-
-                if (request.FriendCodes.Count > 25)
-                {
-                    return BadRequest("Maximum 25 friend codes allowed per batch request");
+                    return validationResult;
                 }
 
                 var cleanFriendCodes = request.FriendCodes
@@ -355,52 +333,51 @@ namespace RetroRewindWebsite.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting batch Mii images for {Count} legacy friend codes",
+                _logger.LogError(ex, "Error retrieving batch Mii images for {Count} legacy friend codes",
                     request.FriendCodes?.Count ?? 0);
-                return StatusCode(500, "An error occurred while retrieving Mii images");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while retrieving Mii images");
             }
         }
 
-        [HttpGet("legacy/player/{friendCode}")]
-        public async Task<ActionResult<PlayerDto>> GetLegacyPlayer(string friendCode)
+        // ===== HELPER METHODS =====
+
+        private BadRequestObjectResult? ValidateBatchMiiRequest(BatchMiiRequestDto request)
         {
-            try
+            if (request.FriendCodes == null || request.FriendCodes.Count == 0)
             {
-                var hasSnapshot = await _leaderboardManager.HasLegacySnapshotAsync();
-                if (!hasSnapshot)
-                {
-                    return NotFound("Legacy leaderboard snapshot not available");
-                }
-
-                var legacyPlayer = await _leaderboardManager.GetLegacyPlayerAsync(friendCode);
-
-                if (legacyPlayer == null)
-                {
-                    return NotFound($"Player with friend code {friendCode} not found in legacy snapshot");
-                }
-
-                return Ok(legacyPlayer);
+                return BadRequest("Friend codes list cannot be empty");
             }
-            catch (Exception ex)
+
+            if (request.FriendCodes.Count > MaxBatchMiiCount)
             {
-                _logger.LogError(ex, "Error getting legacy player data for friend code {friendCode}", friendCode);
-                return StatusCode(500, "An error occurred while retrieving legacy player data");
+                return BadRequest($"Maximum {MaxBatchMiiCount} friend codes allowed per batch request");
             }
+
+            return null;
         }
+    }
 
-        [HttpGet("top-gainers")]
-        public async Task<ActionResult<List<PlayerDto>>> GetTopVRGainers([FromQuery] string period = "24h")
+    // ===== CUSTOM ATTRIBUTES =====
+
+    public class RequireLegacySnapshotAttribute : ActionFilterAttribute
+    {
+        public override async Task OnActionExecutionAsync(
+            ActionExecutingContext context,
+            ActionExecutionDelegate next)
         {
-            try
+            var leaderboardManager = context.HttpContext.RequestServices
+                .GetRequiredService<ILeaderboardManager>();
+
+            var hasSnapshot = await leaderboardManager.HasLegacySnapshotAsync();
+
+            if (!hasSnapshot)
             {
-                var players = await _leaderboardManager.GetTopVRGainersAsync(50, period);
-                return Ok(players);
+                context.Result = new NotFoundObjectResult("Legacy leaderboard snapshot not available");
+                return;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting top VR gainers for period {period}", period);
-                return StatusCode(500, "An error occurred while retrieving top VR gainers");
-            }
+
+            await next();
         }
     }
 }

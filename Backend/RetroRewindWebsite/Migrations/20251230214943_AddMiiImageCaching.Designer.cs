@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RetroRewindWebsite.Data;
@@ -11,9 +12,11 @@ using RetroRewindWebsite.Data;
 namespace RetroRewindWebsite.Migrations
 {
     [DbContext(typeof(LeaderboardDbContext))]
-    partial class LeaderboardDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251230214943_AddMiiImageCaching")]
+    partial class AddMiiImageCaching
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -149,17 +152,6 @@ namespace RetroRewindWebsite.Migrations
                         .IsUnique();
 
                     b.HasIndex("Rank");
-
-                    b.HasIndex("VRGainLast24Hours");
-
-                    b.HasIndex("VRGainLastMonth");
-
-                    b.HasIndex("VRGainLastWeek");
-
-                    b.HasIndex("MiiImageFetchedAt", "MiiData")
-                        .HasFilter("\"MiiData\" IS NOT NULL AND \"MiiData\" != ''");
-
-                    b.HasIndex("IsSuspicious", "Ev", "LastSeen");
 
                     b.ToTable("Players");
                 });

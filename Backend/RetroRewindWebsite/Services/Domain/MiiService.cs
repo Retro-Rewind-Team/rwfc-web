@@ -18,17 +18,20 @@ namespace RetroRewindWebsite.Services.Domain
             _httpClientFactory = httpClientFactory;
             _cache = memoryCache;
             _logger = logger;
+
+            // Extended cache duration since Mii data rarely changes
             _cacheOptions = new MemoryCacheEntryOptions()
-                .SetSlidingExpiration(TimeSpan.FromMinutes(30))
-                .SetAbsoluteExpiration(TimeSpan.FromHours(1))
+                .SetSlidingExpiration(TimeSpan.FromDays(1))
+                .SetAbsoluteExpiration(TimeSpan.FromDays(7))
                 .SetSize(1);
         }
 
-        public async Task<string?> GetMiiImageAsync(string friendCode, string miiData)
+        public async Task<string?> GetMiiImageAsync(string friendCode, string miiData, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(friendCode) || string.IsNullOrEmpty(miiData))
                 return null;
 
+            // Check memory cache first
             if (_cache.TryGetValue(friendCode, out string? cachedMiiImage))
             {
                 return cachedMiiImage;
@@ -38,15 +41,16 @@ namespace RetroRewindWebsite.Services.Domain
 
             try
             {
-                await semaphore.WaitAsync();
+                await semaphore.WaitAsync(cancellationToken);
 
+                // Double-check cache after acquiring lock
                 if (_cache.TryGetValue(friendCode, out cachedMiiImage))
                 {
                     return cachedMiiImage;
                 }
 
                 _logger.LogInformation("Waiting for RC24 slot for {FriendCode}", friendCode);
-                await _rc24Semaphore.WaitAsync();
+                await _rc24Semaphore.WaitAsync(cancellationToken);
 
                 try
                 {
@@ -60,7 +64,7 @@ namespace RetroRewindWebsite.Services.Domain
                     content.Add(fileContent, "data", "mii.dat");
                     content.Add(new StringContent("wii"), "platform");
 
-                    var response = await httpClient.PostAsync("https://miicontestp.wii.rc24.xyz/cgi-bin/studio.cgi", content);
+                    var response = await httpClient.PostAsync("https://miicontestp.wii.rc24.xyz/cgi-bin/studio.cgi", content, cancellationToken);
 
                     _logger.LogInformation("Received RC24 response for {FriendCode}: {StatusCode}", friendCode, response.StatusCode);
 
@@ -70,7 +74,7 @@ namespace RetroRewindWebsite.Services.Domain
                         return null;
                     }
 
-                    var jsonResponse = await response.Content.ReadFromJsonAsync<MiiResponse>();
+                    var jsonResponse = await response.Content.ReadFromJsonAsync<MiiResponse>(cancellationToken: cancellationToken);
 
                     if (jsonResponse?.Mii == null)
                     {
@@ -80,16 +84,17 @@ namespace RetroRewindWebsite.Services.Domain
 
                     var miiImageUrl = $"https://studio.mii.nintendo.com/miis/image.png?data={jsonResponse.Mii}&type=face&expression=normal&width=270&bgColor=FFFFFF00";
 
-                    var imageResponse = await httpClient.GetAsync(miiImageUrl);
+                    var imageResponse = await httpClient.GetAsync(miiImageUrl, cancellationToken);
                     if (!imageResponse.IsSuccessStatusCode)
                     {
                         _logger.LogWarning("Failed to get image from Nintendo: {StatusCode}", imageResponse.StatusCode);
                         return null;
                     }
 
-                    var imageBytes = await imageResponse.Content.ReadAsByteArrayAsync();
+                    var imageBytes = await imageResponse.Content.ReadAsByteArrayAsync(cancellationToken);
                     var base64Image = Convert.ToBase64String(imageBytes);
 
+                    // Cache in memory
                     _cache.Set(friendCode, base64Image, _cacheOptions);
 
                     _logger.LogInformation("Successfully fetched and cached Mii for {FriendCode}", friendCode);

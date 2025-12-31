@@ -7,8 +7,11 @@ namespace RetroRewindWebsite.Services.Background
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<LeaderboardBackgroundService> _logger;
-        private Timer? _timer;
         private readonly SemaphoreSlim _semaphore = new(1, 1);
+
+        private const int RefreshIntervalMinutes = 1;
+        private const int MaintenanceHourUtc = 11;
+        private const int SemaphoreTimeoutSeconds = 30;
 
         public LeaderboardBackgroundService(
             IServiceScopeFactory serviceScopeFactory,
@@ -20,27 +23,46 @@ namespace RetroRewindWebsite.Services.Background
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Leaderboard Background Service starting...");
+            _logger.LogInformation("Leaderboard background service started");
 
-            // Start the timer for regular updates (every minute)
-            _timer = new Timer(
-                callback: async _ => await DoWork(),
-                state: null,
-                dueTime: TimeSpan.Zero, // Start immediately
-                period: TimeSpan.FromMinutes(1)); // Run every minute
-
-            // Keep the service running
             while (!stoppingToken.IsCancellationRequested)
             {
-                await Task.Delay(1000, stoppingToken);
+                try
+                {
+                    await PerformRefreshAsync(stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInformation("Leaderboard background service is stopping");
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error in leaderboard background service");
+                }
+
+                try
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(RefreshIntervalMinutes), stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
             }
 
-            _logger.LogInformation("Leaderboard Background Service stopping...");
+            _logger.LogInformation("Leaderboard background service stopped");
         }
 
-        private async Task DoWork()
+        public async Task ForceRefreshAsync()
         {
-            if (!await _semaphore.WaitAsync(TimeSpan.FromSeconds(30)))
+            _logger.LogInformation("Force refresh requested");
+            await PerformRefreshAsync(CancellationToken.None);
+        }
+
+        private async Task PerformRefreshAsync(CancellationToken cancellationToken)
+        {
+            if (!await _semaphore.WaitAsync(TimeSpan.FromSeconds(SemaphoreTimeoutSeconds), cancellationToken))
             {
                 _logger.LogWarning("Previous refresh operation is still running, skipping this cycle");
                 return;
@@ -53,35 +75,17 @@ namespace RetroRewindWebsite.Services.Background
                 using var scope = _serviceScopeFactory.CreateScope();
                 var leaderboardManager = scope.ServiceProvider.GetRequiredService<ILeaderboardManager>();
 
-                // Perform the refresh
                 await leaderboardManager.RefreshFromApiAsync();
                 await leaderboardManager.RefreshRankingsAsync();
 
-                // Check if it's time for maintenance tasks
                 var now = DateTime.UtcNow;
-                if (now.Hour == 11 && now.Minute == 0)
+                if (now.Hour == MaintenanceHourUtc && now.Minute < RefreshIntervalMinutes)
                 {
                     _logger.LogInformation("Performing daily maintenance tasks");
-
-                    // Run maintenance in background to avoid blocking regular updates
-                    _ = Task.Run(async () =>
-                    {
-                        try
-                        {
-                            await PerformMaintenanceTasksAsync();
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Error during maintenance tasks");
-                        }
-                    });
+                    await PerformMaintenanceTasksAsync();
                 }
 
                 _logger.LogDebug("Scheduled leaderboard refresh completed successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during scheduled leaderboard refresh");
             }
             finally
             {
@@ -91,40 +95,21 @@ namespace RetroRewindWebsite.Services.Background
 
         private async Task PerformMaintenanceTasksAsync()
         {
-            using var scope = _serviceScopeFactory.CreateScope();
-            var maintenanceService = scope.ServiceProvider.GetService<IMaintenanceService>();
-
-            if (maintenanceService != null)
+            try
             {
+                using var scope = _serviceScopeFactory.CreateScope();
+                var maintenanceService = scope.ServiceProvider.GetRequiredService<IMaintenanceService>();
+
                 await maintenanceService.UpdateAllPlayerVRGainsAsync();
             }
-        }
-
-        public async Task ForceRefreshAsync()
-        {
-            _logger.LogInformation("Force refresh requested");
-            await DoWork();
-        }
-
-        public override async Task StartAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("Leaderboard Background Service is starting");
-            await base.StartAsync(cancellationToken);
-        }
-
-        public override async Task StopAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("Leaderboard Background Service is stopping");
-
-            _timer?.Change(Timeout.Infinite, 0);
-            _timer?.Dispose();
-
-            await base.StopAsync(cancellationToken);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during maintenance tasks");
+            }
         }
 
         public override void Dispose()
         {
-            _timer?.Dispose();
             _semaphore?.Dispose();
             base.Dispose();
             GC.SuppressFinalize(this);

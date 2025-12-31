@@ -14,6 +14,8 @@ namespace RetroRewindWebsite.Models.Entities
         public required string Fc { get; set; }
         public int Ev { get; set; }
         public required string MiiData { get; set; }
+        public string? MiiImageBase64 { get; set; }
+        public DateTime? MiiImageFetchedAt { get; set; }
         public DateTime LastSeen { get; set; }
         public int Rank { get; set; }
         public int VRGainLast24Hours { get; set; }
@@ -41,8 +43,7 @@ namespace RetroRewindWebsite.Models.Entities
         public int Rank { get; set; }
         public bool IsSuspicious { get; set; }
         public required string MiiData { get; set; }
-
-        // Metadata
+        public string? MiiImageBase64 { get; set; }
         public DateTime SnapshotDate { get; set; }
     }
 
