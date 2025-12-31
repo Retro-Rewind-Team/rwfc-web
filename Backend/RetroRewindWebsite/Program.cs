@@ -209,17 +209,17 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ===== HEALTH CHECK ENDPOINTS =====
-app.MapHealthChecks("/health", new HealthCheckOptions
+app.MapHealthChecks("api/health", new HealthCheckOptions
 {
     ResponseWriter = WriteHealthCheckResponse
 });
 
-app.MapHealthChecks("/health/live", new HealthCheckOptions
+app.MapHealthChecks("api/health/live", new HealthCheckOptions
 {
     Predicate = _ => false
 });
 
-app.MapHealthChecks("/health/ready");
+app.MapHealthChecks("api/health/ready");
 
 // ===== CONFIGURE PIPELINE =====
 if (app.Environment.IsDevelopment())
