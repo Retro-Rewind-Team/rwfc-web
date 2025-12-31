@@ -2,7 +2,6 @@
 using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs;
 using RetroRewindWebsite.Models.Entities;
-using RetroRewindWebsite.Models.DTOs;
 using RetroRewindWebsite.Models.External;
 using RetroRewindWebsite.Repositories;
 using RetroRewindWebsite.Services.Domain;
@@ -30,9 +29,6 @@ namespace RetroRewindWebsite.Controllers
             _vrHistoryRepository = vrHistoryRepository;
             _ghostFileService = ghostFileService;
             _timeTrialRepository = timeTrialRepository;
-            ILogger<ModerationController> logger)
-        {
-            _playerRepository = playerRepository;
             _logger = logger;
         }
 
