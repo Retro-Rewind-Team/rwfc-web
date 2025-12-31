@@ -86,7 +86,7 @@ builder.Services.AddRateLimiter(options =>
             Window = TimeSpan.FromMinutes(5)
         }));
 
-    // ADD THIS: Ghost download rate limit
+    // Ghost download rate limit
     options.AddPolicy("GhostDownloadPolicy", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",

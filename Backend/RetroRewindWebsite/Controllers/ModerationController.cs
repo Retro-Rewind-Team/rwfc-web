@@ -303,7 +303,7 @@ namespace RetroRewindWebsite.Controllers
                     return BadRequest(new GhostSubmissionResponse
                     {
                         Success = false,
-                        Message = $"Track slot mismatch: This ghost was recorded on '{rkgTrackSlotName}' but you submitted it for '{track.Name}' which uses '{track.TrackSlot}'"
+                        Message = $"Track slot mismatch: This ghost uses the track slot of '{rkgTrackSlotName}' but you submitted it for '{track.Name}' which uses '{track.TrackSlot}'"
                     });
                 }
 
