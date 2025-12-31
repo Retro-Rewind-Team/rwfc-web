@@ -1,80 +1,14 @@
-
-import { createEffect, createSignal, For, Show } from "solid-js";
-import { useQuery } from "@tanstack/solid-query";
-import { timeTrialApi } from "../../services/api/timeTrial";
-import { GhostSubmission, Track } from "../../types/timeTrial";
-import { getCharacterName, getControllerName, getDriftTypeName, getVehicleName } from "../../utils/marioKartMappings";
+import { Show } from "solid-js";
+import { useTTLeaderboard } from "../../hooks/useTTLeaderboard";
 import { AlertBox, LoadingSpinner } from "../../components/common";
+import { TTFilters, TTLeaderboardTable, TTTrackList, TTWorldRecordCard, TTWRHistory } from "../../components/ui";
 
 export default function TTLeaderboardPage() {
-    const [selectedCategory, setSelectedCategory] = createSignal<"retro" | "custom">("retro");
-    const [selectedCC, setSelectedCC] = createSignal<150 | 200>(150);
-    const [selectedTrack, setSelectedTrack] = createSignal<Track | null>(null);
-    const [searchQuery, setSearchQuery] = createSignal("");
-
-    // Fetch all tracks
-    const tracksQuery = useQuery(() => ({
-        queryKey: ["tt-tracks"],
-        queryFn: () => timeTrialApi.getAllTracks(),
-        staleTime: 1000 * 60 * 60, // 1 hour
-    }));
-
-    // Filter tracks by category and search
-    const filteredTracks = () => {
-        const tracks = tracksQuery.data || [];
-        const category = selectedCategory();
-        const search = searchQuery().toLowerCase();
-
-        return tracks
-            .filter((track) => track.category === category)
-            .filter((track) => 
-                search === "" || track.name.toLowerCase().includes(search)
-            )
-            .sort((a, b) => a.name.localeCompare(b.name));
-    };
-
-    // Fetch leaderboard for selected track
-    const leaderboardQuery = useQuery(() => ({
-        queryKey: ["tt-leaderboard", selectedTrack()?.id, selectedCC()],
-        queryFn: () => {
-            const track = selectedTrack();
-            if (!track) return null;
-            return timeTrialApi.getTopTimes(track.id, selectedCC(), 10);
-        },
-        enabled: !!selectedTrack(),
-    }));
-
-    // Auto-select first track when category changes
-    createEffect(() => {
-        const tracks = filteredTracks();
-        if (tracks.length > 0 && !selectedTrack()) {
-            setSelectedTrack(tracks[0]);
-        }
-    });
-
-    const handleTrackSelect = (track: Track) => {
-        setSelectedTrack(track);
-    };
-
-    const handleDownloadGhost = async (submission: GhostSubmission) => {
-        try {
-            const blob = await timeTrialApi.downloadGhost(submission.id);
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `${submission.finishTimeDisplay.replace(":", "m").replace(".", "s")}.rkg`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-        } catch (error) {
-            console.error("Failed to download ghost:", error);
-        }
-    };
+    const ttLeaderboard = useTTLeaderboard();
 
     return (
         <div class="space-y-8">
-            {/* Header */}
+            {/* Hero Header Section */}
             <section class="py-12">
                 <div class="max-w-4xl mx-auto text-center">
                     <h1 class="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4">
@@ -86,7 +20,7 @@ export default function TTLeaderboardPage() {
                 </div>
             </section>
 
-            {/* Category & CC Selection */}
+            {/* Category Selection */}
             <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
                 <div class="flex flex-col lg:flex-row gap-4 items-center justify-between">
                     {/* Category Toggle */}
@@ -96,12 +30,9 @@ export default function TTLeaderboardPage() {
                         </label>
                         <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
                             <button
-                                onClick={() => {
-                                    setSelectedCategory("retro");
-                                    setSelectedTrack(null);
-                                }}
+                                onClick={() => ttLeaderboard.handleCategoryChange("retro")}
                                 class={`flex-1 px-6 py-3 rounded-md font-medium transition-all ${
-                                    selectedCategory() === "retro"
+                                    ttLeaderboard.selectedCategory() === "retro"
                                         ? "bg-blue-600 text-white shadow-sm"
                                         : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                                 }`}
@@ -109,12 +40,9 @@ export default function TTLeaderboardPage() {
                 🏁 Retro Tracks
                             </button>
                             <button
-                                onClick={() => {
-                                    setSelectedCategory("custom");
-                                    setSelectedTrack(null);
-                                }}
+                                onClick={() => ttLeaderboard.handleCategoryChange("custom")}
                                 class={`flex-1 px-6 py-3 rounded-md font-medium transition-all ${
-                                    selectedCategory() === "custom"
+                                    ttLeaderboard.selectedCategory() === "custom"
                                         ? "bg-purple-600 text-white shadow-sm"
                                         : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                                 }`}
@@ -124,33 +52,17 @@ export default function TTLeaderboardPage() {
                         </div>
                     </div>
 
-                    {/* CC Selection */}
-                    <div class="flex-1">
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Engine Class
-                        </label>
-                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
-                            <button
-                                onClick={() => setSelectedCC(150)}
-                                class={`flex-1 px-6 py-3 rounded-md font-medium transition-all ${
-                                    selectedCC() === 150
-                                        ? "bg-green-600 text-white shadow-sm"
-                                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                                }`}
-                            >
-                150cc
-                            </button>
-                            <button
-                                onClick={() => setSelectedCC(200)}
-                                class={`flex-1 px-6 py-3 rounded-md font-medium transition-all ${
-                                    selectedCC() === 200
-                                        ? "bg-red-600 text-white shadow-sm"
-                                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                                }`}
-                            >
-                200cc
-                            </button>
-                        </div>
+                    {/* Refresh Button */}
+                    <div class="flex-shrink-0">
+                        <button
+                            onClick={ttLeaderboard.refreshLeaderboard}
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            <span>Refresh</span>
+                        </button>
                     </div>
                 </div>
 
@@ -168,76 +80,47 @@ export default function TTLeaderboardPage() {
                         <input
                             type="text"
                             placeholder="Search by track name..."
-                            value={searchQuery()}
-                            onInput={(e) => setSearchQuery(e.target.value)}
+                            value={ttLeaderboard.searchQuery()}
+                            onInput={(e) => ttLeaderboard.handleSearchInput(e.target.value)}
                             class="w-full pl-10 pr-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400"
                         />
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Track List */}
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                {/* Left Column: Track List */}
                 <div class="lg:col-span-1">
-                    <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
-                        <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3">
-                            <h2 class="text-lg font-bold text-white">
-                                {selectedCategory() === "retro" ? "Retro Tracks" : "Custom Tracks"}
-                            </h2>
-                            <p class="text-sm text-blue-100">
-                                {filteredTracks().length} track{filteredTracks().length !== 1 ? "s" : ""}
-                            </p>
-                        </div>
-
-                        <Show when={tracksQuery.isLoading}>
-                            <div class="p-8 text-center">
-                                <LoadingSpinner />
-                            </div>
-                        </Show>
-
-                        <Show when={tracksQuery.isError}>
-                            <div class="p-4">
-                                <AlertBox type="error" icon="⚠️">
-                  Failed to load tracks
-                                </AlertBox>
-                            </div>
-                        </Show>
-
-                        <Show when={tracksQuery.data}>
-                            <div class="max-h-[600px] overflow-y-auto">
-                                <For each={filteredTracks()}>
-                                    {(track) => (
-                                        <button
-                                            onClick={() => handleTrackSelect(track)}
-                                            class={`w-full px-4 py-3 text-left transition-colors border-b border-gray-200 dark:border-gray-700 ${
-                                                selectedTrack()?.id === track.id
-                                                    ? "bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-600"
-                                                    : "hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                                            }`}
-                                        >
-                                            <div class="font-medium text-gray-900 dark:text-white">
-                                                {track.name}
-                                            </div>
-                                            <div class="text-sm text-gray-500 dark:text-gray-400">
-                                                {track.laps} lap{track.laps !== 1 ? "s" : ""}
-                                            </div>
-                                        </button>
-                                    )}
-                                </For>
-
-                                <Show when={filteredTracks().length === 0}>
-                                    <div class="p-8 text-center text-gray-500 dark:text-gray-400">
-                    No tracks found
-                                    </div>
-                                </Show>
-                            </div>
-                        </Show>
-                    </div>
+                    <TTTrackList
+                        tracks={ttLeaderboard.filteredTracks()}
+                        selectedTrack={ttLeaderboard.selectedTrack()}
+                        category={ttLeaderboard.selectedCategory()}
+                        isLoading={ttLeaderboard.tracksQuery.isLoading}
+                        isError={ttLeaderboard.tracksQuery.isError}
+                        onTrackSelect={ttLeaderboard.handleTrackSelect}
+                    />
                 </div>
 
-                {/* Leaderboard */}
+                {/* Middle Column: Filters */}
+                <div class="lg:col-span-1">
+                    <TTFilters
+                        selectedCC={ttLeaderboard.selectedCC()}
+                        vehicleFilter={ttLeaderboard.vehicleFilter()}
+                        driftFilter={ttLeaderboard.driftFilter()}
+                        categoryFilter={ttLeaderboard.categoryFilter()}
+                        pageSize={ttLeaderboard.pageSize()}
+                        category={ttLeaderboard.selectedCategory()}
+                        onCCChange={ttLeaderboard.handleCCChange}
+                        onVehicleFilterChange={ttLeaderboard.handleVehicleFilterChange}
+                        onDriftFilterChange={ttLeaderboard.handleDriftFilterChange}
+                        onCategoryFilterChange={ttLeaderboard.handleCategoryFilterChange}
+                        onPageSizeChange={ttLeaderboard.handlePageSizeChange}
+                    />
+                </div>
+
+                {/* Right Column: Leaderboard */}
                 <div class="lg:col-span-2">
-                    <Show when={!selectedTrack()}>
+                    <Show when={!ttLeaderboard.selectedTrack()}>
                         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-12 text-center">
                             <div class="text-6xl mb-4">🏁</div>
                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
@@ -249,168 +132,136 @@ export default function TTLeaderboardPage() {
                         </div>
                     </Show>
 
-                    <Show when={selectedTrack()}>
-                        <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
-                            {/* Header */}
-                            <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
-                                <h2 class="text-2xl font-bold text-white mb-1">
-                                    {selectedTrack()!.name}
-                                </h2>
-                                <div class="flex items-center gap-4 text-sm text-blue-100">
-                                    <span>{selectedCC()}cc</span>
-                                    <span>•</span>
-                                    <span>{selectedTrack()!.laps} lap{selectedTrack()!.laps !== 1 ? "s" : ""}</span>
-                                    <span>•</span>
-                                    <span class="capitalize">{selectedCategory()} Track</span>
-                                </div>
-                            </div>
+                    <Show when={ttLeaderboard.selectedTrack()}>
+                        <div class="space-y-6">
+                            {/* World Record Card */}
+                            <TTWorldRecordCard
+                                worldRecord={ttLeaderboard.worldRecordQuery.data}
+                                isLoading={ttLeaderboard.worldRecordQuery.isLoading}
+                                isError={ttLeaderboard.worldRecordQuery.isError}
+                                onDownloadGhost={ttLeaderboard.handleDownloadGhost}
+                            />
 
-                            {/* Loading State */}
-                            <Show when={leaderboardQuery.isLoading}>
-                                <div class="p-12 text-center">
-                                    <LoadingSpinner />
-                                    <p class="mt-4 text-gray-600 dark:text-gray-400">
-                    Loading times...
-                                    </p>
-                                </div>
-                            </Show>
+                            {/* World Record History */}
+                            <TTWRHistory
+                                history={ttLeaderboard.wrHistoryQuery.data}
+                                isLoading={ttLeaderboard.wrHistoryQuery.isLoading}
+                                isError={ttLeaderboard.wrHistoryQuery.isError}
+                                onDownloadGhost={ttLeaderboard.handleDownloadGhost}
+                            />
 
-                            {/* Error State */}
-                            <Show when={leaderboardQuery.isError}>
-                                <div class="p-6">
-                                    <AlertBox type="error" icon="⚠️">
-                    Failed to load leaderboard
-                                    </AlertBox>
-                                </div>
-                            </Show>
-
-                            {/* Leaderboard Table */}
-                            <Show when={leaderboardQuery.data && !leaderboardQuery.isLoading}>
-                                <Show
-                                    when={leaderboardQuery.data!.length > 0}
-                                    fallback={
-                                        <div class="p-12 text-center">
-                                            <div class="text-6xl mb-4">🏆</div>
-                                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                        No Times Yet
-                                            </h3>
-                                            <p class="text-gray-600 dark:text-gray-400">
-                        Be the first to submit a time for this track!
-                                            </p>
+                            {/* Leaderboard */}
+                            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
+                                {/* Header */}
+                                <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h2 class="text-2xl font-bold text-white mb-1">
+                                                {ttLeaderboard.selectedTrack()!.name}
+                                            </h2>
+                                            <div class="flex items-center gap-4 text-sm text-blue-100">
+                                                <span>{ttLeaderboard.selectedCC()}cc</span>
+                                                <span>•</span>
+                                                <span>{ttLeaderboard.selectedTrack()!.laps} lap{ttLeaderboard.selectedTrack()!.laps !== 1 ? "s" : ""}</span>
+                                                <span>•</span>
+                                                <span class="capitalize">{ttLeaderboard.selectedCategory()} Track</span>
+                                            </div>
                                         </div>
-                                    }
-                                >
-                                    <div class="overflow-x-auto">
-                                        <table class="w-full">
-                                            <thead class="bg-gray-50 dark:bg-gray-700">
-                                                <tr>
-                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Rank
-                                                    </th>
-                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Player
-                                                    </th>
-                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Time
-                                                    </th>
-                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Setup
-                                                    </th>
-                                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Date
-                                                    </th>
-                                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Ghost
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                                <For each={leaderboardQuery.data!}>
-                                                    {(submission, index) => (
-                                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                                            {/* Rank */}
-                                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                                <div class="flex items-center">
-                                                                    <Show when={index() === 0}>
-                                                                        <span class="text-2xl mr-2">🥇</span>
-                                                                    </Show>
-                                                                    <Show when={index() === 1}>
-                                                                        <span class="text-2xl mr-2">🥈</span>
-                                                                    </Show>
-                                                                    <Show when={index() === 2}>
-                                                                        <span class="text-2xl mr-2">🥉</span>
-                                                                    </Show>
-                                                                    <span class="text-lg font-bold text-gray-900 dark:text-white">
-                                                                        {index() + 1}
-                                                                    </span>
-                                                                </div>
-                                                            </td>
+    
+                                        {/* FLAP Display */}
+                                        <Show when={ttLeaderboard.leaderboardQuery.data?.fastestLapDisplay}>
+                                            <div class="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
+                                                <div class="text-xs text-blue-100 uppercase tracking-wide font-semibold mb-1">
+          Track FLAP
+                                                </div>
+                                                <div class="text-2xl font-black text-green-300">
+                                                    {ttLeaderboard.leaderboardQuery.data!.fastestLapDisplay}
+                                                </div>
+                                            </div>
+                                        </Show>
+                                    </div>
+                                </div>
 
-                                                            {/* Player */}
-                                                            <td class="px-6 py-4">
-                                                                <div class="font-medium text-gray-900 dark:text-white">
-                                                                    {submission.playerName}
-                                                                </div>
-                                                                <div class="text-sm text-gray-500 dark:text-gray-400">
-                                                                    {submission.miiName}
-                                                                </div>
-                                                            </td>
-
-                                                            {/* Time */}
-                                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                                <div class="text-xl font-bold text-blue-600 dark:text-blue-400">
-                                                                    {submission.finishTimeDisplay}
-                                                                </div>
-                                                                <Show when={submission.shroomless}>
-                                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                                    Shroomless
-                                                                    </span>
-                                                                </Show>
-                                                                <Show when={submission.glitch}>
-                                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 ml-1">
-                                    Glitch
-                                                                    </span>
-                                                                </Show>
-                                                            </td>
-
-                                                            {/* Setup */}
-                                                            <td class="px-6 py-4">
-                                                                <div class="text-sm text-gray-900 dark:text-white">
-                                                                    {getCharacterName(submission.characterId)}
-                                                                </div>
-                                                                <div class="text-sm text-gray-500 dark:text-gray-400">
-                                                                    {getVehicleName(submission.vehicleId)}
-                                                                </div>
-                                                                <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                                    {getControllerName(submission.controllerType)} • {getDriftTypeName(submission.driftType)}
-                                                                </div>
-                                                            </td>
-
-                                                            {/* Date */}
-                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                                                {new Date(submission.dateSet).toLocaleDateString()}
-                                                            </td>
-
-                                                            {/* Download */}
-                                                            <td class="px-6 py-4 whitespace-nowrap text-right">
-                                                                <button
-                                                                    onClick={() => handleDownloadGhost(submission)}
-                                                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                                                                >
-                                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                                                    </svg>
-                                  Download
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    )}
-                                                </For>
-                                            </tbody>
-                                        </table>
+                                {/* Loading State */}
+                                <Show when={ttLeaderboard.leaderboardQuery.isLoading}>
+                                    <div class="p-12 text-center">
+                                        <LoadingSpinner />
+                                        <p class="mt-4 text-gray-600 dark:text-gray-400">
+                      Loading times...
+                                        </p>
                                     </div>
                                 </Show>
-                            </Show>
+
+                                {/* Error State */}
+                                <Show when={ttLeaderboard.leaderboardQuery.isError}>
+                                    <div class="p-6">
+                                        <AlertBox type="error" icon="⚠️">
+                      Failed to load leaderboard
+                                        </AlertBox>
+                                    </div>
+                                </Show>
+
+                                {/* Leaderboard Table */}
+                                <Show when={ttLeaderboard.leaderboardQuery.data && !ttLeaderboard.leaderboardQuery.isLoading}>
+                                    <Show
+                                        when={ttLeaderboard.filteredSubmissions().length > 0}
+                                        fallback={
+                                            <div class="p-12 text-center">
+                                                <div class="text-6xl mb-4">🏆</div>
+                                                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                          No Times Found
+                                                </h3>
+                                                <p class="text-gray-600 dark:text-gray-400">
+                          Try adjusting your filters or be the first to submit a time!
+                                                </p>
+                                            </div>
+                                        }
+                                    >
+                                        <TTLeaderboardTable
+                                            submissions={ttLeaderboard.filteredSubmissions()}
+                                            fastestLapMs={ttLeaderboard.leaderboardQuery.data?.fastestLapMs || null}
+                                            onDownloadGhost={ttLeaderboard.handleDownloadGhost}
+                                        />
+                                    </Show>
+
+                                    {/* Pagination */}
+                                    <Show when={ttLeaderboard.leaderboardQuery.data!.totalSubmissions > ttLeaderboard.pageSize()}>
+                                        <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t-2 border-gray-200 dark:border-gray-600 gap-2 sm:gap-0">
+                                            <div class="flex items-center justify-center sm:justify-start gap-2">
+                                                <button
+                                                    onClick={() => ttLeaderboard.setCurrentPage(Math.max(1, ttLeaderboard.currentPage() - 1))}
+                                                    disabled={ttLeaderboard.currentPage() === 1}
+                                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                >
+                          ← Previous
+                                                </button>
+                                                <span class="px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg font-medium border-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
+                          Page {ttLeaderboard.currentPage()} of {Math.ceil(ttLeaderboard.leaderboardQuery.data!.totalSubmissions / ttLeaderboard.pageSize())}
+                                                </span>
+                                                <button
+                                                    onClick={() =>
+                                                        ttLeaderboard.setCurrentPage(
+                                                            Math.min(
+                                                                Math.ceil(ttLeaderboard.leaderboardQuery.data!.totalSubmissions / ttLeaderboard.pageSize()),
+                                                                ttLeaderboard.currentPage() + 1
+                                                            )
+                                                        )
+                                                    }
+                                                    disabled={ttLeaderboard.currentPage() === Math.ceil(ttLeaderboard.leaderboardQuery.data!.totalSubmissions / ttLeaderboard.pageSize())}
+                                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                >
+                          Next →
+                                                </button>
+                                            </div>
+
+                                            <div class="text-sm text-gray-600 dark:text-gray-400 font-medium text-center sm:text-right">
+                        Showing {(ttLeaderboard.currentPage() - 1) * ttLeaderboard.pageSize() + 1} –{" "}
+                                                {Math.min(ttLeaderboard.currentPage() * ttLeaderboard.pageSize(), ttLeaderboard.leaderboardQuery.data!.totalSubmissions)} of {ttLeaderboard.leaderboardQuery.data!.totalSubmissions} times
+                                            </div>
+                                        </div>
+                                    </Show>
+                                </Show>
+                            </div>
                         </div>
                     </Show>
                 </div>

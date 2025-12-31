@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs;
 using RetroRewindWebsite.Models.Entities;
 using RetroRewindWebsite.Repositories;
@@ -104,6 +105,9 @@ namespace RetroRewindWebsite.Controllers
 
                 var pagedResult = await _timeTrialRepository.GetTrackLeaderboardAsync(trackId, cc, page, pageSize);
 
+                // Get FLAP for this track/CC
+                var flapMs = await _timeTrialRepository.GetFastestLapForTrackAsync(trackId, cc);
+
                 var submissionDtos = pagedResult.Items.Select(s => MapToDto(s)).ToList();
 
                 return Ok(new TrackLeaderboardDto
@@ -121,7 +125,9 @@ namespace RetroRewindWebsite.Controllers
                     Submissions = submissionDtos,
                     TotalSubmissions = pagedResult.TotalCount,
                     CurrentPage = pagedResult.CurrentPage,
-                    PageSize = pagedResult.PageSize
+                    PageSize = pagedResult.PageSize,
+                    FastestLapMs = flapMs,
+                    FastestLapDisplay = flapMs.HasValue ? FormatLapTime(flapMs.Value) : null
                 });
             }
             catch (Exception ex)
@@ -219,46 +225,47 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
-        [HttpGet("profile/{discordUserId}")]
-        public async Task<ActionResult<TTProfileDto>> GetProfile(string discordUserId)
+        [HttpGet("profile/{ttProfileId}")]
+        public async Task<ActionResult<TTProfileDto>> GetProfile(int ttProfileId)
         {
             try
             {
-                var profile = await _timeTrialRepository.GetTTProfileByDiscordIdAsync(discordUserId);
+                var profile = await _timeTrialRepository.GetTTProfileByIdAsync(ttProfileId);
                 if (profile == null)
                 {
-                    return NotFound($"Profile not found for Discord user {discordUserId}");
+                    return NotFound($"Profile not found for ID {ttProfileId}");
                 }
 
                 return Ok(new TTProfileDto
                 {
                     Id = profile.Id,
-                    DiscordUserId = profile.DiscordUserId,
                     DisplayName = profile.DisplayName,
                     TotalSubmissions = profile.TotalSubmissions,
                     CurrentWorldRecords = profile.CurrentWorldRecords,
-                    CountryCode = profile.CountryCode
+                    CountryCode = profile.CountryCode,
+                    CountryAlpha2 = CountryCodeHelper.GetAlpha2Code(profile.CountryCode),
+                    CountryName = CountryCodeHelper.GetCountryName(profile.CountryCode)
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting profile for Discord user {UserId}", discordUserId);
+                _logger.LogError(ex, "Error getting profile {ProfileId}", ttProfileId);
                 return StatusCode(500, "An error occurred while retrieving profile");
             }
         }
 
-        [HttpGet("profile/{discordUserId}/submissions")]
+        [HttpGet("profile/{ttProfileId}/submissions")]
         public async Task<ActionResult<List<GhostSubmissionDto>>> GetProfileSubmissions(
-            string discordUserId,
+            int ttProfileId,
             [FromQuery] int? trackId = null,
             [FromQuery] short? cc = null)
         {
             try
             {
-                var profile = await _timeTrialRepository.GetTTProfileByDiscordIdAsync(discordUserId);
+                var profile = await _timeTrialRepository.GetTTProfileByIdAsync(ttProfileId);
                 if (profile == null)
                 {
-                    return NotFound($"Profile not found for Discord user {discordUserId}");
+                    return NotFound($"Profile not found for ID {ttProfileId}");
                 }
 
                 var submissions = await _timeTrialRepository.GetPlayerSubmissionsAsync(profile.Id, trackId, cc);
@@ -268,13 +275,79 @@ namespace RetroRewindWebsite.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting submissions for Discord user {UserId}", discordUserId);
+                _logger.LogError(ex, "Error getting submissions for profile {ProfileId}", ttProfileId);
                 return StatusCode(500, "An error occurred while retrieving submissions");
             }
         }
 
-        private static GhostSubmissionDto MapToDto(GhostSubmissionEntity entity)
+        [HttpGet("worldrecord/history")]
+        public async Task<ActionResult<List<GhostSubmissionDto>>> GetWorldRecordHistory(
+        [FromQuery] int trackId,
+        [FromQuery] short cc)
         {
+            try
+            {
+                if (cc != 150 && cc != 200)
+                {
+                    return BadRequest("CC must be either 150 or 200");
+                }
+
+                var wrHistory = await _timeTrialRepository.GetWorldRecordHistoryAsync(trackId, cc);
+                var historyDtos = wrHistory.Select(s => MapToDto(s)).ToList();
+
+                return Ok(historyDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting WR history for track {TrackId} {CC}cc", trackId, cc);
+                return StatusCode(500, "An error occurred while retrieving world record history");
+            }
+        }
+
+        [HttpGet("profile/{ttProfileId}/stats")]
+        public async Task<ActionResult> GetPlayerStats(int ttProfileId)
+        {
+            try
+            {
+                var profile = await _timeTrialRepository.GetTTProfileByIdAsync(ttProfileId);
+                if (profile == null)
+                {
+                    return NotFound($"Profile not found for ID {ttProfileId}");
+                }
+
+                var submissions = await _timeTrialRepository.GetPlayerSubmissionsAsync(profile.Id);
+
+                var stats = new
+                {
+                    Profile = new
+                    {
+                        profile.Id,
+                        profile.DisplayName,
+                        profile.TotalSubmissions,
+                        profile.CurrentWorldRecords,
+                        profile.CountryCode
+                    },
+                    TotalTracks = submissions.Select(s => s.TrackId).Distinct().Count(),
+                    Tracks150cc = submissions.Where(s => s.CC == 150).Select(s => s.TrackId).Distinct().Count(),
+                    Tracks200cc = submissions.Where(s => s.CC == 200).Select(s => s.TrackId).Distinct().Count(),
+                    AverageFinishPosition = await _timeTrialRepository.CalculateAverageFinishPositionAsync(profile.Id),
+                    Top10Count = await _timeTrialRepository.CountTop10FinishesAsync(profile.Id),
+                    RecentSubmissions = submissions.OrderByDescending(s => s.SubmittedAt).Take(5).Select(s => MapToDto(s)).ToList()
+                };
+
+                return Ok(stats);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting stats for profile {ProfileId}", ttProfileId);
+                return StatusCode(500, "An error occurred while retrieving player stats");
+            }
+        }
+
+        private GhostSubmissionDto MapToDto(GhostSubmissionEntity entity)
+        {
+            var lapSplitsMs = JsonSerializer.Deserialize<List<int>>(entity.LapSplitsMs) ?? [];
+
             return new GhostSubmissionDto
             {
                 Id = entity.Id,
@@ -282,6 +355,13 @@ namespace RetroRewindWebsite.Controllers
                 TrackName = entity.Track?.Name ?? "Unknown",
                 TTProfileId = entity.TTProfileId,
                 PlayerName = entity.TTProfile?.DisplayName ?? "Unknown",
+                CountryCode = entity.TTProfile?.CountryCode ?? 0,
+                CountryAlpha2 = entity.TTProfile?.CountryCode != null
+                    ? CountryCodeHelper.GetAlpha2Code(entity.TTProfile.CountryCode)
+                    : null,
+                CountryName = entity.TTProfile?.CountryCode != null
+                    ? CountryCodeHelper.GetCountryName(entity.TTProfile.CountryCode)
+                    : null,
                 CC = entity.CC,
                 FinishTimeMs = entity.FinishTimeMs,
                 FinishTimeDisplay = entity.FinishTimeDisplay,
@@ -291,13 +371,35 @@ namespace RetroRewindWebsite.Controllers
                 DriftType = entity.DriftType,
                 MiiName = entity.MiiName,
                 LapCount = entity.LapCount,
-                LapSplitsMs = JsonSerializer.Deserialize<List<int>>(entity.LapSplitsMs) ?? [],
+                LapSplitsMs = lapSplitsMs,
+                LapSplitsDisplay = FormatLapSplits(lapSplitsMs),
+                FastestLapMs = GetFastestLap(lapSplitsMs),
+                FastestLapDisplay = lapSplitsMs.Count > 0 ? FormatLapTime(GetFastestLap(lapSplitsMs)) : "",
                 GhostFilePath = entity.GhostFilePath,
                 DateSet = entity.DateSet,
                 SubmittedAt = entity.SubmittedAt,
                 Shroomless = entity.Shroomless,
                 Glitch = entity.Glitch,
             };
+        }
+
+        private static string FormatLapTime(int milliseconds)
+        {
+            var totalSeconds = milliseconds / 1000.0;
+            var minutes = (int)(totalSeconds / 60);
+            var seconds = totalSeconds % 60;
+
+            return $"{minutes}:{seconds:00.000}";
+        }
+
+        private static List<string> FormatLapSplits(List<int> lapSplitsMs)
+        {
+            return lapSplitsMs.Select(ms => FormatLapTime(ms)).ToList();
+        }
+
+        private static int GetFastestLap(List<int> lapSplitsMs)
+        {
+            return lapSplitsMs.Count > 0 ? lapSplitsMs.Min() : 0;
         }
     }
 }

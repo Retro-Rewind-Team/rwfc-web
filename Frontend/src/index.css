@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
+@import "flag-icons/css/flag-icons.min.css";
 
 body {
   margin: 0;

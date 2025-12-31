@@ -1,5 +1,5 @@
 import { apiRequest } from "./client";
-import { GhostSubmission, Track, TrackLeaderboard, TTProfile } from "../../types/timeTrial";
+import { GhostSubmission, Track, TrackLeaderboard, TTPlayerStats, TTProfile } from "../../types/timeTrial";
 
 export const timeTrialApi = {
     async getAllTracks(): Promise<Track[]> {
@@ -40,6 +40,15 @@ export const timeTrialApi = {
         );
     },
 
+    async getWorldRecordHistory(
+        trackId: number,
+        cc: 150 | 200
+    ): Promise<GhostSubmission[]> {
+        return apiRequest<GhostSubmission[]>(
+            `/timetrial/worldrecord/history?trackId=${trackId}&cc=${cc}`
+        );
+    },
+
     async downloadGhost(id: number): Promise<Blob> {
         const response = await fetch(
             `${import.meta.env.VITE_API_URL || "/api"}/timetrial/ghost/${id}/download`
@@ -52,12 +61,12 @@ export const timeTrialApi = {
         return response.blob();
     },
 
-    async getProfile(discordUserId: string): Promise<TTProfile> {
-        return apiRequest<TTProfile>(`/timetrial/profile/${discordUserId}`);
+    async getProfile(ttProfileId: number): Promise<TTProfile> {
+        return apiRequest<TTProfile>(`/timetrial/profile/${ttProfileId}`);
     },
 
     async getProfileSubmissions(
-        discordUserId: string,
+        ttProfileId: number,
         trackId?: number,
         cc?: 150 | 200
     ): Promise<GhostSubmission[]> {
@@ -67,7 +76,11 @@ export const timeTrialApi = {
 
         const queryString = params.toString();
         return apiRequest<GhostSubmission[]>(
-            `/timetrial/profile/${discordUserId}/submissions${queryString ? `?${queryString}` : ""}`
+            `/timetrial/profile/${ttProfileId}/submissions${queryString ? `?${queryString}` : ""}`
         );
+    },
+
+    async getPlayerStats(ttProfileId: number): Promise<TTPlayerStats> {
+        return apiRequest<TTPlayerStats>(`/timetrial/profile/${ttProfileId}/stats`);
     },
 };

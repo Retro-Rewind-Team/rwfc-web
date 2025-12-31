@@ -223,7 +223,7 @@ namespace RetroRewindWebsite.Controllers
             IFormFile ghostFile,
             int trackId,
             int cc,
-            string discordId,
+            int ttProfileId,
             bool shroomless = false,
             bool glitch = false)
         {
@@ -275,6 +275,17 @@ namespace RetroRewindWebsite.Controllers
                     });
                 }
 
+                // Get TT Profile - must already exist
+                var ttProfile = await _timeTrialRepository.GetTTProfileByIdAsync(ttProfileId);
+                if (ttProfile == null)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = $"TT Profile with ID {ttProfileId} not found. Create the profile first."
+                    });
+                }
+
                 // Parse ghost file
                 GhostFileParseResult ghostData;
                 using (var memoryStream = new MemoryStream())
@@ -317,23 +328,7 @@ namespace RetroRewindWebsite.Controllers
                     });
                 }
 
-                // Get or create TT Profile
-                var ttProfile = await _timeTrialRepository.GetTTProfileByDiscordIdAsync(discordId);
-
-                if (ttProfile == null)
-                {
-                    ttProfile = new TTProfileEntity
-                    {
-                        DiscordUserId = discordId,
-                        DisplayName = ghostData.MiiName,
-                        TotalSubmissions = 0,
-                        CurrentWorldRecords = 0,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
-                    await _timeTrialRepository.AddTTProfileAsync(ttProfile);
-                }
-
+                // Save ghost file using profile display name
                 string ghostFilePath;
                 using (var fileStream = ghostFile.OpenReadStream())
                 {
@@ -341,7 +336,7 @@ namespace RetroRewindWebsite.Controllers
                         fileStream,
                         trackId,
                         (short)cc,
-                        discordId);
+                        ttProfile.DisplayName);
                 }
 
                 var submission = new GhostSubmissionEntity
@@ -357,10 +352,9 @@ namespace RetroRewindWebsite.Controllers
                     DriftType = ghostData.DriftType,
                     MiiName = ghostData.MiiName,
                     LapCount = ghostData.LapCount,
-                    LapSplitsMs = System.Text.Json.JsonSerializer.Serialize(ghostData.LapSplitsMs), // Serialize to JSON
+                    LapSplitsMs = System.Text.Json.JsonSerializer.Serialize(ghostData.LapSplitsMs),
                     GhostFilePath = ghostFilePath,
                     DateSet = ghostData.DateSet,
-                    SubmittedByDiscordId = discordId,
                     SubmittedAt = DateTime.UtcNow,
                     Shroomless = shroomless,
                     Glitch = !track.Category.Equals("retro", StringComparison.OrdinalIgnoreCase) && glitch
@@ -373,8 +367,8 @@ namespace RetroRewindWebsite.Controllers
                 await _timeTrialRepository.UpdateTTProfileAsync(ttProfile);
 
                 _logger.LogInformation(
-                    "Ghost submitted successfully: Track {TrackId}, Player {PlayerId}, Time {Time}ms",
-                    trackId, ttProfile.Id, ghostData.FinishTimeMs);
+                    "Ghost submitted successfully: Track {TrackId}, Player {PlayerName} (ID: {ProfileId}), Time {Time}ms",
+                    trackId, ttProfile.DisplayName, ttProfile.Id, ghostData.FinishTimeMs);
 
                 return Ok(new
                 {
@@ -448,6 +442,252 @@ namespace RetroRewindWebsite.Controllers
                 _logger.LogError(ex, "Error deleting ghost submission {SubmissionId}", id);
                 return StatusCode(500, new { error = "An error occurred while deleting the ghost submission" });
             }
+        }
+
+        // ===== TT PROFILE MANAGEMENT =====
+
+        [HttpPost("timetrial/profile/create")]
+        public async Task<IActionResult> CreateTTProfile([FromBody] CreateTTProfileRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.DisplayName))
+                {
+                    return BadRequest(new { success = false, message = "Display name is required" });
+                }
+
+                // Trim and validate display name
+                var displayName = request.DisplayName.Trim();
+
+                if (displayName.Length < 2)
+                {
+                    return BadRequest(new { success = false, message = "Display name must be at least 2 characters" });
+                }
+
+                if (displayName.Length > 50)
+                {
+                    return BadRequest(new { success = false, message = "Display name must be 50 characters or less" });
+                }
+
+                // Check if profile already exists
+                var existingProfile = await _timeTrialRepository.GetTTProfileByNameAsync(displayName);
+                if (existingProfile != null)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = $"Profile with name '{displayName}' already exists",
+                        existingProfile = new
+                        {
+                            existingProfile.Id,
+                            existingProfile.DisplayName,
+                            existingProfile.TotalSubmissions,
+                            existingProfile.CurrentWorldRecords
+                        }
+                    });
+                }
+
+                // Create new profile
+                var newProfile = new TTProfileEntity
+                {
+                    DisplayName = displayName,
+                    TotalSubmissions = 0,
+                    CurrentWorldRecords = 0,
+                    CountryCode = request.CountryCode ?? 0,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                await _timeTrialRepository.AddTTProfileAsync(newProfile);
+
+                _logger.LogInformation(
+                    "TT Profile created: {DisplayName} (ID: {ProfileId})",
+                    newProfile.DisplayName, newProfile.Id);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "TT Profile created successfully",
+                    profile = new
+                    {
+                        newProfile.Id,
+                        newProfile.DisplayName,
+                        newProfile.TotalSubmissions,
+                        newProfile.CurrentWorldRecords,
+                        newProfile.CountryCode,
+                        newProfile.CreatedAt
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating TT profile");
+                return StatusCode(500, new { success = false, message = "An error occurred while creating the profile" });
+            }
+        }
+
+        [HttpGet("timetrial/profiles")]
+        public async Task<IActionResult> GetAllTTProfiles()
+        {
+            try
+            {
+                var profiles = await _timeTrialRepository.GetAllTTProfilesAsync();
+
+                var profileDtos = profiles
+                    .OrderBy(p => p.DisplayName)
+                    .Select(p => new
+                    {
+                        p.Id,
+                        p.DisplayName,
+                        p.TotalSubmissions,
+                        p.CurrentWorldRecords,
+                        p.CountryCode,
+                        p.CreatedAt
+                    })
+                    .ToList();
+
+                return Ok(new
+                {
+                    success = true,
+                    count = profileDtos.Count,
+                    profiles = profileDtos
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting TT profiles");
+                return StatusCode(500, new { success = false, message = "An error occurred while retrieving profiles" });
+            }
+        }
+
+        [HttpDelete("timetrial/profile/{id}")]
+        public async Task<IActionResult> DeleteTTProfile(int id)
+        {
+            try
+            {
+                var profile = await _timeTrialRepository.GetTTProfileByIdAsync(id);
+                if (profile == null)
+                {
+                    return NotFound(new { success = false, message = $"Profile {id} not found" });
+                }
+
+                // Check if profile has submissions
+                var submissionCount = await _timeTrialRepository.GetProfileSubmissionsCountAsync(id);
+                if (submissionCount > 0)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = $"Cannot delete profile '{profile.DisplayName}' - it has {submissionCount} submission(s). Delete submissions first."
+                    });
+                }
+
+                await _timeTrialRepository.DeleteTTProfileAsync(id);
+
+                _logger.LogInformation(
+                    "TT Profile deleted: {DisplayName} (ID: {ProfileId})",
+                    profile.DisplayName, id);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = $"Profile '{profile.DisplayName}' deleted successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting TT profile {ProfileId}", id);
+                return StatusCode(500, new { success = false, message = "An error occurred while deleting the profile" });
+            }
+        }
+
+        [HttpPut("timetrial/profile/{id}")]
+        public async Task<IActionResult> UpdateTTProfile(int id, [FromBody] UpdateTTProfileRequest request)
+        {
+            try
+            {
+                var profile = await _timeTrialRepository.GetTTProfileByIdAsync(id);
+                if (profile == null)
+                {
+                    return NotFound(new { success = false, message = $"Profile {id} not found" });
+                }
+
+                var displayName = request.DisplayName?.Trim();
+
+                // Update display name if provided
+                if (!string.IsNullOrWhiteSpace(displayName))
+                {
+                    if (displayName.Length < 2 || displayName.Length > 50)
+                    {
+                        return BadRequest(new { success = false, message = "Display name must be between 2 and 50 characters" });
+                    }
+
+                    // Check if new name already exists (and it's not the same profile)
+                    var existingProfile = await _timeTrialRepository.GetTTProfileByNameAsync(displayName);
+                    if (existingProfile != null && existingProfile.Id != id)
+                    {
+                        return BadRequest(new
+                        {
+                            success = false,
+                            message = $"Profile with name '{displayName}' already exists"
+                        });
+                    }
+
+                    profile.DisplayName = displayName;
+                }
+
+                // Update country code if provided
+                if (request.CountryCode.HasValue)
+                {
+                    profile.CountryCode = request.CountryCode.Value;
+                }
+
+                await _timeTrialRepository.UpdateTTProfileAsync(profile);
+
+                _logger.LogInformation(
+                    "TT Profile updated: {DisplayName} (ID: {ProfileId})",
+                    profile.DisplayName, id);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Profile updated successfully",
+                    profile = new
+                    {
+                        profile.Id,
+                        profile.DisplayName,
+                        profile.TotalSubmissions,
+                        profile.CurrentWorldRecords,
+                        profile.CountryCode,
+                        profile.UpdatedAt
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating TT profile {ProfileId}", id);
+                return StatusCode(500, new { success = false, message = "An error occurred while updating the profile" });
+            }
+        }
+
+        [HttpGet("countries")]
+        public IActionResult GetCountries()
+        {
+            var countries = CountryCodeHelper.GetAllCountries()
+                .Select(c => new
+                {
+                    numericCode = c.NumericCode,
+                    alpha2 = c.Alpha2,
+                    name = c.Name
+                })
+                .ToList();
+
+            return Ok(new
+            {
+                success = true,
+                count = countries.Count,
+                countries
+            });
         }
     }
 }

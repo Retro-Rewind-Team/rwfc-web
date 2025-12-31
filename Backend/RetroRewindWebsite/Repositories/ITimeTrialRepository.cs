@@ -13,7 +13,7 @@ namespace RetroRewindWebsite.Repositories
 
         // TT Profile operations
         Task<TTProfileEntity?> GetTTProfileByIdAsync(int id);
-        Task<TTProfileEntity?> GetTTProfileByDiscordIdAsync(string discordUserId);
+        Task<TTProfileEntity?> GetTTProfileByNameAsync(string displayName);
         Task AddTTProfileAsync(TTProfileEntity profile);
         Task UpdateTTProfileAsync(TTProfileEntity profile);
 
@@ -45,5 +45,11 @@ namespace RetroRewindWebsite.Repositories
         Task<int> GetTotalSubmissionsCountAsync();
         Task<int> GetProfileSubmissionsCountAsync(int ttProfileId);
         Task<int> GetProfileWorldRecordsCountAsync(int ttProfileId);
+        Task<List<GhostSubmissionEntity>> GetWorldRecordHistoryAsync(int trackId, short cc);
+        Task<double> CalculateAverageFinishPositionAsync(int ttProfileId);
+        Task<int> CountTop10FinishesAsync(int ttProfileId);
+        Task<List<TTProfileEntity>> GetAllTTProfilesAsync();
+        Task DeleteTTProfileAsync(int id);
+        Task<int?> GetFastestLapForTrackAsync(int trackId, short cc);
     }
 }

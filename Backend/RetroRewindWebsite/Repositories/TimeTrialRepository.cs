@@ -54,11 +54,11 @@ namespace RetroRewindWebsite.Repositories
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public async Task<TTProfileEntity?> GetTTProfileByDiscordIdAsync(string discordUserId)
+        public async Task<TTProfileEntity?> GetTTProfileByNameAsync(string displayName)
         {
             return await _context.TTProfiles
                 .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.DiscordUserId == discordUserId);
+                .FirstOrDefaultAsync(p => p.DisplayName == displayName);
         }
 
         public async Task AddTTProfileAsync(TTProfileEntity profile)
@@ -213,6 +213,116 @@ namespace RetroRewindWebsite.Repositories
             }
 
             return wrCount;
+        }
+
+        public async Task<List<GhostSubmissionEntity>> GetWorldRecordHistoryAsync(int trackId, short cc)
+        {
+            // Get all submissions for this track/CC ordered by submission time
+            var allSubmissions = await _context.GhostSubmissions
+                .AsNoTracking()
+                .Include(g => g.Track)
+                .Include(g => g.TTProfile)
+                .Where(g => g.TrackId == trackId && g.CC == cc)
+                .OrderBy(g => g.SubmittedAt)
+                .ToListAsync();
+
+            var wrHistory = new List<GhostSubmissionEntity>();
+            int? currentBestTime = null;
+
+            // Iterate through submissions chronologically
+            foreach (var submission in allSubmissions)
+            {
+                // If this is a new WR (no previous record or faster than current best)
+                if (currentBestTime == null || submission.FinishTimeMs < currentBestTime)
+                {
+                    wrHistory.Add(submission);
+                    currentBestTime = submission.FinishTimeMs;
+                }
+            }
+
+            return wrHistory;
+        }
+
+        public async Task<double> CalculateAverageFinishPositionAsync(int ttProfileId)
+        {
+            var submissions = await GetPlayerSubmissionsAsync(ttProfileId);
+            if (submissions.Count == 0) return 0;
+
+            var positions = new List<int>();
+
+            foreach (var submission in submissions)
+            {
+                var betterTimes = await _context.GhostSubmissions
+                    .Where(g => g.TrackId == submission.TrackId &&
+                               g.CC == submission.CC &&
+                               g.FinishTimeMs < submission.FinishTimeMs)
+                    .CountAsync();
+
+                positions.Add(betterTimes + 1);
+            }
+
+            return positions.Average();
+        }
+
+        public async Task<int> CountTop10FinishesAsync(int ttProfileId)
+        {
+            var submissions = await GetPlayerSubmissionsAsync(ttProfileId);
+            int count = 0;
+
+            foreach (var submission in submissions)
+            {
+                var betterTimes = await _context.GhostSubmissions
+                    .Where(g => g.TrackId == submission.TrackId &&
+                               g.CC == submission.CC &&
+                               g.FinishTimeMs < submission.FinishTimeMs)
+                    .CountAsync();
+
+                if (betterTimes < 10) count++;
+            }
+
+            return count;
+        }
+
+        public async Task<List<TTProfileEntity>> GetAllTTProfilesAsync()
+        {
+            return await _context.TTProfiles
+                .AsNoTracking()
+                .OrderBy(p => p.DisplayName)
+                .ToListAsync();
+        }
+
+        public async Task DeleteTTProfileAsync(int id)
+        {
+            var profile = await _context.TTProfiles.FindAsync(id);
+            if (profile != null)
+            {
+                _context.TTProfiles.Remove(profile);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<int?> GetFastestLapForTrackAsync(int trackId, short cc)
+        {
+            var submissions = await _context.GhostSubmissions
+                .AsNoTracking()
+                .Where(g => g.TrackId == trackId && g.CC == cc)
+                .ToListAsync();
+
+            if (submissions.Count == 0)
+                return null;
+
+            var allLapTimes = new List<int>();
+
+            foreach (var submission in submissions)
+            {
+                var lapSplits = System.Text.Json.JsonSerializer.Deserialize<List<int>>(submission.LapSplitsMs);
+                if (lapSplits != null && lapSplits.Count > 0)
+                {
+                    allLapTimes.AddRange(lapSplits);
+                }
+            }
+
+            return allLapTimes.Count > 0 ? allLapTimes.Min() : null;
         }
     }
 }

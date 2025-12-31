@@ -9,11 +9,12 @@ export interface Track {
 
 export interface TTProfile {
   id: number;
-  discordUserId: string;
   displayName: string;
   totalSubmissions: number;
   currentWorldRecords: number;
   countryCode: number;
+  countryAlpha2: string | null;
+  countryName: string | null;
 }
 
 export interface GhostSubmission {
@@ -22,34 +23,52 @@ export interface GhostSubmission {
   trackName: string;
   ttProfileId: number;
   playerName: string;
-  cc: number;
+  countryCode: number;
+  countryAlpha2: string | null;
+  countryName: string | null;
+  cc: 150 | 200;
   finishTimeMs: number;
   finishTimeDisplay: string;
   vehicleId: number;
   characterId: number;
   controllerType: number;
   driftType: number;
+  shroomless: boolean;
+  glitch: boolean;
   miiName: string;
   lapCount: number;
   lapSplitsMs: number[];
+  lapSplitsDisplay: string[];
+  fastestLapMs: number;
+  fastestLapDisplay: string;
   ghostFilePath: string;
   dateSet: string;
   submittedAt: string;
-  shroomless: boolean;
-  glitch: boolean;
 }
 
 export interface TrackLeaderboard {
   track: Track;
-  cc: number;
+  cc: 150 | 200;
   submissions: GhostSubmission[];
   totalSubmissions: number;
   currentPage: number;
   pageSize: number;
+  fastestLapMs: number | null;
+  fastestLapDisplay: string | null;
 }
 
 export interface GhostSubmissionResponse {
   success: boolean;
   message: string;
   submission?: GhostSubmission;
+}
+
+export interface TTPlayerStats {
+  profile: TTProfile;
+  totalTracks: number;
+  tracks150cc: number;
+  tracks200cc: number;
+  averageFinishPosition: number;
+  top10Count: number;
+  recentSubmissions: GhostSubmission[];
 }

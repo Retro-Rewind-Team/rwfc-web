@@ -41,10 +41,6 @@ namespace RetroRewindWebsite.Models.Entities
 
         [Required]
         [MaxLength(50)]
-        public required string DiscordUserId { get; set; }
-
-        [Required]
-        [MaxLength(50)]
         public required string DisplayName { get; set; }
 
         public int TotalSubmissions { get; set; } = 0;
@@ -107,10 +103,6 @@ namespace RetroRewindWebsite.Models.Entities
 
         // Submission metadata
         public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
-
-        [Required]
-        [MaxLength(50)]
-        public required string SubmittedByDiscordId { get; set; }
 
         // Navigation properties
         public virtual TrackEntity? Track { get; set; }

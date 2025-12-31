@@ -16,6 +16,7 @@ import {
     ToolsPage,
     TracksPage,
     TTLeaderboardPage,
+    TTPlayerProfilePage,
 } from "./pages";
 
 const queryClient = new QueryClient({
@@ -49,9 +50,12 @@ function App() {
                     <Route path="/vr/player/:friendCode" component={PlayerDetailPage} />
                     <Route path="/player/:friendCode" component={PlayerDetailPage} />
 
-                    {/* Future: Time Trial Routes */}
+                    {/* Time Trial Routes */}
                     <Route path="/tt-leaderboard" component={TTLeaderboardPage} />
                     <Route path="/tt" component={TTLeaderboardPage} />
+                    <Route path="/timetrial" component={TTLeaderboardPage} />
+                    <Route path="/tt/player/:ttProfileId" component={TTPlayerProfilePage} />
+                    <Route path="/timetrial/player/:ttProfileId" component={TTPlayerProfilePage} />
 
                     {/* Room Browser Routes */}
                     <Route path="/room-browser" component={RoomStatusPage} />

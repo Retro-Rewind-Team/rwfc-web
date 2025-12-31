@@ -2,6 +2,7 @@ export { HomePage } from "./Home";
 export { LeaderboardPage } from "./Leaderboard";
 export { PlayerDetailPage } from "./Player";
 export { TTLeaderboardPage } from "./TTLeaderboard";
+export { TTPlayerProfilePage } from "./TTPlayerProfile";
 export { RoomStatusPage } from "./RoomStatus";
 export { DownloadsPage } from "./Downloads";
 export { RulesPage } from "./Rules";

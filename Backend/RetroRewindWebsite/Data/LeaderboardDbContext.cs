@@ -108,9 +108,7 @@ namespace RetroRewindWebsite.Data
 
             modelBuilder.Entity<TTProfileEntity>(entity =>
             {
-                entity.HasIndex(e => e.DiscordUserId).IsUnique();
-
-                entity.Property(e => e.DiscordUserId).HasMaxLength(50).IsRequired();
+                entity.HasIndex(e => e.DisplayName).IsUnique();
                 entity.Property(e => e.DisplayName).HasMaxLength(50).IsRequired();
             });
 
@@ -121,12 +119,10 @@ namespace RetroRewindWebsite.Data
                 entity.HasIndex(e => new { e.TrackId, e.CC });
                 entity.HasIndex(e => new { e.TrackId, e.CC, e.FinishTimeMs });
                 entity.HasIndex(e => e.SubmittedAt);
-                entity.HasIndex(e => e.SubmittedByDiscordId);
 
                 entity.Property(e => e.FinishTimeDisplay).HasMaxLength(20).IsRequired();
                 entity.Property(e => e.MiiName).HasMaxLength(10).IsRequired();
                 entity.Property(e => e.GhostFilePath).HasMaxLength(255).IsRequired();
-                entity.Property(e => e.SubmittedByDiscordId).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.LapSplitsMs).HasColumnType("jsonb").IsRequired();
 
                 entity.HasOne(g => g.Track)
