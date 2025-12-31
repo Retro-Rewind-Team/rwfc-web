@@ -1,238 +1,208 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RetroRewindWebsite.Models.DTOs;
 using RetroRewindWebsite.Models.External;
 using RetroRewindWebsite.Repositories;
 
 namespace RetroRewindWebsite.Controllers
 {
     [ApiController]
-    [Route("api/moderation")]
+    [Route("api/[controller]")]
     public class ModerationController : ControllerBase
     {
         private readonly IPlayerRepository _playerRepository;
-        private readonly IVRHistoryRepository _vrHistoryRepository;
         private readonly ILogger<ModerationController> _logger;
 
         public ModerationController(
             IPlayerRepository playerRepository,
-            IVRHistoryRepository vrHistoryRepository,
             ILogger<ModerationController> logger)
         {
             _playerRepository = playerRepository;
-            _vrHistoryRepository = vrHistoryRepository;
             _logger = logger;
         }
 
-        [HttpPost("ban")]
-        public async Task<ActionResult> BanUser([FromBody] BanRequest request)
+        // ===== FLAG OPERATIONS =====
+
+        [HttpPost("flag")]
+        public async Task<ActionResult> FlagPlayer([FromBody] FlagRequest request)
         {
             try
             {
-                _logger.LogWarning("Ban request received for PID: {Pid}", request.Pid);
-
-                var player = await _playerRepository.GetByPidAsync(request.Pid);
-
-                if (player == null)
+                if (string.IsNullOrWhiteSpace(request.Pid))
                 {
-                    return NotFound(new { Error = $"Player with PID {request.Pid} not found" });
+                    return BadRequest("Player ID (Pid) is required");
                 }
 
-                var playerInfo = new
+                var player = await _playerRepository.GetByPidAsync(request.Pid);
+                if (player == null)
                 {
-                    ProfileId = player.Pid,
-                    player.Name,
-                    player.Fc,
-                    LastInGameSn = player.Name,
-                    LastIPAddress = "Hidden"
-                };
+                    return NotFound($"Player with PID '{request.Pid}' not found");
+                }
 
-                await _playerRepository.DeleteAsync(player.Id);
+                if (player.IsSuspicious)
+                {
+                    return Ok(new { message = $"Player '{player.Name}' is already flagged as suspicious" });
+                }
+
+                player.IsSuspicious = true;
+                await _playerRepository.UpdateAsync(player);
 
                 _logger.LogWarning(
-                    "Player {Name} ({Pid}) removed from leaderboard by moderator {Moderator}. Reason: {Reason}",
-                    player.Name, player.Pid, request.Moderator, request.Reason);
+                    "Player manually flagged as suspicious: {Name} ({FriendCode}) - PID: {Pid} by moderation",
+                    player.Name, player.Fc, player.Pid);
 
                 return Ok(new
                 {
-                    Success = true,
-                    User = playerInfo
+                    message = $"Player '{player.Name}' has been flagged as suspicious",
+                    player = new
+                    {
+                        player.Pid,
+                        player.Name,
+                        player.Fc,
+                        player.Ev,
+                        player.IsSuspicious
+                    }
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error removing user with PID {Pid}", request.Pid);
-                return StatusCode(500, new { Error = "An error occurred while removing the user" });
+                _logger.LogError(ex, "Error flagging player with PID {Pid}", request.Pid);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while flagging the player");
             }
         }
 
         [HttpPost("unflag")]
-        public async Task<ActionResult> UnflagUser([FromBody] UnflagRequest request)
+        public async Task<ActionResult> UnflagPlayer([FromBody] UnflagRequest request)
         {
             try
             {
-                _logger.LogWarning("Unflag request received for PID: {Pid}", request.Pid);
+                if (string.IsNullOrWhiteSpace(request.Pid))
+                {
+                    return BadRequest("Player ID (Pid) is required");
+                }
 
                 var player = await _playerRepository.GetByPidAsync(request.Pid);
-
                 if (player == null)
                 {
-                    return NotFound(new { Error = $"Player with PID {request.Pid} not found" });
+                    return NotFound($"Player with PID '{request.Pid}' not found");
+                }
+
+                if (!player.IsSuspicious)
+                {
+                    return Ok(new { message = $"Player '{player.Name}' is not flagged as suspicious" });
                 }
 
                 player.IsSuspicious = false;
-
+                player.SuspiciousVRJumps = 0;
                 await _playerRepository.UpdateAsync(player);
 
-                _logger.LogWarning("Player {Name} ({Pid}) unflagged by moderator {Moderator}",
-                    player.Name, player.Pid, request.Moderator);
+                _logger.LogInformation(
+                    "Player unflagged: {Name} ({FriendCode}) - PID: {Pid} by moderation",
+                    player.Name, player.Fc, player.Pid);
 
                 return Ok(new
                 {
-                    Success = true,
-                    User = new
+                    message = $"Player '{player.Name}' has been unflagged",
+                    player = new
                     {
-                        ProfileId = player.Pid,
+                        player.Pid,
                         player.Name,
                         player.Fc,
-                        player.IsSuspicious
+                        player.Ev,
+                        player.IsSuspicious,
+                        player.SuspiciousVRJumps
                     }
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error unflagging user with PID {Pid}", request.Pid);
-                return StatusCode(500, new { Error = "An error occurred while unflagging the user" });
+                _logger.LogError(ex, "Error unflagging player with PID {Pid}", request.Pid);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while unflagging the player");
             }
         }
 
-        [HttpPost("flag")]
-        public async Task<ActionResult> FlagUser([FromBody] FlagRequest request)
+        // ===== BAN OPERATIONS =====
+
+        [HttpPost("ban")]
+        public async Task<ActionResult> BanPlayer([FromBody] BanRequest request)
         {
             try
             {
-                _logger.LogWarning("Flag request received for PID: {Pid}", request.Pid);
+                if (string.IsNullOrWhiteSpace(request.Pid))
+                {
+                    return BadRequest("Player ID (Pid) is required");
+                }
 
                 var player = await _playerRepository.GetByPidAsync(request.Pid);
-
                 if (player == null)
                 {
-                    return NotFound(new { Error = $"Player with PID {request.Pid} not found" });
+                    return NotFound($"Player with PID '{request.Pid}' not found");
                 }
 
-                player.IsSuspicious = true;
+                await _playerRepository.DeleteAsync(player.Id);
 
-                await _playerRepository.UpdateAsync(player);
-
-                _logger.LogWarning("Player {Name} ({Pid}) flagged by moderator {Moderator}.",
-                    player.Name, player.Pid, request.Moderator);
+                _logger.LogWarning(
+                    "Player banned and removed: {Name} ({FriendCode}) - PID: {Pid} by moderation",
+                    player.Name, player.Fc, player.Pid);
 
                 return Ok(new
                 {
-                    Success = true,
-                    User = new
+                    message = $"Player '{player.Name}' has been banned and removed from the leaderboard",
+                    player = new
                     {
-                        ProfileId = player.Pid,
+                        player.Pid,
                         player.Name,
-                        player.Fc,
-                        player.IsSuspicious
+                        player.Fc
                     }
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error flagging user with PID {Pid}", request.Pid);
-                return StatusCode(500, new { Error = "An error occurred while flagging the user" });
+                _logger.LogError(ex, "Error banning player with PID {Pid}", request.Pid);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while banning the player");
             }
         }
 
-        [HttpGet("suspicious-jumps/{pid}")]
-        public async Task<ActionResult> GetSuspiciousJumps(string pid)
+        // ===== QUERY OPERATIONS =====
+
+        [HttpGet("suspicious")]
+        public async Task<ActionResult<List<PlayerDto>>> GetSuspiciousPlayers()
         {
             try
             {
-                _logger.LogInformation("Suspicious jumps request for PID: {Pid}", pid);
-
-                var player = await _playerRepository.GetByPidAsync(pid);
-
-                if (player == null)
-                {
-                    return NotFound(new { Error = $"Player with PID {pid} not found" });
-                }
-
-                var history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, 1000);
-
-                var suspiciousJumps = history
-                    .Where(h => Math.Abs(h.VRChange) > 529)
-                    .OrderByDescending(h => h.Date)
-                    .Select(h => new
+                var players = await _playerRepository.GetAllAsync();
+                var suspiciousPlayers = players
+                    .Where(p => p.IsSuspicious)
+                    .OrderByDescending(p => p.Ev)
+                    .Select(p => new PlayerDto
                     {
-                        h.Date,
-                        h.VRChange,
-                        h.TotalVR
+                        Pid = p.Pid,
+                        Name = p.Name,
+                        FriendCode = p.Fc,
+                        VR = p.Ev,
+                        Rank = p.Rank,
+                        LastSeen = p.LastSeen,
+                        IsSuspicious = p.IsSuspicious,
+                        VRStats = new VRStatsDto
+                        {
+                            Last24Hours = p.VRGainLast24Hours,
+                            LastWeek = p.VRGainLastWeek,
+                            LastMonth = p.VRGainLastMonth
+                        },
+                        MiiImageBase64 = p.MiiImageBase64,
+                        MiiData = p.MiiData
                     })
                     .ToList();
 
-                return Ok(new
-                {
-                    Success = true,
-                    Player = new
-                    {
-                        player.Pid,
-                        player.Name,
-                        player.Fc,
-                        player.IsSuspicious,
-                        player.SuspiciousVRJumps
-                    },
-                    SuspiciousJumps = suspiciousJumps,
-                    suspiciousJumps.Count
-                });
+                return Ok(suspiciousPlayers);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting suspicious jumps for PID {Pid}", pid);
-                return StatusCode(500, new { Error = "An error occurred while retrieving suspicious jumps" });
-            }
-        }
-
-        [HttpGet("player-stats/{pid}")]
-        public async Task<ActionResult> GetPlayerStats(string pid)
-        {
-            try
-            {
-                _logger.LogInformation("Player stats request for PID: {Pid}", pid);
-
-                var player = await _playerRepository.GetByPidAsync(pid);
-
-                if (player == null)
-                {
-                    return NotFound(new { Error = $"Player with PID {pid} not found" });
-                }
-
-                return Ok(new
-                {
-                    Success = true,
-                    Player = new
-                    {
-                        player.Pid,
-                        player.Name,
-                        player.Fc,
-                        VR = player.Ev,
-                        player.Rank,
-                        player.LastSeen,
-                        player.IsSuspicious,
-                        player.SuspiciousVRJumps,
-                        VRStats = new
-                        {
-                            Last24Hours = player.VRGainLast24Hours,
-                            LastWeek = player.VRGainLastWeek,
-                            LastMonth = player.VRGainLastMonth
-                        }
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting stats for PID {Pid}", pid);
-                return StatusCode(500, new { Error = "An error occurred while retrieving player stats" });
+                _logger.LogError(ex, "Error retrieving suspicious players");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while retrieving suspicious players");
             }
         }
     }

@@ -20,6 +20,7 @@
         public int? AverageVR { get; set; }
         public RaceDto? Race { get; set; }
         public bool Suspend { get; set; }
+
         public string RoomType => GetRoomType(Rk);
         public bool IsPublic => Type == "anybody";
         public bool IsJoinable => Players.Count < 12 && !Suspend;
@@ -27,7 +28,11 @@
 
         private static string GetRoomType(string? rk)
         {
-            if (string.IsNullOrEmpty(rk)) return "Unknown Room Type";
+            if (string.IsNullOrEmpty(rk))
+            {
+                return "Unknown Room Type";
+            }
+
             return rk switch
             {
                 "vs_10" => "Retro Tracks",

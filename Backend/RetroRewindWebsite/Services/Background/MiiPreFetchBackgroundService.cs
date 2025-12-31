@@ -7,7 +7,11 @@ namespace RetroRewindWebsite.Services.Background
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<MiiPreFetchBackgroundService> _logger;
-        private readonly TimeSpan _runInterval = TimeSpan.FromMinutes(30);
+
+        private const int RunIntervalMinutes = 30;
+        private const int InitialDelayMinutes = 1;
+        private const int BatchSize = 100;
+        private const int RateLimitDelayMs = 200;
 
         public MiiPreFetchBackgroundService(
             IServiceProvider serviceProvider,
@@ -19,10 +23,17 @@ namespace RetroRewindWebsite.Services.Background
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("MiiPreFetchBackgroundService started");
+            _logger.LogInformation("Mii pre-fetch background service started");
 
-            // Wait 1 minute before first run to let the app start up
-            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+            try
+            {
+                await Task.Delay(TimeSpan.FromMinutes(InitialDelayMinutes), stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Mii pre-fetch background service stopped during initial delay");
+                return;
+            }
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -30,15 +41,27 @@ namespace RetroRewindWebsite.Services.Background
                 {
                     await PreFetchMiiImagesAsync(stoppingToken);
                 }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInformation("Mii pre-fetch background service is stopping");
+                    break;
+                }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error in MiiPreFetchBackgroundService");
+                    _logger.LogError(ex, "Error in Mii pre-fetch background service");
                 }
 
-                await Task.Delay(_runInterval, stoppingToken);
+                try
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(RunIntervalMinutes), stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
             }
 
-            _logger.LogInformation("MiiPreFetchBackgroundService stopped");
+            _logger.LogInformation("Mii pre-fetch background service stopped");
         }
 
         public async Task PreFetchMiiImagesAsync(CancellationToken cancellationToken = default)
@@ -49,8 +72,7 @@ namespace RetroRewindWebsite.Services.Background
 
             _logger.LogInformation("Starting Mii pre-fetch batch");
 
-            // Get players that need Mii images fetched
-            var players = await playerRepository.GetPlayersNeedingMiiImagesAsync(100);
+            var players = await playerRepository.GetPlayersNeedingMiiImagesAsync(BatchSize);
 
             if (players.Count == 0)
             {
@@ -67,39 +89,48 @@ namespace RetroRewindWebsite.Services.Background
             foreach (var player in players)
             {
                 if (cancellationToken.IsCancellationRequested)
+                {
+                    _logger.LogInformation("Mii pre-fetch cancelled, processed {Success}/{Total}",
+                        successCount, players.Count);
                     break;
+                }
 
-                // Skip players without Mii data
                 if (string.IsNullOrEmpty(player.MiiData))
                 {
                     skippedCount++;
-                    _logger.LogDebug("Skipping {Name} ({Fc}) - no Mii data", player.Name, player.Fc);
+                    _logger.LogDebug("Skipping {Name} ({FriendCode}) - no Mii data", player.Name, player.Fc);
                     continue;
                 }
 
                 try
                 {
-                    var miiImage = await miiService.GetMiiImageAsync(player.Fc, player.MiiData);
+                    var miiImage = await miiService.GetMiiImageAsync(player.Fc, player.MiiData, cancellationToken);
 
                     if (miiImage != null)
                     {
                         await playerRepository.UpdatePlayerMiiImageAsync(player.Pid, miiImage);
                         successCount++;
-                        _logger.LogDebug("Pre-fetched Mii for {Name} ({Fc})", player.Name, player.Fc);
+                        _logger.LogDebug("Pre-fetched Mii for {Name} ({FriendCode})", player.Name, player.Fc);
                     }
                     else
                     {
                         failCount++;
-                        _logger.LogWarning("Failed to pre-fetch Mii for {Name} ({Fc})", player.Name, player.Fc);
+                        _logger.LogWarning("Failed to pre-fetch Mii for {Name} ({FriendCode})",
+                            player.Name, player.Fc);
                     }
 
-                    // Rate limit: 5 per second max
-                    await Task.Delay(200, cancellationToken);
+                    await Task.Delay(RateLimitDelayMs, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInformation("Mii pre-fetch cancelled during processing");
+                    break;
                 }
                 catch (Exception ex)
                 {
                     failCount++;
-                    _logger.LogWarning(ex, "Error pre-fetching Mii for {Name} ({Fc})", player.Name, player.Fc);
+                    _logger.LogWarning(ex, "Error pre-fetching Mii for {Name} ({FriendCode})",
+                        player.Name, player.Fc);
                 }
             }
 

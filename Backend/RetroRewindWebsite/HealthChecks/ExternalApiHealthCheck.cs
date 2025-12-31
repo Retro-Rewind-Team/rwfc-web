@@ -8,7 +8,11 @@ namespace RetroRewindWebsite.HealthChecks
         private readonly IRetroWFCApiClient _apiClient;
         private readonly ILogger<ExternalApiHealthCheck> _logger;
 
-        public ExternalApiHealthCheck(IRetroWFCApiClient apiClient, ILogger<ExternalApiHealthCheck> logger)
+        private const int HealthCheckTimeoutSeconds = 5;
+
+        public ExternalApiHealthCheck(
+            IRetroWFCApiClient apiClient,
+            ILogger<ExternalApiHealthCheck> logger)
         {
             _apiClient = apiClient;
             _logger = logger;
@@ -21,7 +25,7 @@ namespace RetroRewindWebsite.HealthChecks
             try
             {
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                cts.CancelAfter(TimeSpan.FromSeconds(5));
+                cts.CancelAfter(TimeSpan.FromSeconds(HealthCheckTimeoutSeconds));
 
                 var groups = await _apiClient.GetActiveGroupsAsync();
 
@@ -31,7 +35,7 @@ namespace RetroRewindWebsite.HealthChecks
             }
             catch (TaskCanceledException)
             {
-                return HealthCheckResult.Degraded("External API timeout (>5s)");
+                return HealthCheckResult.Degraded($"External API timeout (>{HealthCheckTimeoutSeconds}s)");
             }
             catch (Exception ex)
             {

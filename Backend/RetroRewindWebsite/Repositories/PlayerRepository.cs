@@ -10,10 +10,22 @@ namespace RetroRewindWebsite.Repositories
         private readonly LeaderboardDbContext _context;
         private readonly ILogger<PlayerRepository> _logger;
 
+        private const int BatchSize = 100;
+        private const int CleanupBatchSize = 1000;
+
         public PlayerRepository(LeaderboardDbContext context, ILogger<PlayerRepository> logger)
         {
             _context = context;
             _logger = logger;
+        }
+
+        // ===== BASIC QUERIES =====
+
+        public async Task<PlayerEntity?> GetByIdAsync(int id)
+        {
+            return await _context.Players
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == id);
         }
 
         public async Task<PlayerEntity?> GetByPidAsync(string pid)
@@ -25,30 +37,11 @@ namespace RetroRewindWebsite.Repositories
 
         public async Task<PlayerEntity?> GetByFcAsync(string fc)
         {
-            return await _context.Players
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Fc == fc || p.Fc.Replace("-", "") == fc.Replace("-", ""));
-        }
-
-        public async Task<PlayerEntity?> GetByIdAsync(int id)
-        {
-            return await _context.Players
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id == id);
-        }
-
-        public async Task<List<PlayerEntity>> GetPlayersByFriendCodesAsync(List<string> friendCodes)
-        {
-            if (friendCodes == null || friendCodes.Count == 0)
-                return [];
-
-            // Normalize friend codes (remove dashes) for comparison
-            var normalizedCodes = friendCodes.Select(fc => fc.Replace("-", "")).ToList();
+            var normalizedFc = fc.Replace("-", "");
 
             return await _context.Players
                 .AsNoTracking()
-                .Where(p => normalizedCodes.Contains(p.Fc.Replace("-", "")))
-                .ToListAsync();
+                .FirstOrDefaultAsync(p => p.Fc.Replace("-", "") == normalizedFc);
         }
 
         public async Task<List<PlayerEntity>> GetAllAsync()
@@ -59,27 +52,24 @@ namespace RetroRewindWebsite.Repositories
                 .ToListAsync();
         }
 
-        public async Task AddAsync(PlayerEntity player)
+        public async Task<List<PlayerEntity>> GetPlayersByFriendCodesAsync(List<string> friendCodes)
         {
-            await _context.Players.AddAsync(player);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task UpdateAsync(PlayerEntity player)
-        {
-            _context.Players.Update(player);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task DeleteAsync(int id)
-        {
-            var player = await _context.Players.FindAsync(id);
-            if (player != null)
+            if (friendCodes == null || friendCodes.Count == 0)
             {
-                _context.Players.Remove(player);
-                await _context.SaveChangesAsync();
+                return [];
             }
+
+            var normalizedCodes = friendCodes
+                .Select(fc => fc.Replace("-", ""))
+                .ToList();
+
+            return await _context.Players
+                .AsNoTracking()
+                .Where(p => normalizedCodes.Contains(p.Fc.Replace("-", "")))
+                .ToListAsync();
         }
+
+        // ===== LEADERBOARD QUERIES =====
 
         public async Task<PagedResult<PlayerEntity>> GetLeaderboardPageAsync(
             int page,
@@ -90,24 +80,15 @@ namespace RetroRewindWebsite.Repositories
         {
             var query = _context.Players.AsNoTracking();
 
-            // Search filter
             if (!string.IsNullOrEmpty(search))
-                query = query.Where(p =>
-                    EF.Functions.ILike(p.Name, $"%{search}%") ||
-                    EF.Functions.ILike(p.Fc, $"%{search}%"));
-
-            // Apply sorting
-            query = sortBy.ToLower() switch
             {
-                "rank" => ascending ? query.OrderBy(p => p.Rank) : query.OrderByDescending(p => p.Rank),
-                "name" => ascending ? query.OrderBy(p => p.Name) : query.OrderByDescending(p => p.Name),
-                "vr" => ascending ? query.OrderBy(p => p.Ev) : query.OrderByDescending(p => p.Ev),
-                "lastseen" => ascending ? query.OrderBy(p => p.LastSeen) : query.OrderByDescending(p => p.LastSeen),
-                "vrgain24" => ascending ? query.OrderBy(p => p.VRGainLast24Hours) : query.OrderByDescending(p => p.VRGainLast24Hours),
-                "vrgain7" => ascending ? query.OrderBy(p => p.VRGainLastWeek) : query.OrderByDescending(p => p.VRGainLastWeek),
-                "vrgain30" => ascending ? query.OrderBy(p => p.VRGainLastMonth) : query.OrderByDescending(p => p.VRGainLastMonth),
-                _ => query.OrderBy(p => p.Rank)
-            };
+                var searchTerm = $"%{search}%";
+                query = query.Where(p =>
+                    EF.Functions.ILike(p.Name, searchTerm) ||
+                    EF.Functions.ILike(p.Fc, searchTerm));
+            }
+
+            query = ApplySorting(query, sortBy, ascending);
 
             var totalCount = await query.CountAsync();
             var players = await query
@@ -134,6 +115,33 @@ namespace RetroRewindWebsite.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<PlayerEntity>> GetTopVRGainersAsync(int count, TimeSpan period)
+        {
+            var query = _context.Players.AsNoTracking();
+
+            if (period.TotalHours <= 24)
+            {
+                return await query
+                    .OrderByDescending(p => p.VRGainLast24Hours)
+                    .Take(count)
+                    .ToListAsync();
+            }
+            else if (period.TotalDays <= 7)
+            {
+                return await query
+                    .OrderByDescending(p => p.VRGainLastWeek)
+                    .Take(count)
+                    .ToListAsync();
+            }
+            else
+            {
+                return await query
+                    .OrderByDescending(p => p.VRGainLastMonth)
+                    .Take(count)
+                    .ToListAsync();
+            }
+        }
+
         public async Task<List<PlayerEntity>> GetPlayersAroundRankAsync(int rank, int window)
         {
             var startRank = Math.Max(1, rank - window);
@@ -146,6 +154,8 @@ namespace RetroRewindWebsite.Repositories
                 .ToListAsync();
         }
 
+        // ===== STATISTICS =====
+
         public async Task<int> GetTotalPlayersCountAsync()
         {
             return await _context.Players.CountAsync();
@@ -156,37 +166,55 @@ namespace RetroRewindWebsite.Repositories
             return await _context.Players.CountAsync(p => p.IsSuspicious);
         }
 
+        // ===== MODIFICATIONS =====
+
+        public async Task AddAsync(PlayerEntity player)
+        {
+            await _context.Players.AddAsync(player);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateAsync(PlayerEntity player)
+        {
+            _context.Players.Update(player);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            var player = await _context.Players.FindAsync(id);
+            if (player != null)
+            {
+                _context.Players.Remove(player);
+                await _context.SaveChangesAsync();
+            }
+        }
+
         public async Task UpdatePlayerRanksAsync()
         {
             try
             {
-                await using var transaction = await _context.Database.BeginTransactionAsync();
+                _logger.LogInformation("Updating player ranks using optimized SQL query");
 
                 await _context.Database.ExecuteSqlRawAsync(@"
                     WITH RankedPlayers AS (
                         SELECT 
                             ""Id"",
                             ROW_NUMBER() OVER (
-                                PARTITION BY ""IsSuspicious""
                                 ORDER BY 
                                     CASE WHEN ""IsSuspicious"" = false THEN 0 ELSE 1 END,
                                     ""Ev"" DESC,
                                     ""LastSeen"" DESC
-                            ) + 
-                            CASE WHEN ""IsSuspicious"" = true 
-                                THEN (SELECT COUNT(*) FROM ""Players"" WHERE ""IsSuspicious"" = false)
-                                ELSE 0 
-                            END as NewRank
+                            ) as NewRank
                         FROM ""Players""
                     )
                     UPDATE ""Players"" p
                     SET ""Rank"" = rp.NewRank
                     FROM RankedPlayers rp
                     WHERE p.""Id"" = rp.""Id""
-        ");
+                ");
 
-                await transaction.CommitAsync();
-                _logger.LogInformation("Successfully updated player ranks using SQL");
+                _logger.LogInformation("Successfully updated player ranks");
             }
             catch (Exception ex)
             {
@@ -195,20 +223,16 @@ namespace RetroRewindWebsite.Repositories
             }
         }
 
+        // ===== BATCH OPERATIONS =====
+
         public async Task<List<PlayerEntity>> GetPlayersBatchAsync(int skip, int take)
         {
             return await _context.Players
                 .AsNoTracking()
+                .OrderBy(p => p.Id)
                 .Skip(skip)
                 .Take(take)
                 .ToListAsync();
-        }
-
-        public async Task UpdatePlayersAsync(List<PlayerEntity> players)
-        {
-            _context.Players.UpdateRange(players);
-            await _context.SaveChangesAsync();
-            _context.ChangeTracker.Clear();
         }
 
         public async Task<List<string>> GetPlayerPidsBatchAsync(int skip, int take)
@@ -222,31 +246,36 @@ namespace RetroRewindWebsite.Repositories
                 .ToListAsync();
         }
 
+        public async Task UpdatePlayersAsync(List<PlayerEntity> players)
+        {
+            _context.Players.UpdateRange(players);
+            await _context.SaveChangesAsync();
+            _context.ChangeTracker.Clear();
+        }
+
         public async Task UpdatePlayerVRGainsBatchAsync(
             Dictionary<string, (int gain24h, int gain7d, int gain30d)> vrGains)
         {
+            if (vrGains == null || vrGains.Count == 0)
+            {
+                return;
+            }
+
             using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                // Create temp table
-                await _context.Database.ExecuteSqlRawAsync(@"
-                    CREATE TEMP TABLE temp_vr_gains (
-                        pid VARCHAR(50),
-                        gain24h INT,
-                        gain7d INT,
-                        gain30d INT
-            )
-        ");
+                await _context.Database.ExecuteSqlRawAsync("CREATE TEMP TABLE temp_vr_gains (pid VARCHAR(50), gain24h INT, gain7d INT, gain30d INT)");
 
-                // Bulk insert
-                var sql = "INSERT INTO temp_vr_gains (pid, gain24h, gain7d, gain30d) VALUES ";
-                var values = string.Join(", ", vrGains.Select((kvp, i) =>
-                    $"('{kvp.Key}', {kvp.Value.gain24h}, {kvp.Value.gain7d}, {kvp.Value.gain30d})"));
+                foreach (var batch in vrGains.Chunk(500))
+                {
+                    var values = string.Join(", ", batch.Select(kvp =>
+                        $"('{kvp.Key.Replace("'", "''")}', {kvp.Value.gain24h}, {kvp.Value.gain7d}, {kvp.Value.gain30d})"));
 
-                await _context.Database.ExecuteSqlRawAsync(sql + values);
+                    await _context.Database.ExecuteSqlAsync(
+                        $"INSERT INTO temp_vr_gains (pid, gain24h, gain7d, gain30d) VALUES {values}");
+                }
 
-                // Single UPDATE
                 await _context.Database.ExecuteSqlRawAsync(@"
                     UPDATE ""Players"" p
                     SET 
@@ -255,113 +284,23 @@ namespace RetroRewindWebsite.Repositories
                         ""VRGainLastMonth"" = t.gain30d
                     FROM temp_vr_gains t
                     WHERE p.""Pid"" = t.pid
-        ");
+                ");
+
+                await _context.Database.ExecuteSqlRawAsync("DROP TABLE temp_vr_gains");
 
                 await transaction.CommitAsync();
+
                 _logger.LogDebug("Successfully updated VR gains for {Count} players", vrGains.Count);
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                _logger.LogError(ex, "Failed to update VR gains batch");
+                _logger.LogError(ex, "Failed to update VR gains batch, transaction rolled back");
                 throw;
             }
         }
 
-        public async Task<bool> HasLegacySnapshotAsync()
-        {
-            return await _context.LegacyPlayers.AnyAsync();
-        }
-
-        public async Task<PagedResult<LegacyPlayerEntity>> GetLegacyLeaderboardPageAsync(
-            int page,
-            int pageSize,
-            string? search,
-            string sortBy,
-            bool ascending)
-        {
-            var query = _context.LegacyPlayers.AsNoTracking();
-
-            // Search filter
-            if (!string.IsNullOrEmpty(search))
-            {
-                query = query.Where(p =>
-                    EF.Functions.ILike(p.Name, $"%{search}%") ||
-                    EF.Functions.ILike(p.Fc, $"%{search}%"));
-            }
-
-            // Sorting
-            query = sortBy.ToLower() switch
-            {
-                "name" => ascending ? query.OrderBy(p => p.Name) : query.OrderByDescending(p => p.Name),
-                "vr" => ascending ? query.OrderBy(p => p.Ev) : query.OrderByDescending(p => p.Ev),
-                _ => ascending ? query.OrderBy(p => p.Rank) : query.OrderByDescending(p => p.Rank)
-            };
-
-            var totalCount = await query.CountAsync();
-            var players = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return new PagedResult<LegacyPlayerEntity>
-            {
-                Items = players,
-                TotalCount = totalCount,
-                CurrentPage = page,
-                PageSize = pageSize
-            };
-        }
-
-        public async Task<int> GetLegacyPlayersCountAsync()
-        {
-            return await _context.LegacyPlayers.CountAsync();
-        }
-
-        public async Task<int> GetLegacySuspiciousPlayersCountAsync()
-        {
-            return await _context.LegacyPlayers.CountAsync(p => p.IsSuspicious);
-        }
-
-        public async Task<List<LegacyPlayerEntity>> GetLegacyPlayersByFriendCodesAsync(List<string> friendCodes)
-        {
-            if (friendCodes == null || friendCodes.Count == 0)
-                return [];
-
-            var normalizedCodes = friendCodes.Select(fc => fc.Replace("-", "")).ToList();
-
-            return await _context.LegacyPlayers
-                .AsNoTracking()
-                .Where(p => normalizedCodes.Contains(p.Fc.Replace("-", "")))
-                .ToListAsync();
-        }
-
-        public async Task<LegacyPlayerEntity?> GetLegacyPlayerByFriendCodeAsync(string friendCode)
-        {
-            return await _context.LegacyPlayers
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Fc == friendCode);
-        }
-
-        public async Task<List<PlayerEntity>> GetTopVRGainersAsync(int count, TimeSpan period)
-        {
-            var query = _context.Players.AsNoTracking();
-
-            if (period.TotalHours <= 24)
-            {
-                return await query
-                    .OrderByDescending(p => p.VRGainLast24Hours)
-                    .Take(count)
-                    .ToListAsync();
-            }
-            else
-            {
-                return await query
-                    .OrderByDescending(p => p.VRGainLastWeek)
-                    .Take(count)
-                    .ToListAsync();
-            }
-        }
+        // ===== MII OPERATIONS =====
 
         public async Task<List<PlayerEntity>> GetPlayersNeedingMiiImagesAsync(int count)
         {
@@ -384,6 +323,108 @@ namespace RetroRewindWebsite.Repositories
                 .ExecuteUpdateAsync(p => p
                     .SetProperty(x => x.MiiImageBase64, miiImageBase64)
                     .SetProperty(x => x.MiiImageFetchedAt, DateTime.UtcNow));
+        }
+
+        // ===== LEGACY OPERATIONS =====
+
+        public async Task<bool> HasLegacySnapshotAsync()
+        {
+            return await _context.LegacyPlayers.AnyAsync();
+        }
+
+        public async Task<PagedResult<LegacyPlayerEntity>> GetLegacyLeaderboardPageAsync(
+            int page,
+            int pageSize,
+            string? search,
+            string sortBy,
+            bool ascending)
+        {
+            var query = _context.LegacyPlayers.AsNoTracking();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                var searchTerm = $"%{search}%";
+                query = query.Where(p =>
+                    EF.Functions.ILike(p.Name, searchTerm) ||
+                    EF.Functions.ILike(p.Fc, searchTerm));
+            }
+
+            query = sortBy.ToLower() switch
+            {
+                "name" => ascending ? query.OrderBy(p => p.Name) : query.OrderByDescending(p => p.Name),
+                "vr" => ascending ? query.OrderBy(p => p.Ev) : query.OrderByDescending(p => p.Ev),
+                _ => ascending ? query.OrderBy(p => p.Rank) : query.OrderByDescending(p => p.Rank)
+            };
+
+            var totalCount = await query.CountAsync();
+            var players = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<LegacyPlayerEntity>
+            {
+                Items = players,
+                TotalCount = totalCount,
+                CurrentPage = page,
+                PageSize = pageSize
+            };
+        }
+
+        public async Task<LegacyPlayerEntity?> GetLegacyPlayerByFriendCodeAsync(string friendCode)
+        {
+            var normalizedFc = friendCode.Replace("-", "");
+
+            return await _context.LegacyPlayers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Fc.Replace("-", "") == normalizedFc);
+        }
+
+        public async Task<List<LegacyPlayerEntity>> GetLegacyPlayersByFriendCodesAsync(List<string> friendCodes)
+        {
+            if (friendCodes == null || friendCodes.Count == 0)
+            {
+                return [];
+            }
+
+            var normalizedCodes = friendCodes
+                .Select(fc => fc.Replace("-", ""))
+                .ToList();
+
+            return await _context.LegacyPlayers
+                .AsNoTracking()
+                .Where(p => normalizedCodes.Contains(p.Fc.Replace("-", "")))
+                .ToListAsync();
+        }
+
+        public async Task<int> GetLegacyPlayersCountAsync()
+        {
+            return await _context.LegacyPlayers.CountAsync();
+        }
+
+        public async Task<int> GetLegacySuspiciousPlayersCountAsync()
+        {
+            return await _context.LegacyPlayers.CountAsync(p => p.IsSuspicious);
+        }
+
+        // ===== PRIVATE HELPER METHODS =====
+
+        private static IQueryable<PlayerEntity> ApplySorting(
+            IQueryable<PlayerEntity> query,
+            string sortBy,
+            bool ascending)
+        {
+            return sortBy.ToLower() switch
+            {
+                "rank" => ascending ? query.OrderBy(p => p.Rank) : query.OrderByDescending(p => p.Rank),
+                "name" => ascending ? query.OrderBy(p => p.Name) : query.OrderByDescending(p => p.Name),
+                "vr" => ascending ? query.OrderBy(p => p.Ev) : query.OrderByDescending(p => p.Ev),
+                "lastseen" => ascending ? query.OrderBy(p => p.LastSeen) : query.OrderByDescending(p => p.LastSeen),
+                "vrgain24" => ascending ? query.OrderBy(p => p.VRGainLast24Hours) : query.OrderByDescending(p => p.VRGainLast24Hours),
+                "vrgain7" => ascending ? query.OrderBy(p => p.VRGainLastWeek) : query.OrderByDescending(p => p.VRGainLastWeek),
+                "vrgain30" => ascending ? query.OrderBy(p => p.VRGainLastMonth) : query.OrderByDescending(p => p.VRGainLastMonth),
+                _ => query.OrderBy(p => p.Rank)
+            };
         }
     }
 }
