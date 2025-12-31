@@ -2,14 +2,54 @@ import { VRTierInfo } from "../types";
 
 export const VR_TIERS: readonly VRTierInfo[] = [
     {
+        tier: "god",
+        gradient: "from-white via-cyan-200 via-blue-300 via-purple-400 via-pink-500 via-red-500 via-orange-500 via-yellow-500 via-lime-500 to-white",
+        glow: true,
+        icon: "⭐",
+        label: "God",
+        description: "Beyond mastery.",
+        minVR: 100000,
+        maxVR: null,
+    },
+    {
+        tier: "transcendent",
+        gradient: "from-cyan-300 via-blue-400 via-purple-500 to-pink-500",
+        glow: true,
+        icon: "✨",
+        label: "Transcendent",
+        description: "Pushing beyond all known limits.",
+        minVR: 70000,
+        maxVR: 99999,
+    },
+    {
+        tier: "mythic",
+        gradient: "from-violet-400 via-purple-500 to-fuchsia-500",
+        glow: true,
+        icon: "🌟",
+        label: "Mythic",
+        description: "Legendary skill that inspires awe.",
+        minVR: 50000,
+        maxVR: 69999,
+    },
+    {
+        tier: "celestial",
+        gradient: "from-sky-400 via-indigo-500 to-violet-500",
+        glow: true,
+        icon: "🌠",
+        label: "Celestial",
+        description: "Racing with otherworldly precision.",
+        minVR: 35000,
+        maxVR: 49999,
+    },
+    {
         tier: "master",
         gradient: "from-gradient-rainbow",
         glow: true,
         icon: "💥",
         label: "Master",
-        description: "The pinnacle of racing skill — unmatched precision and dominance.",
+        description: "The pinnacle of racing skill.",
         minVR: 30000,
-        maxVR: null,
+        maxVR: 34999,
     },
     {
         tier: "legend",
@@ -17,7 +57,7 @@ export const VR_TIERS: readonly VRTierInfo[] = [
         glow: true,
         icon: "👑",
         label: "Legend",
-        description: "Among the best — dominating leaderboards and rivalries.",
+        description: "Among the best.",
         minVR: 28000,
         maxVR: 29999,
     },
@@ -87,6 +127,10 @@ export const SUSPICIOUS_TIER: VRTierInfo = {
 // VR tier styling configurations
 export const VR_TIER_STYLES = {
     BORDER_COLORS: {
+        god: "border-white",
+        transcendent: "border-cyan-200",
+        mythic: "border-purple-200",
+        celestial: "border-indigo-200",
         master: "border-purple-200",
         legend: "border-amber-200",
         elite: "border-purple-200",
@@ -97,6 +141,10 @@ export const VR_TIER_STYLES = {
         suspicious: "border-red-300",
     },
     BOLT_COLORS: {
+        god: "bg-white",
+        transcendent: "bg-cyan-200",
+        mythic: "bg-purple-200",
+        celestial: "bg-indigo-200",
         master: "bg-purple-200",
         legend: "bg-amber-200",
         elite: "bg-purple-200",
@@ -107,6 +155,10 @@ export const VR_TIER_STYLES = {
         suspicious: "bg-red-200",
     },
     TAB_COLORS: {
+        god: "bg-gradient-to-r from-cyan-200 via-purple-300 to-pink-300 border-white",
+        transcendent: "bg-cyan-300 border-cyan-400",
+        mythic: "bg-purple-300 border-purple-400",
+        celestial: "bg-indigo-300 border-indigo-400",
         master: "bg-purple-300 border-purple-400",
         legend: "bg-amber-300 border-amber-400",
         elite: "bg-purple-300 border-purple-400",
@@ -119,6 +171,10 @@ export const VR_TIER_STYLES = {
 } as const;
 
 export const ELITE_TIERS = [
+    "god",
+    "transcendent",
+    "mythic",
+    "celestial",
     "master",
     "legend",
     "elite",
@@ -127,8 +183,8 @@ export const ELITE_TIERS = [
     "rising",
 ] as const;
 
-export const GLOW_TIERS = ["master", "legend", "elite"] as const;
-export const ICON_TIERS = ["master", "legend", "elite", "suspicious"] as const;
+export const GLOW_TIERS = ["god", "transcendent", "mythic", "celestial", "master", "legend", "elite"] as const;
+export const ICON_TIERS = ["god", "transcendent", "mythic", "celestial", "master", "legend", "elite", "suspicious"] as const;
 
 export const TROPHY_RANKS = {
     FIRST: 1,

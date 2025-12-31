@@ -150,11 +150,6 @@ export default function PlayerDetailPage() {
                                             <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
                                                 {player().name}
                                             </h1>
-                                            <Show when={!player().isActive}>
-                                                <span class="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
-                                                    Inactive
-                                                </span>
-                                            </Show>
                                             <Show when={player().isSuspicious}>
                                                 <span class="bg-red-200 dark:bg-red-900 text-red-600 dark:text-red-300 px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
                                                     ⚠️ Suspicious
@@ -167,7 +162,6 @@ export default function PlayerDetailPage() {
                                             <PlayerBadges 
                                                 friendCode={player().friendCode} 
                                                 size="md"
-                                                
                                             />
                                         </div>
                                         
@@ -180,12 +174,6 @@ export default function PlayerDetailPage() {
                                                 <span class="font-medium">Last Seen:</span>{" "}
                                                 {formatLastSeen(player().lastSeen)}
                                             </p>
-                                            <Show when={player().activeRank}>
-                                                <p>
-                                                    <span class="font-medium">Active Rank:</span> #
-                                                    {player().activeRank}
-                                                </p>
-                                            </Show>
                                         </div>
                                     </div>
                                 </div>
@@ -266,16 +254,6 @@ export default function PlayerDetailPage() {
                                                 #{player().rank}
                                             </span>
                                         </div>
-                                        <Show when={player().activeRank}>
-                                            <div class="flex justify-between">
-                                                <span class="text-gray-600 dark:text-gray-400">
-                                                    Active Rank:
-                                                </span>
-                                                <span class="font-medium text-gray-900 dark:text-white">
-                                                    #{player().activeRank}
-                                                </span>
-                                            </div>
-                                        </Show>
                                         <div class="flex justify-between">
                                             <span class="text-gray-600 dark:text-gray-400">
                                                 Current VR:
@@ -313,19 +291,9 @@ export default function PlayerDetailPage() {
 
                                 <div>
                                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                                        Status
+                                        Activity
                                     </h3>
                                     <div class="space-y-2">
-                                        <div class="flex justify-between">
-                                            <span class="text-gray-600 dark:text-gray-400">
-                                                Status:
-                                            </span>
-                                            <span
-                                                class={`font-medium ${player().isActive ? "text-emerald-600 dark:text-emerald-400" : "text-gray-600 dark:text-gray-400"}`}
-                                            >
-                                                {player().isActive ? "Active" : "Inactive"}
-                                            </span>
-                                        </div>
                                         <div class="flex justify-between">
                                             <span class="text-gray-600 dark:text-gray-400">
                                                 Last Online:

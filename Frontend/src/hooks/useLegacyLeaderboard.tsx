@@ -37,7 +37,6 @@ export function useLegacyLeaderboard() {
             page: currentPage(),
             pageSize: pageSize(),
             search: search() || undefined,
-            activeOnly: false, // Not relevant for legacy
             sortBy: sortBy(),
             ascending: ascending(),
         })
@@ -89,10 +88,7 @@ export function useLegacyLeaderboard() {
         handlePageSizeChange,
         setCurrentPage,
         miiLoader,
-        activeOnly: () => false,
         timePeriod: () => "24",
-        handleActiveOnlyChange: () => {},
-        handleTimePeriodChange: () => {},
         getVRGain: () => 0,
         refreshLeaderboard: () => leaderboardQuery.refetch(),
     };

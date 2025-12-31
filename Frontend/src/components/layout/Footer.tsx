@@ -12,7 +12,7 @@ export default function Footer() {
                         </div>
                         <p class="text-gray-300 dark:text-gray-400 text-sm mb-4">
               Experience every retro track from Super Mario Kart to Mario Kart
-              7, plus tracks from Mario Kart 8, Tour, and Arcade GP.
+              7, plus tracks from Mario Kart 8, Tour, Arcade GP and Mario Kart World.
                         </p>
                         <div class="flex space-x-4">
                             <a

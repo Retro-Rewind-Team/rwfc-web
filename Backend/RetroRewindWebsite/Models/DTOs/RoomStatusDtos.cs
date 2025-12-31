@@ -19,9 +19,7 @@
         public required List<RoomPlayerDto> Players { get; set; }
         public int? AverageVR { get; set; }
         public RaceDto? Race { get; set; }
-        public bool IsSplit = false; // Broken
         public bool Suspend { get; set; }
-        public List<string> ConnectedPlayerIds { get; set; } = [];
 
         public string RoomType => GetRoomType(Rk);
         public bool IsPublic => Type == "anybody";
@@ -30,7 +28,11 @@
 
         private static string GetRoomType(string? rk)
         {
-            if (string.IsNullOrEmpty(rk)) return "Unknown Room Type";
+            if (string.IsNullOrEmpty(rk))
+            {
+                return "Unknown Room Type";
+            }
+
             return rk switch
             {
                 "vs_10" => "Retro Tracks",

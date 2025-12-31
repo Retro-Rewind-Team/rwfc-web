@@ -7,47 +7,49 @@ namespace RetroRewindWebsite.Services.Application
 {
     public class RoomStatusService : IRoomStatusService
     {
-        private readonly ISplitRoomDetector _splitRoomDetector;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<RoomStatusService> _logger;
         private readonly ConcurrentQueue<RoomStatusSnapshot> _snapshots = new();
         private readonly SemaphoreSlim _refreshLock = new(1, 1);
+
         private const int MaxSnapshots = 60;
+        private const int RefreshTimeoutSeconds = 5;
         private int _currentId = 0;
-        private readonly Lock _idLock = new();
 
         public RoomStatusService(
             IServiceScopeFactory serviceScopeFactory,
-            ILogger<RoomStatusService> logger,
-            ISplitRoomDetector splitRoomDetector)
+            ILogger<RoomStatusService> logger)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
-            _splitRoomDetector = splitRoomDetector;
         }
 
-        public async Task<RoomStatusResponseDto?> GetLatestStatusAsync()
+        // ===== QUERIES =====
+
+        public Task<RoomStatusResponseDto?> GetLatestStatusAsync()
         {
             var latest = _snapshots.LastOrDefault();
+
             if (latest == null)
             {
                 _logger.LogWarning("No snapshots available");
-                return null;
+                return Task.FromResult<RoomStatusResponseDto?>(null);
             }
 
-            return CreateResponseDto(latest);
+            return Task.FromResult<RoomStatusResponseDto?>(CreateResponseDto(latest));
         }
 
-        public async Task<RoomStatusResponseDto?> GetStatusByIdAsync(int id)
+        public Task<RoomStatusResponseDto?> GetStatusByIdAsync(int id)
         {
             var snapshot = _snapshots.FirstOrDefault(s => s.Id == id);
+
             if (snapshot == null)
             {
                 _logger.LogWarning("Snapshot with ID {Id} not found", id);
-                return null;
+                return Task.FromResult<RoomStatusResponseDto?>(null);
             }
 
-            return CreateResponseDto(snapshot);
+            return Task.FromResult<RoomStatusResponseDto?>(CreateResponseDto(snapshot));
         }
 
         public int GetMinimumId()
@@ -62,38 +64,41 @@ namespace RetroRewindWebsite.Services.Application
             return last?.Id ?? 0;
         }
 
-        public async Task<RoomStatusStatsDto> GetStatsAsync()
+        public Task<RoomStatusStatsDto> GetStatsAsync()
         {
             var latest = _snapshots.LastOrDefault();
+
             if (latest == null)
             {
-                return new RoomStatusStatsDto
+                return Task.FromResult(new RoomStatusStatsDto
                 {
                     TotalPlayers = 0,
                     TotalRooms = 0,
                     PublicRooms = 0,
                     PrivateRooms = 0,
                     LastUpdated = DateTime.UtcNow
-                };
+                });
             }
 
             var totalPlayers = latest.Rooms.Sum(r => r.Players.Count);
             var publicRooms = latest.Rooms.Count(r => r.Type == "anybody");
             var privateRooms = latest.Rooms.Count - publicRooms;
 
-            return new RoomStatusStatsDto
+            return Task.FromResult(new RoomStatusStatsDto
             {
                 TotalPlayers = totalPlayers,
                 TotalRooms = latest.Rooms.Count,
                 PublicRooms = publicRooms,
                 PrivateRooms = privateRooms,
                 LastUpdated = latest.Timestamp
-            };
+            });
         }
+
+        // ===== OPERATIONS =====
 
         public async Task RefreshRoomDataAsync()
         {
-            if (!await _refreshLock.WaitAsync(TimeSpan.FromSeconds(5)))
+            if (!await _refreshLock.WaitAsync(TimeSpan.FromSeconds(RefreshTimeoutSeconds)))
             {
                 _logger.LogWarning("Refresh already in progress, skipping");
                 return;
@@ -103,17 +108,12 @@ namespace RetroRewindWebsite.Services.Application
             {
                 _logger.LogDebug("Fetching room data from Retro WFC API");
 
-                // Create a scope to get the scoped IRetroWFCApiClient
                 using var scope = _serviceScopeFactory.CreateScope();
                 var retroWFCApiClient = scope.ServiceProvider.GetRequiredService<IRetroWFCApiClient>();
 
                 var groups = await retroWFCApiClient.GetActiveGroupsAsync();
 
-                int snapshotId;
-                lock (_idLock)
-                {
-                    snapshotId = _currentId++;
-                }
+                var snapshotId = Interlocked.Increment(ref _currentId) - 1;
 
                 var snapshot = new RoomStatusSnapshot
                 {
@@ -124,7 +124,6 @@ namespace RetroRewindWebsite.Services.Application
 
                 _snapshots.Enqueue(snapshot);
 
-                // Remove old snapshots if we exceed the limit
                 while (_snapshots.Count > MaxSnapshots)
                 {
                     _snapshots.TryDequeue(out _);
@@ -137,12 +136,7 @@ namespace RetroRewindWebsite.Services.Application
             {
                 _logger.LogError(ex, "Error refreshing room data");
 
-                // Store a null snapshot to indicate failure but maintain the timeline
-                int snapshotId;
-                lock (_idLock)
-                {
-                    snapshotId = _currentId++;
-                }
+                var snapshotId = Interlocked.Increment(ref _currentId) - 1;
 
                 var failedSnapshot = new RoomStatusSnapshot
                 {
@@ -164,12 +158,11 @@ namespace RetroRewindWebsite.Services.Application
             }
         }
 
+        // ===== PRIVATE HELPER METHODS =====
+
         private RoomStatusResponseDto CreateResponseDto(RoomStatusSnapshot snapshot)
         {
             var roomDtos = snapshot.Rooms.Select(MapToRoomDto).ToList();
-
-            // Apply split room detection
-            roomDtos = _splitRoomDetector.DetectAndSplitRooms(roomDtos);
 
             return new RoomStatusResponseDto
             {
@@ -181,11 +174,10 @@ namespace RetroRewindWebsite.Services.Application
             };
         }
 
-        private RoomDto MapToRoomDto(Group group)
+        private static RoomDto MapToRoomDto(Group group)
         {
             var players = group.Players.Values.Select(MapToRoomPlayerDto).ToList();
 
-            // Calculate average VR
             int? averageVR = null;
             if (players.Count > 0)
             {
@@ -215,7 +207,7 @@ namespace RetroRewindWebsite.Services.Application
             };
         }
 
-        private RoomPlayerDto MapToRoomPlayerDto(ExternalPlayer player)
+        private static RoomPlayerDto MapToRoomPlayerDto(ExternalPlayer player)
         {
             var connectionMap = new List<string>();
             if (!string.IsNullOrEmpty(player.Conn_map))

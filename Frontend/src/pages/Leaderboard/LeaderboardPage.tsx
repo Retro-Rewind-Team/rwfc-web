@@ -1,7 +1,7 @@
 import { createSignal, Show } from "solid-js";
 import { useLeaderboard } from "../../hooks";
 import { useLegacyLeaderboard } from "../../hooks/useLegacyLeaderboard";
-import { AlertBox, StatCard } from "../../components/common";
+import { AlertBox } from "../../components/common";
 import { LeaderboardTable } from "../../components/ui";
 
 export default function LeaderboardPage() {
@@ -27,26 +27,33 @@ export default function LeaderboardPage() {
                             worldwide
                         </p>
                     </div>
-
-                    {/* Quick Stats Cards */}
-                    <Show when={currentLeaderboard.statsQuery.data}>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                            <StatCard
-                                value={currentLeaderboard.statsQuery.data!.totalPlayers.toLocaleString()}
-                                label="Total Racers"
-                                colorScheme="blue"
-                                icon="👥"
-                            />
-                            <StatCard
-                                value={currentLeaderboard.statsQuery.data!.activePlayers.toLocaleString()}
-                                label="Active This Week"
-                                colorScheme="emerald"
-                                icon="⚡"
-                            />
-                        </div>
-                    </Show>
                 </div>
             </section>
+
+            {/* VR Multiplier Info */}
+            <div class="mb-6">
+                <AlertBox type="info" icon="⭐">
+                    <div>
+                        <div class="font-semibold mb-1">
+                            VR Multipliers Active
+                        </div>
+                        <p class="text-sm mb-2">
+                            Earn bonus VR during special events and competitive matches!
+                        </p>
+                        <ul class="text-sm space-y-1 ml-4">
+                            <li>• <span class="font-medium">2x VR</span> during special events:</li>
+                            <li class="ml-4">- St. Patrick's Day: Mar 13 - Mar 17</li>
+                            <li class="ml-4">- MKWii Birthday: Apr 10 - Apr 14</li>
+                            <li class="ml-4">- Start of Summer: Jun 5 - Jun 8</li>
+                            <li class="ml-4">- End of Summer: Aug 23 - Aug 29</li>
+                            <li class="ml-4">- Halloween: Oct 25 - Oct 31</li>
+                            <li class="ml-4">- Christmas/New Year: Dec 23 - Jan 3</li>
+                            <li>• <span class="font-medium">Up to 1.83x VR</span> in Battle Elimination with 6+ players</li>
+                            <li>• <span class="font-medium">Up to 2.83x VR</span> when both multipliers combine!</li>
+                        </ul>
+                    </div>
+                </AlertBox>
+            </div>
 
             {/* Unified Control Panel */}
             <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
@@ -135,7 +142,7 @@ export default function LeaderboardPage() {
                 </div>
 
                 {/* Filters */}
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Show when={!showLegacy()}>
                         <div>
                             <label for="time-period-select" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -169,22 +176,6 @@ export default function LeaderboardPage() {
                             <option value="50">50 players</option>
                         </select>
                     </div>
-
-                    <Show when={!showLegacy()}>
-                        <div class="flex items-end">
-                            <label class="flex items-center gap-3 cursor-pointer bg-gray-50 dark:bg-gray-700/50 px-4 py-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors w-full">
-                                <input
-                                    type="checkbox"
-                                    checked={currentLeaderboard.activeOnly()}
-                                    onChange={(e) => currentLeaderboard.handleActiveOnlyChange(e.target.checked)}
-                                    class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 w-5 h-5"
-                                />
-                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Active players only
-                                </span>
-                            </label>
-                        </div>
-                    </Show>
                 </div>
             </div>
 
@@ -225,7 +216,6 @@ export default function LeaderboardPage() {
                     <LeaderboardTable
                         players={activeLeaderboard().leaderboardQuery.data!.players}
                         showLegacy={showLegacy()}
-                        activeOnly={currentLeaderboard.activeOnly()}
                         sortBy={activeLeaderboard().sortBy()}
                         ascending={activeLeaderboard().ascending()}
                         timePeriod={currentLeaderboard.timePeriod()}

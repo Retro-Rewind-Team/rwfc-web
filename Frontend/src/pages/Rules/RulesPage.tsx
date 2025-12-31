@@ -292,6 +292,27 @@ export default function RulesPage() {
                 </p>
             </div>
 
+            {/* VR Leaderboard Flagging Section */}
+            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                    VR Leaderboard Flagging
+                </h2>
+
+                <p class="text-gray-600 dark:text-gray-300 mb-3">
+                    If a player is suspected of adding VR with external tools or getting
+                    impossible gains, they will be marked as suspicious on the VR
+                    leaderboard. Heavily abusing disconnects to gain VR or not lose VR
+                    will also be considered VR manipulation and will be flagged by staff.
+                </p>
+
+                <p class="text-gray-600 dark:text-gray-300">
+                    Leaderboard flags can be appealed through a ticket just like bans
+                    can. Flags can be lifted, on staff discretion, by either reverting
+                    the illegitimate VR gains or, especially in case of general VR
+                    manipulation, resetting the VR on the license.
+                </p>
+            </div>
+
             {/* Appealing Section */}
             <AlertBox type="info" icon="⚖️" title="Appealing">
                 <p class="mb-4">

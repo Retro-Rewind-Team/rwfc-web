@@ -6,6 +6,12 @@ namespace RetroRewindWebsite.Services.Domain
     {
         private readonly ILogger<PlayerValidationService> _logger;
 
+        private const int SuspiciousNewPlayerVR = 20000;
+        private const int HighVRThreshold = 20000;
+        private const int LargeVRJumpThreshold = 5000;
+        private const int MaxVRJumpPerRace = 529;
+        private const int SuspiciousJumpCountThreshold = 5;
+
         public PlayerValidationService(ILogger<PlayerValidationService> logger)
         {
             _logger = logger;
@@ -13,62 +19,66 @@ namespace RetroRewindWebsite.Services.Domain
 
         public bool IsSuspiciousNewPlayer(int vr)
         {
-            // Flag new players who join with VR >= 20,000
-            return vr >= 20000;
+            return vr >= SuspiciousNewPlayerVR;
         }
 
         public bool IsSuspiciousVRJump(int vrChange, int currentVR)
         {
-            // Flag large VR jumps
-            if (currentVR >= 20000 && vrChange >= 5000)
+            if (currentVR >= HighVRThreshold && vrChange >= LargeVRJumpThreshold)
+            {
                 return true;
+            }
 
-            // Flag any jump >= 200 VR (impossible in single race)
-            return vrChange >= 200;
+            if (vrChange > MaxVRJumpPerRace)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public bool ShouldFlagPlayer(PlayerEntity player, int previousVR)
         {
-            var vrJump = player.Ev - previousVR;
-
-            // Check for suspicious VR jump
-            if (IsSuspiciousVRJump(vrJump, player.Ev))
-                return true;
-
-            // Already flagged
             if (player.IsSuspicious)
+            {
                 return true;
+            }
 
-            return false;
+            var vrJump = player.Ev - previousVR;
+            return IsSuspiciousVRJump(vrJump, player.Ev);
         }
 
         public void UpdateSuspiciousStatus(PlayerEntity player, int previousVR)
         {
             var vrJump = player.Ev - previousVR;
 
-            // Check for high VR + large jump
-            if (player.Ev >= 20000 && vrJump >= 5000)
+            if (player.Ev >= HighVRThreshold && vrJump >= LargeVRJumpThreshold)
             {
                 player.IsSuspicious = true;
-                _logger.LogWarning("Player flagged for high VR jump: {Name} ({Fc}) - {OldVR} -> {NewVR}",
-                    player.Name, player.Fc, previousVR, player.Ev);
+
+                _logger.LogWarning(
+                    "Player flagged for high VR jump: {Name} ({FriendCode}) - {OldVR} -> {NewVR} (+{Jump})",
+                    player.Name, player.Fc, previousVR, player.Ev, vrJump);
+
                 return;
             }
 
-            // Check for impossible VR jump
-            if (vrJump > 475)
+            if (vrJump > MaxVRJumpPerRace)
             {
                 player.SuspiciousVRJumps++;
 
-                if (player.SuspiciousVRJumps >= 5)
+                if (player.SuspiciousVRJumps >= SuspiciousJumpCountThreshold)
                 {
                     player.IsSuspicious = true;
-                    _logger.LogWarning("Player flagged for multiple suspicious VR jumps: {Name} ({Fc}) - {JumpCount} jumps",
+
+                    _logger.LogWarning(
+                        "Player flagged for multiple suspicious VR jumps: {Name} ({FriendCode}) - {JumpCount} jumps",
                         player.Name, player.Fc, player.SuspiciousVRJumps);
                 }
                 else
                 {
-                    _logger.LogInformation("Suspicious VR jump detected: {Name} ({Fc}) - Jump: {VRJump} (Count: {JumpCount})",
+                    _logger.LogInformation(
+                        "Suspicious VR jump detected: {Name} ({FriendCode}) - Jump: {VRJump} (Count: {JumpCount})",
                         player.Name, player.Fc, vrJump, player.SuspiciousVRJumps);
                 }
             }

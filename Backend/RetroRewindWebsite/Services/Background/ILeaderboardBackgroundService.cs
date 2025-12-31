@@ -2,8 +2,9 @@
 {
     public interface ILeaderboardBackgroundService
     {
-        Task StartAsync(CancellationToken cancellationToken = default);
-        Task StopAsync(CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Manually trigger a leaderboard refresh
+        /// </summary>
         Task ForceRefreshAsync();
     }
 }

@@ -9,11 +9,16 @@ namespace RetroRewindWebsite.Repositories
         private readonly LeaderboardDbContext _context;
         private readonly ILogger<VRHistoryRepository> _logger;
 
+        private const int DefaultHistoryCount = 100;
+        private const int DefaultRecentChangesCount = 50;
+
         public VRHistoryRepository(LeaderboardDbContext context, ILogger<VRHistoryRepository> logger)
         {
             _context = context;
             _logger = logger;
         }
+
+        // ===== BASIC OPERATIONS =====
 
         public async Task AddAsync(VRHistoryEntity vrHistory)
         {
@@ -21,7 +26,21 @@ namespace RetroRewindWebsite.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<VRHistoryEntity>> GetPlayerHistoryAsync(string playerId, int count = 100)
+        // ===== QUERIES =====
+
+        public async Task<List<VRHistoryEntity>> GetPlayerHistoryAsync(
+            string playerId,
+            DateTime fromDate,
+            DateTime toDate)
+        {
+            return await _context.VRHistories
+                .AsNoTracking()
+                .Where(h => h.PlayerId == playerId && h.Date >= fromDate && h.Date <= toDate)
+                .OrderBy(h => h.Date)
+                .ToListAsync();
+        }
+
+        public async Task<List<VRHistoryEntity>> GetPlayerHistoryAsync(string playerId, int count = DefaultHistoryCount)
         {
             return await _context.VRHistories
                 .AsNoTracking()
@@ -31,14 +50,16 @@ namespace RetroRewindWebsite.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<VRHistoryEntity>> GetPlayerHistoryAsync(string playerId, DateTime fromDate, DateTime toDate)
+        public async Task<List<VRHistoryEntity>> GetRecentChangesAsync(int count = DefaultRecentChangesCount)
         {
             return await _context.VRHistories
                 .AsNoTracking()
-                .Where(h => h.PlayerId == playerId && h.Date >= fromDate && h.Date <= toDate)
-                .OrderBy(h => h.Date)
+                .OrderByDescending(h => h.Date)
+                .Take(count)
                 .ToListAsync();
         }
+
+        // ===== CALCULATIONS =====
 
         public async Task<int> CalculateVRGainAsync(string playerId, TimeSpan timeSpan)
         {
@@ -52,42 +73,27 @@ namespace RetroRewindWebsite.Repositories
             return totalGain;
         }
 
+        // ===== MAINTENANCE =====
+
         public async Task<int> CleanupOldRecordsAsync(DateTime cutoffDate)
         {
-            var totalDeleted = 0;
-            var batchSize = 1000;
-
-            while (true)
+            try
             {
-                var recordsToDelete = await _context.VRHistories
+                _logger.LogInformation("Starting cleanup of VR history records before {CutoffDate}", cutoffDate);
+
+                var deletedCount = await _context.VRHistories
                     .Where(h => h.Date < cutoffDate)
-                    .Take(batchSize)
-                    .ToListAsync();
+                    .ExecuteDeleteAsync();
 
-                if (recordsToDelete.Count == 0)
-                    break;
+                _logger.LogInformation("Cleanup completed. Deleted {Count} old VR history records", deletedCount);
 
-                _context.VRHistories.RemoveRange(recordsToDelete);
-                await _context.SaveChangesAsync();
-
-                totalDeleted += recordsToDelete.Count;
-
-                _logger.LogDebug("Deleted {Count} old VR history records", recordsToDelete.Count);
-
-                // Clear the list to help with garbage collection
-                recordsToDelete.Clear();
+                return deletedCount;
             }
-
-            return totalDeleted;
-        }
-
-        public async Task<List<VRHistoryEntity>> GetRecentChangesAsync(int count = 50)
-        {
-            return await _context.VRHistories
-                .AsNoTracking()
-                .OrderByDescending(h => h.Date)
-                .Take(count)
-                .ToListAsync();
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during VR history cleanup");
+                throw;
+            }
         }
     }
 }

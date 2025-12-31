@@ -7,7 +7,9 @@ namespace RetroRewindWebsite.Services.Background
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<RoomStatusBackgroundService> _logger;
         private readonly SemaphoreSlim _semaphore = new(1, 1);
-        private Timer? _timer;
+
+        private const int RefreshIntervalSeconds = 60;
+        private const int SemaphoreTimeoutSeconds = 30;
 
         public RoomStatusBackgroundService(
             IServiceScopeFactory serviceScopeFactory,
@@ -19,30 +21,53 @@ namespace RetroRewindWebsite.Services.Background
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Room Status Background Service starting...");
+            _logger.LogInformation("Room status background service started");
 
             // Perform initial fetch immediately
-            await DoWork();
-
-            // Start the timer for regular updates (every 60 seconds)
-            _timer = new Timer(
-                callback: async _ => await DoWork(),
-                state: null,
-                dueTime: TimeSpan.FromSeconds(60), // First scheduled update after 60s
-                period: TimeSpan.FromSeconds(60)); // Then every 60s
-
-            // Keep the service running
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                await Task.Delay(1000, stoppingToken);
+                await PerformRefreshAsync(stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Room status background service stopped during initial fetch");
+                return;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during initial room status fetch");
             }
 
-            _logger.LogInformation("Room Status Background Service stopping...");
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                try
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(RefreshIntervalSeconds), stoppingToken);
+                    await PerformRefreshAsync(stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInformation("Room status background service is stopping");
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error in room status background service");
+                }
+            }
+
+            _logger.LogInformation("Room status background service stopped");
         }
 
-        private async Task DoWork()
+        public async Task ForceRefreshAsync()
         {
-            if (!await _semaphore.WaitAsync(TimeSpan.FromSeconds(30)))
+            _logger.LogInformation("Force refresh requested");
+            await PerformRefreshAsync(CancellationToken.None);
+        }
+
+        private async Task PerformRefreshAsync(CancellationToken cancellationToken)
+        {
+            if (!await _semaphore.WaitAsync(TimeSpan.FromSeconds(SemaphoreTimeoutSeconds), cancellationToken))
             {
                 _logger.LogWarning("Previous room status refresh is still running, skipping this cycle");
                 return;
@@ -59,41 +84,14 @@ namespace RetroRewindWebsite.Services.Background
 
                 _logger.LogDebug("Scheduled room status refresh completed successfully");
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during scheduled room status refresh");
-            }
             finally
             {
                 _semaphore.Release();
             }
         }
 
-        public async Task ForceRefreshAsync()
-        {
-            _logger.LogInformation("Force refresh requested");
-            await DoWork();
-        }
-
-        public override async Task StartAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("Room Status Background Service is starting");
-            await base.StartAsync(cancellationToken);
-        }
-
-        public override async Task StopAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("Room Status Background Service is stopping");
-
-            _timer?.Change(Timeout.Infinite, 0);
-            _timer?.Dispose();
-
-            await base.StopAsync(cancellationToken);
-        }
-
         public override void Dispose()
         {
-            _timer?.Dispose();
             _semaphore?.Dispose();
             base.Dispose();
             GC.SuppressFinalize(this);

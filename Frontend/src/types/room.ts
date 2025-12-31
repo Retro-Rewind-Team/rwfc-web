@@ -32,8 +32,6 @@ export interface Room {
   isSuspended: boolean;
   isPublic: boolean;
   isJoinable: boolean;
-  isSplit: boolean;
-  connectedPlayerIds: string[];
 }
 
 export interface RoomStatusResponse {

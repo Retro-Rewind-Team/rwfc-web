@@ -38,6 +38,9 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
     };
 
     const getMaximumTierGradient = () => {
+        if (tier().tier === "god") {
+            return "from-white via-cyan-200 via-blue-300 via-purple-400 via-pink-500 via-red-500 via-orange-500 via-yellow-500 via-lime-500 to-white";
+        }
         return "from-red-500 via-yellow-500 via-green-500 via-blue-500 via-indigo-500 to-purple-500";
     };
 
@@ -46,7 +49,7 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
 
         if (isTopThree()) {
             gradient = getSpecialTopThreeGradient(props.rank);
-        } else if (tier().tier === "master") {
+        } else if (["master", "celestial", "mythic", "transcendent", "god"].includes(tier().tier)) {
             gradient = getMaximumTierGradient();
         }
 
@@ -130,7 +133,7 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
 
                 {/* Premium shine effect for top tiers */}
                 <Show
-                    when={isTopThree() || ["master", "legendary"].includes(tier().tier)}
+                    when={isTopThree() || ["master", "celestial", "mythic", "transcendent", "god"].includes(tier().tier)}
                 >
                     <div class="absolute inset-0 rounded-lg bg-gradient-to-tr from-transparent via-white/15 to-transparent pointer-events-none"></div>
                 </Show>

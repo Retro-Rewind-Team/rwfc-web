@@ -28,7 +28,7 @@ export default function HomePage() {
                         </h1>
                         <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
                             Experience every retro track from Super Mario Kart to Mario Kart 7,
-                            plus tracks from Mario Kart 8, Tour, and Arcade GP. Track your
+                            plus tracks from Mario Kart 8, Tour, Arcade GP and Mario Kart World. Track your
                             progress, compete for the fastest times, and connect with the
                             community on Retro WFC servers.
                         </p>
@@ -48,7 +48,7 @@ export default function HomePage() {
                                 colorScheme="blue"
                             />
                             <StatCard
-                                value="196"
+                                value="198"
                                 label="Retro Tracks Available"
                                 colorScheme="purple"
                             />
@@ -198,7 +198,7 @@ export default function HomePage() {
                                     <p class="text-gray-700 dark:text-gray-300">
                                         A custom track distribution by ZPL featuring every retro
                                         track from Super Mario Kart to Mario Kart 7, plus tracks
-                                        from Mario Kart 8, Tour, and Arcade GP. Built on the Pulsar
+                                        from Mario Kart 8, Tour, Arcade GP and Mario Kart World. Built on the Pulsar
                                         engine and connected to Retro WFC servers.
                                     </p>
                                 </div>

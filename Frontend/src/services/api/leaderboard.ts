@@ -24,10 +24,8 @@ export const leaderboardApi = {
         return apiRequest<LeaderboardResponse>(`/leaderboard?${searchParams}`);
     },
 
-    async getTopPlayers(count = 10, activeOnly = false): Promise<Player[]> {
-        return apiRequest<Player[]>(
-            `/leaderboard/top/${count}?activeOnly=${activeOnly}`
-        );
+    async getTopPlayers(count = 10): Promise<Player[]> {
+        return apiRequest<Player[]>(`/leaderboard/top/${count}`);
     },
 
     async getPlayer(friendCode: string): Promise<Player> {
@@ -46,7 +44,6 @@ export const leaderboardApi = {
         friendCode: string,
         days: number | null = 30
     ): Promise<VRHistoryResponse> {
-        // If days is null, don't include the parameter (for lifetime)
         const url = days === null 
             ? `/leaderboard/player/${friendCode}/history`
             : `/leaderboard/player/${friendCode}/history?days=${days}`;
@@ -186,4 +183,3 @@ export const legacyLeaderboardApi = {
         return { miis: allMiis };
     },
 };
-

@@ -27,24 +27,26 @@ export default function VRTierInfo(props: Readonly<VRTierInfoProps>) {
         if (!next) return "bg-gradient-to-r from-amber-400 to-yellow-500";
 
         switch (next.tier) {
+        case "god":
+            return "bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500";
+        case "transcendent":
+            return "bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-500";
+        case "mythic":
+            return "bg-gradient-to-r from-violet-400 via-purple-500 to-fuchsia-500";
+        case "celestial":
+            return "bg-gradient-to-r from-sky-400 via-indigo-500 to-violet-500";
         case "master":
             return "bg-gradient-to-r from-purple-500 via-blue-500 to-green-500";
-        case "legendary":
+        case "legend":
             return "bg-gradient-to-r from-amber-400 to-yellow-500";
         case "elite":
             return "bg-gradient-to-r from-purple-400 to-pink-500";
-        case "hero":
-            return "bg-gradient-to-r from-indigo-500 to-cyan-500";
         case "veteran":
+            return "bg-gradient-to-r from-indigo-500 to-cyan-500";
+        case "challenger":
             return "bg-gradient-to-r from-emerald-500 to-teal-500";
-        case "beast":
-            return "bg-gradient-to-r from-yellow-400 to-yellow-600";
-        case "expert":
-            return "bg-gradient-to-r from-orange-500 to-red-600";
-        case "advanced":
-            return "bg-gradient-to-r from-purple-500 to-purple-700";
-        case "intermediate":
-            return "bg-gradient-to-r from-blue-500 to-blue-700";
+        case "rising":
+            return "bg-gradient-to-r from-lime-400 to-green-500";
         case "beginner":
             return "bg-gradient-to-r from-gray-400 to-gray-600";
         case "suspicious":

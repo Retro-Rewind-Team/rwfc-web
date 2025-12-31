@@ -133,6 +133,9 @@ namespace RetroRewindWebsite.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("MiiImageBase64")
+                        .HasColumnType("text");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -170,9 +173,6 @@ namespace RetroRewindWebsite.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ActiveRank")
-                        .HasColumnType("integer");
-
                     b.Property<int>("Ev")
                         .HasColumnType("integer");
 
@@ -180,9 +180,6 @@ namespace RetroRewindWebsite.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsSuspicious")
                         .HasColumnType("boolean");
@@ -196,6 +193,12 @@ namespace RetroRewindWebsite.Migrations
                     b.Property<string>("MiiData")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("MiiImageBase64")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("MiiImageFetchedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -224,11 +227,7 @@ namespace RetroRewindWebsite.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ActiveRank");
-
                     b.HasIndex("Fc");
-
-                    b.HasIndex("IsActive");
 
                     b.HasIndex("IsSuspicious");
 
@@ -238,6 +237,17 @@ namespace RetroRewindWebsite.Migrations
                         .IsUnique();
 
                     b.HasIndex("Rank");
+
+                    b.HasIndex("VRGainLast24Hours");
+
+                    b.HasIndex("VRGainLastMonth");
+
+                    b.HasIndex("VRGainLastWeek");
+
+                    b.HasIndex("MiiImageFetchedAt", "MiiData")
+                        .HasFilter("\"MiiData\" IS NOT NULL AND \"MiiData\" != ''");
+
+                    b.HasIndex("IsSuspicious", "Ev", "LastSeen");
 
                     b.ToTable("Players");
                 });

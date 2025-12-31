@@ -9,7 +9,6 @@ export function useLeaderboard() {
     const [currentPage, setCurrentPage] = createSignal(1);
     const [pageSize, setPageSize] = createSignal(50);
     const [search, setSearch] = createSignal("");
-    const [activeOnly, setActiveOnly] = createSignal(false);
     const [sortBy, setSortBy] = createSignal("rank");
     const [ascending, setAscending] = createSignal(true);
     const [searchQuery, setSearchQuery] = createSignal("");
@@ -34,7 +33,6 @@ export function useLeaderboard() {
             page: currentPage(),
             pageSize: pageSize(),
             search: search() || undefined,
-            activeOnly: activeOnly(),
             sortBy: sortBy(),
             ascending: ascending(),
             timePeriod: timePeriod(),
@@ -75,11 +73,6 @@ export function useLeaderboard() {
                 setAscending(true);
             }
         }
-        setCurrentPage(1);
-    };
-
-    const handleActiveOnlyChange = (checked: boolean) => {
-        setActiveOnly(checked);
         setCurrentPage(1);
     };
 
@@ -130,7 +123,6 @@ export function useLeaderboard() {
         currentPage,
         pageSize,
         search,
-        activeOnly,
         sortBy,
         ascending,
         searchQuery,
@@ -143,7 +135,6 @@ export function useLeaderboard() {
         // Handlers
         handleSearchInput,
         handleSort,
-        handleActiveOnlyChange,
         handleTimePeriodChange,
         handlePageSizeChange,
         getVRGain,
