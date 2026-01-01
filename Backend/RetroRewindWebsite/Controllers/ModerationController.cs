@@ -363,7 +363,16 @@ namespace RetroRewindWebsite.Controllers
                 await _timeTrialRepository.AddGhostSubmissionAsync(submission);
 
                 // Update profile stats
-                ttProfile.TotalSubmissions++;
+                int totalSubmissions = await _timeTrialRepository.GetProfileSubmissionsCountAsync(ttProfile.Id);
+                if (totalSubmissions > 0)
+                    {
+                    ttProfile.TotalSubmissions = totalSubmissions;
+                }
+                else
+                {
+                    ttProfile.TotalSubmissions = 1;
+                }
+
                 await _timeTrialRepository.UpdateTTProfileAsync(ttProfile);
 
                 _logger.LogInformation(
@@ -426,12 +435,27 @@ namespace RetroRewindWebsite.Controllers
                 if (submission == null)
                     return NotFound(new { error = $"Submission {id} not found" });
 
+                // Update profile stats
+                var ttProfile = await _timeTrialRepository.GetTTProfileByIdAsync(submission.TTProfileId);
+                if (ttProfile == null)
+                    {
+                    _logger.LogWarning("TT Profile {ProfileId} not found when deleting submission {SubmissionId}",
+                        submission.TTProfileId, id);
+                }
+                else
+                {
+                    int totalSubmissions = await _timeTrialRepository.GetProfileSubmissionsCountAsync(ttProfile.Id);
+                    ttProfile.TotalSubmissions = Math.Max(0, totalSubmissions - 1);
+                    await _timeTrialRepository.UpdateTTProfileAsync(ttProfile);
+                }
+
                 if (System.IO.File.Exists(submission.GhostFilePath))
                 {
                     System.IO.File.Delete(submission.GhostFilePath);
                 }
 
                 await _timeTrialRepository.DeleteGhostSubmissionAsync(id);
+
 
                 _logger.LogInformation("Ghost submission {SubmissionId} deleted", id);
 

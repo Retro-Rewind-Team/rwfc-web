@@ -28,8 +28,8 @@ namespace RetroRewindWebsite.Repositories
         {
             return await _context.Tracks
                 .AsNoTracking()
-                .OrderBy(t => t.Category)
-                .ThenBy(t => t.Name)
+                .OrderBy(t => t.Id)
+                .ThenBy(t => t.Category)
                 .ToListAsync();
         }
 
@@ -223,7 +223,7 @@ namespace RetroRewindWebsite.Repositories
                 .Include(g => g.Track)
                 .Include(g => g.TTProfile)
                 .Where(g => g.TrackId == trackId && g.CC == cc)
-                .OrderBy(g => g.SubmittedAt)
+                .OrderBy(g => g.DateSet)
                 .ToListAsync();
 
             var wrHistory = new List<GhostSubmissionEntity>();

@@ -1,8 +1,8 @@
 import { createSignal, Show } from "solid-js";
-import { yaz0Compress, yaz0CompressLiteralOnly, yaz0Decompress } from "../../../utils/yaz0";
-import { replaceBrfntInU8 } from "../../../utils/u8Parser";
-import { validateBrfnt, validateFileName, validateFontSzs } from "../../../utils/fileValidator";
-import { AlertBox } from "../../../components/common";
+import { yaz0Compress, yaz0CompressLiteralOnly, yaz0Decompress } from "../../utils/yaz0";
+import { replaceBrfntInU8 } from "../../utils/u8Parser";
+import { validateBrfnt, validateFileName, validateFontSzs } from "../../utils/fileValidator";
+import { AlertBox } from "../../components/common";
 
 export default function FontPatcherPage() {
     const [fontFile, setFontFile] = createSignal<File | null>(null);

@@ -40,7 +40,7 @@ export default function TTPlayerProfilePage() {
                     <div class="flex justify-center items-center py-12">
                         <LoadingSpinner />
                         <p class="ml-4 text-gray-600 dark:text-gray-300">
-              Loading player profile...
+                            Loading player profile...
                         </p>
                     </div>
                 </div>
@@ -52,16 +52,13 @@ export default function TTPlayerProfilePage() {
                     <div class="text-center space-y-4">
                         <div class="text-6xl">❌</div>
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-              Player Not Found
+                            Player Not Found
                         </h2>
                         <p class="text-gray-600 dark:text-gray-400">
-              No Time Trial profile found for Discord user:{" "}
-                            <code class="font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                                {params.discordUserId}
-                            </code>
+                            No Time Trial profile found for this player.
                         </p>
                         <p class="text-sm text-gray-500 dark:text-gray-500">
-              This player hasn't submitted any times yet.
+                            This player hasn't submitted any times yet.
                         </p>
                         <div class="pt-4">
                             <A
@@ -81,7 +78,7 @@ export default function TTPlayerProfilePage() {
                                         d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                                     />
                                 </svg>
-                Browse Leaderboards
+                                Browse Leaderboards
                             </A>
                         </div>
                     </div>
@@ -94,17 +91,17 @@ export default function TTPlayerProfilePage() {
                     <div class="text-center space-y-4">
                         <div class="text-6xl">⚠️</div>
                         <h2 class="text-2xl font-bold text-red-900 dark:text-red-100">
-              Error Loading Profile
+                            Error Loading Profile
                         </h2>
                         <p class="text-red-600 dark:text-red-400">
-              An error occurred while loading player profile.
+                            An error occurred while loading player profile.
                         </p>
                         <div class="pt-4">
                             <button
                                 onClick={() => ttPlayer.refreshAll()}
                                 class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
                             >
-                Try Again
+                                Try Again
                             </button>
                         </div>
                     </div>
@@ -116,34 +113,42 @@ export default function TTPlayerProfilePage() {
                 {(profile) => (
                     <div class="space-y-6">
                         {/* Player Header Card */}
-                        <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg border-2 border-blue-400 p-8 text-white shadow-xl">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
                             <div class="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
                                 <div class="flex items-center space-x-6">
-                                    <div class="bg-white/20 backdrop-blur-sm rounded-full p-6">
-                                        <svg class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                                        </svg>
+                                    {/* Player Image Placeholder - ready for future image */}
+                                    <div class="flex-shrink-0">
+                                        <div class="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                            <svg class="w-14 h-14 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                            </svg>
+                                            {/* Future: Replace with <img src={profile().imageUrl} /> */}
+                                        </div>
                                     </div>
-                                    <div class="flex items-center gap-3 mb-2">
-                                        <h1 class="text-4xl font-black text-white drop-shadow-md">
-                                            {profile().displayName}
-                                        </h1>
-                                        <CountryFlag
-                                            countryAlpha2={profile().countryAlpha2}
-                                            countryName={profile().countryName}
-                                            size="lg"
-                                        />
+                                    
+                                    <div>
+                                        <div class="flex items-center gap-3 mb-2">
+                                            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+                                                {profile().displayName}
+                                            </h1>
+                                            <CountryFlag
+                                                countryAlpha2={profile().countryAlpha2}
+                                                countryName={profile().countryName}
+                                                size="lg"
+                                            />
+                                        </div>
+                                        <div class="text-gray-600 dark:text-gray-300">
+                                            Time Trial Profile
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div class="text-center">
-                                    <div class="bg-white/20 backdrop-blur-sm rounded-lg p-4">
-                                        <div class="text-5xl font-black mb-1">
-                                            {ttPlayer.worldRecordsHeld()}
-                                        </div>
-                                        <div class="text-sm font-semibold uppercase tracking-wide opacity-90">
-                      World Records
-                                        </div>
+                                    <div class="text-5xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+                                        {ttPlayer.worldRecordsHeld()}
+                                    </div>
+                                    <div class="text-sm font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400">
+                                        World Records
                                     </div>
                                 </div>
                             </div>
@@ -152,7 +157,7 @@ export default function TTPlayerProfilePage() {
                         {/* Stats Grid */}
                         <Show when={ttPlayer.statsQuery.data}>
                             {(stats) => (
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <TTPlayerStatsCard
                                         value={stats().profile.totalSubmissions}
                                         label="Total Submissions"
@@ -171,64 +176,23 @@ export default function TTPlayerProfilePage() {
                                         icon="🏆"
                                         colorScheme="amber"
                                     />
-                                    <TTPlayerStatsCard
-                                        value={stats().averageFinishPosition.toFixed(1)}
-                                        label="Avg Position"
-                                        icon="📊"
-                                        colorScheme="purple"
-                                        subtitle="Across all tracks"
-                                    />
-                                </div>
-                            )}
-                        </Show>
-
-                        {/* Track Coverage */}
-                        <Show when={ttPlayer.statsQuery.data}>
-                            {(stats) => (
-                                <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
-                                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                    🎮 Track Coverage
-                                    </h2>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border-2 border-green-200 dark:border-green-800">
-                                            <div class="flex items-center justify-between">
-                                                <div>
-                                                    <div class="text-3xl font-bold text-green-600 dark:text-green-400">
-                                                        {stats().tracks150cc}
-                                                    </div>
-                                                    <div class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            150cc Tracks
-                                                    </div>
-                                                </div>
-                                                <div class="text-4xl">🟢</div>
-                                            </div>
-                                        </div>
-
-                                        <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border-2 border-red-200 dark:border-red-800">
-                                            <div class="flex items-center justify-between">
-                                                <div>
-                                                    <div class="text-3xl font-bold text-red-600 dark:text-red-400">
-                                                        {stats().tracks200cc}
-                                                    </div>
-                                                    <div class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            200cc Tracks
-                                                    </div>
-                                                </div>
-                                                <div class="text-4xl">🔴</div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             )}
                         </Show>
 
                         {/* Filters */}
                         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
-                            <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+                            <div class="flex items-center mb-4">
+                                <span class="text-2xl mr-3">🔍</span>
+                                <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                                    Filter Submissions
+                                </h2>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {/* CC Filter */}
-                                <div class="flex-1">
+                                <div>
                                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Filter by CC
+                                        Filter by CC
                                     </label>
                                     <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
                                         <button
@@ -239,7 +203,7 @@ export default function TTPlayerProfilePage() {
                                                     : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                                             }`}
                                         >
-                      All
+                                            All
                                         </button>
                                         <button
                                             onClick={() => ttPlayer.handleCCChange(150)}
@@ -249,25 +213,25 @@ export default function TTPlayerProfilePage() {
                                                     : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                                             }`}
                                         >
-                      150cc
+                                            150cc
                                         </button>
                                         <button
                                             onClick={() => ttPlayer.handleCCChange(200)}
                                             class={`flex-1 px-4 py-2 rounded-md font-medium transition-all text-sm ${
                                                 ttPlayer.selectedCC() === 200
-                                                    ? "bg-red-600 text-white shadow-sm"
+                                                    ? "bg-sky-600 text-white shadow-sm"
                                                     : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                                             }`}
                                         >
-                      200cc
+                                            200cc
                                         </button>
                                     </div>
                                 </div>
 
                                 {/* Search */}
-                                <div class="flex-1">
+                                <div>
                                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Search Tracks
+                                        Search Tracks
                                     </label>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -289,9 +253,9 @@ export default function TTPlayerProfilePage() {
 
                         {/* Submissions Table */}
                         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
-                            <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
+                            <div class="bg-blue-600 px-6 py-4">
                                 <h2 class="text-2xl font-bold text-white">
-                  All Submissions
+                                    All Submissions
                                 </h2>
                                 <p class="text-blue-100 text-sm">
                                     {ttPlayer.filteredSubmissions().length} submission{ttPlayer.filteredSubmissions().length !== 1 ? "s" : ""}
@@ -302,7 +266,7 @@ export default function TTPlayerProfilePage() {
                                 <div class="p-12 text-center">
                                     <LoadingSpinner />
                                     <p class="mt-4 text-gray-600 dark:text-gray-400">
-                    Loading submissions...
+                                        Loading submissions...
                                     </p>
                                 </div>
                             </Show>
@@ -314,17 +278,17 @@ export default function TTPlayerProfilePage() {
                                         <div class="p-12 text-center">
                                             <div class="text-6xl mb-4">🏁</div>
                                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                        No Submissions Found
+                                                No Submissions Found
                                             </h3>
                                             <p class="text-gray-600 dark:text-gray-400">
-                        Try adjusting your filters
+                                                Try adjusting your filters
                                             </p>
                                         </div>
                                     }
                                 >
                                     <TTPlayerSubmissionsTable
                                         submissions={ttPlayer.filteredSubmissions()}
-                                        onDownloadGhost={ttPlayer.handleDownloadGhost}
+                                        onDownloadGhost={(submission) => ttPlayer.handleDownloadGhost(submission.id)}
                                     />
                                 </Show>
                             </Show>

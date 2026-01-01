@@ -7,16 +7,18 @@ import {
     FontPatcherPage,
     HomePage,
     LeaderboardPage,
+    LeaderboardPlayerDetailPage,
     NotFoundPage,
-    PlayerDetailPage,
     // RankCalculatorPage,
     RatingEditorPage,
-    RoomStatusPage, RulesPage, 
+    RoomStatusPage, 
+    RulesPage, 
     TeamPage, 
     ToolsPage,
     TracksPage,
     TTLeaderboardPage,
     TTPlayerProfilePage,
+    TTTrackDetailPage, 
 } from "./pages";
 
 const queryClient = new QueryClient({
@@ -47,13 +49,19 @@ function App() {
                     {/* VR Leaderboard Routes */}
                     <Route path="/vr" component={LeaderboardPage} />
                     <Route path="/leaderboard" component={LeaderboardPage} />
-                    <Route path="/vr/player/:friendCode" component={PlayerDetailPage} />
-                    <Route path="/player/:friendCode" component={PlayerDetailPage} />
+                    <Route path="/vr/player/:friendCode" component={LeaderboardPlayerDetailPage} />
+                    <Route path="/player/:friendCode" component={LeaderboardPlayerDetailPage} />
 
                     {/* Time Trial Routes */}
                     <Route path="/tt-leaderboard" component={TTLeaderboardPage} />
                     <Route path="/tt" component={TTLeaderboardPage} />
                     <Route path="/timetrial" component={TTLeaderboardPage} />
+                    
+                    {/* Individual Track Pages */}
+                    <Route path="/timetrial/:cc/:trackId" component={TTTrackDetailPage} />
+                    <Route path="/tt/:cc/:trackId" component={TTTrackDetailPage} />
+                    
+                    {/* TT Player Profile */}
                     <Route path="/tt/player/:ttProfileId" component={TTPlayerProfilePage} />
                     <Route path="/timetrial/player/:ttProfileId" component={TTPlayerProfilePage} />
 
