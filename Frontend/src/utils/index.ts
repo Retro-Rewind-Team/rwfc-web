@@ -11,3 +11,4 @@ export * from "./rankCalculator";
 export * from "./u8Parser";
 export * from "./yaz0";
 export * from "./fileValidator";
+export * from "./countryUtils";

@@ -1,1 +1,0 @@
-export { default as FontPatcherPage } from "./FontPatcherPage";

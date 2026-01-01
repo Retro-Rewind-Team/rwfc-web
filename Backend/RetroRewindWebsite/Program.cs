@@ -12,6 +12,7 @@ using Serilog;
 using System.Text.Json;
 using System.Threading.RateLimiting;
 
+// Disable IPv6 to prevent connectivity issues with external Mii image API
 AppContext.SetSwitch("System.Net.DisableIPv6", true);
 
 var builder = WebApplication.CreateBuilder(args);
@@ -47,51 +48,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-// ===== RATE LIMITING =====
-builder.Services.AddRateLimiter(options =>
-{
-    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
-        httpContext => RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: partition => new FixedWindowRateLimiterOptions
-            {
-                AutoReplenishment = true,
-                PermitLimit = 300,
-                Window = TimeSpan.FromMinutes(1)
-            }));
-
-    options.OnRejected = async (context, token) =>
-    {
-        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-
-        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
-        {
-            context.HttpContext.Response.Headers.RetryAfter = retryAfter.TotalSeconds.ToString();
-        }
-
-        await context.HttpContext.Response.WriteAsync(
-            "Rate limit exceeded. Please try again later.", token);
-    };
-});
-
-// ===== HEALTH CHECKS =====
-builder.Services.AddHealthChecks()
-    .AddDbContextCheck<LeaderboardDbContext>()
-    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!)
-    .AddCheck<ExternalApiHealthCheck>("retro-wfc-api")
-    .AddCheck("memory", () =>
-    {
-        var memoryUsed = GC.GetTotalMemory(forceFullCollection: false);
-        const long memoryLimitBytes = 500L * 1024 * 1024; // 500MB
-
-        return memoryUsed < memoryLimitBytes
-            ? HealthCheckResult.Healthy($"Memory usage: {memoryUsed / 1024 / 1024}MB")
-            : HealthCheckResult.Unhealthy($"High memory usage: {memoryUsed / 1024 / 1024}MB");
-    });
-
-// ===== CONTROLLERS =====
-builder.Services.AddControllers();
-
 // ===== DATABASE =====
 var connectionString = builder.Environment.IsDevelopment()
     ? builder.Configuration.GetConnectionString("DefaultConnection")
@@ -107,12 +63,19 @@ if (string.IsNullOrEmpty(connectionString))
 builder.Services.AddDbContext<LeaderboardDbContext>(options =>
     options.UseNpgsql(connectionString));
 
+// ===== CACHING =====
+builder.Services.AddMemoryCache(options =>
+{
+    options.SizeLimit = 1000;
+});
+
 // ===== HTTP CLIENT =====
 builder.Services.AddHttpClient();
 
 // ===== REPOSITORIES =====
 builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
 builder.Services.AddScoped<IVRHistoryRepository, VRHistoryRepository>();
+builder.Services.AddScoped<ITimeTrialRepository, TimeTrialRepository>();
 
 // ===== EXTERNAL SERVICES =====
 builder.Services.AddScoped<IRetroWFCApiClient, RetroWFCApiClient>();
@@ -121,16 +84,11 @@ builder.Services.AddScoped<IRetroWFCApiClient, RetroWFCApiClient>();
 builder.Services.AddScoped<IPlayerValidationService, PlayerValidationService>();
 builder.Services.AddScoped<IMaintenanceService, MaintenanceService>();
 builder.Services.AddScoped<IMiiService, MiiService>();
+builder.Services.AddScoped<IGhostFileService, GhostFileService>();
 
 // ===== APPLICATION SERVICES =====
 builder.Services.AddScoped<ILeaderboardManager, LeaderboardManager>();
 builder.Services.AddSingleton<IRoomStatusService, RoomStatusService>();
-
-// ===== CACHING =====
-builder.Services.AddMemoryCache(options =>
-{
-    options.SizeLimit = 1000;
-});
 
 // ===== BACKGROUND SERVICES =====
 builder.Services.AddSingleton<ILeaderboardBackgroundService, LeaderboardBackgroundService>();
@@ -145,8 +103,94 @@ builder.Services.AddSingleton<IRoomStatusBackgroundService, RoomStatusBackground
 builder.Services.AddHostedService<RoomStatusBackgroundService>(sp =>
     (RoomStatusBackgroundService)sp.GetRequiredService<IRoomStatusBackgroundService>());
 
-// ===== HEALTH CHECK IMPLEMENTATIONS =====
+// ===== HEALTH CHECKS =====
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<LeaderboardDbContext>()
+    .AddNpgSql(connectionString)
+    .AddCheck<ExternalApiHealthCheck>("retro-wfc-api")
+    .AddCheck("memory", () =>
+    {
+        var memoryUsed = GC.GetTotalMemory(forceFullCollection: false);
+        const long memoryLimitBytes = 500L * 1024 * 1024; // 500MB
+
+        return memoryUsed < memoryLimitBytes
+            ? HealthCheckResult.Healthy($"Memory usage: {memoryUsed / 1024 / 1024}MB")
+            : HealthCheckResult.Unhealthy($"High memory usage: {memoryUsed / 1024 / 1024}MB");
+    });
+
 builder.Services.AddScoped<IHealthCheck, ExternalApiHealthCheck>();
+
+// ===== RATE LIMITING =====
+builder.Services.AddRateLimiter(options =>
+{
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
+        httpContext => RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 300,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+
+    // Specific policies for different endpoints
+    options.AddPolicy("SearchPolicy", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 50,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+
+    options.AddPolicy("RefreshPolicy", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+
+    options.AddPolicy("DownloadPolicy", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 3,
+                Window = TimeSpan.FromMinutes(5)
+            }));
+
+    options.AddPolicy("GhostDownloadPolicy", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(5)
+            }));
+
+    // Configure rejection behavior when rate limit is exceeded
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
+            context.HttpContext.Response.Headers.RetryAfter = retryAfter.TotalSeconds.ToString();
+        }
+
+        await context.HttpContext.Response.WriteAsync(
+            "Rate limit exceeded. Please try again later.", token);
+    };
+});
+
+// ===== CONTROLLERS =====
+builder.Services.AddControllers();
 
 // ===== SWAGGER / OPENAPI =====
 builder.Services.AddEndpointsApiExplorer();

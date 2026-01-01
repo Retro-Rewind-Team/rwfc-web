@@ -1,9 +1,9 @@
 import { createMemo, createSignal, For, Show } from "solid-js";
-import { parseRksysFile } from "../../../utils/rksysParser";
-import { parseRatingFile } from "../../../utils/ratingParser";
-import { calculateNeededStats, computeContributions, computeScore } from "../../../utils/rankCalculator";
-import type { RksysLicense } from "../../../types/tools";
-import { AlertBox } from "../../../components/common";
+import { parseRksysFile } from "../../utils/rksysParser";
+import { parseRatingFile } from "../../utils/ratingParser";
+import { calculateNeededStats, computeContributions, computeScore } from "../../utils/rankCalculator";
+import type { RksysLicense } from "../../types/tools";
+import { AlertBox } from "../../components/common";
 
 const RANK_ICONS = [
     null,

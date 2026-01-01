@@ -1,10 +1,10 @@
 import { createEffect, createMemo, createResource, createSignal, For, Show } from "solid-js";
-import { buildRatingFile, parseRatingFile } from "../../../utils/ratingParser";
-import { pidToFriendCode } from "../../../utils/friendCodeUtils";
-import type { RatingEntry, RatingFile } from "../../../types/tools";
-import { AlertBox } from "../../../components/common";
-import { leaderboardApi } from "../../../services/api/leaderboard";
-import { validateFileName, validateRatingFile } from "../../../utils/fileValidator";
+import { buildRatingFile, parseRatingFile } from "../../utils/ratingParser";
+import { pidToFriendCode } from "../../utils/friendCodeUtils";
+import type { RatingEntry, RatingFile } from "../../types/tools";
+import { AlertBox } from "../../components/common";
+import { leaderboardApi } from "../../services/api/leaderboard";
+import { validateFileName, validateRatingFile } from "../../utils/fileValidator";
 
 export default function RatingEditorPage() {
     const [ratingFile, setRatingFile] = createSignal<RatingFile | null>(null);

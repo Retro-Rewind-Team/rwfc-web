@@ -10,9 +10,6 @@ namespace RetroRewindWebsite.Repositories
         private readonly LeaderboardDbContext _context;
         private readonly ILogger<PlayerRepository> _logger;
 
-        private const int BatchSize = 100;
-        private const int CleanupBatchSize = 1000;
-
         public PlayerRepository(LeaderboardDbContext context, ILogger<PlayerRepository> logger)
         {
             _context = context;

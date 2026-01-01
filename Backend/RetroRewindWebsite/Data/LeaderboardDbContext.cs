@@ -9,9 +9,16 @@ namespace RetroRewindWebsite.Data
         {
         }
 
+        // ===== DB SETS =====
+
         public DbSet<PlayerEntity> Players { get; set; }
         public DbSet<VRHistoryEntity> VRHistories { get; set; }
         public DbSet<LegacyPlayerEntity> LegacyPlayers { get; set; }
+        public DbSet<TrackEntity> Tracks { get; set; }
+        public DbSet<TTProfileEntity> TTProfiles { get; set; }
+        public DbSet<GhostSubmissionEntity> GhostSubmissions { get; set; }
+
+        // ===== MODEL CONFIGURATION =====
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -20,7 +27,12 @@ namespace RetroRewindWebsite.Data
             ConfigurePlayerEntity(modelBuilder);
             ConfigureLegacyPlayerEntity(modelBuilder);
             ConfigureVRHistoryEntity(modelBuilder);
+            ConfigureTrackEntity(modelBuilder);
+            ConfigureTTProfileEntity(modelBuilder);
+            ConfigureGhostSubmissionEntity(modelBuilder);
         }
+
+        // ===== PLAYER CONFIGURATION =====
 
         private static void ConfigurePlayerEntity(ModelBuilder modelBuilder)
         {
@@ -50,6 +62,8 @@ namespace RetroRewindWebsite.Data
             });
         }
 
+        // ===== LEGACY PLAYER CONFIGURATION =====
+
         private static void ConfigureLegacyPlayerEntity(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<LegacyPlayerEntity>(entity =>
@@ -66,6 +80,8 @@ namespace RetroRewindWebsite.Data
                 entity.Property(e => e.Pid).HasMaxLength(50);
             });
         }
+
+        // ===== VR HISTORY CONFIGURATION =====
 
         private static void ConfigureVRHistoryEntity(ModelBuilder modelBuilder)
         {
@@ -86,6 +102,80 @@ namespace RetroRewindWebsite.Data
                       .HasForeignKey(vh => vh.PlayerId)
                       .HasPrincipalKey(p => p.Pid)
                       .OnDelete(DeleteBehavior.SetNull);
+            });
+        }
+
+        // ===== TRACK CONFIGURATION =====
+
+        private static void ConfigureTrackEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<TrackEntity>(entity =>
+            {
+                // Indexes
+                entity.HasIndex(e => e.CourseId);
+                entity.HasIndex(e => e.Category);
+                entity.HasIndex(e => e.TrackSlot);
+
+                // String length constraints
+                entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.TrackSlot).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.Category).HasMaxLength(10).IsRequired();
+            });
+        }
+
+        // ===== TT PROFILE CONFIGURATION =====
+
+        private static void ConfigureTTProfileEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<TTProfileEntity>(entity =>
+            {
+                // Indexes
+                entity.HasIndex(e => e.DisplayName).IsUnique();
+
+                // String length constraints
+                entity.Property(e => e.DisplayName).HasMaxLength(50).IsRequired();
+            });
+        }
+
+        // ===== GHOST SUBMISSION CONFIGURATION =====
+
+        private static void ConfigureGhostSubmissionEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<GhostSubmissionEntity>(entity =>
+            {
+                // Single column indexes
+                entity.HasIndex(e => e.TrackId);
+                entity.HasIndex(e => e.TTProfileId);
+                entity.HasIndex(e => e.SubmittedAt);
+
+                // Composite indexes for common queries
+                entity.HasIndex(e => new { e.TrackId, e.CC });
+                entity.HasIndex(e => new { e.TrackId, e.CC, e.FinishTimeMs });
+
+                // Performance indexes for leaderboard queries
+                entity.HasIndex(e => new { e.TrackId, e.CC, e.FinishTimeMs, e.SubmittedAt });
+
+                // Performance indexes for world record history
+                entity.HasIndex(e => new { e.TrackId, e.CC, e.DateSet });
+
+                // String length constraints
+                entity.Property(e => e.FinishTimeDisplay).HasMaxLength(20).IsRequired();
+                entity.Property(e => e.MiiName).HasMaxLength(10).IsRequired();
+                entity.Property(e => e.GhostFilePath).HasMaxLength(255).IsRequired();
+
+                // JSON column
+                entity.Property(e => e.LapSplitsMs).HasColumnType("jsonb").IsRequired();
+
+                // Relationships
+                entity.HasOne(g => g.Track)
+                      .WithMany(t => t.GhostSubmissions)
+                      .HasForeignKey(g => g.TrackId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(g => g.TTProfile)
+                      .WithMany(p => p.GhostSubmissions)
+                      .HasForeignKey(g => g.TTProfileId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

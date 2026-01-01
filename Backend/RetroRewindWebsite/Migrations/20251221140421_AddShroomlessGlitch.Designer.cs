@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RetroRewindWebsite.Data;
@@ -11,9 +12,11 @@ using RetroRewindWebsite.Data;
 namespace RetroRewindWebsite.Migrations
 {
     [DbContext(typeof(LeaderboardDbContext))]
-    partial class LeaderboardDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251221140421_AddShroomlessGlitch")]
+    partial class AddShroomlessGlitch
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -79,6 +82,11 @@ namespace RetroRewindWebsite.Migrations
                     b.Property<DateTime>("SubmittedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("SubmittedByDiscordId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<int>("TTProfileId")
                         .HasColumnType("integer");
 
@@ -92,17 +100,15 @@ namespace RetroRewindWebsite.Migrations
 
                     b.HasIndex("SubmittedAt");
 
+                    b.HasIndex("SubmittedByDiscordId");
+
                     b.HasIndex("TTProfileId");
 
                     b.HasIndex("TrackId");
 
                     b.HasIndex("TrackId", "CC");
 
-                    b.HasIndex("TrackId", "CC", "DateSet");
-
                     b.HasIndex("TrackId", "CC", "FinishTimeMs");
-
-                    b.HasIndex("TrackId", "CC", "FinishTimeMs", "SubmittedAt");
 
                     b.ToTable("GhostSubmissions");
                 });
@@ -128,9 +134,6 @@ namespace RetroRewindWebsite.Migrations
 
                     b.Property<string>("MiiData")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("MiiImageBase64")
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
@@ -170,6 +173,9 @@ namespace RetroRewindWebsite.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("ActiveRank")
+                        .HasColumnType("integer");
+
                     b.Property<int>("Ev")
                         .HasColumnType("integer");
 
@@ -177,6 +183,9 @@ namespace RetroRewindWebsite.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsSuspicious")
                         .HasColumnType("boolean");
@@ -190,12 +199,6 @@ namespace RetroRewindWebsite.Migrations
                     b.Property<string>("MiiData")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<string>("MiiImageBase64")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("MiiImageFetchedAt")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -224,7 +227,11 @@ namespace RetroRewindWebsite.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ActiveRank");
+
                     b.HasIndex("Fc");
+
+                    b.HasIndex("IsActive");
 
                     b.HasIndex("IsSuspicious");
 
@@ -234,17 +241,6 @@ namespace RetroRewindWebsite.Migrations
                         .IsUnique();
 
                     b.HasIndex("Rank");
-
-                    b.HasIndex("VRGainLast24Hours");
-
-                    b.HasIndex("VRGainLastMonth");
-
-                    b.HasIndex("VRGainLastWeek");
-
-                    b.HasIndex("MiiImageFetchedAt", "MiiData")
-                        .HasFilter("\"MiiData\" IS NOT NULL AND \"MiiData\" != ''");
-
-                    b.HasIndex("IsSuspicious", "Ev", "LastSeen");
 
                     b.ToTable("Players");
                 });
@@ -266,6 +262,11 @@ namespace RetroRewindWebsite.Migrations
                     b.Property<int>("CurrentWorldRecords")
                         .HasColumnType("integer");
 
+                    b.Property<string>("DiscordUserId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -279,7 +280,7 @@ namespace RetroRewindWebsite.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DisplayName")
+                    b.HasIndex("DiscordUserId")
                         .IsUnique();
 
                     b.ToTable("TTProfiles");

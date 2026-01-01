@@ -31,6 +31,10 @@ namespace RetroRewindWebsite.Controllers
 
         // ===== ROOM STATUS ENDPOINTS =====
 
+        /// <summary>
+        /// Retrieves room status snapshot by ID or latest snapshot if no ID provided
+        /// </summary>
+        /// <param name="id">Optional snapshot ID (number) or 'min' for oldest snapshot</param>
         [HttpGet]
         public async Task<ActionResult<RoomStatusResponseDto>> GetRoomStatus([FromQuery] string? id = null)
         {
@@ -83,6 +87,9 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves statistics about room status snapshots
+        /// </summary>
         [HttpGet("stats")]
         public async Task<ActionResult<RoomStatusStatsDto>> GetStats()
         {
@@ -99,6 +106,9 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Forces an immediate refresh of room data from the external API
+        /// </summary>
         [HttpPost("refresh")]
         public async Task<ActionResult> ForceRefresh()
         {
@@ -117,6 +127,10 @@ namespace RetroRewindWebsite.Controllers
 
         // ===== MII ENDPOINTS =====
 
+        /// <summary>
+        /// Retrieves Mii image for a player currently in a room
+        /// </summary>
+        /// <param name="fc">Friend code of the player</param>
         [HttpGet("mii/{fc}")]
         public async Task<ActionResult> GetMiiImage(string fc)
         {
@@ -156,6 +170,9 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves Mii images for multiple players in a single request
+        /// </summary>
         [HttpPost("miis/batch")]
         public async Task<ActionResult<BatchMiiResponseDto>> GetMiisBatch([FromBody] BatchMiiRequestDto request)
         {

@@ -20,4 +20,11 @@
         public int LastWeek { get; set; }
         public int LastMonth { get; set; }
     }
+
+    public class ModerationActionResultDto
+    {
+        public bool Success { get; set; }
+        public required string Message { get; set; }
+        public PlayerDto? Player { get; set; }
+    }
 }
