@@ -72,3 +72,10 @@ export interface TTPlayerStats {
   top10Count: number;
   recentSubmissions: GhostSubmission[];
 }
+
+export interface TrackWorldRecords {
+    trackId: number;
+    trackName: string;
+    worldRecord150: GhostSubmission | null;
+    worldRecord200: GhostSubmission | null;
+}

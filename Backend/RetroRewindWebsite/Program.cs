@@ -12,6 +12,7 @@ using Serilog;
 using System.Text.Json;
 using System.Threading.RateLimiting;
 
+// Disable IPv6 to prevent connectivity issues with external Mii image API
 AppContext.SetSwitch("System.Net.DisableIPv6", true);
 
 var builder = WebApplication.CreateBuilder(args);
@@ -47,6 +48,78 @@ builder.Services.AddCors(options =>
     });
 });
 
+// ===== DATABASE =====
+var connectionString = builder.Environment.IsDevelopment()
+    ? builder.Configuration.GetConnectionString("DefaultConnection")
+    : Environment.GetEnvironmentVariable("CONNECTION_STRING")
+      ?? builder.Configuration.GetConnectionString("Production");
+
+if (string.IsNullOrEmpty(connectionString))
+{
+    var environment = builder.Environment.IsDevelopment() ? "Development" : "Production";
+    throw new InvalidOperationException($"{environment} connection string is not configured.");
+}
+
+builder.Services.AddDbContext<LeaderboardDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+// ===== CACHING =====
+builder.Services.AddMemoryCache(options =>
+{
+    options.SizeLimit = 1000;
+});
+
+// ===== HTTP CLIENT =====
+builder.Services.AddHttpClient();
+
+// ===== REPOSITORIES =====
+builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
+builder.Services.AddScoped<IVRHistoryRepository, VRHistoryRepository>();
+builder.Services.AddScoped<ITimeTrialRepository, TimeTrialRepository>();
+
+// ===== EXTERNAL SERVICES =====
+builder.Services.AddScoped<IRetroWFCApiClient, RetroWFCApiClient>();
+
+// ===== DOMAIN SERVICES =====
+builder.Services.AddScoped<IPlayerValidationService, PlayerValidationService>();
+builder.Services.AddScoped<IMaintenanceService, MaintenanceService>();
+builder.Services.AddScoped<IMiiService, MiiService>();
+builder.Services.AddScoped<IGhostFileService, GhostFileService>();
+
+// ===== APPLICATION SERVICES =====
+builder.Services.AddScoped<ILeaderboardManager, LeaderboardManager>();
+builder.Services.AddSingleton<IRoomStatusService, RoomStatusService>();
+
+// ===== BACKGROUND SERVICES =====
+builder.Services.AddSingleton<ILeaderboardBackgroundService, LeaderboardBackgroundService>();
+builder.Services.AddHostedService<LeaderboardBackgroundService>(sp =>
+    (LeaderboardBackgroundService)sp.GetRequiredService<ILeaderboardBackgroundService>());
+
+builder.Services.AddSingleton<IMiiPreFetchBackgroundService, MiiPreFetchBackgroundService>();
+builder.Services.AddHostedService<MiiPreFetchBackgroundService>(sp =>
+    (MiiPreFetchBackgroundService)sp.GetRequiredService<IMiiPreFetchBackgroundService>());
+
+builder.Services.AddSingleton<IRoomStatusBackgroundService, RoomStatusBackgroundService>();
+builder.Services.AddHostedService<RoomStatusBackgroundService>(sp =>
+    (RoomStatusBackgroundService)sp.GetRequiredService<IRoomStatusBackgroundService>());
+
+// ===== HEALTH CHECKS =====
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<LeaderboardDbContext>()
+    .AddNpgSql(connectionString)
+    .AddCheck<ExternalApiHealthCheck>("retro-wfc-api")
+    .AddCheck("memory", () =>
+    {
+        var memoryUsed = GC.GetTotalMemory(forceFullCollection: false);
+        const long memoryLimitBytes = 500L * 1024 * 1024; // 500MB
+
+        return memoryUsed < memoryLimitBytes
+            ? HealthCheckResult.Healthy($"Memory usage: {memoryUsed / 1024 / 1024}MB")
+            : HealthCheckResult.Unhealthy($"High memory usage: {memoryUsed / 1024 / 1024}MB");
+    });
+
+builder.Services.AddScoped<IHealthCheck, ExternalApiHealthCheck>();
+
 // ===== RATE LIMITING =====
 builder.Services.AddRateLimiter(options =>
 {
@@ -67,7 +140,7 @@ builder.Services.AddRateLimiter(options =>
             factory: partition => new FixedWindowRateLimiterOptions
             {
                 AutoReplenishment = true,
-                PermitLimit = 50, // More restrictive for search
+                PermitLimit = 50,
                 Window = TimeSpan.FromMinutes(1)
             }));
 
@@ -77,32 +150,31 @@ builder.Services.AddRateLimiter(options =>
             factory: partition => new FixedWindowRateLimiterOptions
             {
                 AutoReplenishment = true,
-                PermitLimit = 5, // Very restrictive for admin operations
+                PermitLimit = 5,
                 Window = TimeSpan.FromMinutes(1)
             }));
 
     options.AddPolicy("DownloadPolicy", httpContext =>
-    RateLimitPartition.GetFixedWindowLimiter(
-        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-        factory: partition => new FixedWindowRateLimiterOptions
-        {
-            AutoReplenishment = true,
-            PermitLimit = 3, // 3 downloads per 5 minutes per IP
-            Window = TimeSpan.FromMinutes(5)
-        }));
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 3,
+                Window = TimeSpan.FromMinutes(5)
+            }));
 
-    // Ghost download rate limit
     options.AddPolicy("GhostDownloadPolicy", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: partition => new FixedWindowRateLimiterOptions
             {
                 AutoReplenishment = true,
-                PermitLimit = 10, // 10 ghost downloads per 5 minutes per IP
+                PermitLimit = 10,
                 Window = TimeSpan.FromMinutes(5)
             }));
 
-    // What to do when rate limit is exceeded
+    // Configure rejection behavior when rate limit is exceeded
     options.OnRejected = async (context, token) =>
     {
         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
@@ -117,92 +189,9 @@ builder.Services.AddRateLimiter(options =>
     };
 });
 
-// ===== HEALTH CHECKS =====
-builder.Services.AddHealthChecks()
-    .AddDbContextCheck<LeaderboardDbContext>()
-    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!)
-    .AddCheck<ExternalApiHealthCheck>("retro-wfc-api")
-    .AddCheck("memory", () =>
-    {
-        var memoryUsed = GC.GetTotalMemory(forceFullCollection: false);
-        const long memoryLimitBytes = 500L * 1024 * 1024; // 500MB
-
-        return memoryUsed < memoryLimitBytes
-            ? HealthCheckResult.Healthy($"Memory usage: {memoryUsed / 1024 / 1024}MB")
-            : HealthCheckResult.Unhealthy($"High memory usage: {memoryUsed / 1024 / 1024}MB");
-    });
-
 // ===== CONTROLLERS =====
 builder.Services.AddControllers();
 
-// ===== DATABASE =====
-var connectionString = builder.Environment.IsDevelopment()
-    ? builder.Configuration.GetConnectionString("DefaultConnection")
-    : Environment.GetEnvironmentVariable("CONNECTION_STRING")
-      ?? builder.Configuration.GetConnectionString("Production");
-
-if (string.IsNullOrEmpty(connectionString))
-{
-    var environment = builder.Environment.IsDevelopment() ? "Development" : "Production";
-    throw new InvalidOperationException($"{environment} connection string is not configured.");
-}
-
-builder.Services.AddDbContext<LeaderboardDbContext>(options =>
-    options.UseNpgsql(connectionString));
-
-// ===== HTTP CLIENT =====
-builder.Services.AddHttpClient();
-
-// ===== REPOSITORIES =====
-builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
-builder.Services.AddScoped<IVRHistoryRepository, VRHistoryRepository>();
-// ADD THIS: Time Trial Repository
-builder.Services.AddScoped<ITimeTrialRepository, TimeTrialRepository>();
-
-// ===== EXTERNAL SERVICES =====
-builder.Services.AddScoped<IRetroWFCApiClient, RetroWFCApiClient>();
-
-// ===== DOMAIN SERVICES =====
-builder.Services.AddScoped<IPlayerValidationService, PlayerValidationService>();
-builder.Services.AddScoped<IMaintenanceService, MaintenanceService>();
-builder.Services.AddScoped<IMiiService, MiiService>();
-// ADD THIS: Ghost File Service
-builder.Services.AddScoped<IGhostFileService, GhostFileService>();
-builder.Services.AddMemoryCache();
-
-// ===== APPLICATION SERVICES =====
-builder.Services.AddScoped<ILeaderboardManager, LeaderboardManager>();
-builder.Services.AddSingleton<IRoomStatusService, RoomStatusService>();
-
-// ===== CACHING =====
-builder.Services.AddMemoryCache(options =>
-{
-    options.SizeLimit = 1000;
-});
-
-// ===== BACKGROUND SERVICES =====
-builder.Services.AddSingleton<ILeaderboardBackgroundService, LeaderboardBackgroundService>();
-builder.Services.AddHostedService<LeaderboardBackgroundService>(sp =>
-    (LeaderboardBackgroundService)sp.GetRequiredService<ILeaderboardBackgroundService>());
-
-builder.Services.AddSingleton<IMiiPreFetchBackgroundService, MiiPreFetchBackgroundService>();
-builder.Services.AddHostedService<MiiPreFetchBackgroundService>(sp =>
-    (MiiPreFetchBackgroundService)sp.GetRequiredService<IMiiPreFetchBackgroundService>());
-
-builder.Services.AddSingleton<IRoomStatusBackgroundService, RoomStatusBackgroundService>();
-builder.Services.AddHostedService<RoomStatusBackgroundService>(sp =>
-    (RoomStatusBackgroundService)sp.GetRequiredService<IRoomStatusBackgroundService>());
-
-// ===== HEALTH CHECK IMPLEMENTATIONS =====
-builder.Services.AddScoped<IHealthCheck, ExternalApiHealthCheck>();
-
-// Memory cache for performance
-builder.Services.AddMemoryCache(options =>
-{
-    options.SizeLimit = 1000; // Limit to 1000 items in cache
-});
-
-// Add Swagger/OpenAPI support
 // ===== SWAGGER / OPENAPI =====
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>

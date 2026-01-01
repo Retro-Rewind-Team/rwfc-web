@@ -3,33 +3,35 @@ import { useQuery } from "@tanstack/solid-query";
 import { timeTrialApi } from "../services/api/timeTrial";
 import { GhostSubmission } from "../types/timeTrial";
 
-export function useTTTrackDetail(trackId: number, initialCC: 150 | 200) {
-    // Race configuration
-    const [selectedCC, setSelectedCC] = createSignal<150 | 200>(initialCC);
-  
-    // Filters
+export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200) {
     const [shroomlessFilter, setShroomlessFilter] = createSignal<"all" | "only" | "exclude">("all");
     const [glitchFilter, setGlitchFilter] = createSignal<"all" | "only" | "exclude">("all");
     const [vehicleFilter, setVehicleFilter] = createSignal<"all" | "bikes" | "karts">("all");
     const [driftFilter, setDriftFilter] = createSignal<"all" | "manual" | "hybrid">("all");
   
-    // Pagination - default to 25
+    // Pagination - default to 10
     const [currentPage, setCurrentPage] = createSignal(1);
-    const [pageSize, setPageSize] = createSignal(25);
+    const [pageSize, setPageSize] = createSignal(10);
+
+    // Reset page to 1 when CC changes
+    createEffect(() => {
+        cc(); // Track cc changes
+        setCurrentPage(1);
+    });
 
     // Fetch track info
     const trackQuery = useQuery(() => ({
-        queryKey: ["tt-track", trackId],
-        queryFn: () => timeTrialApi.getTrack(trackId),
+        queryKey: ["tt-track", trackId()],
+        queryFn: () => timeTrialApi.getTrack(trackId()),
         staleTime: 1000 * 60 * 60, // 1 hour
     }));
 
     // Fetch leaderboard for this track with pagination
     const leaderboardQuery = useQuery(() => ({
-        queryKey: ["tt-leaderboard", trackId, selectedCC(), currentPage(), pageSize()],
+        queryKey: ["tt-leaderboard", trackId(), cc(), currentPage(), pageSize()],
         queryFn: () => timeTrialApi.getLeaderboard(
-            trackId,
-            selectedCC(),
+            trackId(),
+            cc(),
             currentPage(),
             pageSize()
         ),
@@ -37,14 +39,14 @@ export function useTTTrackDetail(trackId: number, initialCC: 150 | 200) {
 
     // Fetch world record
     const worldRecordQuery = useQuery(() => ({
-        queryKey: ["tt-world-record", trackId, selectedCC()],
-        queryFn: () => timeTrialApi.getWorldRecord(trackId, selectedCC()),
+        queryKey: ["tt-world-record", trackId(), cc()],
+        queryFn: () => timeTrialApi.getWorldRecord(trackId(), cc()),
     }));
 
     // Fetch world record history
     const wrHistoryQuery = useQuery(() => ({
-        queryKey: ["tt-wr-history", trackId, selectedCC()],
-        queryFn: () => timeTrialApi.getWorldRecordHistory(trackId, selectedCC()),
+        queryKey: ["tt-wr-history", trackId(), cc()],
+        queryFn: () => timeTrialApi.getWorldRecordHistory(trackId(), cc()),
     }));
 
     // Apply filters to submissions
@@ -84,16 +86,6 @@ export function useTTTrackDetail(trackId: number, initialCC: 150 | 200) {
         glitchFilter();
         setCurrentPage(1);
     });
-
-    // Reset to page 1 when CC changes
-    createEffect(() => {
-        selectedCC();
-        setCurrentPage(1);
-    });
-
-    const handleCCChange = (cc: 150 | 200) => {
-        setSelectedCC(cc);
-    };
 
     const handleShroomlessFilterChange = (filter: "all" | "only" | "exclude") => {
         setShroomlessFilter(filter);
@@ -141,7 +133,7 @@ export function useTTTrackDetail(trackId: number, initialCC: 150 | 200) {
 
     return {
         // State
-        selectedCC,
+        cc: cc(),
         shroomlessFilter,
         glitchFilter,
         vehicleFilter,
@@ -159,7 +151,6 @@ export function useTTTrackDetail(trackId: number, initialCC: 150 | 200) {
         wrHistoryQuery,
 
         // Handlers
-        handleCCChange,
         handleShroomlessFilterChange,
         handleGlitchFilterChange,
         handleVehicleFilterChange,

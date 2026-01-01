@@ -27,6 +27,9 @@ namespace RetroRewindWebsite.Controllers
 
         // ===== LEADERBOARD ENDPOINTS =====
 
+        /// <summary>
+        /// Retrieves paginated leaderboard with filtering and sorting
+        /// </summary>
         [HttpGet]
         public async Task<ActionResult<LeaderboardResponseDto>> GetLeaderboard(
             [FromQuery] LeaderboardRequest request)
@@ -44,6 +47,9 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves top N players (excluding suspicious players)
+        /// </summary>
         [HttpGet("top/{count}")]
         public async Task<ActionResult<List<PlayerDto>>> GetTopPlayers(int count = DefaultTopPlayersCount)
         {
@@ -62,6 +68,9 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves top VR gainers for a specific time period
+        /// </summary>
         [HttpGet("top-gainers")]
         public async Task<ActionResult<List<PlayerDto>>> GetTopVRGainers(
             [FromQuery] string period = "24h")
@@ -79,6 +88,9 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves leaderboard statistics
+        /// </summary>
         [HttpGet("stats")]
         public async Task<ActionResult<LeaderboardStatsDto>> GetStats()
         {
@@ -97,6 +109,9 @@ namespace RetroRewindWebsite.Controllers
 
         // ===== PLAYER ENDPOINTS =====
 
+        /// <summary>
+        /// Retrieves a specific player by friend code
+        /// </summary>
         [HttpGet("player/{fc}")]
         public async Task<ActionResult<PlayerDto>> GetPlayer(string fc)
         {
@@ -119,6 +134,9 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves VR history for a specific player
+        /// </summary>
         [HttpGet("player/{fc}/history")]
         public async Task<ActionResult<VRHistoryRangeResponse>> GetPlayerHistory(
             string fc,
@@ -143,6 +161,9 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves recent VR history entries for a specific player
+        /// </summary>
         [HttpGet("player/{fc}/history/recent")]
         public async Task<ActionResult<List<VRHistoryDto>>> GetPlayerRecentHistory(
             string fc,
@@ -169,6 +190,9 @@ namespace RetroRewindWebsite.Controllers
 
         // ===== MII ENDPOINTS =====
 
+        /// <summary>
+        /// Retrieves Mii image for a specific player
+        /// </summary>
         [HttpGet("player/{fc}/mii")]
         public async Task<ActionResult<MiiResponseDto>> GetPlayerMii(string fc)
         {
@@ -198,6 +222,9 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves Mii images for multiple players in a single request
+        /// </summary>
         [HttpPost("miis/batch")]
         public async Task<ActionResult<BatchMiiResponseDto>> GetPlayerMiisBatch(
             [FromBody] BatchMiiRequestDto request)
@@ -241,6 +268,9 @@ namespace RetroRewindWebsite.Controllers
 
         // ===== LEGACY ENDPOINTS =====
 
+        /// <summary>
+        /// Checks if legacy leaderboard snapshot is available
+        /// </summary>
         [HttpGet("legacy/available")]
         public async Task<ActionResult<bool>> IsLegacyAvailable()
         {
@@ -257,6 +287,9 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves paginated legacy leaderboard
+        /// </summary>
         [HttpGet("legacy")]
         [RequireLegacySnapshot]
         public async Task<ActionResult<LeaderboardResponseDto>> GetLegacyLeaderboard(
@@ -275,6 +308,9 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves a specific player from legacy snapshot by friend code
+        /// </summary>
         [HttpGet("legacy/player/{friendCode}")]
         [RequireLegacySnapshot]
         public async Task<ActionResult<PlayerDto>> GetLegacyPlayer(string friendCode)
@@ -298,6 +334,9 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves Mii images for multiple legacy players in a single request
+        /// </summary>
         [HttpPost("legacy/miis/batch")]
         [RequireLegacySnapshot]
         public async Task<ActionResult<BatchMiiResponseDto>> GetLegacyPlayerMiisBatch(

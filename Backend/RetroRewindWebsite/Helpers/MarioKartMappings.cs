@@ -1,5 +1,8 @@
 ﻿namespace RetroRewindWebsite.Helpers
 {
+    /// <summary>
+    /// Helper class for mapping Mario Kart Wii game data IDs to human-readable names
+    /// </summary>
     public static class MarioKartMappings
     {
         private static readonly Dictionary<short, string> _characters = new()
@@ -46,6 +49,11 @@
             { 0x27, "Large Mii Outfit B (Female)" }
         };
 
+        /// <summary>
+        /// Gets the character name for a given character ID
+        /// </summary>
+        /// <param name="characterId">Character ID from ghost file</param>
+        /// <returns>Character name or "Unknown Character ({id})" if not found</returns>
         public static string GetCharacterName(short characterId)
         {
             return _characters.TryGetValue(characterId, out var name) ? name : $"Unknown Character ({characterId})";
@@ -91,6 +99,11 @@
             { 0x23, "Phantom" }
         };
 
+        /// <summary>
+        /// Gets the vehicle name for a given vehicle ID
+        /// </summary>
+        /// <param name="vehicleId">Vehicle ID from ghost file</param>
+        /// <returns>Vehicle name or "Unknown Vehicle ({id})" if not found</returns>
         public static string GetVehicleName(short vehicleId)
         {
             return _vehicles.TryGetValue(vehicleId, out var name) ? name : $"Unknown Vehicle ({vehicleId})";
@@ -104,6 +117,11 @@
             { 3, "GameCube Controller" }
         };
 
+        /// <summary>
+        /// Gets the controller name for a given controller type ID
+        /// </summary>
+        /// <param name="controllerId">Controller type ID from ghost file</param>
+        /// <returns>Controller name or "Unknown Controller ({id})" if not found</returns>
         public static string GetControllerName(short controllerId)
         {
             return _controllers.TryGetValue(controllerId, out var name) ? name : $"Unknown Controller ({controllerId})";
@@ -115,6 +133,11 @@
             { 1, "Hybrid" }
         };
 
+        /// <summary>
+        /// Gets the drift type name for a given drift type ID
+        /// </summary>
+        /// <param name="driftTypeId">Drift type ID from ghost file (0=Manual, 1=Hybrid)</param>
+        /// <returns>Drift type name or "Unknown Drift Type ({id})" if not found</returns>
         public static string GetDriftTypeName(short driftTypeId)
         {
             return _driftTypes.TryGetValue(driftTypeId, out var name) ? name : $"Unknown Drift Type ({driftTypeId})";
@@ -156,6 +179,11 @@
             { 31, "GBA Shy Guy Beach" }
         };
 
+        /// <summary>
+        /// Gets the track slot name for a given course ID
+        /// </summary>
+        /// <param name="courseId">Course ID from ghost file (track slot identifier)</param>
+        /// <returns>Track name or null if not found</returns>
         public static string? GetTrackSlotName(short courseId)
         {
             return _trackSlots.TryGetValue(courseId, out var name) ? name : null;

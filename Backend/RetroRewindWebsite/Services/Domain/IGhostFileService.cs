@@ -2,8 +2,22 @@
 {
     public interface IGhostFileService
     {
+        /// <summary>
+        /// Parses a Mario Kart Wii ghost file (.rkg) and extracts metadata
+        /// </summary>
+        /// <param name="fileStream">Stream containing the .rkg file data</param>
+        /// <returns>Parse result containing extracted ghost data or error information</returns>
         Task<GhostFileParseResult> ParseGhostFileAsync(Stream fileStream);
-        Task<string> SaveGhostFileAsync(Stream fileStream, int trackId, short cc, string discordUserId);
+
+        /// <summary>
+        /// Saves a ghost file to disk in the appropriate directory structure
+        /// </summary>
+        /// <param name="fileStream">Stream containing the .rkg file data</param>
+        /// <param name="trackId">ID of the track this ghost is for</param>
+        /// <param name="cc">CC value (150 or 200)</param>
+        /// <param name="playerDisplayName">Display name of the player who set this time</param>
+        /// <returns>File path where the ghost was saved</returns>
+        Task<string> SaveGhostFileAsync(Stream fileStream, int trackId, short cc, string playerDisplayName);
     }
 
     public class GhostFileParseResult

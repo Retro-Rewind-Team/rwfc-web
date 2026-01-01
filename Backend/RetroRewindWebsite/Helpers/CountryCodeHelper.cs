@@ -1,5 +1,8 @@
 ﻿namespace RetroRewindWebsite.Helpers
 {
+    /// <summary>
+    /// Helper class for converting between ISO 3166-1 country codes
+    /// </summary>
     public static class CountryCodeHelper
     {
         // ISO 3166-1 numeric to alpha-2 mapping (most common countries)
@@ -140,11 +143,21 @@
             { "UA", "Ukraine" },
         };
 
+        /// <summary>
+        /// Converts ISO 3166-1 numeric code to alpha-2 code
+        /// </summary>
+        /// <param name="numericCode">Numeric country code (e.g., 840 for United States)</param>
+        /// <returns>Two-letter alpha-2 code (e.g., "US") or null if not found</returns>
         public static string? GetAlpha2Code(int numericCode)
         {
             return NumericToAlpha2.TryGetValue(numericCode, out var alpha2) ? alpha2 : null;
         }
 
+        /// <summary>
+        /// Converts ISO 3166-1 numeric code to country name
+        /// </summary>
+        /// <param name="numericCode">Numeric country code</param>
+        /// <returns>Country name or null if not found</returns>
         public static string? GetCountryName(int numericCode)
         {
             var alpha2 = GetAlpha2Code(numericCode);
@@ -153,11 +166,21 @@
             return Alpha2ToName.TryGetValue(alpha2, out var name) ? name : null;
         }
 
+        /// <summary>
+        /// Converts alpha-2 code to country name
+        /// </summary>
+        /// <param name="alpha2Code">Two-letter country code (case-insensitive)</param>
+        /// <returns>Country name or null if not found</returns>
         public static string? GetCountryName(string alpha2Code)
         {
             return Alpha2ToName.TryGetValue(alpha2Code.ToUpper(), out var name) ? name : null;
         }
 
+        /// <summary>
+        /// Converts alpha-2 code to numeric code
+        /// </summary>
+        /// <param name="alpha2Code">Two-letter country code (case-insensitive)</param>
+        /// <returns>Numeric country code or null if not found</returns>
         public static int? GetNumericCode(string alpha2Code)
         {
             var upper = alpha2Code.ToUpper();
@@ -165,16 +188,19 @@
             return entry.Key == 0 ? null : entry.Key;
         }
 
+        /// <summary>
+        /// Gets all available countries sorted by name
+        /// </summary>
+        /// <returns>List of tuples containing (NumericCode, Alpha2, Name)</returns>
         public static List<(int NumericCode, string Alpha2, string Name)> GetAllCountries()
         {
-            return NumericToAlpha2
+            return [.. NumericToAlpha2
                 .Select(kvp => (
                     NumericCode: kvp.Key,
                     Alpha2: kvp.Value,
                     Name: Alpha2ToName[kvp.Value]
                 ))
-                .OrderBy(x => x.Name)
-                .ToList();
+                .OrderBy(x => x.Name)];
         }
     }
 }

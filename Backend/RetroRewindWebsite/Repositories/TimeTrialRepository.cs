@@ -16,7 +16,8 @@ namespace RetroRewindWebsite.Repositories
             _logger = logger;
         }
 
-        // Track operations
+        // ===== TRACK OPERATIONS =====
+
         public async Task<TrackEntity?> GetTrackByIdAsync(int id)
         {
             return await _context.Tracks
@@ -46,7 +47,8 @@ namespace RetroRewindWebsite.Repositories
             await _context.SaveChangesAsync();
         }
 
-        // TT Profile operations
+        // ===== TT PROFILE OPERATIONS =====
+
         public async Task<TTProfileEntity?> GetTTProfileByIdAsync(int id)
         {
             return await _context.TTProfiles
@@ -74,7 +76,26 @@ namespace RetroRewindWebsite.Repositories
             await _context.SaveChangesAsync();
         }
 
-        // Ghost Submission operations
+        public async Task<List<TTProfileEntity>> GetAllTTProfilesAsync()
+        {
+            return await _context.TTProfiles
+                .AsNoTracking()
+                .OrderBy(p => p.DisplayName)
+                .ToListAsync();
+        }
+
+        public async Task DeleteTTProfileAsync(int id)
+        {
+            var profile = await _context.TTProfiles.FindAsync(id);
+            if (profile != null)
+            {
+                _context.TTProfiles.Remove(profile);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        // ===== GHOST SUBMISSION OPERATIONS =====
+
         public async Task<GhostSubmissionEntity?> GetGhostSubmissionByIdAsync(int id)
         {
             return await _context.GhostSubmissions
@@ -100,7 +121,8 @@ namespace RetroRewindWebsite.Repositories
             }
         }
 
-        // Leaderboard queries
+        // ===== LEADERBOARD QUERIES =====
+
         public async Task<PagedResult<GhostSubmissionEntity>> GetTrackLeaderboardAsync(
             int trackId,
             short cc,
@@ -180,7 +202,42 @@ namespace RetroRewindWebsite.Repositories
                 .ToListAsync();
         }
 
-        // Stats
+        public async Task<List<GhostSubmissionEntity>> GetWorldRecordHistoryAsync(int trackId, short cc)
+        {
+            try
+            {
+                var wrHistory = await _context.GhostSubmissions
+                    .FromSql($@"
+                        WITH RankedSubmissions AS (
+                            SELECT 
+                                *,
+                                MIN(""FinishTimeMs"") OVER (
+                                    ORDER BY ""DateSet"", ""SubmittedAt""
+                                    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                                ) as BestSoFar
+                            FROM ""GhostSubmissions""
+                            WHERE ""TrackId"" = {trackId} AND ""CC"" = {cc}
+                        )
+                        SELECT *
+                        FROM RankedSubmissions
+                        WHERE ""FinishTimeMs"" = BestSoFar
+                        ORDER BY ""DateSet"", ""SubmittedAt""
+                    ")
+                    .Include(g => g.Track)
+                    .Include(g => g.TTProfile)
+                    .ToListAsync();
+
+                return wrHistory;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting world record history for track {TrackId} CC {CC}", trackId, cc);
+                throw;
+            }
+        }
+
+        // ===== STATISTICS =====
+
         public async Task<int> GetTotalSubmissionsCountAsync()
         {
             return await _context.GhostSubmissions.CountAsync();
@@ -194,135 +251,114 @@ namespace RetroRewindWebsite.Repositories
 
         public async Task<int> GetProfileWorldRecordsCountAsync(int ttProfileId)
         {
-            // Get all tracks and CCs
-            var trackCCCombinations = await _context.GhostSubmissions
-                .Select(g => new { g.TrackId, g.CC })
-                .Distinct()
-                .ToListAsync();
-
-            int wrCount = 0;
-
-            // For each track/CC combination, check if this profile holds the WR
-            foreach (var combo in trackCCCombinations)
+            try
             {
-                var wr = await GetWorldRecordAsync(combo.TrackId, combo.CC);
-                if (wr?.TTProfileId == ttProfileId)
-                {
-                    wrCount++;
-                }
+                var result = await _context.Database
+                    .SqlQuery<int>($@"
+                        SELECT CAST(COUNT(*) AS INTEGER) as ""Value""
+                        FROM (
+                            SELECT DISTINCT ON (""TrackId"", ""CC"")
+                                ""TrackId"", ""CC"", ""TTProfileId""
+                            FROM ""GhostSubmissions""
+                            ORDER BY ""TrackId"", ""CC"", ""FinishTimeMs"", ""SubmittedAt""
+                        ) wr
+                        WHERE wr.""TTProfileId"" = {ttProfileId}
+                    ")
+                    .FirstOrDefaultAsync();
+
+                return result;
             }
-
-            return wrCount;
-        }
-
-        public async Task<List<GhostSubmissionEntity>> GetWorldRecordHistoryAsync(int trackId, short cc)
-        {
-            // Get all submissions for this track/CC ordered by submission time
-            var allSubmissions = await _context.GhostSubmissions
-                .AsNoTracking()
-                .Include(g => g.Track)
-                .Include(g => g.TTProfile)
-                .Where(g => g.TrackId == trackId && g.CC == cc)
-                .OrderBy(g => g.DateSet)
-                .ToListAsync();
-
-            var wrHistory = new List<GhostSubmissionEntity>();
-            int? currentBestTime = null;
-
-            // Iterate through submissions chronologically
-            foreach (var submission in allSubmissions)
+            catch (Exception ex)
             {
-                // If this is a new WR (no previous record or faster than current best)
-                if (currentBestTime == null || submission.FinishTimeMs < currentBestTime)
-                {
-                    wrHistory.Add(submission);
-                    currentBestTime = submission.FinishTimeMs;
-                }
+                _logger.LogError(ex, "Error getting world records count for profile {ProfileId}", ttProfileId);
+                throw;
             }
-
-            return wrHistory;
         }
 
         public async Task<double> CalculateAverageFinishPositionAsync(int ttProfileId)
         {
-            var submissions = await GetPlayerSubmissionsAsync(ttProfileId);
-            if (submissions.Count == 0) return 0;
-
-            var positions = new List<int>();
-
-            foreach (var submission in submissions)
+            try
             {
-                var betterTimes = await _context.GhostSubmissions
-                    .Where(g => g.TrackId == submission.TrackId &&
-                               g.CC == submission.CC &&
-                               g.FinishTimeMs < submission.FinishTimeMs)
-                    .CountAsync();
+                var result = await _context.Database
+                    .SqlQuery<double>($@"
+                        WITH RankedSubmissions AS (
+                            SELECT 
+                                ""TTProfileId"",
+                                RANK() OVER (
+                                    PARTITION BY ""TrackId"", ""CC""
+                                    ORDER BY ""FinishTimeMs"", ""SubmittedAt""
+                                ) as Position
+                            FROM ""GhostSubmissions""
+                        )
+                        SELECT COALESCE(AVG(CAST(Position AS FLOAT)), 0.0) as ""Value""
+                        FROM RankedSubmissions
+                        WHERE ""TTProfileId"" = {ttProfileId}
+                    ")
+                    .FirstOrDefaultAsync();
 
-                positions.Add(betterTimes + 1);
+                return result;
             }
-
-            return positions.Average();
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating average finish position for profile {ProfileId}", ttProfileId);
+                throw;
+            }
         }
 
         public async Task<int> CountTop10FinishesAsync(int ttProfileId)
         {
-            var submissions = await GetPlayerSubmissionsAsync(ttProfileId);
-            int count = 0;
-
-            foreach (var submission in submissions)
+            try
             {
-                var betterTimes = await _context.GhostSubmissions
-                    .Where(g => g.TrackId == submission.TrackId &&
-                               g.CC == submission.CC &&
-                               g.FinishTimeMs < submission.FinishTimeMs)
-                    .CountAsync();
+                var result = await _context.Database
+                    .SqlQuery<int>($@"
+                        WITH RankedSubmissions AS (
+                            SELECT 
+                                ""TTProfileId"",
+                                RANK() OVER (
+                                    PARTITION BY ""TrackId"", ""CC""
+                                    ORDER BY ""FinishTimeMs"", ""SubmittedAt""
+                                ) as Position
+                            FROM ""GhostSubmissions""
+                        )
+                        SELECT CAST(COUNT(*) AS INTEGER) as ""Value""
+                        FROM RankedSubmissions
+                        WHERE ""TTProfileId"" = {ttProfileId}
+                          AND Position <= 10
+                    ")
+                    .FirstOrDefaultAsync();
 
-                if (betterTimes < 10) count++;
+                return result;
             }
-
-            return count;
-        }
-
-        public async Task<List<TTProfileEntity>> GetAllTTProfilesAsync()
-        {
-            return await _context.TTProfiles
-                .AsNoTracking()
-                .OrderBy(p => p.DisplayName)
-                .ToListAsync();
-        }
-
-        public async Task DeleteTTProfileAsync(int id)
-        {
-            var profile = await _context.TTProfiles.FindAsync(id);
-            if (profile != null)
+            catch (Exception ex)
             {
-                _context.TTProfiles.Remove(profile);
-                await _context.SaveChangesAsync();
+                _logger.LogError(ex, "Error counting top 10 finishes for profile {ProfileId}", ttProfileId);
+                throw;
             }
         }
 
         public async Task<int?> GetFastestLapForTrackAsync(int trackId, short cc)
         {
-            var submissions = await _context.GhostSubmissions
-                .AsNoTracking()
-                .Where(g => g.TrackId == trackId && g.CC == cc)
-                .ToListAsync();
-
-            if (submissions.Count == 0)
-                return null;
-
-            var allLapTimes = new List<int>();
-
-            foreach (var submission in submissions)
+            try
             {
-                var lapSplits = System.Text.Json.JsonSerializer.Deserialize<List<int>>(submission.LapSplitsMs);
-                if (lapSplits != null && lapSplits.Count > 0)
-                {
-                    allLapTimes.AddRange(lapSplits);
-                }
-            }
+                var result = await _context.Database
+                    .SqlQuery<int?>($@"
+                        WITH LapTimes AS (
+                            SELECT jsonb_array_elements_text(""LapSplitsMs""::jsonb)::int as LapTime
+                            FROM ""GhostSubmissions""
+                            WHERE ""TrackId"" = {trackId} AND ""CC"" = {cc}
+                        )
+                        SELECT MIN(LapTime) AS ""Value""
+                        FROM LapTimes
+                    ")
+                    .FirstOrDefaultAsync();
 
-            return allLapTimes.Count > 0 ? allLapTimes.Min() : null;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting fastest lap for track {TrackId} CC {CC}", trackId, cc);
+                throw;
+            }
         }
     }
 }

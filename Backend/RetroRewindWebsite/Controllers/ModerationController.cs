@@ -18,6 +18,13 @@ namespace RetroRewindWebsite.Controllers
         private readonly ITimeTrialRepository _timeTrialRepository;
         private readonly ILogger<ModerationController> _logger;
 
+        // ===== CONSTANTS =====
+        private const string CATEGORY_RETRO = "retro";
+        private const short CC_150 = 150;
+        private const short CC_200 = 200;
+        private const int MIN_DISPLAY_NAME_LENGTH = 2;
+        private const int MAX_DISPLAY_NAME_LENGTH = 50;
+
         public ModerationController(
             IPlayerRepository playerRepository,
             IVRHistoryRepository vrHistoryRepository,
@@ -32,10 +39,13 @@ namespace RetroRewindWebsite.Controllers
             _logger = logger;
         }
 
-        // ===== FLAG OPERATIONS =====
+        // ===== PLAYER MODERATION ENDPOINTS =====
 
+        /// <summary>
+        /// Flags a player as suspicious
+        /// </summary>
         [HttpPost("flag")]
-        public async Task<ActionResult> FlagPlayer([FromBody] FlagRequest request)
+        public async Task<ActionResult<ModerationActionResultDto>> FlagPlayer([FromBody] FlagRequest request)
         {
             try
             {
@@ -52,26 +62,41 @@ namespace RetroRewindWebsite.Controllers
 
                 if (player.IsSuspicious)
                 {
-                    return Ok(new { message = $"Player '{player.Name}' is already flagged as suspicious" });
+                    return Ok(new ModerationActionResultDto
+                    {
+                        Success = true,
+                        Message = $"Player '{player.Name}' is already flagged as suspicious"
+                    });
                 }
 
                 player.IsSuspicious = true;
                 await _playerRepository.UpdateAsync(player);
 
                 _logger.LogWarning(
-                    "Player manually flagged as suspicious: {Name} ({FriendCode}) - PID: {Pid} by moderation",
+                    "Player flagged as suspicious: {Name} ({FriendCode}) - PID: {Pid}",
                     player.Name, player.Fc, player.Pid);
 
-                return Ok(new
+                return Ok(new ModerationActionResultDto
                 {
-                    message = $"Player '{player.Name}' has been flagged as suspicious",
-                    player = new
+                    Success = true,
+                    Message = $"Player '{player.Name}' has been flagged as suspicious",
+                    Player = new PlayerDto
                     {
-                        player.Pid,
-                        player.Name,
-                        player.Fc,
-                        player.Ev,
-                        player.IsSuspicious
+                        Pid = player.Pid,
+                        Name = player.Name,
+                        FriendCode = player.Fc,
+                        VR = player.Ev,
+                        Rank = player.Rank,
+                        LastSeen = player.LastSeen,
+                        IsSuspicious = player.IsSuspicious,
+                        VRStats = new VRStatsDto
+                        {
+                            Last24Hours = player.VRGainLast24Hours,
+                            LastWeek = player.VRGainLastWeek,
+                            LastMonth = player.VRGainLastMonth
+                        },
+                        MiiImageBase64 = player.MiiImageBase64,
+                        MiiData = player.MiiData
                     }
                 });
             }
@@ -83,8 +108,11 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Unflags a suspicious player
+        /// </summary>
         [HttpPost("unflag")]
-        public async Task<ActionResult> UnflagPlayer([FromBody] UnflagRequest request)
+        public async Task<ActionResult<ModerationActionResultDto>> UnflagPlayer([FromBody] UnflagRequest request)
         {
             try
             {
@@ -101,7 +129,11 @@ namespace RetroRewindWebsite.Controllers
 
                 if (!player.IsSuspicious)
                 {
-                    return Ok(new { message = $"Player '{player.Name}' is not flagged as suspicious" });
+                    return Ok(new ModerationActionResultDto
+                    {
+                        Success = true,
+                        Message = $"Player '{player.Name}' is not flagged as suspicious"
+                    });
                 }
 
                 player.IsSuspicious = false;
@@ -109,20 +141,30 @@ namespace RetroRewindWebsite.Controllers
                 await _playerRepository.UpdateAsync(player);
 
                 _logger.LogInformation(
-                    "Player unflagged: {Name} ({FriendCode}) - PID: {Pid} by moderation",
+                    "Player unflagged: {Name} ({FriendCode}) - PID: {Pid}",
                     player.Name, player.Fc, player.Pid);
 
-                return Ok(new
+                return Ok(new ModerationActionResultDto
                 {
-                    message = $"Player '{player.Name}' has been unflagged",
-                    player = new
+                    Success = true,
+                    Message = $"Player '{player.Name}' has been unflagged",
+                    Player = new PlayerDto
                     {
-                        player.Pid,
-                        player.Name,
-                        player.Fc,
-                        player.Ev,
-                        player.IsSuspicious,
-                        player.SuspiciousVRJumps
+                        Pid = player.Pid,
+                        Name = player.Name,
+                        FriendCode = player.Fc,
+                        VR = player.Ev,
+                        Rank = player.Rank,
+                        LastSeen = player.LastSeen,
+                        IsSuspicious = player.IsSuspicious,
+                        VRStats = new VRStatsDto
+                        {
+                            Last24Hours = player.VRGainLast24Hours,
+                            LastWeek = player.VRGainLastWeek,
+                            LastMonth = player.VRGainLastMonth
+                        },
+                        MiiImageBase64 = player.MiiImageBase64,
+                        MiiData = player.MiiData
                     }
                 });
             }
@@ -134,10 +176,11 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
-        // ===== BAN OPERATIONS =====
-
+        /// <summary>
+        /// Bans a player and removes them from the leaderboard
+        /// </summary>
         [HttpPost("ban")]
-        public async Task<ActionResult> BanPlayer([FromBody] BanRequest request)
+        public async Task<ActionResult<ModerationActionResultDto>> BanPlayer([FromBody] BanRequest request)
         {
             try
             {
@@ -155,17 +198,25 @@ namespace RetroRewindWebsite.Controllers
                 await _playerRepository.DeleteAsync(player.Id);
 
                 _logger.LogWarning(
-                    "Player banned and removed: {Name} ({FriendCode}) - PID: {Pid} by moderation",
+                    "Player banned: {Name} ({FriendCode}) - PID: {Pid}",
                     player.Name, player.Fc, player.Pid);
 
-                return Ok(new
+                return Ok(new ModerationActionResultDto
                 {
-                    message = $"Player '{player.Name}' has been banned and removed from the leaderboard",
-                    player = new
+                    Success = true,
+                    Message = $"Player '{player.Name}' has been banned and removed from the leaderboard",
+                    Player = new PlayerDto
                     {
-                        player.Pid,
-                        player.Name,
-                        player.Fc
+                        Pid = player.Pid,
+                        Name = player.Name,
+                        FriendCode = player.Fc,
+                        VR = player.Ev,
+                        Rank = player.Rank,
+                        LastSeen = player.LastSeen,
+                        IsSuspicious = player.IsSuspicious,
+                        VRStats = new VRStatsDto(),
+                        MiiImageBase64 = player.MiiImageBase64,
+                        MiiData = player.MiiData
                     }
                 });
             }
@@ -177,8 +228,9 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
-        // ===== QUERY OPERATIONS =====
-
+        /// <summary>
+        /// Retrieves all suspicious players
+        /// </summary>
         [HttpGet("suspicious")]
         public async Task<ActionResult<List<PlayerDto>>> GetSuspiciousPlayers()
         {
@@ -218,8 +270,15 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
+        // ===== TIME TRIAL GHOST SUBMISSION =====
+        // TODO: Move to TimeTrialAdminController
+        // TODO: Extract business logic to TimeTrialSubmissionService
+
+        /// <summary>
+        /// Submits a new Time Trial ghost
+        /// </summary>
         [HttpPost("timetrial/submit")]
-        public async Task<IActionResult> SubmitTimeTrialGhost(
+        public async Task<ActionResult<GhostSubmissionResultDto>> SubmitTimeTrialGhost(
             IFormFile ghostFile,
             int trackId,
             int cc,
@@ -229,61 +288,32 @@ namespace RetroRewindWebsite.Controllers
         {
             try
             {
-                if (ghostFile == null || ghostFile.Length == 0)
-                {
-                    return BadRequest(new GhostSubmissionResponse
-                    {
-                        Success = false,
-                        Message = "Ghost file is required"
-                    });
-                }
+                // Validate file
+                var fileValidation = ValidateGhostFile(ghostFile);
+                if (fileValidation != null) return fileValidation;
 
-                if (!ghostFile.FileName.EndsWith(".rkg", StringComparison.OrdinalIgnoreCase))
-                {
-                    return BadRequest(new GhostSubmissionResponse
-                    {
-                        Success = false,
-                        Message = "File must be a .rkg file"
-                    });
-                }
+                // Validate CC
+                var ccValidation = ValidateCc((short)cc);
+                if (ccValidation != null) return ccValidation;
 
-                if (cc != 150 && cc != 200)
-                {
-                    return BadRequest(new GhostSubmissionResponse
-                    {
-                        Success = false,
-                        Message = "CC must be either 150 or 200"
-                    });
-                }
-
+                // Validate track exists
                 var track = await _timeTrialRepository.GetTrackByIdAsync(trackId);
                 if (track == null)
                 {
-                    return BadRequest(new GhostSubmissionResponse
-                    {
-                        Success = false,
-                        Message = $"Track ID {trackId} not found"
-                    });
+                    return BadRequest($"Track ID {trackId} not found");
                 }
 
-                if (track.Category.Equals("retro", StringComparison.OrdinalIgnoreCase) && glitch)
+                // Validate glitch runs for retro tracks
+                if (track.Category.Equals(CATEGORY_RETRO, StringComparison.OrdinalIgnoreCase) && glitch)
                 {
-                    return BadRequest(new GhostSubmissionResponse
-                    {
-                        Success = false,
-                        Message = "Glitch runs are not allowed for Retro Tracks"
-                    });
+                    return BadRequest("Glitch runs are not allowed for Retro Tracks");
                 }
 
-                // Get TT Profile - must already exist
+                // Validate profile exists
                 var ttProfile = await _timeTrialRepository.GetTTProfileByIdAsync(ttProfileId);
                 if (ttProfile == null)
                 {
-                    return BadRequest(new
-                    {
-                        success = false,
-                        message = $"TT Profile with ID {ttProfileId} not found. Create the profile first."
-                    });
+                    return BadRequest($"TT Profile with ID {ttProfileId} not found. Create the profile first.");
                 }
 
                 // Parse ghost file
@@ -297,38 +327,14 @@ namespace RetroRewindWebsite.Controllers
 
                 if (!ghostData.Success)
                 {
-                    return BadRequest(new GhostSubmissionResponse
-                    {
-                        Success = false,
-                        Message = ghostData.ErrorMessage
-                    });
+                    return BadRequest(ghostData.ErrorMessage);
                 }
 
                 // Validate track slot matches
-                var rkgTrackSlotName = MarioKartMappings.GetTrackSlotName(ghostData.CourseId);
-                if (rkgTrackSlotName == null)
-                {
-                    return BadRequest(new GhostSubmissionResponse
-                    {
-                        Success = false,
-                        Message = $"Invalid course ID in ghost file: {ghostData.CourseId}"
-                    });
-                }
+                var trackSlotValidation = ValidateTrackSlotMatch(ghostData.CourseId, track);
+                if (trackSlotValidation != null) return trackSlotValidation;
 
-                if (rkgTrackSlotName != track.TrackSlot)
-                {
-                    _logger.LogWarning(
-                        "Track slot mismatch: Ghost has {GhostSlot} but track {TrackName} uses {TrackSlot}",
-                        rkgTrackSlotName, track.Name, track.TrackSlot);
-
-                    return BadRequest(new GhostSubmissionResponse
-                    {
-                        Success = false,
-                        Message = $"Track slot mismatch: This ghost uses the track slot of '{rkgTrackSlotName}' but you submitted it for '{track.Name}' which uses '{track.TrackSlot}'"
-                    });
-                }
-
-                // Save ghost file using profile display name
+                // Save ghost file
                 string ghostFilePath;
                 using (var fileStream = ghostFile.OpenReadStream())
                 {
@@ -339,6 +345,7 @@ namespace RetroRewindWebsite.Controllers
                         ttProfile.DisplayName);
                 }
 
+                // Create submission entity
                 var submission = new GhostSubmissionEntity
                 {
                     TrackId = trackId,
@@ -357,156 +364,170 @@ namespace RetroRewindWebsite.Controllers
                     DateSet = ghostData.DateSet,
                     SubmittedAt = DateTime.UtcNow,
                     Shroomless = shroomless,
-                    Glitch = !track.Category.Equals("retro", StringComparison.OrdinalIgnoreCase) && glitch
+                    Glitch = !track.Category.Equals(CATEGORY_RETRO, StringComparison.OrdinalIgnoreCase) && glitch
                 };
 
+                // Add to database
                 await _timeTrialRepository.AddGhostSubmissionAsync(submission);
 
-                // Update profile stats
-                int totalSubmissions = await _timeTrialRepository.GetProfileSubmissionsCountAsync(ttProfile.Id);
-                if (totalSubmissions > 0)
-                    {
-                    ttProfile.TotalSubmissions = totalSubmissions;
-                }
-                else
-                {
-                    ttProfile.TotalSubmissions = 1;
-                }
-
+                // Update profile submission count
+                ttProfile.TotalSubmissions = await _timeTrialRepository.GetProfileSubmissionsCountAsync(ttProfile.Id);
                 await _timeTrialRepository.UpdateTTProfileAsync(ttProfile);
 
                 _logger.LogInformation(
-                    "Ghost submitted successfully: Track {TrackId}, Player {PlayerName} (ID: {ProfileId}), Time {Time}ms",
+                    "Ghost submitted: Track {TrackId}, Player {PlayerName} (ID: {ProfileId}), Time {Time}ms",
                     trackId, ttProfile.DisplayName, ttProfile.Id, ghostData.FinishTimeMs);
 
-                return Ok(new
+                return Ok(new GhostSubmissionResultDto
                 {
-                    success = true,
-                    message = "Ghost submitted successfully",
-                    submission = new
+                    Success = true,
+                    Message = "Ghost submitted successfully",
+                    Submission = new GhostSubmissionDetailDto
                     {
-                        id = submission.Id,
-                        trackId = submission.TrackId,
-                        trackName = track.Name,
-                        ttProfileId = submission.TTProfileId,
-                        playerName = ttProfile.DisplayName,
-                        cc = submission.CC,
-                        finishTimeMs = submission.FinishTimeMs,
-                        finishTimeDisplay = submission.FinishTimeDisplay,
-
-                        // Raw IDs
-                        vehicleId = submission.VehicleId,
-                        characterId = submission.CharacterId,
-                        controllerType = submission.ControllerType,
-                        driftType = submission.DriftType,
-                        trackSlot = ghostData.CourseId,
-
-                        // Human-readable names
-                        vehicleName = MarioKartMappings.GetVehicleName(submission.VehicleId),
-                        characterName = MarioKartMappings.GetCharacterName(submission.CharacterId),
-                        controllerName = MarioKartMappings.GetControllerName(submission.ControllerType),
-                        driftTypeName = MarioKartMappings.GetDriftTypeName(submission.DriftType),
-                        trackSlotName = MarioKartMappings.GetTrackSlotName(ghostData.CourseId),
-
-                        miiName = submission.MiiName,
-                        lapCount = submission.LapCount,
-                        lapSplitsMs = ghostData.LapSplitsMs, 
-                        ghostFilePath = submission.GhostFilePath,
-                        dateSet = submission.DateSet,
-                        submittedAt = submission.SubmittedAt,
-                        shroomless = submission.Shroomless,
-                        glitch = submission.Glitch
+                        Id = submission.Id,
+                        TrackId = submission.TrackId,
+                        TrackName = track.Name,
+                        TTProfileId = submission.TTProfileId,
+                        PlayerName = ttProfile.DisplayName,
+                        CountryCode = ttProfile.CountryCode,
+                        CountryAlpha2 = CountryCodeHelper.GetAlpha2Code(ttProfile.CountryCode),
+                        CountryName = CountryCodeHelper.GetCountryName(ttProfile.CountryCode),
+                        CC = submission.CC,
+                        FinishTimeMs = submission.FinishTimeMs,
+                        FinishTimeDisplay = submission.FinishTimeDisplay,
+                        VehicleId = submission.VehicleId,
+                        CharacterId = submission.CharacterId,
+                        ControllerType = submission.ControllerType,
+                        DriftType = submission.DriftType,
+                        VehicleName = MarioKartMappings.GetVehicleName(submission.VehicleId),
+                        CharacterName = MarioKartMappings.GetCharacterName(submission.CharacterId),
+                        ControllerName = MarioKartMappings.GetControllerName(submission.ControllerType),
+                        DriftTypeName = MarioKartMappings.GetDriftTypeName(submission.DriftType),
+                        TrackSlotName = MarioKartMappings.GetTrackSlotName(ghostData.CourseId),
+                        MiiName = submission.MiiName,
+                        LapCount = submission.LapCount,
+                        LapSplitsMs = ghostData.LapSplitsMs,
+                        LapSplitsDisplay = [.. ghostData.LapSplitsMs.Select(FormatLapTime)],
+                        FastestLapMs = ghostData.LapSplitsMs.DefaultIfEmpty(0).Min(),
+                        FastestLapDisplay = ghostData.LapSplitsMs.Count > 0
+                            ? FormatLapTime(ghostData.LapSplitsMs.Min())
+                            : "",
+                        GhostFilePath = submission.GhostFilePath,
+                        DateSet = submission.DateSet,
+                        SubmittedAt = submission.SubmittedAt,
+                        Shroomless = submission.Shroomless,
+                        Glitch = submission.Glitch
                     }
                 });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error submitting ghost for track {TrackId}", trackId);
-                return StatusCode(500, new { error = "An error occurred while submitting the ghost" });
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while submitting the ghost");
             }
         }
 
+        /// <summary>
+        /// Deletes a ghost submission
+        /// </summary>
         [HttpDelete("timetrial/submission/{id}")]
-        public async Task<IActionResult> DeleteGhostSubmission(int id)
+        public async Task<ActionResult<GhostDeletionResultDto>> DeleteGhostSubmission(int id)
         {
             try
             {
                 var submission = await _timeTrialRepository.GetGhostSubmissionByIdAsync(id);
                 if (submission == null)
-                    return NotFound(new { error = $"Submission {id} not found" });
-
-                // Update profile stats
-                var ttProfile = await _timeTrialRepository.GetTTProfileByIdAsync(submission.TTProfileId);
-                if (ttProfile == null)
+                {
+                    return NotFound(new GhostDeletionResultDto
                     {
-                    _logger.LogWarning("TT Profile {ProfileId} not found when deleting submission {SubmissionId}",
-                        submission.TTProfileId, id);
+                        Success = false,
+                        Message = $"Submission {id} not found"
+                    });
+                }
+
+                // Delete ghost file from disk
+                if (System.IO.File.Exists(submission.GhostFilePath))
+                {
+                    try
+                    {
+                        System.IO.File.Delete(submission.GhostFilePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to delete ghost file: {FilePath}",
+                            submission.GhostFilePath);
+                    }
+                }
+
+                // Delete from database
+                await _timeTrialRepository.DeleteGhostSubmissionAsync(id);
+
+                // Update profile submission count
+                var ttProfile = await _timeTrialRepository.GetTTProfileByIdAsync(submission.TTProfileId);
+                if (ttProfile != null)
+                {
+                    ttProfile.TotalSubmissions = await _timeTrialRepository.GetProfileSubmissionsCountAsync(ttProfile.Id);
+                    await _timeTrialRepository.UpdateTTProfileAsync(ttProfile);
                 }
                 else
                 {
-                    int totalSubmissions = await _timeTrialRepository.GetProfileSubmissionsCountAsync(ttProfile.Id);
-                    ttProfile.TotalSubmissions = Math.Max(0, totalSubmissions - 1);
-                    await _timeTrialRepository.UpdateTTProfileAsync(ttProfile);
+                    _logger.LogWarning("TT Profile {ProfileId} not found when deleting submission {SubmissionId}",
+                        submission.TTProfileId, id);
                 }
-
-                if (System.IO.File.Exists(submission.GhostFilePath))
-                {
-                    System.IO.File.Delete(submission.GhostFilePath);
-                }
-
-                await _timeTrialRepository.DeleteGhostSubmissionAsync(id);
-
 
                 _logger.LogInformation("Ghost submission {SubmissionId} deleted", id);
 
-                return Ok(new { success = true, message = "Ghost submission deleted successfully" });
+                return Ok(new GhostDeletionResultDto
+                {
+                    Success = true,
+                    Message = "Ghost submission deleted successfully"
+                });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting ghost submission {SubmissionId}", id);
-                return StatusCode(500, new { error = "An error occurred while deleting the ghost submission" });
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while deleting the ghost submission");
             }
         }
 
         // ===== TT PROFILE MANAGEMENT =====
+        // TODO: Move to TimeTrialAdminController
 
+        /// <summary>
+        /// Creates a new Time Trial profile
+        /// </summary>
         [HttpPost("timetrial/profile/create")]
-        public async Task<IActionResult> CreateTTProfile([FromBody] CreateTTProfileRequest request)
+        public async Task<ActionResult<ProfileCreationResultDto>> CreateTTProfile([FromBody] CreateTTProfileRequest request)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(request.DisplayName))
+                if (!ModelState.IsValid)
                 {
-                    return BadRequest(new { success = false, message = "Display name is required" });
+                    return BadRequest(ModelState);
                 }
 
-                // Trim and validate display name
-                var displayName = request.DisplayName.Trim();
-
-                if (displayName.Length < 2)
-                {
-                    return BadRequest(new { success = false, message = "Display name must be at least 2 characters" });
-                }
-
-                if (displayName.Length > 50)
-                {
-                    return BadRequest(new { success = false, message = "Display name must be 50 characters or less" });
-                }
+                var validation = ValidateDisplayName(request.DisplayName, out var displayName);
+                if (validation != null) return validation;
 
                 // Check if profile already exists
                 var existingProfile = await _timeTrialRepository.GetTTProfileByNameAsync(displayName);
                 if (existingProfile != null)
                 {
-                    return BadRequest(new
+                    return BadRequest(new ProfileCreationResultDto
                     {
-                        success = false,
-                        message = $"Profile with name '{displayName}' already exists",
-                        existingProfile = new
+                        Success = false,
+                        Message = $"Profile with name '{displayName}' already exists",
+                        Profile = new TTProfileDto
                         {
-                            existingProfile.Id,
-                            existingProfile.DisplayName,
-                            existingProfile.TotalSubmissions,
-                            existingProfile.CurrentWorldRecords
+                            Id = existingProfile.Id,
+                            DisplayName = existingProfile.DisplayName,
+                            TotalSubmissions = existingProfile.TotalSubmissions,
+                            CurrentWorldRecords = existingProfile.CurrentWorldRecords,
+                            CountryCode = existingProfile.CountryCode,
+                            CountryAlpha2 = CountryCodeHelper.GetAlpha2Code(existingProfile.CountryCode),
+                            CountryName = CountryCodeHelper.GetCountryName(existingProfile.CountryCode)
                         }
                     });
                 }
@@ -528,30 +549,36 @@ namespace RetroRewindWebsite.Controllers
                     "TT Profile created: {DisplayName} (ID: {ProfileId})",
                     newProfile.DisplayName, newProfile.Id);
 
-                return Ok(new
+                return Ok(new ProfileCreationResultDto
                 {
-                    success = true,
-                    message = "TT Profile created successfully",
-                    profile = new
+                    Success = true,
+                    Message = "TT Profile created successfully",
+                    Profile = new TTProfileDto
                     {
-                        newProfile.Id,
-                        newProfile.DisplayName,
-                        newProfile.TotalSubmissions,
-                        newProfile.CurrentWorldRecords,
-                        newProfile.CountryCode,
-                        newProfile.CreatedAt
+                        Id = newProfile.Id,
+                        DisplayName = newProfile.DisplayName,
+                        TotalSubmissions = newProfile.TotalSubmissions,
+                        CurrentWorldRecords = newProfile.CurrentWorldRecords,
+                        CountryCode = newProfile.CountryCode,
+                        CountryAlpha2 = CountryCodeHelper.GetAlpha2Code(newProfile.CountryCode),
+                        CountryName = CountryCodeHelper.GetCountryName(newProfile.CountryCode)
                     }
                 });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating TT profile");
-                return StatusCode(500, new { success = false, message = "An error occurred while creating the profile" });
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while creating the profile");
             }
         }
 
+        /// <summary>
+        /// Retrieves all Time Trial profiles
+        /// TODO: Add pagination
+        /// </summary>
         [HttpGet("timetrial/profiles")]
-        public async Task<IActionResult> GetAllTTProfiles()
+        public async Task<ActionResult<ProfileListResultDto>> GetAllTTProfiles()
         {
             try
             {
@@ -559,50 +586,59 @@ namespace RetroRewindWebsite.Controllers
 
                 var profileDtos = profiles
                     .OrderBy(p => p.DisplayName)
-                    .Select(p => new
+                    .Select(p => new TTProfileDto
                     {
-                        p.Id,
-                        p.DisplayName,
-                        p.TotalSubmissions,
-                        p.CurrentWorldRecords,
-                        p.CountryCode,
-                        p.CreatedAt
+                        Id = p.Id,
+                        DisplayName = p.DisplayName,
+                        TotalSubmissions = p.TotalSubmissions,
+                        CurrentWorldRecords = p.CurrentWorldRecords,
+                        CountryCode = p.CountryCode,
+                        CountryAlpha2 = CountryCodeHelper.GetAlpha2Code(p.CountryCode),
+                        CountryName = CountryCodeHelper.GetCountryName(p.CountryCode)
                     })
                     .ToList();
 
-                return Ok(new
+                return Ok(new ProfileListResultDto
                 {
-                    success = true,
-                    count = profileDtos.Count,
-                    profiles = profileDtos
+                    Success = true,
+                    Count = profileDtos.Count,
+                    Profiles = profileDtos
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting TT profiles");
-                return StatusCode(500, new { success = false, message = "An error occurred while retrieving profiles" });
+                _logger.LogError(ex, "Error retrieving TT profiles");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while retrieving profiles");
             }
         }
 
+        /// <summary>
+        /// Deletes a Time Trial profile
+        /// </summary>
         [HttpDelete("timetrial/profile/{id}")]
-        public async Task<IActionResult> DeleteTTProfile(int id)
+        public async Task<ActionResult<ProfileDeletionResultDto>> DeleteTTProfile(int id)
         {
             try
             {
                 var profile = await _timeTrialRepository.GetTTProfileByIdAsync(id);
                 if (profile == null)
                 {
-                    return NotFound(new { success = false, message = $"Profile {id} not found" });
+                    return NotFound(new ProfileDeletionResultDto
+                    {
+                        Success = false,
+                        Message = $"Profile {id} not found"
+                    });
                 }
 
                 // Check if profile has submissions
                 var submissionCount = await _timeTrialRepository.GetProfileSubmissionsCountAsync(id);
                 if (submissionCount > 0)
                 {
-                    return BadRequest(new
+                    return BadRequest(new ProfileDeletionResultDto
                     {
-                        success = false,
-                        message = $"Cannot delete profile '{profile.DisplayName}' - it has {submissionCount} submission(s). Delete submissions first."
+                        Success = false,
+                        Message = $"Cannot delete profile '{profile.DisplayName}' - it has {submissionCount} submission(s). Delete submissions first."
                     });
                 }
 
@@ -612,48 +648,57 @@ namespace RetroRewindWebsite.Controllers
                     "TT Profile deleted: {DisplayName} (ID: {ProfileId})",
                     profile.DisplayName, id);
 
-                return Ok(new
+                return Ok(new ProfileDeletionResultDto
                 {
-                    success = true,
-                    message = $"Profile '{profile.DisplayName}' deleted successfully"
+                    Success = true,
+                    Message = $"Profile '{profile.DisplayName}' deleted successfully"
                 });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting TT profile {ProfileId}", id);
-                return StatusCode(500, new { success = false, message = "An error occurred while deleting the profile" });
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while deleting the profile");
             }
         }
 
+        /// <summary>
+        /// Updates a Time Trial profile
+        /// </summary>
         [HttpPut("timetrial/profile/{id}")]
-        public async Task<IActionResult> UpdateTTProfile(int id, [FromBody] UpdateTTProfileRequest request)
+        public async Task<ActionResult<ProfileUpdateResultDto>> UpdateTTProfile(int id, [FromBody] UpdateTTProfileRequest request)
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
                 var profile = await _timeTrialRepository.GetTTProfileByIdAsync(id);
                 if (profile == null)
                 {
-                    return NotFound(new { success = false, message = $"Profile {id} not found" });
+                    return NotFound(new ProfileUpdateResultDto
+                    {
+                        Success = false,
+                        Message = $"Profile {id} not found"
+                    });
                 }
 
-                var displayName = request.DisplayName?.Trim();
-
                 // Update display name if provided
-                if (!string.IsNullOrWhiteSpace(displayName))
+                if (!string.IsNullOrWhiteSpace(request.DisplayName))
                 {
-                    if (displayName.Length < 2 || displayName.Length > 50)
-                    {
-                        return BadRequest(new { success = false, message = "Display name must be between 2 and 50 characters" });
-                    }
+                    var validation = ValidateDisplayName(request.DisplayName, out var displayName);
+                    if (validation != null) return validation;
 
-                    // Check if new name already exists (and it's not the same profile)
+                    // Check if new name already exists
                     var existingProfile = await _timeTrialRepository.GetTTProfileByNameAsync(displayName);
                     if (existingProfile != null && existingProfile.Id != id)
                     {
-                        return BadRequest(new
+                        return BadRequest(new ProfileUpdateResultDto
                         {
-                            success = false,
-                            message = $"Profile with name '{displayName}' already exists"
+                            Success = false,
+                            Message = $"Profile with name '{displayName}' already exists"
                         });
                     }
 
@@ -672,46 +717,126 @@ namespace RetroRewindWebsite.Controllers
                     "TT Profile updated: {DisplayName} (ID: {ProfileId})",
                     profile.DisplayName, id);
 
-                return Ok(new
+                return Ok(new ProfileUpdateResultDto
                 {
-                    success = true,
-                    message = "Profile updated successfully",
-                    profile = new
+                    Success = true,
+                    Message = "Profile updated successfully",
+                    Profile = new TTProfileDto
                     {
-                        profile.Id,
-                        profile.DisplayName,
-                        profile.TotalSubmissions,
-                        profile.CurrentWorldRecords,
-                        profile.CountryCode,
-                        profile.UpdatedAt
+                        Id = profile.Id,
+                        DisplayName = profile.DisplayName,
+                        TotalSubmissions = profile.TotalSubmissions,
+                        CurrentWorldRecords = profile.CurrentWorldRecords,
+                        CountryCode = profile.CountryCode,
+                        CountryAlpha2 = CountryCodeHelper.GetAlpha2Code(profile.CountryCode),
+                        CountryName = CountryCodeHelper.GetCountryName(profile.CountryCode)
                     }
                 });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating TT profile {ProfileId}", id);
-                return StatusCode(500, new { success = false, message = "An error occurred while updating the profile" });
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while updating the profile");
             }
         }
 
+        // ===== UTILITY ENDPOINTS =====
+
+        /// <summary>
+        /// Retrieves all available country codes
+        /// TODO: Move to a shared utility controller
+        /// </summary>
         [HttpGet("countries")]
-        public IActionResult GetCountries()
+        public ActionResult<CountryListResultDto> GetCountries()
         {
             var countries = CountryCodeHelper.GetAllCountries()
-                .Select(c => new
+                .Select(c => new CountryDto
                 {
-                    numericCode = c.NumericCode,
-                    alpha2 = c.Alpha2,
-                    name = c.Name
+                    NumericCode = c.NumericCode,
+                    Alpha2 = c.Alpha2,
+                    Name = c.Name
                 })
                 .ToList();
 
-            return Ok(new
+            return Ok(new CountryListResultDto
             {
-                success = true,
-                count = countries.Count,
-                countries
+                Success = true,
+                Count = countries.Count,
+                Countries = countries
             });
+        }
+
+        // ===== HELPER METHODS =====
+
+        private BadRequestObjectResult? ValidateGhostFile(IFormFile? ghostFile)
+        {
+            if (ghostFile == null || ghostFile.Length == 0)
+            {
+                return BadRequest("Ghost file is required");
+            }
+
+            if (!ghostFile.FileName.EndsWith(".rkg", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest("File must be a .rkg file");
+            }
+
+            return null;
+        }
+
+        private BadRequestObjectResult? ValidateCc(short cc)
+        {
+            if (cc != CC_150 && cc != CC_200)
+            {
+                return BadRequest($"CC must be either {CC_150} or {CC_200}");
+            }
+            return null;
+        }
+
+        private BadRequestObjectResult? ValidateTrackSlotMatch(short courseId, TrackEntity track)
+        {
+            var rkgTrackSlotName = MarioKartMappings.GetTrackSlotName(courseId);
+            if (rkgTrackSlotName == null)
+            {
+                return BadRequest($"Invalid course ID in ghost file: {courseId}");
+            }
+
+            if (rkgTrackSlotName != track.TrackSlot)
+            {
+                _logger.LogWarning(
+                    "Track slot mismatch: Ghost has {GhostSlot} but track {TrackName} uses {TrackSlot}",
+                    rkgTrackSlotName, track.Name, track.TrackSlot);
+
+                return BadRequest($"Track slot mismatch: This ghost uses the track slot of '{rkgTrackSlotName}' but you submitted it for '{track.Name}' which uses '{track.TrackSlot}'");
+            }
+
+            return null;
+        }
+
+        private BadRequestObjectResult? ValidateDisplayName(string displayName, out string trimmed)
+        {
+            trimmed = displayName.Trim();
+
+            if (trimmed.Length < MIN_DISPLAY_NAME_LENGTH)
+            {
+                return BadRequest($"Display name must be at least {MIN_DISPLAY_NAME_LENGTH} characters");
+            }
+
+            if (trimmed.Length > MAX_DISPLAY_NAME_LENGTH)
+            {
+                return BadRequest($"Display name must be {MAX_DISPLAY_NAME_LENGTH} characters or less");
+            }
+
+            return null;
+        }
+
+        private static string FormatLapTime(int milliseconds)
+        {
+            var totalSeconds = milliseconds / 1000.0;
+            var minutes = (int)(totalSeconds / 60);
+            var seconds = totalSeconds % 60;
+
+            return $"{minutes}:{seconds:00.000}";
         }
     }
 }

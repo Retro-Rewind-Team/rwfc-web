@@ -1,24 +1,9 @@
-﻿using RetroRewindWebsite.Models.Entities;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace RetroRewindWebsite.Models.DTOs
 {
-    // Request DTOs
-    public class GhostSubmissionRequest
-    {
-        public required int TrackId { get; set; }
-        public required short CC { get; set; } // 150 or 200
-        public required IFormFile GhostFile { get; set; }
-    }
+    // ===== TRACK DTOs =====
 
-    public class TimeTrialLeaderboardRequest
-    {
-        public int TrackId { get; set; }
-        public short CC { get; set; }
-        public int Page { get; set; } = 1;
-        public int PageSize { get; set; } = 10;
-    }
-
-    // Response DTOs
     public class TrackDto
     {
         public int Id { get; set; }
@@ -29,16 +14,66 @@ namespace RetroRewindWebsite.Models.DTOs
         public short Laps { get; set; }
     }
 
+    // ===== TT PROFILE DTOs =====
+
     public class TTProfileDto
     {
         public int Id { get; set; }
         public required string DisplayName { get; set; }
         public int TotalSubmissions { get; set; }
         public int CurrentWorldRecords { get; set; }
-        public int CountryCode { get; set; } // 528
-        public string? CountryAlpha2 { get; set; }  // "NL"
-        public string? CountryName { get; set; }    // "Netherlands"
+        public int CountryCode { get; set; }
+        public string? CountryAlpha2 { get; set; }
+        public string? CountryName { get; set; }
     }
+
+    public class CreateTTProfileRequest
+    {
+        [Required(ErrorMessage = "Display name is required")]
+        [StringLength(50, MinimumLength = 2, ErrorMessage = "Display name must be between 2 and 50 characters")]
+        public required string DisplayName { get; set; }
+
+        [Range(0, int.MaxValue, ErrorMessage = "Country code must be a positive number")]
+        public int? CountryCode { get; set; }
+    }
+
+    public class UpdateTTProfileRequest
+    {
+        [StringLength(50, MinimumLength = 2, ErrorMessage = "Display name must be between 2 and 50 characters")]
+        public string? DisplayName { get; set; }
+
+        [Range(0, int.MaxValue, ErrorMessage = "Country code must be a positive number")]
+        public int? CountryCode { get; set; }
+    }
+
+    public class ProfileCreationResultDto
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public TTProfileDto? Profile { get; set; }
+    }
+
+    public class ProfileUpdateResultDto
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public TTProfileDto? Profile { get; set; }
+    }
+
+    public class ProfileDeletionResultDto
+    {
+        public bool Success { get; set; }
+        public required string Message { get; set; }
+    }
+
+    public class ProfileListResultDto
+    {
+        public bool Success { get; set; }
+        public int Count { get; set; }
+        public List<TTProfileDto> Profiles { get; set; } = [];
+    }
+
+    // ===== GHOST SUBMISSION DTOs =====
 
     public class GhostSubmissionDto
     {
@@ -64,11 +99,36 @@ namespace RetroRewindWebsite.Models.DTOs
         public List<int> LapSplitsMs { get; set; } = [];
         public List<string> LapSplitsDisplay { get; set; } = [];
         public int FastestLapMs { get; set; }
-        public string FastestLapDisplay { get; set; } = ""; 
+        public string FastestLapDisplay { get; set; } = "";
         public required string GhostFilePath { get; set; }
         public DateOnly DateSet { get; set; }
         public DateTime SubmittedAt { get; set; }
     }
+
+    public class GhostSubmissionDetailDto : GhostSubmissionDto
+    {
+        // Extended properties with human-readable names
+        public string? VehicleName { get; set; }
+        public string? CharacterName { get; set; }
+        public string? ControllerName { get; set; }
+        public string? DriftTypeName { get; set; }
+        public string? TrackSlotName { get; set; }
+    }
+
+    public class GhostSubmissionResultDto
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public GhostSubmissionDetailDto? Submission { get; set; }
+    }
+
+    public class GhostDeletionResultDto
+    {
+        public bool Success { get; set; }
+        public required string Message { get; set; }
+    }
+
+    // ===== LEADERBOARD DTOs =====
 
     public class TrackLeaderboardDto
     {
@@ -82,12 +142,15 @@ namespace RetroRewindWebsite.Models.DTOs
         public string? FastestLapDisplay { get; set; }
     }
 
-    public class GhostSubmissionResponse
+    public class TrackWorldRecordsDto
     {
-        public bool Success { get; set; }
-        public string? Message { get; set; }
-        public GhostSubmissionDto? Submission { get; set; }
+        public int TrackId { get; set; }
+        public required string TrackName { get; set; }
+        public GhostSubmissionDto? WorldRecord150 { get; set; }
+        public GhostSubmissionDto? WorldRecord200 { get; set; }
     }
+
+    // ===== PLAYER STATS DTOs =====
 
     public class TTPlayerStats
     {
@@ -97,18 +160,22 @@ namespace RetroRewindWebsite.Models.DTOs
         public int Tracks200cc { get; set; }
         public double AverageFinishPosition { get; set; }
         public int Top10Count { get; set; }
-        public List<GhostSubmissionEntity>? RecentSubmissions { get; set; }
+        public List<GhostSubmissionDto> RecentSubmissions { get; set; } = [];
     }
 
-    public class CreateTTProfileRequest
+    // ===== UTILITY DTOs =====
+
+    public class CountryDto
     {
-        public required string DisplayName { get; set; }
-        public int? CountryCode { get; set; }
+        public int NumericCode { get; set; }
+        public required string Alpha2 { get; set; }
+        public required string Name { get; set; }
     }
 
-    public class UpdateTTProfileRequest
+    public class CountryListResultDto
     {
-        public string? DisplayName { get; set; }
-        public int? CountryCode { get; set; }
+        public bool Success { get; set; }
+        public int Count { get; set; }
+        public List<CountryDto> Countries { get; set; } = [];
     }
 }

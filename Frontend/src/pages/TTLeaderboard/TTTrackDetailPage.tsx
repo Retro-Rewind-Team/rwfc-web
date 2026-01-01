@@ -1,5 +1,5 @@
 import { A, useParams } from "@solidjs/router";
-import { Show } from "solid-js";
+import { createMemo, Show } from "solid-js";
 import { useTTTrackDetail } from "../../hooks/useTTTrackDetail";
 import { AlertBox, LoadingSpinner } from "../../components/common";
 import { TTFilters, TTLeaderboardTable, TTWRHistory } from "../../components/ui";
@@ -7,19 +7,19 @@ import { TTFilters, TTLeaderboardTable, TTWRHistory } from "../../components/ui"
 export default function TTTrackDetailPage() {
     const params = useParams();
     
-    // Parse CC from route params
-    const selectedCC = () => {
+    // Parse CC from route params as a memo
+    const selectedCC = createMemo((): 150 | 200 => {
         const cc = params.cc;
         if (cc === "150cc") return 150;
         if (cc === "200cc") return 200;
         return 150; // default
-    };
+    });
 
-    // Parse track ID from route params
-    const trackId = () => Number(params.trackId);
+    // Parse track ID from route params as a memo
+    const trackId = createMemo(() => Number(params.trackId));
 
     // Use the track detail hook
-    const ttTrack = useTTTrackDetail(trackId(), selectedCC());
+    const ttTrack = useTTTrackDetail(trackId, selectedCC);
 
     // Get track category for filters
     const trackCategory = () => ttTrack.trackQuery.data?.category || "retro";
@@ -116,7 +116,7 @@ export default function TTTrackDetailPage() {
                                             {track().name}
                                         </h1>
                                         <div class="flex items-center gap-3 text-sm text-blue-100">
-                                            <span>{ttTrack.selectedCC()}cc</span>
+                                            <span>{selectedCC()}cc</span>
                                             <span>•</span>
                                             <span>{track().laps} lap{track().laps !== 1 ? "s" : ""}</span>
                                             <span>•</span>
@@ -155,14 +155,14 @@ export default function TTTrackDetailPage() {
                             {/* Filters */}
                             <div class="bg-gray-50 dark:bg-gray-700/50 p-4 border-b-2 border-gray-200 dark:border-gray-700">
                                 <TTFilters
-                                    selectedCC={ttTrack.selectedCC()}
+                                    trackId={trackId()}
+                                    currentCC={selectedCC()}
                                     shroomlessFilter={ttTrack.shroomlessFilter()}
                                     glitchFilter={ttTrack.glitchFilter()}
                                     vehicleFilter={ttTrack.vehicleFilter()}
                                     driftFilter={ttTrack.driftFilter()}
                                     pageSize={ttTrack.pageSize()}
                                     category={trackCategory()}
-                                    onCCChange={ttTrack.handleCCChange}
                                     onShroomlessFilterChange={ttTrack.handleShroomlessFilterChange}
                                     onGlitchFilterChange={ttTrack.handleGlitchFilterChange}
                                     onVehicleFilterChange={ttTrack.handleVehicleFilterChange}

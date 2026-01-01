@@ -124,25 +124,31 @@ export default function TTLeaderboardPage() {
             </div>
 
             {/* Loading State */}
-            <Show when={browser.tracksQuery.isLoading}>
+            <Show when={browser.tracksQuery.isLoading || browser.worldRecordsQuery.isLoading}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-12 text-center">
                     <LoadingSpinner />
                     <p class="mt-4 text-gray-600 dark:text-gray-400">
-                        Loading tracks...
+                        {browser.tracksQuery.isLoading ? "Loading tracks..." : "Loading world records..."}
                     </p>
                 </div>
             </Show>
 
             {/* Error State */}
-            <Show when={browser.tracksQuery.isError}>
+            <Show when={browser.tracksQuery.isError || browser.worldRecordsQuery.isError}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-red-200 dark:border-red-800 p-8">
                     <div class="text-center">
                         <div class="text-6xl mb-4">⚠️</div>
                         <h3 class="text-xl font-bold text-red-900 dark:text-red-100 mb-2">
-                            Failed to load tracks
+                            {browser.tracksQuery.isError ? "Failed to load tracks" : "Failed to load world records"}
                         </h3>
                         <button
-                            onClick={() => browser.tracksQuery.refetch()}
+                            onClick={() => {
+                                if (browser.tracksQuery.isError) {
+                                    browser.tracksQuery.refetch();
+                                } else {
+                                    browser.worldRecordsQuery.refetch();
+                                }
+                            }}
                             class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
                         >
                             Try Again
@@ -152,7 +158,7 @@ export default function TTLeaderboardPage() {
             </Show>
 
             {/* Tracks Table */}
-            <Show when={browser.tracksQuery.data && !browser.tracksQuery.isLoading}>
+            <Show when={browser.tracksQuery.data && browser.worldRecordsQuery.data && !browser.tracksQuery.isLoading && !browser.worldRecordsQuery.isLoading}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
                     <div class="bg-blue-600 px-6 py-4">
                         <h2 class="text-2xl font-bold text-white">

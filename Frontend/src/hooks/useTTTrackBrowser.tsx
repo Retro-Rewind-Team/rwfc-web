@@ -14,6 +14,14 @@ export function useTTTrackBrowser() {
         staleTime: 1000 * 60 * 60, // 1 hour
     }));
 
+    // Fetch all world records in a single request
+    const worldRecordsQuery = useQuery(() => ({
+        queryKey: ["tt-world-records-all"],
+        queryFn: () => timeTrialApi.getAllWorldRecords(),
+        // Remove the enabled check since we always want to fetch all records
+        staleTime: 1000 * 60 * 5, // 5 minutes
+    }));
+
     // Filter tracks by category and search
     const filteredTracks = createMemo(() => {
         const tracks = tracksQuery.data || [];
@@ -28,34 +36,16 @@ export function useTTTrackBrowser() {
             .sort((a, b) => a.id - b.id);
     });
 
-    // Fetch world records for all filtered tracks
-    const worldRecordsQuery = useQuery(() => ({
-        queryKey: ["tt-world-records-overview", selectedCategory(), selectedCC()],
-        queryFn: async () => {
-            const tracks = filteredTracks();
-            if (tracks.length === 0) return [];
-
-            // Fetch world record for each track
-            const records = await Promise.all(
-                tracks.map(async (track) => {
-                    try {
-                        const wr = await timeTrialApi.getWorldRecord(track.id, selectedCC());
-                        return { trackId: track.id, record: wr };
-                    } catch {
-                        return { trackId: track.id, record: null };
-                    }
-                })
-            );
-
-            return records;
-        },
-        enabled: () => filteredTracks().length > 0,
-    }));
-
-    // Get world record for a specific track
+    // Get world record for a specific track (just filtering cached data)
     const getWorldRecordForTrack = (trackId: number) => {
         const records = worldRecordsQuery.data || [];
-        return records.find((r) => r.trackId === trackId)?.record || null;
+        const trackRecord = records.find((r) => r.trackId === trackId);
+        
+        if (!trackRecord) return null;
+        
+        return selectedCC() === 150 
+            ? trackRecord.worldRecord150 
+            : trackRecord.worldRecord200;
     };
 
     const handleSearchInput = (value: string) => {

@@ -1,5 +1,5 @@
 import { apiRequest } from "./client";
-import { GhostSubmission, Track, TrackLeaderboard, TTPlayerStats, TTProfile } from "../../types/timeTrial";
+import { GhostSubmission, Track, TrackLeaderboard, TrackWorldRecords, TTPlayerStats, TTProfile } from "../../types/timeTrial";
 
 export const timeTrialApi = {
     async getAllTracks(): Promise<Track[]> {
@@ -38,6 +38,10 @@ export const timeTrialApi = {
         return apiRequest<GhostSubmission>(
             `/timetrial/worldrecord?trackId=${trackId}&cc=${cc}`
         );
+    },
+
+    async getAllWorldRecords(): Promise<TrackWorldRecords[]> {
+        return apiRequest<TrackWorldRecords[]>("/timetrial/worldrecords/all");
     },
 
     async getWorldRecordHistory(

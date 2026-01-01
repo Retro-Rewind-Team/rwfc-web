@@ -116,7 +116,7 @@ export default function TTPlayerProfilePage() {
                         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
                             <div class="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
                                 <div class="flex items-center space-x-6">
-                                    {/* Player Image Placeholder - ready for future image */}
+                                    {/* Player Image Placeholder */}
                                     <div class="flex-shrink-0">
                                         <div class="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                                             <svg class="w-14 h-14 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -157,7 +157,7 @@ export default function TTPlayerProfilePage() {
                         {/* Stats Grid */}
                         <Show when={ttPlayer.statsQuery.data}>
                             {(stats) => (
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <TTPlayerStatsCard
                                         value={stats().profile.totalSubmissions}
                                         label="Total Submissions"
@@ -166,15 +166,9 @@ export default function TTPlayerProfilePage() {
                                     />
                                     <TTPlayerStatsCard
                                         value={stats().totalTracks}
-                                        label="Tracks Completed"
-                                        icon="🗺️"
+                                        label="Tracks Played"
+                                        icon="🏎️"
                                         colorScheme="green"
-                                    />
-                                    <TTPlayerStatsCard
-                                        value={stats().top10Count}
-                                        label="Top 10 Finishes"
-                                        icon="🏆"
-                                        colorScheme="amber"
                                     />
                                 </div>
                             )}
