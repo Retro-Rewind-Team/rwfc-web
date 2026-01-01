@@ -52,7 +52,7 @@ namespace RetroRewindWebsite.Services.Application
 
             var stats = await GetStatsAsync();
 
-            var playerDtos = pagedResult.Items.Select(MapToDtoWithoutMii).ToList();
+            var playerDtos = pagedResult.Items.Select(MapToDto).ToList();
 
             return new LeaderboardResponseDto
             {
@@ -66,6 +66,12 @@ namespace RetroRewindWebsite.Services.Application
         }
 
         public async Task<List<PlayerDto>> GetTopPlayersAsync(int count)
+        {
+            var players = await _playerRepository.GetTopPlayersAsync(count);
+            return [.. players.Select(MapToDto)];
+        }
+
+        public async Task<List<PlayerDto>> GetTopPlayersNoMiiAsync(int count)
         {
             var players = await _playerRepository.GetTopPlayersAsync(count);
             return [.. players.Select(MapToDtoWithoutMii)];
@@ -103,7 +109,7 @@ namespace RetroRewindWebsite.Services.Application
         public async Task<PlayerDto?> GetPlayerAsync(string fc)
         {
             var player = await _playerRepository.GetByFcAsync(fc);
-            return player != null ? MapToDtoWithoutMii(player) : null;
+            return player != null ? MapToDto(player) : null;
         }
 
         public async Task<VRHistoryRangeResponse?> GetPlayerHistoryAsync(string fc, int? days)
@@ -479,7 +485,7 @@ namespace RetroRewindWebsite.Services.Application
 
         // ===== PRIVATE HELPER METHODS =====
 
-        private static PlayerDto MapToDtoWithoutMii(PlayerEntity entity)
+        private static PlayerDto MapToDto(PlayerEntity entity)
         {
             return new PlayerDto
             {
@@ -497,6 +503,28 @@ namespace RetroRewindWebsite.Services.Application
                     LastMonth = entity.VRGainLastMonth
                 },
                 MiiImageBase64 = entity.MiiImageBase64,
+                MiiData = entity.MiiData
+            };
+        }
+
+        private static PlayerDto MapToDtoWithoutMii(PlayerEntity entity)
+        {
+            return new PlayerDto
+            {
+                Pid = entity.Pid,
+                Name = entity.Name,
+                FriendCode = entity.Fc,
+                VR = entity.Ev,
+                Rank = entity.Rank,
+                LastSeen = entity.LastSeen,
+                IsSuspicious = entity.IsSuspicious,
+                VRStats = new VRStatsDto
+                {
+                    Last24Hours = entity.VRGainLast24Hours,
+                    LastWeek = entity.VRGainLastWeek,
+                    LastMonth = entity.VRGainLastMonth
+                },
+                MiiImageBase64 = null,
                 MiiData = entity.MiiData
             };
         }

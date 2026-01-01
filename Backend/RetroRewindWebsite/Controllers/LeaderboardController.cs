@@ -69,6 +69,26 @@ namespace RetroRewindWebsite.Controllers
         }
 
         /// <summary>
+        /// Retrieves top N players without mii images (excluding suspicious players)
+        /// </summary>
+        [HttpGet("top/no-mii/{count}")]
+            public async Task<ActionResult<List<PlayerDto>>> GetTopPlayersNoMii(int count = DefaultTopPlayersCount)
+        {
+            try
+            {
+                count = Math.Clamp(count, MinTopPlayersCount, MaxTopPlayersCount);
+                var players = await _leaderboardManager.GetTopPlayersNoMiiAsync(count);
+                return Ok(players);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving top {Count} players without Mii images", count);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while retrieving top players");
+            }
+        }
+
+        /// <summary>
         /// Retrieves top VR gainers for a specific time period
         /// </summary>
         [HttpGet("top-gainers")]

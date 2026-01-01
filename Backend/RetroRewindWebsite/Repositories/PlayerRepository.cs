@@ -114,7 +114,9 @@ namespace RetroRewindWebsite.Repositories
 
         public async Task<List<PlayerEntity>> GetTopVRGainersAsync(int count, TimeSpan period)
         {
-            var query = _context.Players.AsNoTracking();
+            var query = _context.Players
+                .AsNoTracking()
+                .Where(p => !p.IsSuspicious);
 
             if (period.TotalHours <= 24)
             {
