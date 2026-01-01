@@ -286,6 +286,40 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Downloads Mii file for a specific player
+        /// </summary>
+        [HttpGet("player/{fc}/mii/download")]
+        public async Task<IActionResult> DownloadPlayerMii(string fc)
+        {
+            try
+            {
+                var player = await _leaderboardManager.GetPlayerAsync(fc);
+
+                if (player == null)
+                {
+                    return NotFound($"Player with friend code '{fc}' not found");
+                }
+
+                if (string.IsNullOrEmpty(player.MiiData))
+                {
+                    return NotFound($"No Mii data available for player with friend code '{fc}'");
+                }
+
+                // Decode base64 Mii data to bytes
+                byte[] miiBytes = Convert.FromBase64String(player.MiiData);
+
+                // Return as downloadable file
+                return File(miiBytes, "application/octet-stream", $"{player.Name}.mii");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error downloading Mii for player {FriendCode}", fc);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while downloading Mii file");
+            }
+        }
+
         // ===== LEGACY ENDPOINTS =====
 
         /// <summary>

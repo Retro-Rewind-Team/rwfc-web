@@ -130,12 +130,26 @@ export default function PlayerDetailPage() {
                                 <div class="flex items-center space-x-6">
                                     {/* Mii Image and VR Tier Number Plate */}
                                     <div class="flex flex-col items-center">
-                                        <MiiComponent
-                                            playerName={player().name}
-                                            friendCode={player().friendCode}
-                                            size="lg"
-                                            className="mb-3"
-                                        />
+                                        {/* Mii with Download Overlay */}
+                                        <div class="relative group mb-3">
+                                            <MiiComponent
+                                                playerName={player().name}
+                                                friendCode={player().friendCode}
+                                                size="lg"
+                                            />
+                                            {/* Download button appears on hover */}
+                                            <a
+                                                href={`/api/leaderboard/player/${player().friendCode}/mii/download`}
+                                                download={`${player().name}.mii`}
+                                                class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all rounded-lg opacity-0 group-hover:opacity-100"
+                                                title="Download Mii"
+                                            >
+                                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                </svg>
+                                            </a>
+                                        </div>
+                                        
                                         <VRTierNumberPlate
                                             rank={player().rank}
                                             vr={player().vr}
