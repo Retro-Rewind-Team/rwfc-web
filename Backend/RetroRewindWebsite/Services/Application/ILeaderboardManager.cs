@@ -19,7 +19,7 @@ namespace RetroRewindWebsite.Services.Application
         /// <summary>
         /// Get top N players by rank without mii images
         /// </summary>
-        Task<List<PlayerDto>> GetTopPlayersNoMiiAsync(int count);
+        Task<List<TopPlayerDto>> GetTopPlayersNoMiiAsync(int count);
 
         /// <summary>
         /// Get top VR gainers for a given time period

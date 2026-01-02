@@ -14,6 +14,15 @@
         public string? MiiData { get; set; }
     }
 
+    public class TopPlayerDto
+    {
+        public required string Name { get; set; }
+        public required string FriendCode { get; set; }
+        public int VR { get; set; }
+        public int Rank { get; set; }
+        public string? MiiData { get; set; }
+    }
+
     public class VRStatsDto
     {
         public int Last24Hours { get; set; }

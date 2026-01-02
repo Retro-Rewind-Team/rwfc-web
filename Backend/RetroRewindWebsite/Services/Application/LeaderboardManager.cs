@@ -70,11 +70,10 @@ namespace RetroRewindWebsite.Services.Application
             var players = await _playerRepository.GetTopPlayersAsync(count);
             return [.. players.Select(MapToDto)];
         }
-
-        public async Task<List<PlayerDto>> GetTopPlayersNoMiiAsync(int count)
+        public async Task<List<TopPlayerDto>> GetTopPlayersNoMiiAsync(int count)
         {
             var players = await _playerRepository.GetTopPlayersAsync(count);
-            return [.. players.Select(MapToDtoWithoutMii)];
+            return [.. players.Select(MapToTopPlayerDto)];
         }
 
         public async Task<List<PlayerDto>> GetTopVRGainersAsync(int count, string period)
@@ -529,6 +528,17 @@ namespace RetroRewindWebsite.Services.Application
             };
         }
 
+        private static TopPlayerDto MapToTopPlayerDto(PlayerEntity entity)
+        {
+            return new TopPlayerDto
+            {
+                Name = entity.Name,
+                FriendCode = entity.Fc,
+                VR = entity.Ev,
+                Rank = entity.Rank,
+                MiiData = entity.MiiData
+            };
+        }
         private static bool IsMiiImageCached(PlayerEntity player)
         {
             return !string.IsNullOrEmpty(player.MiiImageBase64) &&
