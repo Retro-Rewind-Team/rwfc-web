@@ -77,6 +77,14 @@ export default function DownloadsPage() {
                     >
                         Update Only (v6.5.5 → v6.5.6)
                     </a>
+                    <a
+                        href="https://github.com/TeamWheelWizard/WheelWizard/releases"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-center"
+                    >
+                        WheelWizard (PC Launcher Download)
+                    </a>
                 </div>
             </AlertBox>
 
