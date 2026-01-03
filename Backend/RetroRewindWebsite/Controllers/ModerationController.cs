@@ -229,50 +229,117 @@ namespace RetroRewindWebsite.Controllers
         }
 
         /// <summary>
-        /// Retrieves all suspicious players
+        /// Retrieves suspicious VR jumps for a specific player
         /// </summary>
-        [HttpGet("suspicious")]
-        public async Task<ActionResult<List<PlayerDto>>> GetSuspiciousPlayers()
+        [HttpGet("suspicious-jumps/{pid}")]
+        public async Task<ActionResult<SuspiciousJumpsResultDto>> GetSuspiciousJumps(string pid)
         {
             try
             {
-                var players = await _playerRepository.GetAllAsync();
-                var suspiciousPlayers = players
-                    .Where(p => p.IsSuspicious)
-                    .OrderByDescending(p => p.Ev)
-                    .Select(p => new PlayerDto
+                if (string.IsNullOrWhiteSpace(pid))
+                {
+                    return BadRequest("Player ID (Pid) is required");
+                }
+
+                var player = await _playerRepository.GetByPidAsync(pid);
+                if (player == null)
+                {
+                    return NotFound($"Player with PID '{pid}' not found");
+                }
+
+                var history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, 1000);
+                var suspiciousJumps = history
+                    .Where(h => Math.Abs(h.VRChange) >= 200)
+                    .OrderByDescending(h => h.Date)
+                    .Select(h => new VRJumpDto
                     {
-                        Pid = p.Pid,
-                        Name = p.Name,
-                        FriendCode = p.Fc,
-                        VR = p.Ev,
-                        Rank = p.Rank,
-                        LastSeen = p.LastSeen,
-                        IsSuspicious = p.IsSuspicious,
-                        VRStats = new VRStatsDto
-                        {
-                            Last24Hours = p.VRGainLast24Hours,
-                            LastWeek = p.VRGainLastWeek,
-                            LastMonth = p.VRGainLastMonth
-                        },
-                        MiiImageBase64 = p.MiiImageBase64,
-                        MiiData = p.MiiData
+                        Date = h.Date,
+                        VRChange = h.VRChange,
+                        TotalVR = h.TotalVR
                     })
                     .ToList();
 
-                return Ok(suspiciousPlayers);
+                _logger.LogInformation(
+                    "Retrieved {Count} suspicious jumps for player: {Name} ({Pid})",
+                    suspiciousJumps.Count, player.Name, pid);
+
+                return Ok(new SuspiciousJumpsResultDto
+                {
+                    Success = true,
+                    Player = new PlayerBasicDto
+                    {
+                        Pid = player.Pid,
+                        Name = player.Name,
+                        FriendCode = player.Fc,
+                        IsSuspicious = player.IsSuspicious,
+                        SuspiciousVRJumps = player.SuspiciousVRJumps
+                    },
+                    SuspiciousJumps = suspiciousJumps,
+                    Count = suspiciousJumps.Count
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving suspicious players");
+                _logger.LogError(ex, "Error retrieving suspicious jumps for PID {Pid}", pid);
                 return StatusCode(StatusCodes.Status500InternalServerError,
-                    "An error occurred while retrieving suspicious players");
+                    "An error occurred while retrieving suspicious jumps");
+            }
+        }
+
+        /// <summary>
+        /// Retrieves comprehensive stats for a specific player
+        /// </summary>
+        [HttpGet("player-stats/{pid}")]
+        public async Task<ActionResult<PlayerStatsResultDto>> GetPlayerStats(string pid)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(pid))
+                {
+                    return BadRequest("Player ID (Pid) is required");
+                }
+
+                var player = await _playerRepository.GetByPidAsync(pid);
+                if (player == null)
+                {
+                    return NotFound($"Player with PID '{pid}' not found");
+                }
+
+                _logger.LogInformation(
+                    "Retrieved stats for player: {Name} ({Pid})",
+                    player.Name, pid);
+
+                return Ok(new PlayerStatsResultDto
+                {
+                    Success = true,
+                    Player = new PlayerStatsDto
+                    {
+                        Pid = player.Pid,
+                        Name = player.Name,
+                        FriendCode = player.Fc,
+                        VR = player.Ev,
+                        Rank = player.Rank,
+                        LastSeen = player.LastSeen,
+                        IsSuspicious = player.IsSuspicious,
+                        SuspiciousVRJumps = player.SuspiciousVRJumps,
+                        VRStats = new VRStatsDto
+                        {
+                            Last24Hours = player.VRGainLast24Hours,
+                            LastWeek = player.VRGainLastWeek,
+                            LastMonth = player.VRGainLastMonth
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving stats for PID {Pid}", pid);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while retrieving player stats");
             }
         }
 
         // ===== TIME TRIAL GHOST SUBMISSION =====
-        // TODO: Move to TimeTrialAdminController
-        // TODO: Extract business logic to TimeTrialSubmissionService
 
         /// <summary>
         /// Submits a new Time Trial ghost
@@ -493,7 +560,6 @@ namespace RetroRewindWebsite.Controllers
         }
 
         // ===== TT PROFILE MANAGEMENT =====
-        // TODO: Move to TimeTrialAdminController
 
         /// <summary>
         /// Creates a new Time Trial profile
@@ -575,7 +641,6 @@ namespace RetroRewindWebsite.Controllers
 
         /// <summary>
         /// Retrieves all Time Trial profiles
-        /// TODO: Add pagination
         /// </summary>
         [HttpGet("timetrial/profiles")]
         public async Task<ActionResult<ProfileListResultDto>> GetAllTTProfiles()
@@ -745,7 +810,6 @@ namespace RetroRewindWebsite.Controllers
 
         /// <summary>
         /// Retrieves all available country codes
-        /// TODO: Move to a shared utility controller
         /// </summary>
         [HttpGet("countries")]
         public ActionResult<CountryListResultDto> GetCountries()
