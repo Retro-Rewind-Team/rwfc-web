@@ -8,6 +8,7 @@ namespace RetroRewindWebsite.Services.Background
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<LeaderboardBackgroundService> _logger;
         private readonly SemaphoreSlim _semaphore = new(1, 1);
+        private DateTime? _lastMaintenanceDate;
 
         private const int RefreshIntervalMinutes = 1;
         private const int MaintenanceHourUtc = 11;
@@ -81,8 +82,26 @@ namespace RetroRewindWebsite.Services.Background
                 var now = DateTime.UtcNow;
                 if (now.Hour == MaintenanceHourUtc && now.Minute < RefreshIntervalMinutes)
                 {
-                    _logger.LogInformation("Performing daily maintenance tasks");
-                    await PerformMaintenanceTasksAsync();
+                    // Check if we haven't run maintenance today yet
+                    if (_lastMaintenanceDate?.Date != now.Date)
+                    {
+                        _logger.LogInformation("Performing daily maintenance tasks for {Date:yyyy-MM-dd}", now.Date);
+
+                        try
+                        {
+                            await PerformMaintenanceTasksAsync();
+                            _lastMaintenanceDate = now;
+                            _logger.LogInformation("Daily maintenance tasks completed. Next maintenance: {NextDate:yyyy-MM-dd}", now.Date.AddDays(1));
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Maintenance failed, will retry in next cycle");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogDebug("Maintenance already performed today, skipping");
+                    }
                 }
 
                 _logger.LogDebug("Scheduled leaderboard refresh completed successfully");
@@ -95,17 +114,10 @@ namespace RetroRewindWebsite.Services.Background
 
         private async Task PerformMaintenanceTasksAsync()
         {
-            try
-            {
-                using var scope = _serviceScopeFactory.CreateScope();
-                var maintenanceService = scope.ServiceProvider.GetRequiredService<IMaintenanceService>();
+            using var scope = _serviceScopeFactory.CreateScope();
+            var maintenanceService = scope.ServiceProvider.GetRequiredService<IMaintenanceService>();
 
-                await maintenanceService.UpdateAllPlayerVRGainsAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during maintenance tasks");
-            }
+            await maintenanceService.UpdateAllPlayerVRGainsAsync();
         }
 
         public override void Dispose()

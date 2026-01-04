@@ -193,7 +193,7 @@ namespace RetroRewindWebsite.Repositories
         {
             try
             {
-                _logger.LogInformation("Updating player ranks using optimized SQL query");
+                _logger.LogInformation("Updating player ranks");
 
                 await _context.Database.ExecuteSqlRawAsync(@"
                     WITH RankedPlayers AS (
@@ -271,18 +271,20 @@ namespace RetroRewindWebsite.Repositories
                     var values = string.Join(", ", batch.Select(kvp =>
                         $"('{kvp.Key.Replace("'", "''")}', {kvp.Value.gain24h}, {kvp.Value.gain7d}, {kvp.Value.gain30d})"));
 
-                    await _context.Database.ExecuteSqlAsync(
+                    #pragma warning disable EF1002 // SQL injection risk mitigated by escaping single quotes in PID values
+                    await _context.Database.ExecuteSqlRawAsync(
                         $"INSERT INTO temp_vr_gains (pid, gain24h, gain7d, gain30d) VALUES {values}");
+                    #pragma warning restore EF1002
                 }
 
                 await _context.Database.ExecuteSqlRawAsync(@"
-                    UPDATE ""Players"" p
-                    SET 
-                        ""VRGainLast24Hours"" = t.gain24h,
-                        ""VRGainLastWeek"" = t.gain7d,
-                        ""VRGainLastMonth"" = t.gain30d
-                    FROM temp_vr_gains t
-                    WHERE p.""Pid"" = t.pid
+                UPDATE ""Players"" p
+                SET 
+                    ""VRGainLast24Hours"" = t.gain24h,
+                    ""VRGainLastWeek"" = t.gain7d,
+                    ""VRGainLastMonth"" = t.gain30d
+                FROM temp_vr_gains t
+                WHERE p.""Pid"" = t.pid
                 ");
 
                 await _context.Database.ExecuteSqlRawAsync("DROP TABLE temp_vr_gains");
