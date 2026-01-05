@@ -19,7 +19,6 @@ namespace RetroRewindWebsite.Controllers
         private readonly ILogger<ModerationController> _logger;
 
         // ===== CONSTANTS =====
-        private const string CATEGORY_RETRO = "retro";
         private const short CC_150 = 150;
         private const short CC_200 = 200;
         private const int MIN_DISPLAY_NAME_LENGTH = 2;
@@ -350,6 +349,7 @@ namespace RetroRewindWebsite.Controllers
             int trackId,
             int cc,
             int ttProfileId,
+            short driftCategory,
             bool shroomless = false,
             bool glitch = false)
         {
@@ -370,10 +370,10 @@ namespace RetroRewindWebsite.Controllers
                     return BadRequest($"Track ID {trackId} not found");
                 }
 
-                // Validate glitch runs for retro tracks
-                if (track.Category.Equals(CATEGORY_RETRO, StringComparison.OrdinalIgnoreCase) && glitch)
+                // Validate glitch category for tracks that don't support it
+                if (glitch && !track.SupportsGlitch)
                 {
-                    return BadRequest("Glitch runs are not allowed for Retro Tracks");
+                    return BadRequest($"Glitch/shortcut runs are not allowed for {track.Name}");
                 }
 
                 // Validate profile exists
@@ -381,6 +381,12 @@ namespace RetroRewindWebsite.Controllers
                 if (ttProfile == null)
                 {
                     return BadRequest($"TT Profile with ID {ttProfileId} not found. Create the profile first.");
+                }
+
+                // Validate drift category
+                if (driftCategory < 0 || driftCategory > 1)
+                {
+                    return BadRequest("Drift category must be 0 (Outside) or 1 (Inside)");
                 }
 
                 // Parse ghost file
@@ -424,6 +430,7 @@ namespace RetroRewindWebsite.Controllers
                     CharacterId = ghostData.CharacterId,
                     ControllerType = ghostData.ControllerType,
                     DriftType = ghostData.DriftType,
+                    DriftCategory = driftCategory,
                     MiiName = ghostData.MiiName,
                     LapCount = ghostData.LapCount,
                     LapSplitsMs = System.Text.Json.JsonSerializer.Serialize(ghostData.LapSplitsMs),
@@ -431,7 +438,7 @@ namespace RetroRewindWebsite.Controllers
                     DateSet = ghostData.DateSet,
                     SubmittedAt = DateTime.UtcNow,
                     Shroomless = shroomless,
-                    Glitch = !track.Category.Equals(CATEGORY_RETRO, StringComparison.OrdinalIgnoreCase) && glitch
+                    Glitch = glitch,
                 };
 
                 // Add to database
@@ -440,6 +447,9 @@ namespace RetroRewindWebsite.Controllers
                 // Update profile submission count
                 ttProfile.TotalSubmissions = await _timeTrialRepository.GetProfileSubmissionsCountAsync(ttProfile.Id);
                 await _timeTrialRepository.UpdateTTProfileAsync(ttProfile);
+
+                // Update all world record counts for every profile
+                await _timeTrialRepository.UpdateWorldRecordCounts();
 
                 _logger.LogInformation(
                     "Ghost submitted: Track {TrackId}, Player {PlayerName} (ID: {ProfileId}), Time {Time}ms",
@@ -470,6 +480,7 @@ namespace RetroRewindWebsite.Controllers
                         CharacterName = MarioKartMappings.GetCharacterName(submission.CharacterId),
                         ControllerName = MarioKartMappings.GetControllerName(submission.ControllerType),
                         DriftTypeName = MarioKartMappings.GetDriftTypeName(submission.DriftType),
+                        DriftCategoryName = MarioKartMappings.GetDriftCategoryName(submission.DriftCategory),
                         TrackSlotName = MarioKartMappings.GetTrackSlotName(ghostData.CourseId),
                         MiiName = submission.MiiName,
                         LapCount = submission.LapCount,
@@ -483,7 +494,8 @@ namespace RetroRewindWebsite.Controllers
                         DateSet = submission.DateSet,
                         SubmittedAt = submission.SubmittedAt,
                         Shroomless = submission.Shroomless,
-                        Glitch = submission.Glitch
+                        Glitch = submission.Glitch,
+                        DriftCategory = submission.DriftCategory
                     }
                 });
             }

@@ -143,6 +143,21 @@
             return _driftTypes.TryGetValue(driftTypeId, out var name) ? name : $"Unknown Drift Type ({driftTypeId})";
         }
 
+        /// <summary>
+        /// Gets the drift category name for a given drift category ID
+        /// </summary>
+        /// <param name="driftCategoryId">Drift category ID from ghost file (0=Outside, 1=Inside)</param>
+        /// <returns>Drift category name or "Unknown Drift Category ({id})" if not found</returns>
+        public static string GetDriftCategoryName(short driftCategoryId)
+        {
+            return driftCategoryId switch
+            {
+                0 => "Outside",
+                1 => "Inside",
+                _ => $"Unknown Drift Category ({driftCategoryId})"
+            };
+        }
+
         private static readonly Dictionary<short, string> _trackSlots = new()
         {
             { 0, "Mario Circuit" },

@@ -9,12 +9,12 @@ namespace RetroRewindWebsite.Models.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-
         public required string Name { get; set; }
         public required string TrackSlot { get; set; }
         public short CourseId { get; set; }
         public required string Category { get; set; }
         public short Laps { get; set; }
+        public bool SupportsGlitch { get; set; } = false;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation property
@@ -27,7 +27,6 @@ namespace RetroRewindWebsite.Models.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-
         public required string DisplayName { get; set; }
         public int TotalSubmissions { get; set; } = 0;
         public int CurrentWorldRecords { get; set; } = 0;
@@ -45,7 +44,6 @@ namespace RetroRewindWebsite.Models.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-
         public int TrackId { get; set; }
         public int TTProfileId { get; set; }
 
@@ -68,6 +66,7 @@ namespace RetroRewindWebsite.Models.Entities
         // Category flags
         public bool Shroomless { get; set; } = false;
         public bool Glitch { get; set; } = false;
+        public short DriftCategory { get; set; }
 
         // File metadata
         public required string GhostFilePath { get; set; }

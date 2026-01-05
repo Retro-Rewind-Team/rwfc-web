@@ -13,30 +13,33 @@ export const timeTrialApi = {
     async getLeaderboard(
         trackId: number,
         cc: 150 | 200,
+        glitch: boolean = false,
         page = 1,
         pageSize = 10
     ): Promise<TrackLeaderboard> {
         return apiRequest<TrackLeaderboard>(
-            `/timetrial/leaderboard?trackId=${trackId}&cc=${cc}&page=${page}&pageSize=${pageSize}`
+            `/timetrial/leaderboard?trackId=${trackId}&cc=${cc}&glitch=${glitch}&page=${page}&pageSize=${pageSize}`
         );
     },
 
     async getTopTimes(
         trackId: number,
         cc: 150 | 200,
+        glitch: boolean = false,
         count = 10
     ): Promise<GhostSubmission[]> {
         return apiRequest<GhostSubmission[]>(
-            `/timetrial/leaderboard/top?trackId=${trackId}&cc=${cc}&count=${count}`
+            `/timetrial/leaderboard/top?trackId=${trackId}&cc=${cc}&glitch=${glitch}&count=${count}`
         );
     },
 
     async getWorldRecord(
         trackId: number,
-        cc: 150 | 200
+        cc: 150 | 200,
+        glitch: boolean = false
     ): Promise<GhostSubmission> {
         return apiRequest<GhostSubmission>(
-            `/timetrial/worldrecord?trackId=${trackId}&cc=${cc}`
+            `/timetrial/worldrecord?trackId=${trackId}&cc=${cc}&glitch=${glitch}`
         );
     },
 
@@ -46,10 +49,11 @@ export const timeTrialApi = {
 
     async getWorldRecordHistory(
         trackId: number,
-        cc: 150 | 200
+        cc: 150 | 200,
+        glitch: boolean = false
     ): Promise<GhostSubmission[]> {
         return apiRequest<GhostSubmission[]>(
-            `/timetrial/worldrecord/history?trackId=${trackId}&cc=${cc}`
+            `/timetrial/worldrecord/history?trackId=${trackId}&cc=${cc}&glitch=${glitch}`
         );
     },
 

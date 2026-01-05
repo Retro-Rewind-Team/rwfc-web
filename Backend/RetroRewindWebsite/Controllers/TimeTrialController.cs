@@ -56,7 +56,8 @@ namespace RetroRewindWebsite.Controllers
                     TrackSlot = t.TrackSlot,
                     CourseId = t.CourseId,
                     Category = t.Category,
-                    Laps = t.Laps
+                    Laps = t.Laps,
+                    SupportsGlitch = t.SupportsGlitch
                 }).ToList();
 
                 return Ok(trackDtos);
@@ -90,7 +91,8 @@ namespace RetroRewindWebsite.Controllers
                     TrackSlot = track.TrackSlot,
                     CourseId = track.CourseId,
                     Category = track.Category,
-                    Laps = track.Laps
+                    Laps = track.Laps,
+                    SupportsGlitch = track.SupportsGlitch
                 });
             }
             catch (Exception ex)
@@ -110,6 +112,7 @@ namespace RetroRewindWebsite.Controllers
         public async Task<ActionResult<TrackLeaderboardDto>> GetLeaderboard(
             [FromQuery] int trackId,
             [FromQuery] short cc,
+            [FromQuery] bool glitch = false,
             [FromQuery] int page = MinPage,
             [FromQuery] int pageSize = DefaultPageSize)
         {
@@ -128,9 +131,9 @@ namespace RetroRewindWebsite.Controllers
                 }
 
                 var pagedResult = await _timeTrialRepository.GetTrackLeaderboardAsync(
-                    trackId, cc, page, pageSize);
+                    trackId, cc, glitch, page, pageSize);
 
-                var flapMs = await _timeTrialRepository.GetFastestLapForTrackAsync(trackId, cc);
+                var flapMs = await _timeTrialRepository.GetFastestLapForTrackAsync(trackId, cc, glitch);
                 var submissionDtos = pagedResult.Items.Select(MapToDto).ToList();
 
                 return Ok(new TrackLeaderboardDto
@@ -142,9 +145,11 @@ namespace RetroRewindWebsite.Controllers
                         TrackSlot = track.TrackSlot,
                         CourseId = track.CourseId,
                         Category = track.Category,
-                        Laps = track.Laps
+                        Laps = track.Laps,
+                        SupportsGlitch = track.SupportsGlitch
                     },
                     CC = cc,
+                    Glitch = glitch,
                     Submissions = submissionDtos,
                     TotalSubmissions = pagedResult.TotalCount,
                     CurrentPage = pagedResult.CurrentPage,
@@ -169,6 +174,7 @@ namespace RetroRewindWebsite.Controllers
         public async Task<ActionResult<List<GhostSubmissionDto>>> GetTopTimes(
             [FromQuery] int trackId,
             [FromQuery] short cc,
+            [FromQuery] bool glitch = false,
             [FromQuery] int count = DefaultTopCount)
         {
             try
@@ -179,7 +185,7 @@ namespace RetroRewindWebsite.Controllers
                 count = Math.Clamp(count, MinTopCount, MaxTopCount);
 
                 var submissions = await _timeTrialRepository.GetTopTimesForTrackAsync(
-                    trackId, cc, count);
+                    trackId, cc, glitch, count);
                 var submissionDtos = submissions.Select(MapToDto).ToList();
 
                 return Ok(submissionDtos);
@@ -201,17 +207,19 @@ namespace RetroRewindWebsite.Controllers
         [HttpGet("worldrecord")]
         public async Task<ActionResult<GhostSubmissionDto>> GetWorldRecord(
             [FromQuery] int trackId,
-            [FromQuery] short cc)
+            [FromQuery] short cc,
+            [FromQuery] bool glitch = false)
         {
             try
             {
                 var ccValidation = ValidateCc(cc);
                 if (ccValidation != null) return ccValidation;
 
-                var wr = await _timeTrialRepository.GetWorldRecordAsync(trackId, cc);
+                var wr = await _timeTrialRepository.GetWorldRecordAsync(trackId, cc, glitch);
                 if (wr == null)
                 {
-                    return NotFound($"No world record found for track {trackId} at {cc}cc");
+                    var category = glitch ? "glitch" : "no glitch";
+                    return NotFound($"No world record found for track {trackId} at {cc}cc ({category})");
                 }
 
                 return Ok(MapToDto(wr));
@@ -231,14 +239,15 @@ namespace RetroRewindWebsite.Controllers
         [HttpGet("worldrecord/history")]
         public async Task<ActionResult<List<GhostSubmissionDto>>> GetWorldRecordHistory(
             [FromQuery] int trackId,
-            [FromQuery] short cc)
+            [FromQuery] short cc,
+            [FromQuery] bool glitch = false)
         {
             try
             {
                 var ccValidation = ValidateCc(cc);
                 if (ccValidation != null) return ccValidation;
 
-                var wrHistory = await _timeTrialRepository.GetWorldRecordHistoryAsync(trackId, cc);
+                var wrHistory = await _timeTrialRepository.GetWorldRecordHistoryAsync(trackId, cc, glitch);
                 var historyDtos = wrHistory.Select(MapToDto).ToList();
 
                 return Ok(historyDtos);
@@ -253,7 +262,7 @@ namespace RetroRewindWebsite.Controllers
         }
 
         /// <summary>
-        /// Retrieves all world records across all tracks
+        /// Retrieves all world records across all tracks (glitch and no-glitch)
         /// </summary>
         [HttpGet("worldrecords/all")]
         public async Task<ActionResult<List<TrackWorldRecordsDto>>> GetAllWorldRecords()
@@ -265,15 +274,26 @@ namespace RetroRewindWebsite.Controllers
 
                 foreach (var track in tracks)
                 {
-                    var wr150 = await _timeTrialRepository.GetWorldRecordAsync(track.Id, CC_150);
-                    var wr200 = await _timeTrialRepository.GetWorldRecordAsync(track.Id, CC_200);
+                    var wr150NoGlitch = await _timeTrialRepository.GetWorldRecordAsync(track.Id, CC_150, false);
+                    var wr200NoGlitch = await _timeTrialRepository.GetWorldRecordAsync(track.Id, CC_200, false);
+
+                    // Only get glitch WRs for tracks that support it
+                    GhostSubmissionEntity? wr150Glitch = null;
+                    GhostSubmissionEntity? wr200Glitch = null;
+                    if (track.SupportsGlitch)
+                    {
+                        wr150Glitch = await _timeTrialRepository.GetWorldRecordAsync(track.Id, CC_150, true);
+                        wr200Glitch = await _timeTrialRepository.GetWorldRecordAsync(track.Id, CC_200, true);
+                    }
 
                     results.Add(new TrackWorldRecordsDto
                     {
                         TrackId = track.Id,
                         TrackName = track.Name,
-                        WorldRecord150 = wr150 != null ? MapToDto(wr150) : null,
-                        WorldRecord200 = wr200 != null ? MapToDto(wr200) : null
+                        WorldRecord150 = wr150NoGlitch != null ? MapToDto(wr150NoGlitch) : null,
+                        WorldRecord200 = wr200NoGlitch != null ? MapToDto(wr200NoGlitch) : null,
+                        WorldRecord150Glitch = wr150Glitch != null ? MapToDto(wr150Glitch) : null,
+                        WorldRecord200Glitch = wr200Glitch != null ? MapToDto(wr200Glitch) : null
                     });
                 }
 
@@ -499,6 +519,7 @@ namespace RetroRewindWebsite.Controllers
                 SubmittedAt = entity.SubmittedAt,
                 Shroomless = entity.Shroomless,
                 Glitch = entity.Glitch,
+                DriftCategory = entity.DriftCategory,
             };
         }
 

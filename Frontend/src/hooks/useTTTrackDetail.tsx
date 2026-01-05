@@ -3,19 +3,20 @@ import { useQuery } from "@tanstack/solid-query";
 import { timeTrialApi } from "../services/api/timeTrial";
 import { GhostSubmission } from "../types/timeTrial";
 
-export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200) {
+export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200, nonGlitchOnly: () => boolean) {
     const [shroomlessFilter, setShroomlessFilter] = createSignal<"all" | "only" | "exclude">("all");
-    const [glitchFilter, setGlitchFilter] = createSignal<"all" | "only" | "exclude">("all");
     const [vehicleFilter, setVehicleFilter] = createSignal<"all" | "bikes" | "karts">("all");
     const [driftFilter, setDriftFilter] = createSignal<"all" | "manual" | "hybrid">("all");
+    const [driftCategoryFilter, setDriftCategoryFilter] = createSignal<"all" | "inside" | "outside">("all"); // NEW
   
     // Pagination - default to 10
     const [currentPage, setCurrentPage] = createSignal(1);
     const [pageSize, setPageSize] = createSignal(10);
 
-    // Reset page to 1 when CC changes
+    // Reset page to 1 when CC or non-glitch filter changes
     createEffect(() => {
-        cc(); // Track cc changes
+        cc();
+        nonGlitchOnly();
         setCurrentPage(1);
     });
 
@@ -27,11 +28,19 @@ export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200) {
     }));
 
     // Fetch leaderboard for this track with pagination
+    // Note: Backend repository will interpret glitch parameter as:
+    // - glitch=true: "Unrestricted" - returns ALL submissions (no filter on Glitch column)
+    // - glitch=false: "Non-glitch only" - returns only submissions WHERE Glitch = false
+    // When nonGlitchOnly=false (unrestricted mode), we pass true to get all submissions
+    // When nonGlitchOnly=true (non-glitch mode), we pass false to exclude glitch submissions
+    const glitchParam = () => !nonGlitchOnly();
+    
     const leaderboardQuery = useQuery(() => ({
-        queryKey: ["tt-leaderboard", trackId(), cc(), currentPage(), pageSize()],
+        queryKey: ["tt-leaderboard", trackId(), cc(), glitchParam(), currentPage(), pageSize()],
         queryFn: () => timeTrialApi.getLeaderboard(
             trackId(),
             cc(),
+            glitchParam(),
             currentPage(),
             pageSize()
         ),
@@ -39,14 +48,14 @@ export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200) {
 
     // Fetch world record
     const worldRecordQuery = useQuery(() => ({
-        queryKey: ["tt-world-record", trackId(), cc()],
-        queryFn: () => timeTrialApi.getWorldRecord(trackId(), cc()),
+        queryKey: ["tt-world-record", trackId(), cc(), glitchParam()],
+        queryFn: () => timeTrialApi.getWorldRecord(trackId(), cc(), glitchParam()),
     }));
 
     // Fetch world record history
     const wrHistoryQuery = useQuery(() => ({
-        queryKey: ["tt-wr-history", trackId(), cc()],
-        queryFn: () => timeTrialApi.getWorldRecordHistory(trackId(), cc()),
+        queryKey: ["tt-wr-history", trackId(), cc(), glitchParam()],
+        queryFn: () => timeTrialApi.getWorldRecordHistory(trackId(), cc(), glitchParam()),
     }));
 
     // Apply filters to submissions
@@ -54,8 +63,8 @@ export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200) {
         const submissions = leaderboardQuery.data?.submissions || [];
         const vehicleFilterValue = vehicleFilter();
         const driftFilterValue = driftFilter();
+        const driftCategoryFilterValue = driftCategoryFilter(); // NEW
         const shroomlessFilterValue = shroomlessFilter();
-        const glitchFilterValue = glitchFilter();
 
         return submissions.filter((submission) => {
             // Vehicle filter (bikes/karts)
@@ -66,13 +75,13 @@ export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200) {
             if (driftFilterValue === "manual" && submission.driftType !== 0) return false;
             if (driftFilterValue === "hybrid" && submission.driftType !== 1) return false;
 
+            // NEW: Drift category filter
+            if (driftCategoryFilterValue === "inside" && submission.driftCategory !== 1) return false;
+            if (driftCategoryFilterValue === "outside" && submission.driftCategory !== 0) return false;
+
             // Shroomless filter
             if (shroomlessFilterValue === "only" && !submission.shroomless) return false;
             if (shroomlessFilterValue === "exclude" && submission.shroomless) return false;
-
-            // Glitch filter
-            if (glitchFilterValue === "only" && !submission.glitch) return false;
-            if (glitchFilterValue === "exclude" && submission.glitch) return false;
 
             return true;
         });
@@ -82,17 +91,13 @@ export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200) {
     createEffect(() => {
         vehicleFilter();
         driftFilter();
+        driftCategoryFilter(); // NEW
         shroomlessFilter();
-        glitchFilter();
         setCurrentPage(1);
     });
 
     const handleShroomlessFilterChange = (filter: "all" | "only" | "exclude") => {
         setShroomlessFilter(filter);
-    };
-
-    const handleGlitchFilterChange = (filter: "all" | "only" | "exclude") => {
-        setGlitchFilter(filter);
     };
 
     const handleVehicleFilterChange = (filter: "all" | "bikes" | "karts") => {
@@ -101,6 +106,11 @@ export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200) {
 
     const handleDriftFilterChange = (filter: "all" | "manual" | "hybrid") => {
         setDriftFilter(filter);
+    };
+
+    // NEW handler
+    const handleDriftCategoryFilterChange = (filter: "all" | "inside" | "outside") => {
+        setDriftCategoryFilter(filter);
     };
 
     const handlePageSizeChange = (size: number) => {
@@ -131,35 +141,36 @@ export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200) {
         wrHistoryQuery.refetch();
     };
 
-    return {
-        // State
-        cc: cc(),
-        shroomlessFilter,
-        glitchFilter,
-        vehicleFilter,
-        driftFilter,
-        currentPage,
-        pageSize,
+return {
+    // State
+    cc: cc(),
+    nonGlitchOnly: nonGlitchOnly(),
+    shroomlessFilter,
+    vehicleFilter,
+    driftFilter,
+    driftCategoryFilter,
+    currentPage,
+    pageSize,
 
-        // Computed
-        filteredSubmissions,
+    // Computed
+    filteredSubmissions,
 
-        // Queries
-        trackQuery,
-        leaderboardQuery,
-        worldRecordQuery,
-        wrHistoryQuery,
+    // Queries
+    trackQuery,
+    leaderboardQuery,
+    worldRecordQuery,
+    wrHistoryQuery,
 
-        // Handlers
-        handleShroomlessFilterChange,
-        handleGlitchFilterChange,
-        handleVehicleFilterChange,
-        handleDriftFilterChange,
-        handlePageSizeChange,
-        handleDownloadGhost,
-        refreshAll,
+    // Handlers
+    handleShroomlessFilterChange,
+    handleVehicleFilterChange,
+    handleDriftFilterChange,
+    handleDriftCategoryFilterChange,
+    handlePageSizeChange,
+    handleDownloadGhost,
+    refreshAll,
 
-        // Setters
-        setCurrentPage,
-    };
+    // Setters
+    setCurrentPage,
+};
 }

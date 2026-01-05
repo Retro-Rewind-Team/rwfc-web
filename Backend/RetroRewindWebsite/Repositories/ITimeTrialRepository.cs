@@ -59,6 +59,11 @@ namespace RetroRewindWebsite.Repositories
         /// </summary>
         Task DeleteTTProfileAsync(int id);
 
+        /// <summary>
+        /// Updates all world record counts on Time Trial profiles
+        /// 
+        Task UpdateWorldRecordCounts();
+
         // ===== GHOST SUBMISSION OPERATIONS =====
 
         /// <summary>
@@ -83,11 +88,13 @@ namespace RetroRewindWebsite.Repositories
         /// </summary>
         /// <param name="trackId">Track ID</param>
         /// <param name="cc">CC value (150 or 200)</param>
+        /// <param name="glitch">Whether to include glitch runs</param>
         /// <param name="page">Page number (1-indexed)</param>
         /// <param name="pageSize">Number of results per page</param>
         Task<PagedResult<GhostSubmissionEntity>> GetTrackLeaderboardAsync(
             int trackId,
             short cc,
+            bool glitch,
             int page,
             int pageSize);
 
@@ -97,12 +104,13 @@ namespace RetroRewindWebsite.Repositories
         Task<List<GhostSubmissionEntity>> GetTopTimesForTrackAsync(
             int trackId,
             short cc,
+            bool glitch,
             int count);
 
         /// <summary>
-        /// Get the current world record for a specific track and CC
+        /// Get the current world record for a specific track, CC and glitch
         /// </summary>
-        Task<GhostSubmissionEntity?> GetWorldRecordAsync(int trackId, short cc);
+        Task<GhostSubmissionEntity?> GetWorldRecordAsync(int trackId, short cc, bool glitch);
 
         /// <summary>
         /// Get all submissions for a specific player profile
@@ -116,9 +124,9 @@ namespace RetroRewindWebsite.Repositories
             short? cc = null);
 
         /// <summary>
-        /// Get world record history for a specific track and CC (chronologically ordered)
+        /// Get world record history for a specific track, CC and glitch (chronologically ordered)
         /// </summary>
-        Task<List<GhostSubmissionEntity>> GetWorldRecordHistoryAsync(int trackId, short cc);
+        Task<List<GhostSubmissionEntity>> GetWorldRecordHistoryAsync(int trackId, short cc, bool glitch);
 
         // ===== STATISTICS =====
 
@@ -148,8 +156,8 @@ namespace RetroRewindWebsite.Repositories
         Task<int> CountTop10FinishesAsync(int ttProfileId);
 
         /// <summary>
-        /// Get the fastest lap time for a specific track and CC (across all submissions)
+        /// Get the fastest lap time for a specific track, CC and glitch (across all submissions)
         /// </summary>
-        Task<int?> GetFastestLapForTrackAsync(int trackId, short cc);
+        Task<int?> GetFastestLapForTrackAsync(int trackId, short cc, bool glitch);
     }
 }

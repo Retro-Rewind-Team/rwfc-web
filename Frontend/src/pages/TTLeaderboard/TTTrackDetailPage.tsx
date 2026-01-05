@@ -7,22 +7,34 @@ import { TTFilters, TTLeaderboardTable, TTWRHistory } from "../../components/ui"
 export default function TTTrackDetailPage() {
     const params = useParams();
     
-    // Parse CC from route params as a memo
     const selectedCC = createMemo((): 150 | 200 => {
         const cc = params.cc;
+        console.log("selectedCC memo updating, params.cc =", cc, "full params:", params);
+        
+        // For no-glitch routes: no-glitch-150cc or no-glitch-200cc
+        if (cc === "no-glitch-150cc") return 150;
+        if (cc === "no-glitch-200cc") return 200;
+        
+        // For normal routes (all times): 150cc or 200cc
         if (cc === "150cc") return 150;
         if (cc === "200cc") return 200;
+        
         return 150; // default
+    });
+
+    const selectedNonGlitchOnly = createMemo((): boolean => {
+        const cc = params.cc;
+        console.log("selectedNonGlitchOnly memo updating, params.cc =", cc);
+        
+        // Check if route starts with "no-glitch-" to exclude glitch times
+        return cc?.startsWith("no-glitch-") || false;
     });
 
     // Parse track ID from route params as a memo
     const trackId = createMemo(() => Number(params.trackId));
 
     // Use the track detail hook
-    const ttTrack = useTTTrackDetail(trackId, selectedCC);
-
-    // Get track category for filters
-    const trackCategory = () => ttTrack.trackQuery.data?.category || "retro";
+    const ttTrack = useTTTrackDetail(trackId, selectedCC, selectedNonGlitchOnly);
 
     // Get FLAP holder info
     const flapHolder = () => {
@@ -47,6 +59,14 @@ export default function TTTrackDetailPage() {
             }
         }
         return null;
+    };
+
+    // Get category label for display
+    const categoryLabel = () => {
+        if (selectedNonGlitchOnly()) {
+            return selectedCC() === 150 ? "Non-Glitch/Shortcut 150cc" : "Non-Glitch/Shortcut 200cc";
+        }
+        return selectedCC() === 150 ? "All Times 150cc" : "All Times 200cc";
     };
 
     return (
@@ -109,14 +129,18 @@ export default function TTTrackDetailPage() {
                         {/* Track Header & Filters */}
                         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
                             {/* Header */}
-                            <div class="bg-blue-600 px-6 py-4">
+                            <div class={`px-6 py-4 ${
+                                selectedNonGlitchOnly() 
+                                    ? "bg-gradient-to-r from-green-600 to-emerald-600" 
+                                    : "bg-blue-600"
+                            }`}>
                                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                     <div>
                                         <h1 class="text-3xl font-bold text-white mb-1">
                                             {track().name}
                                         </h1>
                                         <div class="flex items-center gap-3 text-sm text-blue-100">
-                                            <span>{selectedCC()}cc</span>
+                                            <span class="font-semibold">{categoryLabel()}</span>
                                             <span>•</span>
                                             <span>{track().laps} lap{track().laps !== 1 ? "s" : ""}</span>
                                             <span>•</span>
@@ -156,17 +180,18 @@ export default function TTTrackDetailPage() {
                             <div class="bg-gray-50 dark:bg-gray-700/50 p-4 border-b-2 border-gray-200 dark:border-gray-700">
                                 <TTFilters
                                     trackId={trackId()}
+                                    trackSupportsGlitch={track().supportsGlitch}
                                     currentCC={selectedCC()}
+                                    currentNonGlitchOnly={selectedNonGlitchOnly()}
                                     shroomlessFilter={ttTrack.shroomlessFilter()}
-                                    glitchFilter={ttTrack.glitchFilter()}
                                     vehicleFilter={ttTrack.vehicleFilter()}
                                     driftFilter={ttTrack.driftFilter()}
+                                    driftCategoryFilter={ttTrack.driftCategoryFilter()}
                                     pageSize={ttTrack.pageSize()}
-                                    category={trackCategory()}
                                     onShroomlessFilterChange={ttTrack.handleShroomlessFilterChange}
-                                    onGlitchFilterChange={ttTrack.handleGlitchFilterChange}
                                     onVehicleFilterChange={ttTrack.handleVehicleFilterChange}
                                     onDriftFilterChange={ttTrack.handleDriftFilterChange}
+                                    onDriftCategoryFilterChange={ttTrack.handleDriftCategoryFilterChange}
                                     onPageSizeChange={ttTrack.handlePageSizeChange}
                                 />
                             </div>
@@ -210,6 +235,8 @@ export default function TTTrackDetailPage() {
                                         submissions={ttTrack.filteredSubmissions()}
                                         fastestLapMs={ttTrack.leaderboardQuery.data?.fastestLapMs || null}
                                         trackLaps={track().laps}
+                                        currentPage={ttTrack.currentPage()}
+                                        pageSize={ttTrack.pageSize()}
                                         onDownloadGhost={ttTrack.handleDownloadGhost}
                                     />
                                 </Show>
