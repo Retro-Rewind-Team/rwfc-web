@@ -96,6 +96,12 @@ const driftTypes: Record<number, string> = {
     1: "Hybrid",
 };
 
+// Drift category mappings
+const driftCategories: Record<number, string> = {
+    0: "Outside Drift",
+    1: "Inside Drift",
+};
+
 export function getCharacterName(id: number): string {
     return characters[id] || `Unknown Character (${id})`;
 }
@@ -112,10 +118,16 @@ export function getDriftTypeName(id: number): string {
     return driftTypes[id] || `Unknown Drift Type (${id})`;
 }
 
+export function getDriftCategoryName(id: number): string {
+    return driftCategories[id] || `Unknown Drift Category (${id})`;
+}
+
 // Check if vehicle is a bike (decimal: 18-35)
 export function isBike(vehicleId: number): boolean {
     return vehicleId >= 18 && vehicleId <= 35;
 }
+
+
 
 // Check if vehicle is a kart (decimal: 0-17)
 export function isKart(vehicleId: number): boolean {

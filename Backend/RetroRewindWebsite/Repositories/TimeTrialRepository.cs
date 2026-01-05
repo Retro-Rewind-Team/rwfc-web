@@ -94,6 +94,32 @@ namespace RetroRewindWebsite.Repositories
             }
         }
 
+        public async Task UpdateWorldRecordCounts()
+        {
+            try
+            {
+                await _context.Database.ExecuteSqlAsync($@"
+                    UPDATE ""TTProfiles"" p
+                    SET ""CurrentWorldRecords"" = (
+                        SELECT CAST(COUNT(*) AS INTEGER)
+                        FROM (
+                            SELECT DISTINCT ON (""TrackId"", ""CC"", ""Glitch"")
+                                ""TrackId"", ""CC"", ""Glitch"", ""TTProfileId""
+                            FROM ""GhostSubmissions""
+                            WHERE ""TTProfileId"" = p.""Id""
+                            ORDER BY ""TrackId"", ""CC"", ""Glitch"", ""FinishTimeMs"", ""SubmittedAt""
+                        ) wr
+                    ),
+                    ""UpdatedAt"" = {DateTime.UtcNow}
+                ");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating world record counts for all profiles");
+                throw;
+            }
+        }
+
         // ===== GHOST SUBMISSION OPERATIONS =====
 
         public async Task<GhostSubmissionEntity?> GetGhostSubmissionByIdAsync(int id)
@@ -134,7 +160,14 @@ namespace RetroRewindWebsite.Repositories
                 .AsNoTracking()
                 .Include(g => g.Track)
                 .Include(g => g.TTProfile)
-                .Where(g => g.TrackId == trackId && g.CC == cc && g.Glitch == glitch)
+                .Where(g => g.TrackId == trackId && g.CC == cc);
+
+            if (!glitch)
+            {
+                query = query.Where(g => g.Glitch == false);
+            }
+
+            query = query
                 .OrderBy(g => g.FinishTimeMs)
                 .ThenBy(g => g.SubmittedAt);
 
@@ -159,11 +192,18 @@ namespace RetroRewindWebsite.Repositories
             bool glitch,
             int count)
         {
-            return await _context.GhostSubmissions
+            var query = _context.GhostSubmissions
                 .AsNoTracking()
                 .Include(g => g.Track)
                 .Include(g => g.TTProfile)
-                .Where(g => g.TrackId == trackId && g.CC == cc && g.Glitch == glitch)
+                .Where(g => g.TrackId == trackId && g.CC == cc);
+
+            if (!glitch)
+            {
+                query = query.Where(g => g.Glitch == false);
+            }
+
+            return await query
                 .OrderBy(g => g.FinishTimeMs)
                 .ThenBy(g => g.SubmittedAt)
                 .Take(count)
@@ -172,11 +212,18 @@ namespace RetroRewindWebsite.Repositories
 
         public async Task<GhostSubmissionEntity?> GetWorldRecordAsync(int trackId, short cc, bool glitch)
         {
-            return await _context.GhostSubmissions
+            var query = _context.GhostSubmissions
                 .AsNoTracking()
                 .Include(g => g.Track)
                 .Include(g => g.TTProfile)
-                .Where(g => g.TrackId == trackId && g.CC == cc && g.Glitch == glitch)
+                .Where(g => g.TrackId == trackId && g.CC == cc);
+
+            if (!glitch)
+            {
+                query = query.Where(g => g.Glitch == false);
+            }
+
+            return await query
                 .OrderBy(g => g.FinishTimeMs)
                 .ThenBy(g => g.SubmittedAt)
                 .FirstOrDefaultAsync();
@@ -209,31 +256,48 @@ namespace RetroRewindWebsite.Repositories
             try
             {
                 var wrHistory = await _context.GhostSubmissions
-                    .FromSql($@"
-                        WITH RankedSubmissions AS (
-                            SELECT 
-                                *,
-                                MIN(""FinishTimeMs"") OVER (
-                                    ORDER BY ""DateSet"", ""SubmittedAt""
-                                    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-                                ) as BestSoFar
-                            FROM ""GhostSubmissions""
-                            WHERE ""TrackId"" = {trackId} AND ""CC"" = {cc} AND ""Glitch"" = {glitch}
-                        )
-                        SELECT *
-                        FROM RankedSubmissions
-                        WHERE ""FinishTimeMs"" = BestSoFar
-                        ORDER BY ""DateSet"", ""SubmittedAt""
-                    ")
+                    .FromSqlInterpolated($@"
+                WITH FilteredSubmissions AS (
+                    SELECT *
+                    FROM ""GhostSubmissions""
+                    WHERE ""TrackId"" = {trackId}
+                      AND ""CC"" = {cc}
+                      AND ({glitch} OR ""Glitch"" = false)
+                ),
+                RankedSubmissions AS (
+                    SELECT *,
+                           MIN(""FinishTimeMs"") OVER (
+                               ORDER BY ""DateSet"", ""SubmittedAt""
+                               ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                           ) AS BestSoFar
+                    FROM FilteredSubmissions
+                ),
+                WorldRecords AS (
+                    SELECT *,
+                           LAG(""FinishTimeMs"") OVER (ORDER BY ""DateSet"", ""SubmittedAt"") AS PreviousBest
+                    FROM RankedSubmissions
+                    WHERE ""FinishTimeMs"" = BestSoFar
+                )
+                SELECT 
+                    ""Id"", ""TrackId"", ""TTProfileId"", ""CC"", ""FinishTimeMs"", ""FinishTimeDisplay"",
+                    ""VehicleId"", ""CharacterId"", ""ControllerType"", ""DriftType"", ""MiiName"",
+                    ""LapCount"", ""LapSplitsMs"", ""GhostFilePath"", ""DateSet"", ""SubmittedAt"",
+                    ""Shroomless"", ""Glitch"", ""DriftCategory""
+                FROM WorldRecords
+                WHERE PreviousBest IS NULL OR ""FinishTimeMs"" < PreviousBest
+                ORDER BY ""DateSet"" ASC, ""SubmittedAt"" ASC
+            ")
                     .Include(g => g.Track)
                     .Include(g => g.TTProfile)
                     .ToListAsync();
 
-                return wrHistory;
+                return [.. wrHistory
+                    .OrderBy(g => g.DateSet)
+                    .ThenBy(g => g.SubmittedAt)];
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting world record history for track {TrackId} CC {CC}", trackId, cc);
+                _logger.LogError(ex, "Error getting world record history for track {TrackId} CC {CC} Glitch {Glitch}", trackId, cc, glitch);
                 throw;
             }
         }
@@ -342,17 +406,22 @@ namespace RetroRewindWebsite.Repositories
         {
             try
             {
+                var glitchFilter = glitch ? "" : "AND \"Glitch\" = false";
+
                 var result = await _context.Database
                     .SqlQuery<int?>($@"
                         WITH LapTimes AS (
-                            SELECT jsonb_array_elements_text(""LapSplitsMs""::jsonb)::int as LapTime
+                            SELECT jsonb_array_elements_text(""LapSplitsMs""::jsonb)::int AS LapTime
                             FROM ""GhostSubmissions""
-                            WHERE ""TrackId"" = {trackId} AND ""CC"" = {cc} AND ""Glitch"" = {glitch}
+                            WHERE ""TrackId"" = {trackId}
+                              AND ""CC"" = {cc}
+                              AND ({glitch} OR ""Glitch"" = false)
                         )
                         SELECT MIN(LapTime) AS ""Value""
                         FROM LapTimes
                     ")
                     .FirstOrDefaultAsync();
+
 
                 return result;
             }

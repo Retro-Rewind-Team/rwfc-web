@@ -33,7 +33,6 @@
         public short CharacterId { get; set; }
         public short ControllerType { get; set; }
         public short DriftType { get; set; }
-        public short DriftCategory { get; set; } 
         public string MiiName { get; set; } = string.Empty;
         public short LapCount { get; set; }
         public List<int> LapSplitsMs { get; set; } = [];

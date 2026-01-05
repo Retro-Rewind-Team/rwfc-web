@@ -18,11 +18,9 @@ namespace RetroRewindWebsite.Services.Domain
         private const int OFFSET_TIME_AND_TRACK = 0x04;
         private const int OFFSET_STATS_INFO = 0x08;
         private const int OFFSET_INFO2 = 0x0C;
-        private const int OFFSET_DRIFT_MODE = 0x0D;
         private const int OFFSET_LAP_COUNT = 0x10;
         private const int OFFSET_LAP_SPLITS = 0x11;
         private const int OFFSET_MII_NAME = 0x3E;
-        private const int OFFSET_DRIFT_CATEGORY = 0x65; // Retro Rewind extension: inside/outside drift
 
         public GhostFileService(
             IConfiguration configuration,
@@ -126,7 +124,7 @@ namespace RetroRewindWebsite.Services.Domain
                 // Parse header data
                 var (finishTimeMs, finishTimeDisplay, trackSlotId) = ParseFinishTimeAndTrack(bytes);
                 var (vehicleId, characterId, dateSet, controllerId) = ParseStatsInfo(bytes);
-                var (driftType, driftCategory) = ParseDriftInfo(bytes);
+                var driftType = ParseDriftType(bytes);
 
                 // Parse lap data
                 var lapCount = bytes[OFFSET_LAP_COUNT];
@@ -145,7 +143,6 @@ namespace RetroRewindWebsite.Services.Domain
                     CharacterId = characterId,
                     ControllerType = controllerId,
                     DriftType = driftType,
-                    DriftCategory = driftCategory,
                     MiiName = miiName,
                     LapCount = (short)lapCount,
                     LapSplitsMs = lapSplitsMs,
@@ -233,19 +230,10 @@ namespace RetroRewindWebsite.Services.Domain
             }
         }
 
-        private static (short driftType, short driftCategory) ParseDriftInfo(byte[] bytes)
+        private static short ParseDriftType(byte[] bytes)
         {
-            // Retro Rewind stores two drift settings:
-            // 1. Manual vs Hybrid/Automatic: Bit 1 of 0x0D
-            // 2. Inside vs Outside: Bit 7 of 0x65 (stored in Mii data section)
-
-            var driftModeByte = bytes[OFFSET_DRIFT_MODE];
-            short driftType = (short)((driftModeByte >> 1) & 0x01); // 0=Manual, 1=Hybrid
-
-            var driftCategoryByte = bytes[OFFSET_DRIFT_CATEGORY];
-            short driftCategory = (short)((driftCategoryByte >> 7) & 0x01); // 0=Outside, 1=Inside
-
-            return (driftType, driftCategory);
+            var info2 = ReadBigEndianUInt16(bytes, OFFSET_INFO2);
+            return (short)((info2 >> 1) & 0x01); // Bit 1: Drift type (0=Manual, 1=Auto)
         }
 
         private List<int> ParseLapSplits(byte[] bytes, int lapCount, int finishTimeMs)
@@ -270,7 +258,7 @@ namespace RetroRewindWebsite.Services.Domain
                 lapSplitsMs.Add(lapTotalMs);
             }
 
-            // Handle tracks with more than 5 laps (e.g., Baby Park with 7 laps)
+            // Handle tracks with more than 5 laps (e.g., Baby Park)
             if (lapCount > MAX_LAP_SPLITS_STORED)
             {
                 EstimateRemainingLaps(lapSplitsMs, lapCount, finishTimeMs);
@@ -339,6 +327,14 @@ namespace RetroRewindWebsite.Services.Domain
                    bytes[offset + 3];
         }
 
+        private static ushort ReadBigEndianUInt16(byte[] bytes, int offset)
+        {
+            if (offset + 2 > bytes.Length)
+                throw new ArgumentException($"Cannot read UInt16 at offset 0x{offset:X}");
+
+            return (ushort)((bytes[offset] << 8) | bytes[offset + 1]);
+        }
+
         private static string SanitizeFileName(string fileName)
         {
             // Remove invalid filename characters
@@ -348,7 +344,7 @@ namespace RetroRewindWebsite.Services.Domain
             // Limit length and remove spaces
             return sanitized
                 .Replace(" ", "_")
-                [..Math.Min(sanitized.Length, 50)];
+[..Math.Min(sanitized.Length, 50)];
         }
     }
 }

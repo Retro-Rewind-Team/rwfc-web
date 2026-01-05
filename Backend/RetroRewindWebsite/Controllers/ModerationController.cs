@@ -349,6 +349,7 @@ namespace RetroRewindWebsite.Controllers
             int trackId,
             int cc,
             int ttProfileId,
+            short driftCategory,
             bool shroomless = false,
             bool glitch = false)
         {
@@ -380,6 +381,12 @@ namespace RetroRewindWebsite.Controllers
                 if (ttProfile == null)
                 {
                     return BadRequest($"TT Profile with ID {ttProfileId} not found. Create the profile first.");
+                }
+
+                // Validate drift category
+                if (driftCategory < 0 || driftCategory > 1)
+                {
+                    return BadRequest("Drift category must be 0 (Outside) or 1 (Inside)");
                 }
 
                 // Parse ghost file
@@ -423,6 +430,7 @@ namespace RetroRewindWebsite.Controllers
                     CharacterId = ghostData.CharacterId,
                     ControllerType = ghostData.ControllerType,
                     DriftType = ghostData.DriftType,
+                    DriftCategory = driftCategory,
                     MiiName = ghostData.MiiName,
                     LapCount = ghostData.LapCount,
                     LapSplitsMs = System.Text.Json.JsonSerializer.Serialize(ghostData.LapSplitsMs),
@@ -431,7 +439,6 @@ namespace RetroRewindWebsite.Controllers
                     SubmittedAt = DateTime.UtcNow,
                     Shroomless = shroomless,
                     Glitch = glitch,
-                    DriftCategory = ghostData.DriftCategory
                 };
 
                 // Add to database
@@ -440,6 +447,9 @@ namespace RetroRewindWebsite.Controllers
                 // Update profile submission count
                 ttProfile.TotalSubmissions = await _timeTrialRepository.GetProfileSubmissionsCountAsync(ttProfile.Id);
                 await _timeTrialRepository.UpdateTTProfileAsync(ttProfile);
+
+                // Update all world record counts for every profile
+                await _timeTrialRepository.UpdateWorldRecordCounts();
 
                 _logger.LogInformation(
                     "Ghost submitted: Track {TrackId}, Player {PlayerName} (ID: {ProfileId}), Time {Time}ms",

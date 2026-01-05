@@ -5,6 +5,7 @@ import { timeTrialApi } from "../services/api/timeTrial";
 export function useTTTrackBrowser() {
     const [selectedCategory, setSelectedCategory] = createSignal<"retro" | "custom">("retro");
     const [selectedCC, setSelectedCC] = createSignal<150 | 200>(150);
+    const [selectedNonGlitchOnly, setSelectedNonGlitchOnly] = createSignal<boolean>(false); // false = all times, true = non-glitch only
     const [searchQuery, setSearchQuery] = createSignal("");
 
     // Fetch all tracks
@@ -18,7 +19,6 @@ export function useTTTrackBrowser() {
     const worldRecordsQuery = useQuery(() => ({
         queryKey: ["tt-world-records-all"],
         queryFn: () => timeTrialApi.getAllWorldRecords(),
-        // Remove the enabled check since we always want to fetch all records
         staleTime: 1000 * 60 * 5, // 5 minutes
     }));
 
@@ -36,16 +36,30 @@ export function useTTTrackBrowser() {
             .sort((a, b) => a.id - b.id);
     });
 
-    // Get world record for a specific track (just filtering cached data)
+    // Get world record for a specific track (filtering cached data)
+    // Returns a function that creates a memo for each track
     const getWorldRecordForTrack = (trackId: number) => {
-        const records = worldRecordsQuery.data || [];
-        const trackRecord = records.find((r) => r.trackId === trackId);
-        
-        if (!trackRecord) return null;
-        
-        return selectedCC() === 150 
-            ? trackRecord.worldRecord150 
-            : trackRecord.worldRecord200;
+        return createMemo(() => {
+            const records = worldRecordsQuery.data || [];
+            const trackRecord = records.find((r) => r.trackId === trackId);
+            
+            if (!trackRecord) return null;
+            
+            // Select correct WR based on CC and non-glitch filter
+            const cc = selectedCC();
+            const nonGlitchOnly = selectedNonGlitchOnly();
+            
+            // When nonGlitchOnly is true, show non-glitch WRs (glitch=false)
+            // When false (unrestricted), show all times WRs (glitch=true), fallback to non-glitch if not available
+            if (nonGlitchOnly) {
+                return cc === 150 ? trackRecord.worldRecord150 : trackRecord.worldRecord200;
+            } else {
+                // For unrestricted, try glitch WR first, fallback to non-glitch WR
+                const unrestrictedWR = cc === 150 ? trackRecord.worldRecord150Glitch : trackRecord.worldRecord200Glitch;
+                const fallbackWR = cc === 150 ? trackRecord.worldRecord150 : trackRecord.worldRecord200;
+                return unrestrictedWR || fallbackWR;
+            }
+        });
     };
 
     const handleSearchInput = (value: string) => {
@@ -61,10 +75,16 @@ export function useTTTrackBrowser() {
         setSelectedCC(cc);
     };
 
+    // NEW handler
+    const handleNonGlitchOnlyChange = (nonGlitchOnly: boolean) => {
+        setSelectedNonGlitchOnly(nonGlitchOnly);
+    };
+
     return {
         // State
         selectedCategory,
         selectedCC,
+        selectedNonGlitchOnly, // NEW
         searchQuery,
 
         // Computed
@@ -81,5 +101,6 @@ export function useTTTrackBrowser() {
         handleSearchInput,
         handleCategoryChange,
         handleCCChange,
+        handleNonGlitchOnlyChange, // NEW
     };
 }

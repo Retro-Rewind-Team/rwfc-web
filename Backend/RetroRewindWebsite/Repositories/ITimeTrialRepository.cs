@@ -59,6 +59,11 @@ namespace RetroRewindWebsite.Repositories
         /// </summary>
         Task DeleteTTProfileAsync(int id);
 
+        /// <summary>
+        /// Updates all world record counts on Time Trial profiles
+        /// 
+        Task UpdateWorldRecordCounts();
+
         // ===== GHOST SUBMISSION OPERATIONS =====
 
         /// <summary>
