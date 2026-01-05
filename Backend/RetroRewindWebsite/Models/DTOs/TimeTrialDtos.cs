@@ -12,6 +12,7 @@ namespace RetroRewindWebsite.Models.DTOs
         public short CourseId { get; set; }
         public required string Category { get; set; }
         public short Laps { get; set; }
+        public bool SupportsGlitch { get; set; }
     }
 
     // ===== TT PROFILE DTOs =====
@@ -94,6 +95,7 @@ namespace RetroRewindWebsite.Models.DTOs
         public short DriftType { get; set; }
         public bool Shroomless { get; set; } = false;
         public bool Glitch { get; set; } = false;
+        public short DriftCategory { get; set; } 
         public required string MiiName { get; set; }
         public short LapCount { get; set; }
         public List<int> LapSplitsMs { get; set; } = [];
@@ -112,6 +114,7 @@ namespace RetroRewindWebsite.Models.DTOs
         public string? CharacterName { get; set; }
         public string? ControllerName { get; set; }
         public string? DriftTypeName { get; set; }
+        public string? DriftCategoryName { get; set; }
         public string? TrackSlotName { get; set; }
     }
 
@@ -134,6 +137,7 @@ namespace RetroRewindWebsite.Models.DTOs
     {
         public required TrackDto Track { get; set; }
         public short CC { get; set; }
+        public bool Glitch { get; set; }
         public List<GhostSubmissionDto> Submissions { get; set; } = [];
         public int TotalSubmissions { get; set; }
         public int CurrentPage { get; set; }
@@ -148,6 +152,8 @@ namespace RetroRewindWebsite.Models.DTOs
         public required string TrackName { get; set; }
         public GhostSubmissionDto? WorldRecord150 { get; set; }
         public GhostSubmissionDto? WorldRecord200 { get; set; }
+        public GhostSubmissionDto? WorldRecord150Glitch { get; set; }
+        public GhostSubmissionDto? WorldRecord200Glitch { get; set; }
     }
 
     // ===== PLAYER STATS DTOs =====

@@ -126,6 +126,7 @@ namespace RetroRewindWebsite.Repositories
         public async Task<PagedResult<GhostSubmissionEntity>> GetTrackLeaderboardAsync(
             int trackId,
             short cc,
+            bool glitch,
             int page,
             int pageSize)
         {
@@ -133,7 +134,7 @@ namespace RetroRewindWebsite.Repositories
                 .AsNoTracking()
                 .Include(g => g.Track)
                 .Include(g => g.TTProfile)
-                .Where(g => g.TrackId == trackId && g.CC == cc)
+                .Where(g => g.TrackId == trackId && g.CC == cc && g.Glitch == glitch)
                 .OrderBy(g => g.FinishTimeMs)
                 .ThenBy(g => g.SubmittedAt);
 
@@ -155,26 +156,27 @@ namespace RetroRewindWebsite.Repositories
         public async Task<List<GhostSubmissionEntity>> GetTopTimesForTrackAsync(
             int trackId,
             short cc,
+            bool glitch,
             int count)
         {
             return await _context.GhostSubmissions
                 .AsNoTracking()
                 .Include(g => g.Track)
                 .Include(g => g.TTProfile)
-                .Where(g => g.TrackId == trackId && g.CC == cc)
+                .Where(g => g.TrackId == trackId && g.CC == cc && g.Glitch == glitch)
                 .OrderBy(g => g.FinishTimeMs)
                 .ThenBy(g => g.SubmittedAt)
                 .Take(count)
                 .ToListAsync();
         }
 
-        public async Task<GhostSubmissionEntity?> GetWorldRecordAsync(int trackId, short cc)
+        public async Task<GhostSubmissionEntity?> GetWorldRecordAsync(int trackId, short cc, bool glitch)
         {
             return await _context.GhostSubmissions
                 .AsNoTracking()
                 .Include(g => g.Track)
                 .Include(g => g.TTProfile)
-                .Where(g => g.TrackId == trackId && g.CC == cc)
+                .Where(g => g.TrackId == trackId && g.CC == cc && g.Glitch == glitch)
                 .OrderBy(g => g.FinishTimeMs)
                 .ThenBy(g => g.SubmittedAt)
                 .FirstOrDefaultAsync();
@@ -202,7 +204,7 @@ namespace RetroRewindWebsite.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<GhostSubmissionEntity>> GetWorldRecordHistoryAsync(int trackId, short cc)
+        public async Task<List<GhostSubmissionEntity>> GetWorldRecordHistoryAsync(int trackId, short cc, bool glitch)
         {
             try
             {
@@ -216,7 +218,7 @@ namespace RetroRewindWebsite.Repositories
                                     ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
                                 ) as BestSoFar
                             FROM ""GhostSubmissions""
-                            WHERE ""TrackId"" = {trackId} AND ""CC"" = {cc}
+                            WHERE ""TrackId"" = {trackId} AND ""CC"" = {cc} AND ""Glitch"" = {glitch}
                         )
                         SELECT *
                         FROM RankedSubmissions
@@ -257,10 +259,10 @@ namespace RetroRewindWebsite.Repositories
                     .SqlQuery<int>($@"
                         SELECT CAST(COUNT(*) AS INTEGER) as ""Value""
                         FROM (
-                            SELECT DISTINCT ON (""TrackId"", ""CC"")
-                                ""TrackId"", ""CC"", ""TTProfileId""
+                            SELECT DISTINCT ON (""TrackId"", ""CC"", ""Glitch"")
+                                ""TrackId"", ""CC"", ""Glitch"", ""TTProfileId""
                             FROM ""GhostSubmissions""
-                            ORDER BY ""TrackId"", ""CC"", ""FinishTimeMs"", ""SubmittedAt""
+                            ORDER BY ""TrackId"", ""CC"", ""Glitch"", ""FinishTimeMs"", ""SubmittedAt""
                         ) wr
                         WHERE wr.""TTProfileId"" = {ttProfileId}
                     ")
@@ -285,7 +287,7 @@ namespace RetroRewindWebsite.Repositories
                             SELECT 
                                 ""TTProfileId"",
                                 RANK() OVER (
-                                    PARTITION BY ""TrackId"", ""CC""
+                                    PARTITION BY ""TrackId"", ""CC"", ""Glitch""
                                     ORDER BY ""FinishTimeMs"", ""SubmittedAt""
                                 ) as Position
                             FROM ""GhostSubmissions""
@@ -315,7 +317,7 @@ namespace RetroRewindWebsite.Repositories
                             SELECT 
                                 ""TTProfileId"",
                                 RANK() OVER (
-                                    PARTITION BY ""TrackId"", ""CC""
+                                    PARTITION BY ""TrackId"", ""CC"", ""Glitch""
                                     ORDER BY ""FinishTimeMs"", ""SubmittedAt""
                                 ) as Position
                             FROM ""GhostSubmissions""
@@ -336,7 +338,7 @@ namespace RetroRewindWebsite.Repositories
             }
         }
 
-        public async Task<int?> GetFastestLapForTrackAsync(int trackId, short cc)
+        public async Task<int?> GetFastestLapForTrackAsync(int trackId, short cc, bool glitch)
         {
             try
             {
@@ -345,7 +347,7 @@ namespace RetroRewindWebsite.Repositories
                         WITH LapTimes AS (
                             SELECT jsonb_array_elements_text(""LapSplitsMs""::jsonb)::int as LapTime
                             FROM ""GhostSubmissions""
-                            WHERE ""TrackId"" = {trackId} AND ""CC"" = {cc}
+                            WHERE ""TrackId"" = {trackId} AND ""CC"" = {cc} AND ""Glitch"" = {glitch}
                         )
                         SELECT MIN(LapTime) AS ""Value""
                         FROM LapTimes
