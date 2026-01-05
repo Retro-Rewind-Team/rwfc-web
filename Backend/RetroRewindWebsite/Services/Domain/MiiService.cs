@@ -49,12 +49,12 @@ namespace RetroRewindWebsite.Services.Domain
                     return cachedMiiImage;
                 }
 
-                _logger.LogInformation("Waiting for RC24 slot for {FriendCode}", friendCode);
+                _logger.LogDebug("Waiting for RC24 slot for {FriendCode}", friendCode);
                 await _rc24Semaphore.WaitAsync(cancellationToken);
 
                 try
                 {
-                    _logger.LogInformation("Got RC24 slot for {FriendCode}, sending request", friendCode);
+                    _logger.LogDebug("Got RC24 slot for {FriendCode}, sending request", friendCode);
 
                     using var httpClient = _httpClientFactory.CreateClient();
                     httpClient.Timeout = TimeSpan.FromSeconds(30);
@@ -66,7 +66,7 @@ namespace RetroRewindWebsite.Services.Domain
 
                     var response = await httpClient.PostAsync("https://miicontestp.wii.rc24.xyz/cgi-bin/studio.cgi", content, cancellationToken);
 
-                    _logger.LogInformation("Received RC24 response for {FriendCode}: {StatusCode}", friendCode, response.StatusCode);
+                    _logger.LogDebug("Received RC24 response for {FriendCode}: {StatusCode}", friendCode, response.StatusCode);
 
                     if (!response.IsSuccessStatusCode)
                     {
@@ -97,14 +97,14 @@ namespace RetroRewindWebsite.Services.Domain
                     // Cache in memory
                     _cache.Set(friendCode, base64Image, _cacheOptions);
 
-                    _logger.LogInformation("Successfully fetched and cached Mii for {FriendCode}", friendCode);
+                    _logger.LogDebug("Successfully fetched and cached Mii for {FriendCode}", friendCode);
 
                     return base64Image;
                 }
                 finally
                 {
                     _rc24Semaphore.Release();
-                    _logger.LogInformation("Released RC24 slot for {FriendCode}", friendCode);
+                    _logger.LogDebug("Released RC24 slot for {FriendCode}", friendCode);
                 }
             }
             catch (Exception ex)

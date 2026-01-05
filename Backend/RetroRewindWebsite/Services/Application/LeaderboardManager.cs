@@ -403,7 +403,7 @@ namespace RetroRewindWebsite.Services.Application
 
         public async Task RefreshFromApiAsync()
         {
-            _logger.LogInformation("Starting API refresh...");
+            _logger.LogDebug("Starting API refresh...");
 
             try
             {
@@ -414,8 +414,6 @@ namespace RetroRewindWebsite.Services.Application
                     .GroupBy(p => p.Pid)
                     .Select(g => g.First())
                     .ToList();
-
-                _logger.LogInformation("Found {PlayerCount} active players from API", uniqueApiPlayers.Count);
 
                 var updatedCount = 0;
                 var newCount = 0;
@@ -468,7 +466,7 @@ namespace RetroRewindWebsite.Services.Application
 
         public async Task RefreshRankingsAsync()
         {
-            _logger.LogInformation("Refreshing player rankings...");
+            _logger.LogDebug("Refreshing player rankings...");
 
             try
             {
@@ -692,7 +690,7 @@ namespace RetroRewindWebsite.Services.Application
                     existingPlayer.MiiImageBase64 = null;
                     existingPlayer.MiiImageFetchedAt = null;
 
-                    _logger.LogInformation("Mii data changed for {Name} ({FriendCode}), cached image invalidated",
+                    _logger.LogDebug("Mii data changed for {Name} ({FriendCode}), cached image invalidated",
                         existingPlayer.Name, existingPlayer.Fc);
                 }
             }

@@ -70,8 +70,6 @@ namespace RetroRewindWebsite.Services.Background
             var playerRepository = scope.ServiceProvider.GetRequiredService<IPlayerRepository>();
             var miiService = scope.ServiceProvider.GetRequiredService<IMiiService>();
 
-            _logger.LogInformation("Starting Mii pre-fetch batch");
-
             var players = await playerRepository.GetPlayersNeedingMiiImagesAsync(BatchSize);
 
             if (players.Count == 0)
@@ -79,8 +77,6 @@ namespace RetroRewindWebsite.Services.Background
                 _logger.LogInformation("No players need Mii images, all up to date");
                 return;
             }
-
-            _logger.LogInformation("Pre-fetching Mii images for {Count} players", players.Count);
 
             var successCount = 0;
             var failCount = 0;
@@ -90,15 +86,12 @@ namespace RetroRewindWebsite.Services.Background
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    _logger.LogInformation("Mii pre-fetch cancelled, processed {Success}/{Total}",
-                        successCount, players.Count);
                     break;
                 }
 
                 if (string.IsNullOrEmpty(player.MiiData))
                 {
                     skippedCount++;
-                    _logger.LogDebug("Skipping {Name} ({FriendCode}) - no Mii data", player.Name, player.Fc);
                     continue;
                 }
 
@@ -110,7 +103,6 @@ namespace RetroRewindWebsite.Services.Background
                     {
                         await playerRepository.UpdatePlayerMiiImageAsync(player.Pid, miiImage);
                         successCount++;
-                        _logger.LogDebug("Pre-fetched Mii for {Name} ({FriendCode})", player.Name, player.Fc);
                     }
                     else
                     {
