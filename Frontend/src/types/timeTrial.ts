@@ -5,6 +5,7 @@ export interface Track {
   courseId: number;
   category: "retro" | "custom";
   laps: number;
+  supportsGlitch: boolean;
 }
 
 export interface TTProfile {
@@ -33,6 +34,7 @@ export interface GhostSubmission {
   characterId: number;
   controllerType: number;
   driftType: number;
+  driftCategory: number;
   shroomless: boolean;
   glitch: boolean;
   miiName: string;
@@ -49,6 +51,7 @@ export interface GhostSubmission {
 export interface TrackLeaderboard {
   track: Track;
   cc: 150 | 200;
+  glitch: boolean;
   submissions: GhostSubmission[];
   totalSubmissions: number;
   currentPage: number;
@@ -78,4 +81,6 @@ export interface TrackWorldRecords {
     trackName: string;
     worldRecord150: GhostSubmission | null;
     worldRecord200: GhostSubmission | null;
+    worldRecord150Glitch: GhostSubmission | null;
+    worldRecord200Glitch: GhostSubmission | null;
 }

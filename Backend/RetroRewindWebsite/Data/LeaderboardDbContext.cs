@@ -115,6 +115,7 @@ namespace RetroRewindWebsite.Data
                 entity.HasIndex(e => e.CourseId);
                 entity.HasIndex(e => e.Category);
                 entity.HasIndex(e => e.TrackSlot);
+                entity.HasIndex(e => e.SupportsGlitch);
 
                 // String length constraints
                 entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
@@ -151,9 +152,10 @@ namespace RetroRewindWebsite.Data
                 // Composite indexes for common queries
                 entity.HasIndex(e => new { e.TrackId, e.CC });
                 entity.HasIndex(e => new { e.TrackId, e.CC, e.FinishTimeMs });
+                entity.HasIndex(e => new { e.TrackId, e.CC, e.Glitch });
 
                 // Performance indexes for leaderboard queries
-                entity.HasIndex(e => new { e.TrackId, e.CC, e.FinishTimeMs, e.SubmittedAt });
+                entity.HasIndex(e => new { e.TrackId, e.CC, e.Glitch, e.FinishTimeMs, e.SubmittedAt });
 
                 // Performance indexes for world record history
                 entity.HasIndex(e => new { e.TrackId, e.CC, e.DateSet });
