@@ -118,11 +118,29 @@ namespace RetroRewindWebsite.Models.DTOs
         public string? TrackSlotName { get; set; }
     }
 
+    public class GhostSubmissionRequest
+    {
+        public required IFormFile GhostFile { get; set; }
+        public int TrackId { get; set; }
+        public int Cc { get; set; }
+        public int TtProfileId { get; set; }
+        public short DriftCategory { get; set; }
+        public bool Shroomless { get; set; }
+        public bool Glitch { get; set; }
+    }
+
     public class GhostSubmissionResultDto
     {
         public bool Success { get; set; }
         public string? Message { get; set; }
         public GhostSubmissionDetailDto? Submission { get; set; }
+    }
+
+    public class GhostSubmissionSearchResultDto
+    {
+        public bool Success { get; set; }
+        public int Count { get; set; }
+        public List<GhostSubmissionDetailDto> Submissions { get; set; } = [];
     }
 
     public class GhostDeletionResultDto

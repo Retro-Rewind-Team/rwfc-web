@@ -137,6 +137,44 @@ namespace RetroRewindWebsite.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task<List<GhostSubmissionEntity>> SearchGhostSubmissionsAsync(
+            int? ttProfileId = null,
+            int? trackId = null,
+            short? cc = null,
+            bool? glitch = null,
+            bool? shroomless = null,
+            short? driftCategory = null,
+            int limit = 25)
+        {
+            var query = _context.GhostSubmissions
+                .Include(s => s.Track)
+                .Include(s => s.TTProfile)
+                .AsQueryable();
+
+            if (ttProfileId.HasValue)
+                query = query.Where(s => s.TTProfileId == ttProfileId.Value);
+
+            if (trackId.HasValue)
+                query = query.Where(s => s.TrackId == trackId.Value);
+
+            if (cc.HasValue)
+                query = query.Where(s => s.CC == cc.Value);
+
+            if (glitch.HasValue)
+                query = query.Where(s => s.Glitch == glitch.Value);
+
+            if (shroomless.HasValue)
+                query = query.Where(s => s.Shroomless == shroomless.Value);
+
+            if (driftCategory.HasValue)
+                query = query.Where(s => s.DriftCategory == driftCategory.Value);
+
+            return await query
+                .OrderByDescending(s => s.SubmittedAt)
+                .Take(limit)
+                .ToListAsync();
+        }
+
         public async Task DeleteGhostSubmissionAsync(int id)
         {
             var submission = await _context.GhostSubmissions.FindAsync(id);
@@ -430,6 +468,56 @@ namespace RetroRewindWebsite.Repositories
                 _logger.LogError(ex, "Error getting fastest lap for track {TrackId} CC {CC}", trackId, cc);
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Gets the Best Known Time for a track with flexible filtering
+        /// </summary>
+        public async Task<GhostSubmissionEntity?> GetBestKnownTimeAsync(
+            int trackId,
+            short cc,
+            bool nonGlitchOnly,
+            bool? shroomless = null,
+            short? minVehicleId = null,
+            short? maxVehicleId = null,
+            short? driftType = null,
+            short? driftCategory = null)
+        {
+            var query = _context.GhostSubmissions
+                .AsNoTracking()
+                .Include(g => g.Track)
+                .Include(g => g.TTProfile)
+                .Where(g => g.TrackId == trackId && g.CC == cc);
+
+            if (nonGlitchOnly)
+            {
+                query = query.Where(g => g.Glitch == false);
+            }
+
+            if (shroomless.HasValue)
+            {
+                query = query.Where(g => g.Shroomless == shroomless.Value);
+            }
+
+            if (minVehicleId.HasValue && maxVehicleId.HasValue)
+            {
+                query = query.Where(g => g.VehicleId >= minVehicleId.Value && g.VehicleId <= maxVehicleId.Value);
+            }
+
+            if (driftType.HasValue)
+            {
+                query = query.Where(g => g.DriftType == driftType.Value);
+            }
+
+            if (driftCategory.HasValue)
+            {
+                query = query.Where(g => g.DriftCategory == driftCategory.Value);
+            }
+
+            return await query
+                .OrderBy(g => g.FinishTimeMs)
+                .ThenBy(g => g.SubmittedAt)
+                .FirstOrDefaultAsync();
         }
     }
 }

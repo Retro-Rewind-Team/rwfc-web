@@ -345,46 +345,40 @@ namespace RetroRewindWebsite.Controllers
         /// </summary>
         [HttpPost("timetrial/submit")]
         public async Task<ActionResult<GhostSubmissionResultDto>> SubmitTimeTrialGhost(
-            IFormFile ghostFile,
-            int trackId,
-            int cc,
-            int ttProfileId,
-            short driftCategory,
-            bool shroomless = false,
-            bool glitch = false)
+            [FromForm] GhostSubmissionRequest request)
         {
             try
             {
                 // Validate file
-                var fileValidation = ValidateGhostFile(ghostFile);
+                var fileValidation = ValidateGhostFile(request.GhostFile);
                 if (fileValidation != null) return fileValidation;
 
                 // Validate CC
-                var ccValidation = ValidateCc((short)cc);
+                var ccValidation = ValidateCc((short)request.Cc);
                 if (ccValidation != null) return ccValidation;
 
                 // Validate track exists
-                var track = await _timeTrialRepository.GetTrackByIdAsync(trackId);
+                var track = await _timeTrialRepository.GetTrackByIdAsync(request.TrackId);
                 if (track == null)
                 {
-                    return BadRequest($"Track ID {trackId} not found");
+                    return BadRequest($"Track ID {request.TrackId} not found");
                 }
 
                 // Validate glitch category for tracks that don't support it
-                if (glitch && !track.SupportsGlitch)
+                if (request.Glitch && !track.SupportsGlitch)
                 {
                     return BadRequest($"Glitch/shortcut runs are not allowed for {track.Name}");
                 }
 
                 // Validate profile exists
-                var ttProfile = await _timeTrialRepository.GetTTProfileByIdAsync(ttProfileId);
+                var ttProfile = await _timeTrialRepository.GetTTProfileByIdAsync(request.TtProfileId);
                 if (ttProfile == null)
                 {
-                    return BadRequest($"TT Profile with ID {ttProfileId} not found. Create the profile first.");
+                    return BadRequest($"TT Profile with ID {request.TtProfileId} not found. Create the profile first.");
                 }
 
                 // Validate drift category
-                if (driftCategory < 0 || driftCategory > 1)
+                if (request.DriftCategory < 0 || request.DriftCategory > 1)
                 {
                     return BadRequest("Drift category must be 0 (Outside) or 1 (Inside)");
                 }
@@ -393,7 +387,7 @@ namespace RetroRewindWebsite.Controllers
                 GhostFileParseResult ghostData;
                 using (var memoryStream = new MemoryStream())
                 {
-                    await ghostFile.CopyToAsync(memoryStream);
+                    await request.GhostFile.CopyToAsync(memoryStream);
                     memoryStream.Position = 0;
                     ghostData = await _ghostFileService.ParseGhostFileAsync(memoryStream);
                 }
@@ -409,36 +403,36 @@ namespace RetroRewindWebsite.Controllers
 
                 // Save ghost file
                 string ghostFilePath;
-                using (var fileStream = ghostFile.OpenReadStream())
+                using (var fileStream = request.GhostFile.OpenReadStream())
                 {
                     ghostFilePath = await _ghostFileService.SaveGhostFileAsync(
                         fileStream,
-                        trackId,
-                        (short)cc,
+                        request.TrackId,
+                        (short)request.Cc,
                         ttProfile.DisplayName);
                 }
 
                 // Create submission entity
                 var submission = new GhostSubmissionEntity
                 {
-                    TrackId = trackId,
+                    TrackId = request.TrackId,
                     TTProfileId = ttProfile.Id,
-                    CC = (short)cc,
+                    CC = (short)request.Cc,
                     FinishTimeMs = ghostData.FinishTimeMs,
                     FinishTimeDisplay = ghostData.FinishTimeDisplay,
                     VehicleId = ghostData.VehicleId,
                     CharacterId = ghostData.CharacterId,
                     ControllerType = ghostData.ControllerType,
                     DriftType = ghostData.DriftType,
-                    DriftCategory = driftCategory,
+                    DriftCategory = request.DriftCategory,
                     MiiName = ghostData.MiiName,
                     LapCount = ghostData.LapCount,
                     LapSplitsMs = System.Text.Json.JsonSerializer.Serialize(ghostData.LapSplitsMs),
                     GhostFilePath = ghostFilePath,
                     DateSet = ghostData.DateSet,
                     SubmittedAt = DateTime.UtcNow,
-                    Shroomless = shroomless,
-                    Glitch = glitch,
+                    Shroomless = request.Shroomless,
+                    Glitch = request.Glitch,
                 };
 
                 // Add to database
@@ -453,7 +447,7 @@ namespace RetroRewindWebsite.Controllers
 
                 _logger.LogInformation(
                     "Ghost submitted: Track {TrackId}, Player {PlayerName} (ID: {ProfileId}), Time {Time}ms",
-                    trackId, ttProfile.DisplayName, ttProfile.Id, ghostData.FinishTimeMs);
+                    request.TrackId, ttProfile.DisplayName, ttProfile.Id, ghostData.FinishTimeMs);
 
                 return Ok(new GhostSubmissionResultDto
                 {
@@ -501,7 +495,7 @@ namespace RetroRewindWebsite.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error submitting ghost for track {TrackId}", trackId);
+                _logger.LogError(ex, "Error submitting ghost for track {TrackId}", request.TrackId);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "An error occurred while submitting the ghost");
             }
@@ -841,6 +835,225 @@ namespace RetroRewindWebsite.Controllers
                 Count = countries.Count,
                 Countries = countries
             });
+        }
+
+        /// <summary>
+        /// Searches ghost submissions with flexible filters
+        /// </summary>
+        [HttpGet("timetrial/submissions/search")]
+        public async Task<ActionResult<GhostSubmissionSearchResultDto>> SearchGhostSubmissions(
+            [FromQuery] int? ttProfileId = null,
+            [FromQuery] int? trackId = null,
+            [FromQuery] short? cc = null,
+            [FromQuery] bool? glitch = null,
+            [FromQuery] bool? shroomless = null,
+            [FromQuery] short? driftCategory = null,
+            [FromQuery] int limit = 25)
+        {
+            try
+            {
+                limit = Math.Clamp(limit, 1, 100);
+
+                var submissions = await _timeTrialRepository.SearchGhostSubmissionsAsync(
+                    ttProfileId, trackId, cc, glitch, shroomless, driftCategory, limit);
+
+                var submissionDtos = submissions.Select(s => new GhostSubmissionDetailDto
+                {
+                    Id = s.Id,
+                    TrackId = s.TrackId,
+                    TrackName = s.Track?.Name ?? "Unknown",
+                    TTProfileId = s.TTProfileId,
+                    PlayerName = s.TTProfile?.DisplayName ?? "Unknown",
+                    CountryCode = s.TTProfile?.CountryCode ?? 0,
+                    CountryAlpha2 = CountryCodeHelper.GetAlpha2Code(s.TTProfile?.CountryCode ?? 0),
+                    CountryName = CountryCodeHelper.GetCountryName(s.TTProfile?.CountryCode ?? 0),
+                    CC = s.CC,
+                    FinishTimeMs = s.FinishTimeMs,
+                    FinishTimeDisplay = s.FinishTimeDisplay,
+                    VehicleId = s.VehicleId,
+                    CharacterId = s.CharacterId,
+                    ControllerType = s.ControllerType,
+                    DriftType = s.DriftType,
+                    VehicleName = MarioKartMappings.GetVehicleName(s.VehicleId),
+                    CharacterName = MarioKartMappings.GetCharacterName(s.CharacterId),
+                    ControllerName = MarioKartMappings.GetControllerName(s.ControllerType),
+                    DriftTypeName = MarioKartMappings.GetDriftTypeName(s.DriftType),
+                    DriftCategoryName = MarioKartMappings.GetDriftCategoryName(s.DriftCategory),
+                    TrackSlotName = MarioKartMappings.GetTrackSlotName(s.Track?.CourseId ?? 0),
+                    MiiName = s.MiiName,
+                    LapCount = s.LapCount,
+                    LapSplitsMs = System.Text.Json.JsonSerializer.Deserialize<List<int>>(s.LapSplitsMs) ?? [],
+                    LapSplitsDisplay = [],
+                    FastestLapMs = 0,
+                    FastestLapDisplay = "",
+                    GhostFilePath = s.GhostFilePath,
+                    DateSet = s.DateSet,
+                    SubmittedAt = s.SubmittedAt,
+                    Shroomless = s.Shroomless,
+                    Glitch = s.Glitch,
+                    DriftCategory = s.DriftCategory
+                }).ToList();
+
+                return Ok(new GhostSubmissionSearchResultDto
+                {
+                    Success = true,
+                    Count = submissionDtos.Count,
+                    Submissions = submissionDtos
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching ghost submissions");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while searching submissions");
+            }
+        }
+
+        // ===== FLEXIBLE BKT ENDPOINT =====
+
+        /// <summary>
+        /// Retrieves the Best Known Time (BKT) for a specific track with flexible filtering
+        /// </summary>
+        [HttpGet("timetrial/bkt")]
+        public async Task<ActionResult<GhostSubmissionDto>> GetFlexibleBKT(
+            [FromQuery] int trackId,
+            [FromQuery] short cc,
+            [FromQuery] bool nonGlitchOnly = false,
+            [FromQuery] string? shroomless = null,  // "only" or "exclude" or null (all)
+            [FromQuery] string? vehicle = null,     // "bikes" or "karts" or null (all)
+            [FromQuery] string? drift = null,       // "manual" or "hybrid" or null (all)
+            [FromQuery] string? driftCategory = null) // "inside" or "outside" or null (all)
+        {
+            try
+            {
+                var ccValidation = ValidateCc(cc);
+                if (ccValidation != null) return ccValidation;
+
+                var track = await _timeTrialRepository.GetTrackByIdAsync(trackId);
+                if (track == null)
+                {
+                    return NotFound($"Track with ID {trackId} not found");
+                }
+
+                bool? shroomlessFilter = null;
+                if (!string.IsNullOrWhiteSpace(shroomless))
+                {
+                    shroomlessFilter = shroomless.ToLower() switch
+                    {
+                        "only" => true,
+                        "exclude" => false,
+                        _ => null
+                    };
+                }
+
+                short? driftTypeFilter = null;
+                if (!string.IsNullOrWhiteSpace(drift))
+                {
+                    driftTypeFilter = drift.ToLower() switch
+                    {
+                        "manual" => (short)0,
+                        "hybrid" => (short)1,
+                        _ => null
+                    };
+                }
+
+                short? driftCategoryFilter = null;
+                if (!string.IsNullOrWhiteSpace(driftCategory))
+                {
+                    driftCategoryFilter = driftCategory.ToLower() switch
+                    {
+                        "outside" => (short)0,
+                        "inside" => (short)1,
+                        _ => null
+                    };
+                }
+
+                // Determine vehicle ID range
+                short? minVehicleId = null;
+                short? maxVehicleId = null;
+                if (!string.IsNullOrWhiteSpace(vehicle))
+                {
+                    switch (vehicle.ToLower())
+                    {
+                        case "karts":
+                            minVehicleId = 0;   // Karts: 0x00 (0) through 0x11 (17)
+                            maxVehicleId = 17;
+                            break;
+                        case "bikes":
+                            minVehicleId = 18;  // Bikes: 0x12 (18) through 0x23 (35)
+                            maxVehicleId = 35;
+                            break;
+                    }
+                }
+
+                // Apply non-glitch filter (force it for tracks that don't support glitch)
+                bool glitchFilter = nonGlitchOnly || !track.SupportsGlitch;
+
+                var bkt = await _timeTrialRepository.GetBestKnownTimeAsync(
+                    trackId: trackId,
+                    cc: cc,
+                    nonGlitchOnly: glitchFilter,
+                    shroomless: shroomlessFilter,
+                    minVehicleId: minVehicleId,
+                    maxVehicleId: maxVehicleId,
+                    driftType: driftTypeFilter,
+                    driftCategory: driftCategoryFilter);
+
+                if (bkt == null)
+                {
+                    return NotFound("No times found matching the specified filters");
+                }
+
+                var lapSplitsMs = System.Text.Json.JsonSerializer.Deserialize<List<int>>(bkt.LapSplitsMs) ?? [];
+
+                return Ok(new GhostSubmissionDetailDto
+                {
+                    Id = bkt.Id,
+                    TrackId = bkt.TrackId,
+                    TrackName = bkt.Track?.Name ?? track.Name,
+                    TTProfileId = bkt.TTProfileId,
+                    PlayerName = bkt.TTProfile?.DisplayName ?? "Unknown",
+                    CountryCode = bkt.TTProfile?.CountryCode ?? 0,
+                    CountryAlpha2 = bkt.TTProfile?.CountryCode != null
+                        ? CountryCodeHelper.GetAlpha2Code(bkt.TTProfile.CountryCode)
+                        : null,
+                    CountryName = bkt.TTProfile?.CountryCode != null
+                        ? CountryCodeHelper.GetCountryName(bkt.TTProfile.CountryCode)
+                        : null,
+                    CC = bkt.CC,
+                    FinishTimeMs = bkt.FinishTimeMs,
+                    FinishTimeDisplay = bkt.FinishTimeDisplay,
+                    VehicleId = bkt.VehicleId,
+                    CharacterId = bkt.CharacterId,
+                    ControllerType = bkt.ControllerType,
+                    DriftType = bkt.DriftType,
+                    VehicleName = MarioKartMappings.GetVehicleName(bkt.VehicleId),
+                    CharacterName = MarioKartMappings.GetCharacterName(bkt.CharacterId),
+                    ControllerName = MarioKartMappings.GetControllerName(bkt.ControllerType),
+                    DriftTypeName = MarioKartMappings.GetDriftTypeName(bkt.DriftType),
+                    DriftCategoryName = MarioKartMappings.GetDriftCategoryName(bkt.DriftCategory),
+                    MiiName = bkt.MiiName,
+                    LapCount = bkt.LapCount,
+                    LapSplitsMs = lapSplitsMs,
+                    LapSplitsDisplay = [.. lapSplitsMs.Select(FormatLapTime)],
+                    FastestLapMs = lapSplitsMs.DefaultIfEmpty(0).Min(),
+                    FastestLapDisplay = lapSplitsMs.Count > 0
+                        ? FormatLapTime(lapSplitsMs.Min())
+                        : string.Empty,
+                    GhostFilePath = bkt.GhostFilePath,
+                    DateSet = bkt.DateSet,
+                    SubmittedAt = bkt.SubmittedAt,
+                    Shroomless = bkt.Shroomless,
+                    Glitch = bkt.Glitch,
+                    DriftCategory = bkt.DriftCategory,
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving BKT for track {TrackId} {CC}cc", trackId, cc);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while retrieving the best known time");
+            }
         }
 
         // ===== HELPER METHODS =====

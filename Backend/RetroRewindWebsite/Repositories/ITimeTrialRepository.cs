@@ -77,6 +77,18 @@ namespace RetroRewindWebsite.Repositories
         Task AddGhostSubmissionAsync(GhostSubmissionEntity submission);
 
         /// <summary>
+        /// Search ghost submissions with optional filters
+        /// </summary>
+        Task<List<GhostSubmissionEntity>> SearchGhostSubmissionsAsync(
+            int? ttProfileId = null,
+            int? trackId = null,
+            short? cc = null,
+            bool? glitch = null,
+            bool? shroomless = null,
+            short? driftCategory = null,
+            int limit = 25);
+
+        /// <summary>
         /// Delete a ghost submission by ID
         /// </summary>
         Task DeleteGhostSubmissionAsync(int id);
@@ -159,5 +171,18 @@ namespace RetroRewindWebsite.Repositories
         /// Get the fastest lap time for a specific track, CC and glitch (across all submissions)
         /// </summary>
         Task<int?> GetFastestLapForTrackAsync(int trackId, short cc, bool glitch);
+
+        /// <summary>
+        /// Gets the Best Known Time for a track with flexible filtering applied at database level
+        /// </summary>
+        Task<GhostSubmissionEntity?> GetBestKnownTimeAsync(
+            int trackId,
+            short cc,
+            bool nonGlitchOnly,
+            bool? shroomless = null,
+            short? minVehicleId = null,
+            short? maxVehicleId = null,
+            short? driftType = null,
+            short? driftCategory = null);
     }
 }
