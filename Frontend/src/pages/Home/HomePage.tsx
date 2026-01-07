@@ -98,7 +98,7 @@ export default function HomePage() {
                     </div>
 
                     {/* Time Trial Leaderboard */}
-                    <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6 relative">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 p-6 transition-all">
                         <div class="text-4xl mb-4">⏱️</div>
                         <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
                             TT Leaderboard
@@ -107,12 +107,25 @@ export default function HomePage() {
                             Compare the fastest times across all 198 retro tracks and 88
                             custom tracks.
                         </p>
-                        <div class="text-gray-500 dark:text-gray-500 font-medium inline-flex items-center">
-                            Coming Soon
-                            <div class="ml-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 text-xs px-2 py-1 rounded">
-                                In Development
-                            </div>
-                        </div>
+                        <A
+                            href="/tt"
+                            class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium inline-flex items-center transition-colors"
+                        >
+                            View Times
+                            <svg
+                                class="w-4 h-4 ml-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 5l7 7-7 7"
+                                />
+                            </svg>
+                        </A>
                     </div>
 
                     {/* Room Browser */}

@@ -11,8 +11,8 @@ export default function Footer() {
                             <span class="text-xl font-bold">Retro Rewind</span>
                         </div>
                         <p class="text-gray-300 dark:text-gray-400 text-sm mb-4">
-              Experience every retro track from Super Mario Kart to Mario Kart
-              7, plus tracks from Mario Kart 8, Tour, Arcade GP and Mario Kart World.
+                            Experience every retro track from Super Mario Kart to Mario Kart
+                            7, plus tracks from Mario Kart 8, Tour, Arcade GP and Mario Kart World.
                         </p>
                         <div class="flex space-x-4">
                             <a
@@ -49,7 +49,7 @@ export default function Footer() {
                                     href="/"
                                     class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
                                 >
-                  Home
+                                    Home
                                 </A>
                             </li>
                             <li>
@@ -57,20 +57,23 @@ export default function Footer() {
                                     href="/vr"
                                     class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
                                 >
-                  VR Leaderboard
+                                    VR Leaderboard
                                 </A>
                             </li>
                             <li>
-                                <span class="text-gray-500 dark:text-gray-600">
-                  TT Leaderboard (Soon)
-                                </span>
+                                <A
+                                    href="/tt"
+                                    class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
+                                >
+                                    TT Leaderboard
+                                </A>
                             </li>
                             <li>
                                 <A
                                     href="/rooms"
                                     class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
                                 >
-                  Room Browser
+                                    Room Browser
                                 </A>
                             </li>
                         </ul>
@@ -85,7 +88,7 @@ export default function Footer() {
                                     href="/downloads"
                                     class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
                                 >
-                  Downloads
+                                    Downloads
                                 </A>
                             </li>
                             <li></li>
@@ -103,7 +106,7 @@ export default function Footer() {
                                     rel="noopener noreferrer"
                                     class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
                                 >
-                  Discord Server
+                                    Discord Server
                                 </a>
                             </li>
                         </ul>
@@ -114,15 +117,15 @@ export default function Footer() {
                 <div class="border-t border-gray-700 dark:border-gray-800 mt-8 pt-8">
                     <div class="flex flex-col md:flex-row justify-between items-center">
                         <div class="text-gray-300 dark:text-gray-400 text-sm mb-4 md:mb-0">
-              © 2025 Retro Rewind Team. This project is not affiliated with
-              Nintendo.
+                            © 2026 Retro Rewind Team. This project is not affiliated with
+                            Nintendo.
                         </div>
                         <div class="flex space-x-6 text-sm">
                             <a
                                 href="/rules"
                                 class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
                             >
-                Community Guidelines
+                                Community Guidelines
                             </a>
                         </div>
                     </div>
