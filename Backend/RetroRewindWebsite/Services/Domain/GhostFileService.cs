@@ -302,16 +302,34 @@ namespace RetroRewindWebsite.Services.Domain
 
         private static string ParseMiiName(byte[] bytes)
         {
-            // Mii name is stored at offset 0x3E (20 bytes, UTF-16 Big Endian)
+            // Mii name is stored at offset 0x3E (20 bytes max, UTF-16 Big Endian)
+            // The name is null-terminated, so we need to find the first null character
             var miiNameBytes = new byte[20];
             if (bytes.Length >= OFFSET_MII_NAME + 20)
             {
                 Array.Copy(bytes, OFFSET_MII_NAME, miiNameBytes, 0, 20);
             }
 
-            return Encoding.BigEndianUnicode.GetString(miiNameBytes)
-                .Replace("\0", "")
-                .Trim();
+            // Find the first null terminator (UTF-16 uses 2 bytes, so look for 0x00 0x00)
+            int nullIndex = -1;
+            for (int i = 0; i < miiNameBytes.Length - 1; i += 2)
+            {
+                if (miiNameBytes[i] == 0x00 && miiNameBytes[i + 1] == 0x00)
+                {
+                    nullIndex = i;
+                    break;
+                }
+            }
+
+            // If we found a null terminator, only decode up to that point
+            int bytesToDecode = nullIndex >= 0 ? nullIndex : miiNameBytes.Length;
+
+            if (bytesToDecode == 0)
+            {
+                return string.Empty;
+            }
+
+            return Encoding.BigEndianUnicode.GetString(miiNameBytes, 0, bytesToDecode).Trim();
         }
 
         // ===== HELPER METHODS =====
@@ -344,7 +362,7 @@ namespace RetroRewindWebsite.Services.Domain
             // Limit length and remove spaces
             return sanitized
                 .Replace(" ", "_")
-[..Math.Min(sanitized.Length, 50)];
+                [..Math.Min(sanitized.Length, 50)];
         }
     }
 }
