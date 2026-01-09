@@ -282,7 +282,7 @@ export default function TTTrackDetailPage() {
 
                         {/* WR History */}
                         <TTWRHistory
-                            history={ttTrack.wrHistoryQuery.data}
+                            history={ttTrack.filteredWRHistory()}
                             isLoading={ttTrack.wrHistoryQuery.isLoading}
                             isError={ttTrack.wrHistoryQuery.isError}
                             onDownloadGhost={ttTrack.handleDownloadGhost}

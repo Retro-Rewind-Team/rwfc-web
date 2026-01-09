@@ -7,7 +7,7 @@ export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200, non
     const [shroomlessFilter, setShroomlessFilter] = createSignal<"all" | "only" | "exclude">("all");
     const [vehicleFilter, setVehicleFilter] = createSignal<"all" | "bikes" | "karts">("all");
     const [driftFilter, setDriftFilter] = createSignal<"all" | "manual" | "hybrid">("all");
-    const [driftCategoryFilter, setDriftCategoryFilter] = createSignal<"all" | "inside" | "outside">("all"); // NEW
+    const [driftCategoryFilter, setDriftCategoryFilter] = createSignal<"all" | "inside" | "outside">("all");
   
     // Pagination - default to 10
     const [currentPage, setCurrentPage] = createSignal(1);
@@ -63,7 +63,7 @@ export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200, non
         const submissions = leaderboardQuery.data?.submissions || [];
         const vehicleFilterValue = vehicleFilter();
         const driftFilterValue = driftFilter();
-        const driftCategoryFilterValue = driftCategoryFilter(); // NEW
+        const driftCategoryFilterValue = driftCategoryFilter();
         const shroomlessFilterValue = shroomlessFilter();
 
         return submissions.filter((submission) => {
@@ -75,7 +75,36 @@ export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200, non
             if (driftFilterValue === "manual" && submission.driftType !== 0) return false;
             if (driftFilterValue === "hybrid" && submission.driftType !== 1) return false;
 
-            // NEW: Drift category filter
+            // Drift category filter
+            if (driftCategoryFilterValue === "inside" && submission.driftCategory !== 1) return false;
+            if (driftCategoryFilterValue === "outside" && submission.driftCategory !== 0) return false;
+
+            // Shroomless filter
+            if (shroomlessFilterValue === "only" && !submission.shroomless) return false;
+            if (shroomlessFilterValue === "exclude" && submission.shroomless) return false;
+
+            return true;
+        });
+    });
+
+    // Apply filters to WR history
+    const filteredWRHistory = createMemo(() => {
+        const history = wrHistoryQuery.data || [];
+        const vehicleFilterValue = vehicleFilter();
+        const driftFilterValue = driftFilter();
+        const driftCategoryFilterValue = driftCategoryFilter();
+        const shroomlessFilterValue = shroomlessFilter();
+
+        return history.filter((submission) => {
+            // Vehicle filter (bikes/karts)
+            if (vehicleFilterValue === "bikes" && submission.vehicleId < 18) return false;
+            if (vehicleFilterValue === "karts" && submission.vehicleId >= 18) return false;
+
+            // Drift filter
+            if (driftFilterValue === "manual" && submission.driftType !== 0) return false;
+            if (driftFilterValue === "hybrid" && submission.driftType !== 1) return false;
+
+            // Drift category filter
             if (driftCategoryFilterValue === "inside" && submission.driftCategory !== 1) return false;
             if (driftCategoryFilterValue === "outside" && submission.driftCategory !== 0) return false;
 
@@ -91,7 +120,7 @@ export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200, non
     createEffect(() => {
         vehicleFilter();
         driftFilter();
-        driftCategoryFilter(); // NEW
+        driftCategoryFilter(); 
         shroomlessFilter();
         setCurrentPage(1);
     });
@@ -108,7 +137,6 @@ export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200, non
         setDriftFilter(filter);
     };
 
-    // NEW handler
     const handleDriftCategoryFilterChange = (filter: "all" | "inside" | "outside") => {
         setDriftCategoryFilter(filter);
     };
@@ -154,6 +182,7 @@ return {
 
     // Computed
     filteredSubmissions,
+    filteredWRHistory,
 
     // Queries
     trackQuery,
