@@ -549,6 +549,9 @@ namespace RetroRewindWebsite.Controllers
                         submission.TTProfileId, id);
                 }
 
+                // Update all world record counts for every profile (in case a WR was deleted)
+                await _timeTrialRepository.UpdateWorldRecordCounts();
+
                 _logger.LogInformation("Ghost submission {SubmissionId} deleted", id);
 
                 return Ok(new GhostDeletionResultDto

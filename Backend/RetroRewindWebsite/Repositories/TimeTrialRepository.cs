@@ -106,9 +106,9 @@ namespace RetroRewindWebsite.Repositories
                             SELECT DISTINCT ON (""TrackId"", ""CC"", ""Glitch"")
                                 ""TrackId"", ""CC"", ""Glitch"", ""TTProfileId""
                             FROM ""GhostSubmissions""
-                            WHERE ""TTProfileId"" = p.""Id""
                             ORDER BY ""TrackId"", ""CC"", ""Glitch"", ""FinishTimeMs"", ""SubmittedAt""
                         ) wr
+                        WHERE wr.""TTProfileId"" = p.""Id""
                     ),
                     ""UpdatedAt"" = {DateTime.UtcNow}
                 ");
