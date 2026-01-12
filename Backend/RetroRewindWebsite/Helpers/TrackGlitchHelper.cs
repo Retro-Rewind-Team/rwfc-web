@@ -23,6 +23,7 @@
             "Tour Cheep-Cheep Island",
             "Tour Snow Land",
             "SW2 Faraway Oasis",
+            "SW2 Mario Circuit",
             // Custom Tracks
             "Confectionery Cliffs",
             "WP Tanks!",

@@ -75,7 +75,6 @@ export function useTTTrackBrowser() {
         setSelectedCC(cc);
     };
 
-    // NEW handler
     const handleNonGlitchOnlyChange = (nonGlitchOnly: boolean) => {
         setSelectedNonGlitchOnly(nonGlitchOnly);
     };
@@ -84,7 +83,7 @@ export function useTTTrackBrowser() {
         // State
         selectedCategory,
         selectedCC,
-        selectedNonGlitchOnly, // NEW
+        selectedNonGlitchOnly,
         searchQuery,
 
         // Computed
@@ -101,6 +100,6 @@ export function useTTTrackBrowser() {
         handleSearchInput,
         handleCategoryChange,
         handleCCChange,
-        handleNonGlitchOnlyChange, // NEW
+        handleNonGlitchOnlyChange,
     };
 }
