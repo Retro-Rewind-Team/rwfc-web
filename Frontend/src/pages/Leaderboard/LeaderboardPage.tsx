@@ -4,8 +4,31 @@ import { useLegacyLeaderboard } from "../../hooks/useLegacyLeaderboard";
 import { AlertBox } from "../../components/common";
 import { LeaderboardTable } from "../../components/ui";
 
+function isVRMultiplierActive(): boolean {
+    const now = new Date();
+    const year = now.getFullYear();
+    
+    const events = [
+        { start: new Date(year, 2, 13), end: new Date(year, 2, 17) }, // Mar 13-17
+        { start: new Date(year, 3, 10), end: new Date(year, 3, 14) }, // Apr 10-14
+        { start: new Date(year, 5, 5), end: new Date(year, 5, 8) },   // Jun 5-8
+        { start: new Date(year, 7, 23), end: new Date(year, 7, 29) }, // Aug 23-29
+        { start: new Date(year, 9, 25), end: new Date(year, 9, 31) }, // Oct 25-31
+        { start: new Date(year, 11, 23), end: new Date(year + 1, 0, 3) }, // Dec 23 - Jan 3
+    ];
+    
+    return events.some(event => {
+        const startTime = event.start.setHours(0, 0, 0, 0);
+        const endTime = event.end.setHours(23, 59, 59, 999);
+        const nowTime = now.getTime();
+        return nowTime >= startTime && nowTime <= endTime;
+    });
+}
+
+
 export default function LeaderboardPage() {
     const [showLegacy, setShowLegacy] = createSignal(false);
+    const [showVRMultipliers] = createSignal(isVRMultiplierActive());
 
     const currentLeaderboard = useLeaderboard();
     const legacyLeaderboard = useLegacyLeaderboard();
@@ -31,29 +54,31 @@ export default function LeaderboardPage() {
             </section>
 
             {/* VR Multiplier Info */}
-            <div class="mb-6">
-                <AlertBox type="info" icon="⭐">
-                    <div>
-                        <div class="font-semibold mb-1">
-                            VR Multipliers Active
+            <Show when={showVRMultipliers()}>
+                <div class="mb-6">
+                    <AlertBox type="info" icon="⭐">
+                        <div>
+                            <div class="font-semibold mb-1">
+                                VR Multipliers Active
+                            </div>
+                            <p class="text-sm mb-2">
+                                Earn bonus VR during special events and competitive matches!
+                            </p>
+                            <ul class="text-sm space-y-1 ml-4">
+                                <li>• <span class="font-medium">2x VR</span> during special events:</li>
+                                <li class="ml-4">- St. Patrick's Day: Mar 13 - Mar 17</li>
+                                <li class="ml-4">- MKWii Birthday: Apr 10 - Apr 14</li>
+                                <li class="ml-4">- Start of Summer: Jun 5 - Jun 8</li>
+                                <li class="ml-4">- End of Summer: Aug 23 - Aug 29</li>
+                                <li class="ml-4">- Halloween: Oct 25 - Oct 31</li>
+                                <li class="ml-4">- Christmas/New Year: Dec 23 - Jan 3</li>
+                                <li>• <span class="font-medium">Up to 1.83x VR</span> in Battle Elimination with 6+ players</li>
+                                <li>• <span class="font-medium">Up to 2.83x VR</span> when both multipliers combine!</li>
+                            </ul>
                         </div>
-                        <p class="text-sm mb-2">
-                            Earn bonus VR during special events and competitive matches!
-                        </p>
-                        <ul class="text-sm space-y-1 ml-4">
-                            <li>• <span class="font-medium">2x VR</span> during special events:</li>
-                            <li class="ml-4">- St. Patrick's Day: Mar 13 - Mar 17</li>
-                            <li class="ml-4">- MKWii Birthday: Apr 10 - Apr 14</li>
-                            <li class="ml-4">- Start of Summer: Jun 5 - Jun 8</li>
-                            <li class="ml-4">- End of Summer: Aug 23 - Aug 29</li>
-                            <li class="ml-4">- Halloween: Oct 25 - Oct 31</li>
-                            <li class="ml-4">- Christmas/New Year: Dec 23 - Jan 3</li>
-                            <li>• <span class="font-medium">Up to 1.83x VR</span> in Battle Elimination with 6+ players</li>
-                            <li>• <span class="font-medium">Up to 2.83x VR</span> when both multipliers combine!</li>
-                        </ul>
-                    </div>
-                </AlertBox>
-            </div>
+                    </AlertBox>
+                </div>
+            </Show>
 
             {/* Unified Control Panel */}
             <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
