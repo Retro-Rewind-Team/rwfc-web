@@ -82,25 +82,23 @@ namespace RetroRewindWebsite.Services.Background
                 var now = DateTime.UtcNow;
                 if (now.Hour == MaintenanceHourUtc && now.Minute < RefreshIntervalMinutes)
                 {
-                    // Check if we haven't run maintenance today yet
                     if (_lastMaintenanceDate?.Date != now.Date)
                     {
                         _logger.LogInformation("Performing daily maintenance tasks for {Date:yyyy-MM-dd}", now.Date);
 
-                        try
+                        _ = Task.Run(async () =>
                         {
-                            await PerformMaintenanceTasksAsync();
-                            _lastMaintenanceDate = now;
-                            _logger.LogInformation("Daily maintenance tasks completed. Next maintenance: {NextDate:yyyy-MM-dd}", now.Date.AddDays(1));
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Maintenance failed, will retry in next cycle");
-                        }
-                    }
-                    else
-                    {
-                        _logger.LogDebug("Maintenance already performed today, skipping");
+                            try
+                            {
+                                await PerformMaintenanceTasksAsync();
+                                _lastMaintenanceDate = now;
+                                _logger.LogInformation("Daily maintenance tasks completed");
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Maintenance failed");
+                            }
+                        }, cancellationToken);
                     }
                 }
 
