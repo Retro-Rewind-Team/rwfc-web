@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using RetroRewindWebsite.Models.DTOs;
 using RetroRewindWebsite.Services.Application;
 using RetroRewindWebsite.Services.Background;
@@ -110,6 +111,7 @@ namespace RetroRewindWebsite.Controllers
         /// Forces an immediate refresh of room data from the external API
         /// </summary>
         [HttpPost("refresh")]
+        [EnableRateLimiting("RefreshPolicy")]
         public async Task<ActionResult> ForceRefresh()
         {
             try

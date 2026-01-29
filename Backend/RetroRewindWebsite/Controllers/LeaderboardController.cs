@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.RateLimiting;
 using RetroRewindWebsite.Models.DTOs;
 using RetroRewindWebsite.Services.Application;
 
@@ -290,6 +291,7 @@ namespace RetroRewindWebsite.Controllers
         /// Downloads Mii file for a specific player
         /// </summary>
         [HttpGet("player/{fc}/mii/download")]
+        [EnableRateLimiting("DownloadPolicy")]
         public async Task<IActionResult> DownloadPlayerMii(string fc)
         {
             try

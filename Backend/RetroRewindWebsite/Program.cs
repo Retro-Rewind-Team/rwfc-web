@@ -130,18 +130,7 @@ builder.Services.AddRateLimiter(options =>
             factory: partition => new FixedWindowRateLimiterOptions
             {
                 AutoReplenishment = true,
-                PermitLimit = 300,
-                Window = TimeSpan.FromMinutes(1)
-            }));
-
-    // Specific policies for different endpoints
-    options.AddPolicy("SearchPolicy", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: partition => new FixedWindowRateLimiterOptions
-            {
-                AutoReplenishment = true,
-                PermitLimit = 50,
+                PermitLimit = 2000,
                 Window = TimeSpan.FromMinutes(1)
             }));
 
@@ -162,7 +151,7 @@ builder.Services.AddRateLimiter(options =>
             {
                 AutoReplenishment = true,
                 PermitLimit = 3,
-                Window = TimeSpan.FromMinutes(5)
+                Window = TimeSpan.FromMinutes(1)
             }));
 
     options.AddPolicy("GhostDownloadPolicy", httpContext =>
@@ -172,7 +161,7 @@ builder.Services.AddRateLimiter(options =>
             {
                 AutoReplenishment = true,
                 PermitLimit = 10,
-                Window = TimeSpan.FromMinutes(5)
+                Window = TimeSpan.FromMinutes(1)
             }));
 
     // Configure rejection behavior when rate limit is exceeded
@@ -273,7 +262,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Only redirect to HTTPS in production
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseRateLimiter();
 app.UseAuthorization();
 app.MapControllers();
