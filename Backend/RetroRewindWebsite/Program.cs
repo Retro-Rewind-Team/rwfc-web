@@ -104,9 +104,6 @@ builder.Services.AddSingleton<IRoomStatusBackgroundService, RoomStatusBackground
 builder.Services.AddHostedService<RoomStatusBackgroundService>(sp =>
     (RoomStatusBackgroundService)sp.GetRequiredService<IRoomStatusBackgroundService>());
 
-builder.Services.AddScoped<GhostSubmissionRecoveryScript>(); // Delete when done
-
-
 // ===== HEALTH CHECKS =====
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<LeaderboardDbContext>()
