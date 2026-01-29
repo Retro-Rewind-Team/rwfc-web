@@ -124,7 +124,7 @@ namespace RetroRewindWebsite.Services.Domain
                 // Parse header data
                 var (finishTimeMs, finishTimeDisplay, trackSlotId) = ParseFinishTimeAndTrack(bytes);
                 var (vehicleId, characterId, dateSet, controllerId) = ParseStatsInfo(bytes);
-                var driftType = ParseDriftType(bytes);
+                var (driftType, driftCategory) = ParseDriftInfo(bytes);
 
                 // Parse lap data
                 var lapCount = bytes[OFFSET_LAP_COUNT];
@@ -143,6 +143,7 @@ namespace RetroRewindWebsite.Services.Domain
                     CharacterId = characterId,
                     ControllerType = controllerId,
                     DriftType = driftType,
+                    DriftCategory = driftCategory,
                     MiiName = miiName,
                     LapCount = (short)lapCount,
                     LapSplitsMs = lapSplitsMs,
@@ -230,10 +231,18 @@ namespace RetroRewindWebsite.Services.Domain
             }
         }
 
-        private static short ParseDriftType(byte[] bytes)
+        private static (short driftType, short driftCategory) ParseDriftInfo(byte[] bytes)
         {
             var info2 = ReadBigEndianUInt16(bytes, OFFSET_INFO2);
-            return (short)((info2 >> 1) & 0x01); // Bit 1: Drift type (0=Manual, 1=Auto)
+
+            // Bit 1: Drift type (0=Manual, 1=Auto)
+            var driftType = (short)((info2 >> 1) & 0x01);
+
+            // Bits 9-10: Drift category/transmission (0-3) - for Retro Rewind/Pulsar
+            // This determines inside vs outside drift for vehicles that support both
+            var driftCategory = (short)((info2 >> 9) & 0x03);
+
+            return (driftType, driftCategory);
         }
 
         private List<int> ParseLapSplits(byte[] bytes, int lapCount, int finishTimeMs)

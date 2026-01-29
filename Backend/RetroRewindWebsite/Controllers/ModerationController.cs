@@ -377,11 +377,7 @@ namespace RetroRewindWebsite.Controllers
                     return BadRequest($"TT Profile with ID {request.TtProfileId} not found. Create the profile first.");
                 }
 
-                // Validate drift category
-                if (request.DriftCategory < 0 || request.DriftCategory > 1)
-                {
-                    return BadRequest("Drift category must be 0 (Outside) or 1 (Inside)");
-                }
+                // REMOVED: Manual drift category validation - now extracted automatically from RKG file
 
                 // Parse ghost file
                 GhostFileParseResult ghostData;
@@ -412,7 +408,7 @@ namespace RetroRewindWebsite.Controllers
                         ttProfile.DisplayName);
                 }
 
-                // Create submission entity
+                // Create submission entity - DriftCategory is now from ghostData
                 var submission = new GhostSubmissionEntity
                 {
                     TrackId = request.TrackId,
@@ -424,7 +420,7 @@ namespace RetroRewindWebsite.Controllers
                     CharacterId = ghostData.CharacterId,
                     ControllerType = ghostData.ControllerType,
                     DriftType = ghostData.DriftType,
-                    DriftCategory = request.DriftCategory,
+                    DriftCategory = ghostData.DriftCategory, // CHANGED: Now from ghost file, not request
                     MiiName = ghostData.MiiName,
                     LapCount = ghostData.LapCount,
                     LapSplitsMs = System.Text.Json.JsonSerializer.Serialize(ghostData.LapSplitsMs),
@@ -446,8 +442,8 @@ namespace RetroRewindWebsite.Controllers
                 await _timeTrialRepository.UpdateWorldRecordCounts();
 
                 _logger.LogInformation(
-                    "Ghost submitted: Track {TrackId}, Player {PlayerName} (ID: {ProfileId}), Time {Time}ms",
-                    request.TrackId, ttProfile.DisplayName, ttProfile.Id, ghostData.FinishTimeMs);
+                    "Ghost submitted: Track {TrackId}, Player {PlayerName} (ID: {ProfileId}), Time {Time}ms, DriftCategory {DriftCategory}",
+                    request.TrackId, ttProfile.DisplayName, ttProfile.Id, ghostData.FinishTimeMs, ghostData.DriftCategory);
 
                 return Ok(new GhostSubmissionResultDto
                 {

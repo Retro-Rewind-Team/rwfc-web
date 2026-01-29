@@ -95,7 +95,7 @@ namespace RetroRewindWebsite.Models.DTOs
         public short DriftType { get; set; }
         public bool Shroomless { get; set; } = false;
         public bool Glitch { get; set; } = false;
-        public short DriftCategory { get; set; } 
+        public short DriftCategory { get; set; }
         public required string MiiName { get; set; }
         public short LapCount { get; set; }
         public List<int> LapSplitsMs { get; set; } = [];
@@ -124,7 +124,6 @@ namespace RetroRewindWebsite.Models.DTOs
         public int TrackId { get; set; }
         public int Cc { get; set; }
         public int TtProfileId { get; set; }
-        public short DriftCategory { get; set; }
         public bool Shroomless { get; set; }
         public bool Glitch { get; set; }
     }

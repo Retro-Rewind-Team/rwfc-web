@@ -224,9 +224,8 @@ namespace RetroRewindWebsite.Helpers
             // You may want to manually review tracks that support glitches
             bool glitch = false;
 
-            // Determine shroomless and drift category (default to false/0 as we don't have this info)
+            // Determine shroomless (default to false as we don't have this info)
             bool shroomless = false;
-            short driftCategory = 0;
 
             // Create submission entity
             var submission = new GhostSubmissionEntity
@@ -240,7 +239,7 @@ namespace RetroRewindWebsite.Helpers
                 CharacterId = ghostData.CharacterId,
                 ControllerType = ghostData.ControllerType,
                 DriftType = ghostData.DriftType,
-                DriftCategory = driftCategory,
+                DriftCategory = ghostData.DriftCategory, // Now automatically extracted from ghost file
                 MiiName = ghostData.MiiName,
                 LapCount = ghostData.LapCount,
                 LapSplitsMs = System.Text.Json.JsonSerializer.Serialize(ghostData.LapSplitsMs),
