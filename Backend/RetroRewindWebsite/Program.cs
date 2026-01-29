@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using RetroRewindWebsite.Data;
 using RetroRewindWebsite.HealthChecks;
+using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Repositories;
 using RetroRewindWebsite.Services.Application;
 using RetroRewindWebsite.Services.Background;
@@ -102,6 +103,9 @@ builder.Services.AddHostedService<MiiPreFetchBackgroundService>(sp =>
 builder.Services.AddSingleton<IRoomStatusBackgroundService, RoomStatusBackgroundService>();
 builder.Services.AddHostedService<RoomStatusBackgroundService>(sp =>
     (RoomStatusBackgroundService)sp.GetRequiredService<IRoomStatusBackgroundService>());
+
+builder.Services.AddScoped<GhostSubmissionRecoveryScript>(); // Delete when done
+
 
 // ===== HEALTH CHECKS =====
 builder.Services.AddHealthChecks()
