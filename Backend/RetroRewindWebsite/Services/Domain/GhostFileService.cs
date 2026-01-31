@@ -124,7 +124,10 @@ namespace RetroRewindWebsite.Services.Domain
                 // Parse header data
                 var (finishTimeMs, finishTimeDisplay, trackSlotId) = ParseFinishTimeAndTrack(bytes);
                 var (vehicleId, characterId, dateSet, controllerId) = ParseStatsInfo(bytes);
-                var (driftType, driftCategory) = ParseDriftInfo(bytes);
+                var (driftType, transmissionBits) = ParseDriftInfo(bytes);
+
+                // Determine actual drift based on vehicle and transmission bits
+                var driftCategory = DetermineActualDrift(vehicleId, transmissionBits);
 
                 // Parse lap data
                 var lapCount = bytes[OFFSET_LAP_COUNT];
@@ -231,18 +234,45 @@ namespace RetroRewindWebsite.Services.Domain
             }
         }
 
-        private static (short driftType, short driftCategory) ParseDriftInfo(byte[] bytes)
+        private static (short driftType, short transmissionBits) ParseDriftInfo(byte[] bytes)
         {
             var info2 = ReadBigEndianUInt16(bytes, OFFSET_INFO2);
 
             // Bit 1: Drift type (0=Manual, 1=Auto)
             var driftType = (short)((info2 >> 1) & 0x01);
 
-            // Bits 9-10: Drift category/transmission (0-3) - for Retro Rewind/Pulsar
-            // This determines inside vs outside drift for vehicles that support both
-            var driftCategory = (short)((info2 >> 9) & 0x03);
+            // Bits 9-10: Transmission bits (0-3) - for Retro Rewind/Pulsar
+            var transmissionBits = (short)((info2 >> 9) & 0x03);
 
-            return (driftType, driftCategory);
+            return (driftType, transmissionBits);
+        }
+
+        private static short DetermineActualDrift(short vehicleId, short transmissionBits)
+        {
+            // Karts: 0x00-0x11 (all outside drift by default)
+            // Inside drift bikes: 0x12-0x1D, 0x1F (Standard Bike S/M/L, Bullet Bike, Mach Bike, Flame Runner, etc.)
+            // Outside drift bikes: 0x1E, 0x20, 0x21, 0x22, 0x23 (Magikruiser, Spear, Jet Bubble, Dolphin Dasher, Phantom)
+
+            bool isBike = vehicleId >= 0x12 && vehicleId <= 0x23;
+
+            // Check if it's an outside drift bike
+            bool isOutsideDriftBike = vehicleId == 0x1E || vehicleId == 0x20 ||
+                                      vehicleId == 0x21 || vehicleId == 0x22 || vehicleId == 0x23;
+
+            // Determine default drift (all karts = outside, inside drift bikes = inside, outside drift bikes = outside)
+            bool defaultIsInside = isBike && !isOutsideDriftBike;
+
+            // Apply transmission override
+            bool actualIsInside = transmissionBits switch
+            {
+                0 => defaultIsInside,              // Use vehicle's default
+                1 => true,                         // Force all inside
+                2 => isBike,                       // Bikes inside, karts outside
+                3 => false,                        // Force all outside
+                _ => defaultIsInside               // Fallback to default
+            };
+
+            return actualIsInside ? (short)1 : (short)0;  // Return 0=Outside, 1=Inside
         }
 
         private List<int> ParseLapSplits(byte[] bytes, int lapCount, int finishTimeMs)
