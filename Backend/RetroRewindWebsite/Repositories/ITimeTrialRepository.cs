@@ -66,8 +66,6 @@ namespace RetroRewindWebsite.Repositories
 
         // ===== GHOST SUBMISSION OPERATIONS =====
 
-        Task UpdateDriftCategoryAsync(int submissionId, short driftCategory);
-
         /// <summary>
         /// Get ghost submission by ID
         /// </summary>

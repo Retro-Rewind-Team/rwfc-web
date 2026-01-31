@@ -122,15 +122,6 @@ namespace RetroRewindWebsite.Repositories
 
         // ===== GHOST SUBMISSION OPERATIONS =====
 
-        public async Task UpdateDriftCategoryAsync(int submissionId, short driftCategory)
-        {
-            await _context.Database.ExecuteSqlAsync($@"
-                UPDATE ""GhostSubmissions""
-                SET ""DriftCategory"" = {driftCategory}
-                WHERE ""Id"" = {submissionId}
-            ");
-        }
-
         public async Task<GhostSubmissionEntity?> GetGhostSubmissionByIdAsync(int id)
         {
             return await _context.GhostSubmissions
