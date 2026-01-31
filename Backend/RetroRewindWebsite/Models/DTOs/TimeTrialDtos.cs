@@ -201,4 +201,11 @@ namespace RetroRewindWebsite.Models.DTOs
         public int Count { get; set; }
         public List<CountryDto> Countries { get; set; } = [];
     }
+
+    public class ProfileViewResultDto
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public TTProfileDto? Profile { get; set; }
+    }
 }

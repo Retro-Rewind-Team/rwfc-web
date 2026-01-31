@@ -811,6 +811,47 @@ namespace RetroRewindWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves a specific Time Trial profile by ID
+        /// </summary>
+        [HttpGet("timetrial/profile/{id}")]
+        public async Task<ActionResult<ProfileViewResultDto>> GetTTProfile(int id)
+        {
+            try
+            {
+                var profile = await _timeTrialRepository.GetTTProfileByIdAsync(id);
+                if (profile == null)
+                {
+                    return NotFound(new ProfileViewResultDto
+                    {
+                        Success = false,
+                        Message = $"Profile {id} not found"
+                    });
+                }
+
+                return Ok(new ProfileViewResultDto
+                {
+                    Success = true,
+                    Profile = new TTProfileDto
+                    {
+                        Id = profile.Id,
+                        DisplayName = profile.DisplayName,
+                        TotalSubmissions = profile.TotalSubmissions,
+                        CurrentWorldRecords = profile.CurrentWorldRecords,
+                        CountryCode = profile.CountryCode,
+                        CountryAlpha2 = CountryCodeHelper.GetAlpha2Code(profile.CountryCode),
+                        CountryName = CountryCodeHelper.GetCountryName(profile.CountryCode)
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving TT profile {ProfileId}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while retrieving the profile");
+            }
+        }
+
         // ===== UTILITY ENDPOINTS =====
 
         /// <summary>
