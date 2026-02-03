@@ -612,11 +612,6 @@ namespace RetroRewindWebsite.Services.Application
 
             foreach (var group in groups)
             {
-                if (group.Type == "private")
-                {
-                    continue;
-                }
-
                 foreach (var (_, player) in group.Players)
                 {
                     if (player.VR <= 0)
