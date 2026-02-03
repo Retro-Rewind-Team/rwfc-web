@@ -91,7 +91,22 @@ export default function Footer() {
                                     Downloads
                                 </A>
                             </li>
-                            <li></li>
+                            <li>
+                                <A
+                                    href="/tracks"
+                                    class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
+                                >
+                                    Track List
+                                </A>
+                            </li>
+                            <li>
+                                <A
+                                    href="/tools"
+                                    class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
+                                >
+                                    Tools
+                                </A>
+                            </li>
                         </ul>
                     </div>
 
