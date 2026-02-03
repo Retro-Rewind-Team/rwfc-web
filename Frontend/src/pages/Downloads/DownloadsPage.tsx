@@ -38,6 +38,18 @@ export default function DownloadsPage() {
             description: "Guide for creating custom Retro Rewind ISOs using ISO Builder",
             thumbnailUrl: "https://img.youtube.com/vi/z5PW9iPkZfQ/maxresdefault.jpg",
             videoUrl: "https://www.youtube.com/watch?v=z5PW9iPkZfQ"
+        },
+        {
+            title: "Steam Deck Setup Guide",
+            description: "Complete guide for installing Retro Rewind on Steam Deck",
+            thumbnailUrl: "https://img.youtube.com/vi/uws4aV8y1gk/maxresdefault.jpg",
+            videoUrl: "https://www.youtube.com/watch?v=uws4aV8y1gk"
+        },
+        {
+            title: "iOS Setup Guide",
+            description: "Step-by-step written guide for installing Retro Rewind on iOS devices",
+            thumbnailUrl: "https://img.youtube.com/vi/iuczt1o2kEo/maxresdefault.jpg",
+            videoUrl: "https://gist.github.com/weirdrock/92bcb0dbd4a2c3d56844bf0a5fe18677"
         }
     ];
 
