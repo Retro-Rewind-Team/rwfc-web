@@ -40,9 +40,11 @@ export default function PlayerCard(props: PlayerCardProps) {
                     {props.player.friendCode}
                 </code>
                 <div class="flex items-center flex-wrap gap-1.5">
-                    <span class="text-xs bg-blue-100 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-md font-semibold">
-                        VR {props.player.vr ?? "??"}
-                    </span>
+                    <Show when={props.player.vr !== null && props.player.vr !== undefined}>
+                        <span class="text-xs bg-blue-100 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-md font-semibold">
+                            VR {props.player.vr}
+                        </span>
+                    </Show>
                     <span class="text-xs bg-cyan-100 dark:bg-cyan-900/40 border border-cyan-200 dark:border-cyan-800 text-cyan-700 dark:text-cyan-300 px-2 py-0.5 rounded-md font-semibold">
                         BR {props.player.br ?? "??"}
                     </span>
@@ -61,20 +63,11 @@ export default function PlayerCard(props: PlayerCardProps) {
     );
 
     return (
-        <Show
-            when={props.showOpenHost}
-            fallback={
-                <div class="bg-white dark:bg-gray-800 rounded-xl p-3.5 border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-all hover:shadow-md">
-                    {cardContent}
-                </div>
-            }
+        <a
+            href={`/player/${props.player.friendCode}`}
+            class="block bg-white dark:bg-gray-800 rounded-xl p-3.5 border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600 transition-all hover:shadow-md hover:scale-[1.02]"
         >
-            <a
-                href={`/player/${props.player.friendCode}`}
-                class="block bg-white dark:bg-gray-800 rounded-xl p-3.5 border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600 transition-all hover:shadow-md hover:scale-[1.02]"
-            >
-                {cardContent}
-            </a>
-        </Show>
+            {cardContent}
+        </a>
     );
 }
