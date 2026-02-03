@@ -48,7 +48,7 @@ export default function HomePage() {
                                 colorScheme="blue"
                             />
                             <StatCard
-                                value="202"
+                                value="208"
                                 label="Retro Tracks Available"
                                 colorScheme="purple"
                             />
@@ -104,7 +104,7 @@ export default function HomePage() {
                             TT Leaderboard
                         </h3>
                         <p class="text-gray-600 dark:text-gray-400 mb-4">
-                            Compare the fastest times across all 202 retro tracks and 88
+                            Compare the fastest times across all 208 retro tracks and 88
                             custom tracks.
                         </p>
                         <A

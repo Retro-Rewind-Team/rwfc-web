@@ -56,9 +56,9 @@ export default function DownloadsPage() {
             </div>
 
             {/* Main Download */}
-            <AlertBox type="info" icon="📦" title="Retro Rewind v6.6.1">
+            <AlertBox type="info" icon="📦" title="Retro Rewind v6.8.2">
                 <p class="text-lg mb-4">
-                    Complete distribution with 202 retro tracks and 88 custom tracks
+                    Complete distribution with 208 retro tracks and 88 custom tracks
                 </p>
                 <div class="flex flex-col sm:flex-row gap-3">
                     <a
@@ -70,12 +70,12 @@ export default function DownloadsPage() {
                         Full Download (First Install)
                     </a>
                     <a
-                        href="https://rwfc.net/updates/RetroRewind/zip/6.6.1.zip"
+                        href="https://rwfc.net/updates/RetroRewind/zip/6.8.2.zip"
                         target="_blank"
                         rel="noopener noreferrer"
                         class="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-center"
                     >
-                        Update Only (v6.6 → v6.6.1)
+                        Update Only (v6.8 → v6.8.2)
                     </a>
                     <a
                         href="https://github.com/TeamWheelWizard/WheelWizard/releases"
@@ -135,7 +135,7 @@ export default function DownloadsPage() {
                         Track List
                     </h3>
                     <p class="text-gray-600 dark:text-gray-400 mb-4">
-                        View all 202 retro tracks, 40 Battle Arenas and 88 custom tracks
+                        View all 208 retro tracks, 40 Battle Arenas and 88 custom tracks
                         included in v6.6.1
                     </p>
                     <a
