@@ -246,9 +246,9 @@ namespace RetroRewindWebsite.Controllers
                     return NotFound($"Player with PID '{pid}' not found");
                 }
 
-                var history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, 1000);
+                var history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid);
                 var suspiciousJumps = history
-                    .Where(h => Math.Abs(h.VRChange) >= 200)
+                    .Where(h => Math.Abs(h.VRChange) >= 529)
                     .OrderByDescending(h => h.Date)
                     .Select(h => new VRJumpDto
                     {
@@ -377,8 +377,6 @@ namespace RetroRewindWebsite.Controllers
                     return BadRequest($"TT Profile with ID {request.TtProfileId} not found. Create the profile first.");
                 }
 
-                // REMOVED: Manual drift category validation - now extracted automatically from RKG file
-
                 // Parse ghost file
                 GhostFileParseResult ghostData;
                 using (var memoryStream = new MemoryStream())
@@ -408,7 +406,7 @@ namespace RetroRewindWebsite.Controllers
                         ttProfile.DisplayName);
                 }
 
-                // Create submission entity - DriftCategory is now from ghostData
+                // Create submission entity
                 var submission = new GhostSubmissionEntity
                 {
                     TrackId = request.TrackId,
@@ -420,7 +418,7 @@ namespace RetroRewindWebsite.Controllers
                     CharacterId = ghostData.CharacterId,
                     ControllerType = ghostData.ControllerType,
                     DriftType = ghostData.DriftType,
-                    DriftCategory = ghostData.DriftCategory, // CHANGED: Now from ghost file, not request
+                    DriftCategory = ghostData.DriftCategory,
                     MiiName = ghostData.MiiName,
                     LapCount = ghostData.LapCount,
                     LapSplitsMs = System.Text.Json.JsonSerializer.Serialize(ghostData.LapSplitsMs),
