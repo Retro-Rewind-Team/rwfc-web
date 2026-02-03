@@ -135,7 +135,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                 class="block hover:opacity-80 transition-opacity"
                                             >
                                                 <div class="flex items-center gap-2">
-                                                    <div class="flex-1 min-w-0">
+                                                    <div class="min-w-0">
                                                         <div class="font-medium text-sm sm:text-base text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                                                             {submission.playerName}
                                                         </div>
