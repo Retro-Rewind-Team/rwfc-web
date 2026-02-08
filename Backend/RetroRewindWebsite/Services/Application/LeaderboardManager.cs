@@ -609,9 +609,26 @@ namespace RetroRewindWebsite.Services.Application
         private static List<ExternalPlayer> ExtractPlayersFromGroups(List<Group> groups)
         {
             var players = new List<ExternalPlayer>();
+            var allowedRoomTypes = new HashSet<string>
+            {
+                "vs_10", // Retro Tracks
+                "vs_11", // Online TT
+                "vs_12", // 200cc
+                "vs_13", // Item Rain
+                "vs_14", // Regular Battle
+                "vs_15", // Elimination Battle
+                "vs_20", // Custom Tracks
+                "vs_21"  // Vanilla Tracks
+            };
 
             foreach (var group in groups)
             {
+                // Skip rooms with disallowed room types
+                if (!string.IsNullOrEmpty(group.Rk) && !allowedRoomTypes.Contains(group.Rk))
+                {
+                    continue;
+                }
+
                 foreach (var (_, player) in group.Players)
                 {
                     if (player.VR <= 0)
