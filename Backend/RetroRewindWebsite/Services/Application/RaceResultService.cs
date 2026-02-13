@@ -53,7 +53,7 @@ namespace RetroRewindWebsite.Services.Application
                         // Bulk fetch existing results for this room
                         var existingResults = await raceResultRepository.GetRaceResultsByRoomAsync(group.Id);
                         var existingKeys = existingResults
-                            .Select(r => (r.RaceNumber, r.ProfileId))
+                            .Select(r => (r.RoomId, r.RaceNumber, r.ProfileId))
                             .ToHashSet();
 
                         var timestamp = DateTime.UtcNow;
@@ -64,8 +64,14 @@ namespace RetroRewindWebsite.Services.Application
                         {
                             foreach (var result in raceResults)
                             {
+                                // Skip guest players
+                                if (result.PlayerID != 0)
+                                {
+                                    continue;
+                                }
+
                                 // Check against in-memory HashSet
-                                if (existingKeys.Contains((raceNumber, result.ProfileID)))
+                                if (existingKeys.Contains((group.Id, raceNumber, result.ProfileID)))
                                 {
                                     totalSkippedResults++;
                                     continue;
