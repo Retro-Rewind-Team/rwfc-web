@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RetroRewindWebsite.Models.Entities
 {
+    [Table("Players")]
     public class PlayerEntity
     {
         [Key]
@@ -47,7 +48,7 @@ namespace RetroRewindWebsite.Models.Entities
         public DateTime SnapshotDate { get; set; }
     }
 
-
+    [Table("VRHistories")]
     public class VRHistoryEntity
     {
         [Key]

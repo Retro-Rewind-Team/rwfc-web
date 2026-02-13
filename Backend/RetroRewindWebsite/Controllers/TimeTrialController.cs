@@ -54,7 +54,7 @@ namespace RetroRewindWebsite.Controllers
                     Id = t.Id,
                     Name = t.Name,
                     TrackSlot = t.TrackSlot,
-                    CourseId = t.CourseId,
+                    CourseId = t.SlotId,
                     Category = t.Category,
                     Laps = t.Laps,
                     SupportsGlitch = t.SupportsGlitch
@@ -89,7 +89,7 @@ namespace RetroRewindWebsite.Controllers
                     Id = track.Id,
                     Name = track.Name,
                     TrackSlot = track.TrackSlot,
-                    CourseId = track.CourseId,
+                    CourseId = track.SlotId,
                     Category = track.Category,
                     Laps = track.Laps,
                     SupportsGlitch = track.SupportsGlitch
@@ -143,7 +143,7 @@ namespace RetroRewindWebsite.Controllers
                         Id = track.Id,
                         Name = track.Name,
                         TrackSlot = track.TrackSlot,
-                        CourseId = track.CourseId,
+                        CourseId = track.SlotId,
                         Category = track.Category,
                         Laps = track.Laps,
                         SupportsGlitch = track.SupportsGlitch

@@ -917,7 +917,7 @@ namespace RetroRewindWebsite.Controllers
                     ControllerName = MarioKartMappings.GetControllerName(s.ControllerType),
                     DriftTypeName = MarioKartMappings.GetDriftTypeName(s.DriftType),
                     DriftCategoryName = MarioKartMappings.GetDriftCategoryName(s.DriftCategory),
-                    TrackSlotName = MarioKartMappings.GetTrackSlotName(s.Track?.CourseId ?? 0),
+                    TrackSlotName = MarioKartMappings.GetTrackSlotName(s.Track?.SlotId ?? 0),
                     MiiName = s.MiiName,
                     LapCount = s.LapCount,
                     LapSplitsMs = System.Text.Json.JsonSerializer.Deserialize<List<int>>(s.LapSplitsMs) ?? [],

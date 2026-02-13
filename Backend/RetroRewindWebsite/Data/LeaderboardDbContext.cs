@@ -17,6 +17,7 @@ namespace RetroRewindWebsite.Data
         public DbSet<TrackEntity> Tracks { get; set; }
         public DbSet<TTProfileEntity> TTProfiles { get; set; }
         public DbSet<GhostSubmissionEntity> GhostSubmissions { get; set; }
+        public DbSet<RaceResultEntity> RaceResults { get; set; }
 
         // ===== MODEL CONFIGURATION =====
 
@@ -30,6 +31,7 @@ namespace RetroRewindWebsite.Data
             ConfigureTrackEntity(modelBuilder);
             ConfigureTTProfileEntity(modelBuilder);
             ConfigureGhostSubmissionEntity(modelBuilder);
+            ConfigureRaceResultEntity(modelBuilder);
         }
 
         // ===== PLAYER CONFIGURATION =====
@@ -112,7 +114,7 @@ namespace RetroRewindWebsite.Data
             modelBuilder.Entity<TrackEntity>(entity =>
             {
                 // Indexes
-                entity.HasIndex(e => e.CourseId);
+                entity.HasIndex(e => e.SlotId);
                 entity.HasIndex(e => e.Category);
                 entity.HasIndex(e => e.TrackSlot);
                 entity.HasIndex(e => e.SupportsGlitch);
@@ -178,6 +180,35 @@ namespace RetroRewindWebsite.Data
                       .WithMany(p => p.GhostSubmissions)
                       .HasForeignKey(g => g.TTProfileId)
                       .OnDelete(DeleteBehavior.Cascade);
+            });
+        }
+
+        private static void ConfigureRaceResultEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<RaceResultEntity>(entity =>
+            {
+                // Composite unique index for deduplication
+                entity.HasIndex(e => new { e.RoomId, e.RaceNumber, e.ProfileId })
+                      .IsUnique()
+                      .HasDatabaseName("IX_RaceResults_RoomId_RaceNumber_ProfileId");
+
+                // Individual column indexes
+                entity.HasIndex(e => e.ProfileId);
+                entity.HasIndex(e => e.CourseId);
+                entity.HasIndex(e => e.RaceTimestamp);
+                entity.HasIndex(e => e.CharacterId);
+                entity.HasIndex(e => e.VehicleId);
+
+                // Composite indexes for common query patterns
+                entity.HasIndex(e => new { e.CourseId, e.EngineClassId });
+                entity.HasIndex(e => new { e.CourseId, e.FinishTime });
+                entity.HasIndex(e => new { e.ProfileId, e.CourseId });
+                entity.HasIndex(e => new { e.ProfileId, e.CharacterId });
+                entity.HasIndex(e => new { e.ProfileId, e.VehicleId });
+                entity.HasIndex(e => new { e.ProfileId, e.RaceTimestamp });
+
+                // String length constraints
+                entity.Property(e => e.RoomId).HasMaxLength(10).IsRequired();
             });
         }
     }

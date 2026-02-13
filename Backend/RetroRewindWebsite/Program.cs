@@ -77,6 +77,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
 builder.Services.AddScoped<IVRHistoryRepository, VRHistoryRepository>();
 builder.Services.AddScoped<ITimeTrialRepository, TimeTrialRepository>();
+builder.Services.AddScoped<IRaceResultRepository, RaceResultRepository>(); // NEW
 
 // ===== EXTERNAL SERVICES =====
 builder.Services.AddScoped<IRetroWFCApiClient, RetroWFCApiClient>();
@@ -90,6 +91,7 @@ builder.Services.AddScoped<IGhostFileService, GhostFileService>();
 // ===== APPLICATION SERVICES =====
 builder.Services.AddScoped<ILeaderboardManager, LeaderboardManager>();
 builder.Services.AddSingleton<IRoomStatusService, RoomStatusService>();
+builder.Services.AddScoped<IRaceResultService, RaceResultService>(); // NEW
 
 // ===== BACKGROUND SERVICES =====
 builder.Services.AddSingleton<ILeaderboardBackgroundService, LeaderboardBackgroundService>();
@@ -103,6 +105,11 @@ builder.Services.AddHostedService<MiiPreFetchBackgroundService>(sp =>
 builder.Services.AddSingleton<IRoomStatusBackgroundService, RoomStatusBackgroundService>();
 builder.Services.AddHostedService<RoomStatusBackgroundService>(sp =>
     (RoomStatusBackgroundService)sp.GetRequiredService<IRoomStatusBackgroundService>());
+
+// NEW - Race Results Background Service
+builder.Services.AddSingleton<IRaceResultsBackgroundService, RaceResultsBackgroundService>();
+builder.Services.AddHostedService<RaceResultsBackgroundService>(sp =>
+    (RaceResultsBackgroundService)sp.GetRequiredService<IRaceResultsBackgroundService>());
 
 // ===== HEALTH CHECKS =====
 builder.Services.AddHealthChecks()

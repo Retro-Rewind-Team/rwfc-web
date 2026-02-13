@@ -38,7 +38,7 @@ namespace RetroRewindWebsite.Repositories
         {
             return await _context.Tracks
                 .AsNoTracking()
-                .FirstOrDefaultAsync(t => t.CourseId == courseId);
+                .FirstOrDefaultAsync(t => t.SlotId == courseId);
         }
 
         public async Task AddTrackAsync(TrackEntity track)

@@ -51,5 +51,53 @@ namespace RetroRewindWebsite.Services.External
                 throw;
             }
         }
+
+        public async Task<Dictionary<int, List<RaceResult>>> GetRoomRaceResultsAsync(string roomId)
+        {
+            try
+            {
+                _logger.LogDebug("Fetching race results for room {RoomId}", roomId);
+
+                var url = $"http://rwfc.net/api/mkw_rr?id={roomId}";
+                var response = await _httpClient.GetStringAsync(url);
+
+                var raceResponse = JsonConvert.DeserializeObject<RoomRaceResponse>(response);
+
+                if (raceResponse?.Results == null || raceResponse.Results.Count == 0)
+                {
+                    _logger.LogWarning("Received null or empty response from race results API for room {RoomId}", roomId);
+                    return [];
+                }
+
+                var resultsDict = new Dictionary<int, List<RaceResult>>();
+                foreach (var kvp in raceResponse.Results)
+                {
+                    if (int.TryParse(kvp.Key, out int raceNumber))
+                    {
+                        resultsDict[raceNumber] = kvp.Value;
+                    }
+                }
+
+                _logger.LogDebug("Successfully fetched results for {RaceCount} races from room {RoomId}",
+                    resultsDict.Count, roomId);
+
+                return resultsDict;
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "HTTP error while fetching race results for room {RoomId}", roomId);
+                return [];
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "JSON deserialization error while parsing race results for room {RoomId}", roomId);
+                return [];
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while fetching race results for room {RoomId}", roomId);
+                return [];
+            }
+        }
     }
 }

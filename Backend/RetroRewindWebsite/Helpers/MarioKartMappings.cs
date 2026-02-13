@@ -46,8 +46,17 @@
             { 0x24, "Large Mii Outfit A (Male)" },
             { 0x25, "Large Mii Outfit A (Female)" },
             { 0x26, "Large Mii Outfit B (Male)" },
-            { 0x27, "Large Mii Outfit B (Female)" }
+            { 0x27, "Large Mii Outfit B (Female)" },
+            { 0x28, "Large Mii Outfit C (Male)" },
+            { 0x29, "Large Mii Outfit C (Female)" },
+            { 0x2A, "Medium Mii" },
+            { 0x2B, "Small Mii" },
+            { 0x2C, "Large Mii" },
+            { 0x2D, "Peach (Menu)" },
+            { 0x2E, "Daisy (Menu)" },
+            { 0x2F, "Rosalina (Menu)" }
         };
+
 
         /// <summary>
         /// Gets the character name for a given character ID

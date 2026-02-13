@@ -40,7 +40,7 @@
                 "vs_12" => "200cc",
                 "vs_13" => "Item Rain",
                 "vs_14" => "Regular Battle",
-                "vs_15" => "Elimination Battle",
+                "bt_15" => "Elimination Battle",
                 "vs_20" => "Custom Tracks",
                 "vs_21" => "Vanilla Tracks",
                 "vs_666" => "Luminous 150cc",
