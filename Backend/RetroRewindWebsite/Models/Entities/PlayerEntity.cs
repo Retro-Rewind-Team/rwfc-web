@@ -25,6 +25,8 @@ namespace RetroRewindWebsite.Models.Entities
         public DateTime LastUpdated { get; set; }
         public bool IsSuspicious { get; set; }
         public int SuspiciousVRJumps { get; set; }
+        public string FlagReason { get; set; } = string.Empty;
+        public string UnflagReason { get; set; } = string.Empty;
 
         // Navigation properties
         public virtual ICollection<VRHistoryEntity> VRHistory { get; set; } = [];

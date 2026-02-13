@@ -64,21 +64,22 @@ namespace RetroRewindWebsite.Controllers
                     return Ok(new ModerationActionResultDto
                     {
                         Success = true,
-                        Message = $"Player '{player.Name}' is already flagged as suspicious"
+                        Message = $"Player '{player.Name}' is already flagged as suspicious. Reason: '{request.Reason}'"
                     });
                 }
 
                 player.IsSuspicious = true;
+                player.FlagReason = request.Reason;
                 await _playerRepository.UpdateAsync(player);
 
                 _logger.LogWarning(
-                    "Player flagged as suspicious: {Name} ({FriendCode}) - PID: {Pid}",
-                    player.Name, player.Fc, player.Pid);
+                    "Player flagged as suspicious: {Name} ({FriendCode}) - PID: {Pid} - Reason: {Reason}",
+                    player.Name, player.Fc, player.Pid, player.FlagReason);
 
                 return Ok(new ModerationActionResultDto
                 {
                     Success = true,
-                    Message = $"Player '{player.Name}' has been flagged as suspicious",
+                    Message = $"Player '{player.Name}' has been flagged as suspicious, reason: '{player.FlagReason}'",
                     Player = new PlayerDto
                     {
                         Pid = player.Pid,
@@ -137,16 +138,18 @@ namespace RetroRewindWebsite.Controllers
 
                 player.IsSuspicious = false;
                 player.SuspiciousVRJumps = 0;
+                player.UnflagReason = request.Reason;
+                player.FlagReason = string.Empty;
                 await _playerRepository.UpdateAsync(player);
 
                 _logger.LogInformation(
-                    "Player unflagged: {Name} ({FriendCode}) - PID: {Pid}",
-                    player.Name, player.Fc, player.Pid);
+                    "Player unflagged: {Name} ({FriendCode}) - PID: {Pid} Reason: {Reason}",
+                    player.Name, player.Fc, player.Pid, player.UnflagReason);
 
                 return Ok(new ModerationActionResultDto
                 {
                     Success = true,
-                    Message = $"Player '{player.Name}' has been unflagged",
+                    Message = $"Player '{player.Name}' has been unflagged. Reason: '{player.UnflagReason}'",
                     Player = new PlayerDto
                     {
                         Pid = player.Pid,

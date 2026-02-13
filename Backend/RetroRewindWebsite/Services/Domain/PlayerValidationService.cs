@@ -56,6 +56,8 @@ namespace RetroRewindWebsite.Services.Domain
             {
                 player.IsSuspicious = true;
 
+                player.FlagReason = $"High VR jump: {previousVR} -> {player.Ev} (+{vrJump})";
+
                 _logger.LogWarning(
                     "Player flagged for high VR jump: {Name} ({FriendCode}) - {OldVR} -> {NewVR} (+{Jump})",
                     player.Name, player.Fc, previousVR, player.Ev, vrJump);
@@ -70,6 +72,8 @@ namespace RetroRewindWebsite.Services.Domain
                 if (player.SuspiciousVRJumps >= SuspiciousJumpCountThreshold)
                 {
                     player.IsSuspicious = true;
+
+                    player.FlagReason = $"Multiple suspicious VR jumps: {player.SuspiciousVRJumps} jumps over {MaxVRJumpPerRace} VR";
 
                     _logger.LogWarning(
                         "Player flagged for multiple suspicious VR jumps: {Name} ({FriendCode}) - {JumpCount} jumps",
