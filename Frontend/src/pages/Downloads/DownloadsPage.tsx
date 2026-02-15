@@ -68,7 +68,7 @@ export default function DownloadsPage() {
             </div>
 
             {/* Main Download */}
-            <AlertBox type="info" icon="📦" title="Retro Rewind v6.8.2">
+            <AlertBox type="info" icon="📦" title="Retro Rewind v6.8.3">
                 <p class="text-lg mb-4">
                     Complete distribution with 208 retro tracks and 88 custom tracks
                 </p>
@@ -82,12 +82,12 @@ export default function DownloadsPage() {
                         Full Download (First Install)
                     </a>
                     <a
-                        href="https://rwfc.net/updates/RetroRewind/zip/6.8.2.zip"
+                        href="https://rwfc.net/updates/RetroRewind/zip/6.8.3.zip"
                         target="_blank"
                         rel="noopener noreferrer"
                         class="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-center"
                     >
-                        Update Only (v6.8 → v6.8.2)
+                        Update Only (v6.8.2 → v6.8.3)
                     </a>
                     <a
                         href="https://github.com/TeamWheelWizard/WheelWizard/releases"
