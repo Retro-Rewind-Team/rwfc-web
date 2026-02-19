@@ -57,7 +57,8 @@ namespace RetroRewindWebsite.Controllers
                     CourseId = t.SlotId,
                     Category = t.Category,
                     Laps = t.Laps,
-                    SupportsGlitch = t.SupportsGlitch
+                    SupportsGlitch = t.SupportsGlitch,
+                    SortOrder = t.SortOrder,
                 }).ToList();
 
                 return Ok(trackDtos);
@@ -92,7 +93,8 @@ namespace RetroRewindWebsite.Controllers
                     CourseId = track.SlotId,
                     Category = track.Category,
                     Laps = track.Laps,
-                    SupportsGlitch = track.SupportsGlitch
+                    SupportsGlitch = track.SupportsGlitch,
+                    SortOrder = track.SortOrder,
                 });
             }
             catch (Exception ex)
@@ -146,7 +148,8 @@ namespace RetroRewindWebsite.Controllers
                         CourseId = track.SlotId,
                         Category = track.Category,
                         Laps = track.Laps,
-                        SupportsGlitch = track.SupportsGlitch
+                        SupportsGlitch = track.SupportsGlitch,
+                        SortOrder = track.SortOrder,
                     },
                     CC = cc,
                     Glitch = glitch,

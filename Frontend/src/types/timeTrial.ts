@@ -3,6 +3,7 @@ export interface Track {
   name: string;
   trackSlot: string;
   courseId: number;
+  sortOrder: number;
   category: "retro" | "custom";
   laps: number;
   supportsGlitch: boolean;

@@ -13,6 +13,7 @@ namespace RetroRewindWebsite.Models.DTOs
         public required string Category { get; set; }
         public short Laps { get; set; }
         public bool SupportsGlitch { get; set; }
+        public int SortOrder { get; set; }
     }
 
     // ===== TT PROFILE DTOs =====

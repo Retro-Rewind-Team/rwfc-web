@@ -33,7 +33,7 @@ export function useTTTrackBrowser() {
             .filter((track) => 
                 search === "" || track.name.toLowerCase().includes(search)
             )
-            .sort((a, b) => a.id - b.id);
+            .sort((a, b) => a.sortOrder - b.sortOrder);
     });
 
     // Get world record for a specific track (filtering cached data)

@@ -14,6 +14,7 @@
             "GBA Broken Pier",
             "GCN DK Mountain",
             "DS Desert Hills",
+            "DS Waluigi Pinball",
             "Wii Toad's Factory",
             "Wii Grumble Volcano",
             "Wii Bowser's Castle",

@@ -29,8 +29,7 @@ namespace RetroRewindWebsite.Repositories
         {
             return await _context.Tracks
                 .AsNoTracking()
-                .OrderBy(t => t.Id)
-                .ThenBy(t => t.Category)
+                .OrderBy(t => t.SortOrder)
                 .ToListAsync();
         }
 
