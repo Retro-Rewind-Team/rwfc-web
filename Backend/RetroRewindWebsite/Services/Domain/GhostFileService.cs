@@ -250,17 +250,26 @@ namespace RetroRewindWebsite.Services.Domain
         private static short DetermineActualDrift(short vehicleId, short transmissionBits)
         {
             // Karts: 0x00-0x11 (all outside drift by default)
-            // Inside drift bikes: 0x12-0x1D, 0x1F (Standard Bike S/M/L, Bullet Bike, Mach Bike, Flame Runner, etc.)
-            // Outside drift bikes: 0x1E, 0x20, 0x21, 0x22, 0x23 (Magikruiser, Spear, Jet Bubble, Dolphin Dasher, Phantom)
+            // Inside drift bikes: 0x15, 0x16, 0x17, 0x1B, 0x1E, 0x1F, 0x20, 0x21, 0x22
+            //   (Bullet Bike, Mach Bike, Flame Runner, Quacker, Magikruiser, Sneakster, Spear, Jet Bubble, Dolphin Dasher)
+            // Outside drift bikes: 0x12, 0x13, 0x14, 0x18, 0x19, 0x1A, 0x1C, 0x1D, 0x23
+            //   (Standard Bike S/M/L, Bit Bike, Sugarscoot, Wario Bike, Zip Zip, Shooting Star, Phantom)
 
             bool isBike = vehicleId >= 0x12 && vehicleId <= 0x23;
 
-            // Check if it's an outside drift bike
-            bool isOutsideDriftBike = vehicleId == 0x1E || vehicleId == 0x20 ||
-                                      vehicleId == 0x21 || vehicleId == 0x22 || vehicleId == 0x23;
+            // Check if it's an inside drift bike
+            bool isInsideDriftBike = vehicleId == 0x15 || // Bullet Bike
+                                     vehicleId == 0x16 || // Mach Bike
+                                     vehicleId == 0x17 || // Flame Runner
+                                     vehicleId == 0x1B || // Quacker
+                                     vehicleId == 0x1E || // Magikruiser
+                                     vehicleId == 0x1F || // Sneakster
+                                     vehicleId == 0x20 || // Spear
+                                     vehicleId == 0x21 || // Jet Bubble
+                                     vehicleId == 0x22;   // Dolphin Dasher
 
             // Determine default drift (all karts = outside, inside drift bikes = inside, outside drift bikes = outside)
-            bool defaultIsInside = isBike && !isOutsideDriftBike;
+            bool defaultIsInside = isBike && isInsideDriftBike;
 
             // Apply transmission override
             bool actualIsInside = transmissionBits switch
