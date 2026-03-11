@@ -59,6 +59,8 @@
         public required string FriendCode { get; set; }
         public bool IsSuspicious { get; set; }
         public int SuspiciousVRJumps { get; set; }
+        public string? FlagReason { get; set; }
+        public string? UnflagReason { get; set; }
     }
 
     public class PlayerStatsResultDto

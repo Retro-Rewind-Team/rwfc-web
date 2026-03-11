@@ -139,7 +139,6 @@ namespace RetroRewindWebsite.Controllers
                 player.IsSuspicious = false;
                 player.SuspiciousVRJumps = 0;
                 player.UnflagReason = request.Reason;
-                player.FlagReason = string.Empty;
                 await _playerRepository.UpdateAsync(player);
 
                 _logger.LogInformation(
@@ -274,7 +273,9 @@ namespace RetroRewindWebsite.Controllers
                         Name = player.Name,
                         FriendCode = player.Fc,
                         IsSuspicious = player.IsSuspicious,
-                        SuspiciousVRJumps = player.SuspiciousVRJumps
+                        SuspiciousVRJumps = player.SuspiciousVRJumps,
+                        FlagReason = player.FlagReason,
+                        UnflagReason = player.UnflagReason
                     },
                     SuspiciousJumps = suspiciousJumps,
                     Count = suspiciousJumps.Count
