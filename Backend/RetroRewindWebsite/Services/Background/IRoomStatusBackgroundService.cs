@@ -1,10 +1,9 @@
-﻿namespace RetroRewindWebsite.Services.Background
+﻿namespace RetroRewindWebsite.Services.Background;
+
+public interface IRoomStatusBackgroundService
 {
-    public interface IRoomStatusBackgroundService
-    {
-        /// <summary>
-        /// Manually trigger room status refresh
-        /// </summary>
-        Task ForceRefreshAsync();
-    }
+    /// <summary>
+    /// Manually trigger room status refresh
+    /// </summary>
+    Task ForceRefreshAsync();
 }

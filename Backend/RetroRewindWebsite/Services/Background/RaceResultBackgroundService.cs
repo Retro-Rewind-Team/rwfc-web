@@ -1,99 +1,97 @@
 ﻿using RetroRewindWebsite.Services.Application;
 
-namespace RetroRewindWebsite.Services.Background
+namespace RetroRewindWebsite.Services.Background;
+
+public class RaceResultBackgroundService : BackgroundService, IRaceResultBackgroundService
 {
-    public class RaceResultsBackgroundService : BackgroundService, IRaceResultsBackgroundService
+    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly ILogger<RaceResultBackgroundService> _logger;
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
+
+    private const int RefreshIntervalSeconds = 60;
+    private const int SemaphoreTimeoutSeconds = 30;
+
+    public RaceResultBackgroundService(
+        IServiceScopeFactory serviceScopeFactory,
+        ILogger<RaceResultBackgroundService> logger)
     {
-        private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly ILogger<RaceResultsBackgroundService> _logger;
-        private readonly SemaphoreSlim _semaphore = new(1, 1);
+        _serviceScopeFactory = serviceScopeFactory;
+        _logger = logger;
+    }
 
-        private const int RefreshIntervalSeconds = 60;
-        private const int SemaphoreTimeoutSeconds = 30;
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        _logger.LogInformation("Race results background service started");
 
-        public RaceResultsBackgroundService(
-            IServiceScopeFactory serviceScopeFactory,
-            ILogger<RaceResultsBackgroundService> logger)
+        try
         {
-            _serviceScopeFactory = serviceScopeFactory;
-            _logger = logger;
+            await PerformCollectionAsync(stoppingToken);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Race results background service stopped during initial collection");
+            return;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during initial race results collection");
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        while (!stoppingToken.IsCancellationRequested)
         {
-            _logger.LogInformation("Race results background service started");
-
             try
             {
+                await Task.Delay(TimeSpan.FromSeconds(RefreshIntervalSeconds), stoppingToken);
                 await PerformCollectionAsync(stoppingToken);
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation("Race results background service stopped during initial collection");
-                return;
+                _logger.LogInformation("Race results background service is stopping");
+                break;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during initial race results collection");
+                _logger.LogError(ex, "Error in race results background service");
             }
-
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                try
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(RefreshIntervalSeconds), stoppingToken);
-                    await PerformCollectionAsync(stoppingToken);
-                }
-                catch (OperationCanceledException)
-                {
-                    _logger.LogInformation("Race results background service is stopping");
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error in race results background service");
-                }
-            }
-
-            _logger.LogInformation("Race results background service stopped");
         }
 
-        public async Task ForceRefreshAsync()
+        _logger.LogInformation("Race results background service stopped");
+    }
+
+    public async Task ForceRefreshAsync()
+    {
+        _logger.LogInformation("Force collection requested");
+        await PerformCollectionAsync(CancellationToken.None);
+    }
+
+    private async Task PerformCollectionAsync(CancellationToken cancellationToken)
+    {
+        if (!await _semaphore.WaitAsync(TimeSpan.FromSeconds(SemaphoreTimeoutSeconds), cancellationToken))
         {
-            _logger.LogInformation("Force collection requested");
-            await PerformCollectionAsync(CancellationToken.None);
+            _logger.LogWarning("Previous race results collection is still running, skipping this cycle");
+            return;
         }
 
-        private async Task PerformCollectionAsync(CancellationToken cancellationToken)
+        try
         {
-            if (!await _semaphore.WaitAsync(TimeSpan.FromSeconds(SemaphoreTimeoutSeconds), cancellationToken))
-            {
-                _logger.LogWarning("Previous race results collection is still running, skipping this cycle");
-                return;
-            }
+            _logger.LogDebug("Starting scheduled race results collection");
 
-            try
-            {
-                _logger.LogDebug("Starting scheduled race results collection");
+            using var scope = _serviceScopeFactory.CreateScope();
+            var raceResultService = scope.ServiceProvider.GetRequiredService<IRaceResultService>();
+            await raceResultService.CollectRaceResultsAsync();
 
-                using var scope = _serviceScopeFactory.CreateScope();
-                var raceResultService = scope.ServiceProvider.GetRequiredService<IRaceResultService>();
-
-                await raceResultService.CollectRaceResultsAsync();
-
-                _logger.LogDebug("Scheduled race results collection completed successfully");
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
+            _logger.LogDebug("Scheduled race results collection completed successfully");
         }
-
-        public override void Dispose()
+        finally
         {
-            _semaphore?.Dispose();
-            base.Dispose();
-            GC.SuppressFinalize(this);
+            _semaphore.Release();
         }
+    }
+
+    public override void Dispose()
+    {
+        _semaphore?.Dispose();
+        base.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

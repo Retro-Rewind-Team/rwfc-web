@@ -1,7 +1,6 @@
-﻿namespace RetroRewindWebsite.Services.Background
+﻿namespace RetroRewindWebsite.Services.Background;
+
+public interface IRaceResultBackgroundService
 {
-    public interface IRaceResultsBackgroundService
-    {
-        Task ForceRefreshAsync();
-    }
+    Task ForceRefreshAsync();
 }

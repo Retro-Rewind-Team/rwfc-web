@@ -1,10 +1,9 @@
-﻿namespace RetroRewindWebsite.Services.Background
+﻿namespace RetroRewindWebsite.Services.Background;
+
+public interface IMiiPreFetchBackgroundService
 {
-    public interface IMiiPreFetchBackgroundService
-    {
-        /// <summary>
-        /// Manually trigger Mii pre-fetch batch
-        /// </summary>
-        Task PreFetchMiiImagesAsync(CancellationToken cancellationToken = default);
-    }
+    /// <summary>
+    /// Manually trigger Mii pre-fetch batch
+    /// </summary>
+    Task PreFetchMiiImagesAsync(CancellationToken cancellationToken = default);
 }

@@ -1,10 +1,9 @@
-﻿namespace RetroRewindWebsite.Services.Background
+﻿namespace RetroRewindWebsite.Services.Background;
+
+public interface ILeaderboardBackgroundService
 {
-    public interface ILeaderboardBackgroundService
-    {
-        /// <summary>
-        /// Manually trigger a leaderboard refresh
-        /// </summary>
-        Task ForceRefreshAsync();
-    }
+    /// <summary>
+    /// Manually trigger a leaderboard refresh
+    /// </summary>
+    Task ForceRefreshAsync();
 }

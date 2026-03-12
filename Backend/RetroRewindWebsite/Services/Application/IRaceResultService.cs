@@ -1,7 +1,6 @@
-﻿namespace RetroRewindWebsite.Services.Application
+﻿namespace RetroRewindWebsite.Services.Application;
+
+public interface IRaceResultService
 {
-    public interface IRaceResultService
-    {
-        Task CollectRaceResultsAsync();
-    }
+    Task CollectRaceResultsAsync();
 }

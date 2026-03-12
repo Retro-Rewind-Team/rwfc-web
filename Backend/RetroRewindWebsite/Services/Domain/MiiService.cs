@@ -1,131 +1,126 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
+using RetroRewindWebsite.Models.External;
 
-namespace RetroRewindWebsite.Services.Domain
+namespace RetroRewindWebsite.Services.Domain;
+
+public class MiiService : IMiiService
 {
-    public class MiiService : IMiiService
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IMemoryCache _cache;
+    private readonly MemoryCacheEntryOptions _cacheOptions;
+    private readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = new();
+    private readonly ILogger<MiiService> _logger;
+
+    private static readonly SemaphoreSlim _rc24Semaphore = new(5, 5);
+
+    public MiiService(IHttpClientFactory httpClientFactory, IMemoryCache memoryCache, ILogger<MiiService> logger)
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IMemoryCache _cache;
-        private readonly MemoryCacheEntryOptions _cacheOptions;
-        private readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = new();
-        private readonly ILogger<MiiService> _logger;
+        _httpClientFactory = httpClientFactory;
+        _cache = memoryCache;
+        _logger = logger;
 
-        private static readonly SemaphoreSlim _rc24Semaphore = new(5, 5);
+        // Extended cache duration since Mii data rarely changes
+        _cacheOptions = new MemoryCacheEntryOptions()
+            .SetSlidingExpiration(TimeSpan.FromDays(1))
+            .SetAbsoluteExpiration(TimeSpan.FromDays(7))
+            .SetSize(1);
+    }
 
-        public MiiService(IHttpClientFactory httpClientFactory, IMemoryCache memoryCache, ILogger<MiiService> logger)
+    public async Task<string?> GetMiiImageAsync(string friendCode, string miiData, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(friendCode) || string.IsNullOrEmpty(miiData))
+            return null;
+
+        // Check memory cache first
+        if (_cache.TryGetValue(friendCode, out string? cachedMiiImage))
         {
-            _httpClientFactory = httpClientFactory;
-            _cache = memoryCache;
-            _logger = logger;
-
-            // Extended cache duration since Mii data rarely changes
-            _cacheOptions = new MemoryCacheEntryOptions()
-                .SetSlidingExpiration(TimeSpan.FromDays(1))
-                .SetAbsoluteExpiration(TimeSpan.FromDays(7))
-                .SetSize(1);
+            return cachedMiiImage;
         }
 
-        public async Task<string?> GetMiiImageAsync(string friendCode, string miiData, CancellationToken cancellationToken = default)
-        {
-            if (string.IsNullOrEmpty(friendCode) || string.IsNullOrEmpty(miiData))
-                return null;
+        var semaphore = _locks.GetOrAdd(friendCode, _ => new SemaphoreSlim(1, 1));
 
-            // Check memory cache first
-            if (_cache.TryGetValue(friendCode, out string? cachedMiiImage))
+        try
+        {
+            await semaphore.WaitAsync(cancellationToken);
+
+            // Double-check cache after acquiring lock
+            if (_cache.TryGetValue(friendCode, out cachedMiiImage))
             {
                 return cachedMiiImage;
             }
 
-            var semaphore = _locks.GetOrAdd(friendCode, _ => new SemaphoreSlim(1, 1));
+            _logger.LogDebug("Waiting for RC24 slot for {FriendCode}", friendCode);
+            await _rc24Semaphore.WaitAsync(cancellationToken);
 
             try
             {
-                await semaphore.WaitAsync(cancellationToken);
+                _logger.LogDebug("Got RC24 slot for {FriendCode}, sending request", friendCode);
 
-                // Double-check cache after acquiring lock
-                if (_cache.TryGetValue(friendCode, out cachedMiiImage))
+                using var httpClient = _httpClientFactory.CreateClient();
+                httpClient.Timeout = TimeSpan.FromSeconds(30);
+
+                using var content = new MultipartFormDataContent();
+                var fileContent = new ByteArrayContent(Convert.FromBase64String(miiData));
+                content.Add(fileContent, "data", "mii.dat");
+                content.Add(new StringContent("wii"), "platform");
+
+                var response = await httpClient.PostAsync("https://miicontestp.wii.rc24.xyz/cgi-bin/studio.cgi", content, cancellationToken);
+
+                _logger.LogDebug("Received RC24 response for {FriendCode}: {StatusCode}", friendCode, response.StatusCode);
+
+                if (!response.IsSuccessStatusCode)
                 {
-                    return cachedMiiImage;
+                    _logger.LogWarning("Bad response from miicontestp.wii.rc24.xyz: {StatusCode}", response.StatusCode);
+                    return null;
                 }
 
-                _logger.LogDebug("Waiting for RC24 slot for {FriendCode}", friendCode);
-                await _rc24Semaphore.WaitAsync(cancellationToken);
+                var jsonResponse = await response.Content.ReadFromJsonAsync<MiiResponse>(cancellationToken: cancellationToken);
 
-                try
+                if (jsonResponse?.Mii == null)
                 {
-                    _logger.LogDebug("Got RC24 slot for {FriendCode}, sending request", friendCode);
-
-                    using var httpClient = _httpClientFactory.CreateClient();
-                    httpClient.Timeout = TimeSpan.FromSeconds(30);
-
-                    using var content = new MultipartFormDataContent();
-                    var fileContent = new ByteArrayContent(Convert.FromBase64String(miiData));
-                    content.Add(fileContent, "data", "mii.dat");
-                    content.Add(new StringContent("wii"), "platform");
-
-                    var response = await httpClient.PostAsync("https://miicontestp.wii.rc24.xyz/cgi-bin/studio.cgi", content, cancellationToken);
-
-                    _logger.LogDebug("Received RC24 response for {FriendCode}: {StatusCode}", friendCode, response.StatusCode);
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        _logger.LogWarning("Bad response from miicontestp.wii.rc24.xyz: {StatusCode}", response.StatusCode);
-                        return null;
-                    }
-
-                    var jsonResponse = await response.Content.ReadFromJsonAsync<MiiResponse>(cancellationToken: cancellationToken);
-
-                    if (jsonResponse?.Mii == null)
-                    {
-                        _logger.LogWarning("Malformed JSON response from Mii service");
-                        return null;
-                    }
-
-                    var miiImageUrl = $"https://studio.mii.nintendo.com/miis/image.png?data={jsonResponse.Mii}&type=face&expression=normal&width=270&bgColor=FFFFFF00";
-
-                    var imageResponse = await httpClient.GetAsync(miiImageUrl, cancellationToken);
-                    if (!imageResponse.IsSuccessStatusCode)
-                    {
-                        _logger.LogWarning("Failed to get image from Nintendo: {StatusCode}", imageResponse.StatusCode);
-                        return null;
-                    }
-
-                    var imageBytes = await imageResponse.Content.ReadAsByteArrayAsync(cancellationToken);
-                    var base64Image = Convert.ToBase64String(imageBytes);
-
-                    // Cache in memory
-                    _cache.Set(friendCode, base64Image, _cacheOptions);
-
-                    _logger.LogDebug("Successfully fetched and cached Mii for {FriendCode}", friendCode);
-
-                    return base64Image;
+                    _logger.LogWarning("Malformed JSON response from Mii service");
+                    return null;
                 }
-                finally
+
+                var miiImageUrl = $"https://studio.mii.nintendo.com/miis/image.png?data={jsonResponse.Mii}&type=face&expression=normal&width=270&bgColor=FFFFFF00";
+
+                var imageResponse = await httpClient.GetAsync(miiImageUrl, cancellationToken);
+                if (!imageResponse.IsSuccessStatusCode)
                 {
-                    _rc24Semaphore.Release();
-                    _logger.LogDebug("Released RC24 slot for {FriendCode}", friendCode);
+                    _logger.LogWarning("Failed to get image from Nintendo: {StatusCode}", imageResponse.StatusCode);
+                    return null;
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error fetching Mii for {FriendCode}", friendCode);
-                return null;
+
+                var imageBytes = await imageResponse.Content.ReadAsByteArrayAsync(cancellationToken);
+                var base64Image = Convert.ToBase64String(imageBytes);
+
+                // Cache in memory
+                _cache.Set(friendCode, base64Image, _cacheOptions);
+
+                _logger.LogDebug("Successfully fetched and cached Mii for {FriendCode}", friendCode);
+
+                return base64Image;
             }
             finally
             {
-                semaphore.Release();
-
-                if (semaphore.CurrentCount == 1)
-                {
-                    _locks.TryRemove(friendCode, out _);
-                }
+                _rc24Semaphore.Release();
+                _logger.LogDebug("Released RC24 slot for {FriendCode}", friendCode);
             }
         }
-
-        private class MiiResponse
+        catch (Exception ex)
         {
-            public string? Mii { get; set; }
+            _logger.LogWarning(ex, "Error fetching Mii for {FriendCode}", friendCode);
+            return null;
+        }
+        finally
+        {
+            semaphore.Release();
+
+            if (semaphore.CurrentCount == 1)
+            {
+                _locks.TryRemove(friendCode, out _);
+            }
         }
     }
 }

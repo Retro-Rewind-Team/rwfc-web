@@ -1,41 +1,40 @@
-﻿using RetroRewindWebsite.Models.DTOs;
+﻿using RetroRewindWebsite.Models.DTOs.Room;
 
-namespace RetroRewindWebsite.Services.Application
+namespace RetroRewindWebsite.Services.Application;
+
+public interface IRoomStatusService
 {
-    public interface IRoomStatusService
-    {
-        // ===== QUERIES =====
+    // ===== QUERIES =====
 
-        /// <summary>
-        /// Get the latest room status snapshot
-        /// </summary>
-        Task<RoomStatusResponseDto?> GetLatestStatusAsync();
+    /// <summary>
+    /// Get the latest room status snapshot
+    /// </summary>
+    Task<RoomStatusResponseDto?> GetLatestStatusAsync();
 
-        /// <summary>
-        /// Get room status snapshot by ID
-        /// </summary>
-        Task<RoomStatusResponseDto?> GetStatusByIdAsync(int id);
+    /// <summary>
+    /// Get room status snapshot by ID
+    /// </summary>
+    Task<RoomStatusResponseDto?> GetStatusByIdAsync(int id);
 
-        /// <summary>
-        /// Get room status statistics
-        /// </summary>
-        Task<RoomStatusStatsDto> GetStatsAsync();
+    /// <summary>
+    /// Get room status statistics
+    /// </summary>
+    Task<RoomStatusStatsDto> GetStatsAsync();
 
-        /// <summary>
-        /// Get minimum available snapshot ID
-        /// </summary>
-        int GetMinimumId();
+    /// <summary>
+    /// Get minimum available snapshot ID
+    /// </summary>
+    int GetMinimumId();
 
-        /// <summary>
-        /// Get maximum available snapshot ID
-        /// </summary>
-        int GetMaximumId();
+    /// <summary>
+    /// Get maximum available snapshot ID
+    /// </summary>
+    int GetMaximumId();
 
-        // ===== OPERATIONS =====
+    // ===== OPERATIONS =====
 
-        /// <summary>
-        /// Refresh room data from external API
-        /// </summary>
-        Task RefreshRoomDataAsync();
-    }
+    /// <summary>
+    /// Refresh room data from external API
+    /// </summary>
+    Task RefreshRoomDataAsync();
 }
