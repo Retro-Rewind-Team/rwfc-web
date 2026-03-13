@@ -239,7 +239,6 @@ export const teamData: Record<string, TeamMember[]> = {
             name: "Fen",
             discord: "fenixien",
             role: "RWFC Moderator",
-            image: "/profiles/Fenixien.png",
         },
         {
             name: "Flavian",
