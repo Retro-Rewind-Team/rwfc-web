@@ -176,6 +176,8 @@ export const teamData: Record<string, TeamMember[]> = {
             name: "Fen",
             discord: "fenixien",
             role: "RWFC Moderator",
+            image: "/profiles/Fenixien.png",
+            fc: "0654-0090-0000",
         },
         {
             name: "HyperLexus",
@@ -239,6 +241,8 @@ export const teamData: Record<string, TeamMember[]> = {
             name: "Fen",
             discord: "fenixien",
             role: "RWFC Moderator",
+            image: "/profiles/Fenixien.png",
+            fc: "0654-0090-0000",
         },
         {
             name: "Flavian",
