@@ -62,6 +62,7 @@ public class LeaderboardSyncService : ILeaderboardSyncService
                     if (_validationService.IsSuspiciousNewPlayer(newPlayer.Ev))
                     {
                         newPlayer.IsSuspicious = true;
+                        newPlayer.FlagReason = "High initial VR";
                         _logger.LogWarning(
                             "New player flagged as suspicious: {Name} ({Pid}) with VR {VR}",
                             newPlayer.Name, newPlayer.Pid, newPlayer.Ev);
