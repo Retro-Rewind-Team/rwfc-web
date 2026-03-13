@@ -103,6 +103,24 @@ public class LeaderboardController : ControllerBase
         }
     }
 
+    // TODO: Remove after RR update
+    [HttpGet("top/no-mii/{count}")]
+    public async Task<ActionResult<List<InGamePlayerDto>>> GetTopPlayersInGameOld(int count = DefaultTopPlayersCount)
+    {
+        try
+        {
+            count = Math.Clamp(count, MinTopPlayersCount, MaxTopPlayersCount);
+            var players = await _leaderboardService.GetTopPlayersInGameAsync(count);
+            return Ok(players);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving top {Count} in-game players", count);
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while retrieving top players");
+        }
+    }
+
     [HttpGet("top-gainers")]
     public async Task<ActionResult<List<PlayerDto>>> GetTopVRGainers(
         [FromQuery] string period = "24h")

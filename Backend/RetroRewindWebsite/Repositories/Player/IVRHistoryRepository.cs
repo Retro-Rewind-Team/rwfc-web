@@ -33,7 +33,7 @@ public interface IVRHistoryRepository : IRepository<VRHistoryEntity>
     Task<List<VRHistoryEntity>> GetRecentChangesAsync(int count = 50);
 
     /// <summary>
-    /// Calculates the virtual reality gain for the specified player over a given time span asynchronously.
+    /// Calculates the VR gain for the specified player over a given time span asynchronously.
     /// </summary>
     /// <param name="playerId">The unique identifier of the player for whom the VR gain is calculated. Cannot be null or empty.</param>
     /// <param name="timeSpan">The duration over which the VR gain is measured. Must be a positive value.</param>
