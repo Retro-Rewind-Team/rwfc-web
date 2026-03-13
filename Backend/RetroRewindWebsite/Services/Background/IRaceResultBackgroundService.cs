@@ -1,7 +1,10 @@
-﻿namespace RetroRewindWebsite.Services.Background
+﻿namespace RetroRewindWebsite.Services.Background;
+
+public interface IRaceResultBackgroundService
 {
-    public interface IRaceResultsBackgroundService
-    {
-        Task ForceRefreshAsync();
-    }
+    /// <summary>
+    /// Initiates an asynchronous operation to force a refresh of the underlying data or cache.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous refresh operation.</returns>
+    Task ForceRefreshAsync();
 }

@@ -1,215 +1,216 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using RetroRewindWebsite.Models.Entities;
+using RetroRewindWebsite.Models.Entities.Player;
+using RetroRewindWebsite.Models.Entities.TimeTrial;
+using RetroRewindWebsite.Models.Entities.RaceResult;
 
-namespace RetroRewindWebsite.Data
+namespace RetroRewindWebsite.Data;
+
+public class LeaderboardDbContext : DbContext
 {
-    public class LeaderboardDbContext : DbContext
+    public LeaderboardDbContext(DbContextOptions<LeaderboardDbContext> options) : base(options)
     {
-        public LeaderboardDbContext(DbContextOptions<LeaderboardDbContext> options) : base(options)
+    }
+
+    // ===== DB SETS =====
+
+    public DbSet<PlayerEntity> Players { get; set; }
+    public DbSet<VRHistoryEntity> VRHistories { get; set; }
+    public DbSet<LegacyPlayerEntity> LegacyPlayers { get; set; }
+    public DbSet<TrackEntity> Tracks { get; set; }
+    public DbSet<TTProfileEntity> TTProfiles { get; set; }
+    public DbSet<GhostSubmissionEntity> GhostSubmissions { get; set; }
+    public DbSet<RaceResultEntity> RaceResults { get; set; }
+
+    // ===== MODEL CONFIGURATION =====
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        ConfigurePlayerEntity(modelBuilder);
+        ConfigureLegacyPlayerEntity(modelBuilder);
+        ConfigureVRHistoryEntity(modelBuilder);
+        ConfigureTrackEntity(modelBuilder);
+        ConfigureTTProfileEntity(modelBuilder);
+        ConfigureGhostSubmissionEntity(modelBuilder);
+        ConfigureRaceResultEntity(modelBuilder);
+    }
+
+    // ===== PLAYER CONFIGURATION =====
+
+    private static void ConfigurePlayerEntity(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<PlayerEntity>(entity =>
         {
-        }
+            // Primary indexes
+            entity.HasIndex(e => e.Pid).IsUnique();
+            entity.HasIndex(e => e.Fc);
+            entity.HasIndex(e => e.Rank);
+            entity.HasIndex(e => e.IsSuspicious);
+            entity.HasIndex(e => e.LastSeen);
 
-        // ===== DB SETS =====
+            // Composite indexes for common queries
+            entity.HasIndex(e => new { e.IsSuspicious, e.Ev, e.LastSeen });
+            entity.HasIndex(e => new { e.MiiImageFetchedAt, e.MiiData })
+                .HasFilter("\"MiiData\" IS NOT NULL AND \"MiiData\" != ''");
 
-        public DbSet<PlayerEntity> Players { get; set; }
-        public DbSet<VRHistoryEntity> VRHistories { get; set; }
-        public DbSet<LegacyPlayerEntity> LegacyPlayers { get; set; }
-        public DbSet<TrackEntity> Tracks { get; set; }
-        public DbSet<TTProfileEntity> TTProfiles { get; set; }
-        public DbSet<GhostSubmissionEntity> GhostSubmissions { get; set; }
-        public DbSet<RaceResultEntity> RaceResults { get; set; }
+            // VR gain indexes
+            entity.HasIndex(e => e.VRGainLast24Hours);
+            entity.HasIndex(e => e.VRGainLastWeek);
+            entity.HasIndex(e => e.VRGainLastMonth);
 
-        // ===== MODEL CONFIGURATION =====
+            // String length constraints
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Fc).HasMaxLength(20);
+            entity.Property(e => e.Pid).HasMaxLength(50);
+        });
+    }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+    // ===== LEGACY PLAYER CONFIGURATION =====
+
+    private static void ConfigureLegacyPlayerEntity(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<LegacyPlayerEntity>(entity =>
         {
-            base.OnModelCreating(modelBuilder);
+            // Indexes
+            entity.HasIndex(e => e.Pid);
+            entity.HasIndex(e => e.Fc);
+            entity.HasIndex(e => e.Rank);
+            entity.HasIndex(e => e.IsSuspicious);
 
-            ConfigurePlayerEntity(modelBuilder);
-            ConfigureLegacyPlayerEntity(modelBuilder);
-            ConfigureVRHistoryEntity(modelBuilder);
-            ConfigureTrackEntity(modelBuilder);
-            ConfigureTTProfileEntity(modelBuilder);
-            ConfigureGhostSubmissionEntity(modelBuilder);
-            ConfigureRaceResultEntity(modelBuilder);
-        }
+            // String length constraints
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Fc).HasMaxLength(20);
+            entity.Property(e => e.Pid).HasMaxLength(50);
+        });
+    }
 
-        // ===== PLAYER CONFIGURATION =====
+    // ===== VR HISTORY CONFIGURATION =====
 
-        private static void ConfigurePlayerEntity(ModelBuilder modelBuilder)
+    private static void ConfigureVRHistoryEntity(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<VRHistoryEntity>(entity =>
         {
-            modelBuilder.Entity<PlayerEntity>(entity =>
-            {
-                // Primary indexes
-                entity.HasIndex(e => e.Pid).IsUnique();
-                entity.HasIndex(e => e.Fc);
-                entity.HasIndex(e => e.Rank);
-                entity.HasIndex(e => e.IsSuspicious);
-                entity.HasIndex(e => e.LastSeen);
+            // Indexes for common queries
+            entity.HasIndex(e => e.PlayerId);
+            entity.HasIndex(e => e.Date);
+            entity.HasIndex(e => new { e.PlayerId, e.Date });
 
-                // Composite indexes for common queries
-                entity.HasIndex(e => new { e.IsSuspicious, e.Ev, e.LastSeen });
-                entity.HasIndex(e => new { e.MiiImageFetchedAt, e.MiiData })
-                    .HasFilter("\"MiiData\" IS NOT NULL AND \"MiiData\" != ''");
+            // String length constraints
+            entity.Property(e => e.PlayerId).HasMaxLength(50);
+            entity.Property(e => e.Fc).HasMaxLength(20);
 
-                // VR gain indexes
-                entity.HasIndex(e => e.VRGainLast24Hours);
-                entity.HasIndex(e => e.VRGainLastWeek);
-                entity.HasIndex(e => e.VRGainLastMonth);
+            // Relationship configuration
+            entity.HasOne(vh => vh.Player)
+                  .WithMany(p => p.VRHistory)
+                  .HasForeignKey(vh => vh.PlayerId)
+                  .HasPrincipalKey(p => p.Pid)
+                  .OnDelete(DeleteBehavior.SetNull);
+        });
+    }
 
-                // String length constraints
-                entity.Property(e => e.Name).HasMaxLength(100);
-                entity.Property(e => e.Fc).HasMaxLength(20);
-                entity.Property(e => e.Pid).HasMaxLength(50);
-            });
-        }
+    // ===== TRACK CONFIGURATION =====
 
-        // ===== LEGACY PLAYER CONFIGURATION =====
-
-        private static void ConfigureLegacyPlayerEntity(ModelBuilder modelBuilder)
+    private static void ConfigureTrackEntity(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<TrackEntity>(entity =>
         {
-            modelBuilder.Entity<LegacyPlayerEntity>(entity =>
-            {
-                // Indexes
-                entity.HasIndex(e => e.Pid);
-                entity.HasIndex(e => e.Fc);
-                entity.HasIndex(e => e.Rank);
-                entity.HasIndex(e => e.IsSuspicious);
+            // Indexes
+            entity.HasIndex(e => e.SlotId);
+            entity.HasIndex(e => e.Category);
+            entity.HasIndex(e => e.TrackSlot);
+            entity.HasIndex(e => e.SupportsGlitch);
 
-                // String length constraints
-                entity.Property(e => e.Name).HasMaxLength(100);
-                entity.Property(e => e.Fc).HasMaxLength(20);
-                entity.Property(e => e.Pid).HasMaxLength(50);
-            });
-        }
+            // String length constraints
+            entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.TrackSlot).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Category).HasMaxLength(10).IsRequired();
+        });
+    }
 
-        // ===== VR HISTORY CONFIGURATION =====
+    // ===== TT PROFILE CONFIGURATION =====
 
-        private static void ConfigureVRHistoryEntity(ModelBuilder modelBuilder)
+    private static void ConfigureTTProfileEntity(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<TTProfileEntity>(entity =>
         {
-            modelBuilder.Entity<VRHistoryEntity>(entity =>
-            {
-                // Indexes for common queries
-                entity.HasIndex(e => e.PlayerId);
-                entity.HasIndex(e => e.Date);
-                entity.HasIndex(e => new { e.PlayerId, e.Date });
+            // Indexes
+            entity.HasIndex(e => e.DisplayName).IsUnique();
 
-                // String length constraints
-                entity.Property(e => e.PlayerId).HasMaxLength(50);
-                entity.Property(e => e.Fc).HasMaxLength(20);
+            // String length constraints
+            entity.Property(e => e.DisplayName).HasMaxLength(50).IsRequired();
+        });
+    }
 
-                // Relationship configuration
-                entity.HasOne(vh => vh.Player)
-                      .WithMany(p => p.VRHistory)
-                      .HasForeignKey(vh => vh.PlayerId)
-                      .HasPrincipalKey(p => p.Pid)
-                      .OnDelete(DeleteBehavior.SetNull);
-            });
-        }
+    // ===== GHOST SUBMISSION CONFIGURATION =====
 
-        // ===== TRACK CONFIGURATION =====
-
-        private static void ConfigureTrackEntity(ModelBuilder modelBuilder)
+    private static void ConfigureGhostSubmissionEntity(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<GhostSubmissionEntity>(entity =>
         {
-            modelBuilder.Entity<TrackEntity>(entity =>
-            {
-                // Indexes
-                entity.HasIndex(e => e.SlotId);
-                entity.HasIndex(e => e.Category);
-                entity.HasIndex(e => e.TrackSlot);
-                entity.HasIndex(e => e.SupportsGlitch);
+            // Single column indexes
+            entity.HasIndex(e => e.TrackId);
+            entity.HasIndex(e => e.TTProfileId);
+            entity.HasIndex(e => e.SubmittedAt);
 
-                // String length constraints
-                entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
-                entity.Property(e => e.TrackSlot).HasMaxLength(50).IsRequired();
-                entity.Property(e => e.Category).HasMaxLength(10).IsRequired();
-            });
-        }
+            // Composite indexes for common queries
+            entity.HasIndex(e => new { e.TrackId, e.CC });
+            entity.HasIndex(e => new { e.TrackId, e.CC, e.FinishTimeMs });
+            entity.HasIndex(e => new { e.TrackId, e.CC, e.Glitch });
 
-        // ===== TT PROFILE CONFIGURATION =====
+            // Performance indexes for leaderboard queries
+            entity.HasIndex(e => new { e.TrackId, e.CC, e.Glitch, e.FinishTimeMs, e.SubmittedAt });
 
-        private static void ConfigureTTProfileEntity(ModelBuilder modelBuilder)
+            // Performance indexes for world record history
+            entity.HasIndex(e => new { e.TrackId, e.CC, e.DateSet });
+
+            // String length constraints
+            entity.Property(e => e.FinishTimeDisplay).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.MiiName).HasMaxLength(10).IsRequired();
+            entity.Property(e => e.GhostFilePath).HasMaxLength(255).IsRequired();
+
+            // JSON column
+            entity.Property(e => e.LapSplitsMs).HasColumnType("jsonb").IsRequired();
+
+            // Relationships
+            entity.HasOne(g => g.Track)
+                  .WithMany(t => t.GhostSubmissions)
+                  .HasForeignKey(g => g.TrackId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(g => g.TTProfile)
+                  .WithMany(p => p.GhostSubmissions)
+                  .HasForeignKey(g => g.TTProfileId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ConfigureRaceResultEntity(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<RaceResultEntity>(entity =>
         {
-            modelBuilder.Entity<TTProfileEntity>(entity =>
-            {
-                // Indexes
-                entity.HasIndex(e => e.DisplayName).IsUnique();
+            // Composite unique index for deduplication
+            entity.HasIndex(e => new { e.RoomId, e.RaceNumber, e.ProfileId })
+                  .IsUnique()
+                  .HasDatabaseName("IX_RaceResults_RoomId_RaceNumber_ProfileId");
 
-                // String length constraints
-                entity.Property(e => e.DisplayName).HasMaxLength(50).IsRequired();
-            });
-        }
+            // Individual column indexes
+            entity.HasIndex(e => e.ProfileId);
+            entity.HasIndex(e => e.CourseId);
+            entity.HasIndex(e => e.RaceTimestamp);
+            entity.HasIndex(e => e.CharacterId);
+            entity.HasIndex(e => e.VehicleId);
 
-        // ===== GHOST SUBMISSION CONFIGURATION =====
+            // Composite indexes for common query patterns
+            entity.HasIndex(e => new { e.CourseId, e.EngineClassId });
+            entity.HasIndex(e => new { e.CourseId, e.FinishTime });
+            entity.HasIndex(e => new { e.ProfileId, e.CourseId });
+            entity.HasIndex(e => new { e.ProfileId, e.CharacterId });
+            entity.HasIndex(e => new { e.ProfileId, e.VehicleId });
+            entity.HasIndex(e => new { e.ProfileId, e.RaceTimestamp });
 
-        private static void ConfigureGhostSubmissionEntity(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<GhostSubmissionEntity>(entity =>
-            {
-                // Single column indexes
-                entity.HasIndex(e => e.TrackId);
-                entity.HasIndex(e => e.TTProfileId);
-                entity.HasIndex(e => e.SubmittedAt);
-
-                // Composite indexes for common queries
-                entity.HasIndex(e => new { e.TrackId, e.CC });
-                entity.HasIndex(e => new { e.TrackId, e.CC, e.FinishTimeMs });
-                entity.HasIndex(e => new { e.TrackId, e.CC, e.Glitch });
-
-                // Performance indexes for leaderboard queries
-                entity.HasIndex(e => new { e.TrackId, e.CC, e.Glitch, e.FinishTimeMs, e.SubmittedAt });
-
-                // Performance indexes for world record history
-                entity.HasIndex(e => new { e.TrackId, e.CC, e.DateSet });
-
-                // String length constraints
-                entity.Property(e => e.FinishTimeDisplay).HasMaxLength(20).IsRequired();
-                entity.Property(e => e.MiiName).HasMaxLength(10).IsRequired();
-                entity.Property(e => e.GhostFilePath).HasMaxLength(255).IsRequired();
-
-                // JSON column
-                entity.Property(e => e.LapSplitsMs).HasColumnType("jsonb").IsRequired();
-
-                // Relationships
-                entity.HasOne(g => g.Track)
-                      .WithMany(t => t.GhostSubmissions)
-                      .HasForeignKey(g => g.TrackId)
-                      .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(g => g.TTProfile)
-                      .WithMany(p => p.GhostSubmissions)
-                      .HasForeignKey(g => g.TTProfileId)
-                      .OnDelete(DeleteBehavior.Cascade);
-            });
-        }
-
-        private static void ConfigureRaceResultEntity(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<RaceResultEntity>(entity =>
-            {
-                // Composite unique index for deduplication
-                entity.HasIndex(e => new { e.RoomId, e.RaceNumber, e.ProfileId })
-                      .IsUnique()
-                      .HasDatabaseName("IX_RaceResults_RoomId_RaceNumber_ProfileId");
-
-                // Individual column indexes
-                entity.HasIndex(e => e.ProfileId);
-                entity.HasIndex(e => e.CourseId);
-                entity.HasIndex(e => e.RaceTimestamp);
-                entity.HasIndex(e => e.CharacterId);
-                entity.HasIndex(e => e.VehicleId);
-
-                // Composite indexes for common query patterns
-                entity.HasIndex(e => new { e.CourseId, e.EngineClassId });
-                entity.HasIndex(e => new { e.CourseId, e.FinishTime });
-                entity.HasIndex(e => new { e.ProfileId, e.CourseId });
-                entity.HasIndex(e => new { e.ProfileId, e.CharacterId });
-                entity.HasIndex(e => new { e.ProfileId, e.VehicleId });
-                entity.HasIndex(e => new { e.ProfileId, e.RaceTimestamp });
-
-                // String length constraints
-                entity.Property(e => e.RoomId).HasMaxLength(10).IsRequired();
-            });
-        }
+            // String length constraints
+            entity.Property(e => e.RoomId).HasMaxLength(10).IsRequired();
+        });
     }
 }

@@ -1,10 +1,10 @@
-﻿namespace RetroRewindWebsite.Services.Domain
+﻿namespace RetroRewindWebsite.Services.Domain;
+
+public interface IMaintenanceService
 {
-    public interface IMaintenanceService
-    {
-        /// <summary>
-        /// Update VR gain statistics for all players (daily maintenance task)
-        /// </summary>
-        Task UpdateAllPlayerVRGainsAsync();
-    }
+    /// <summary>
+    /// Asynchronously updates the VR gain values for all players.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous update operation.</returns>
+    Task UpdateAllPlayerVRGainsAsync();
 }

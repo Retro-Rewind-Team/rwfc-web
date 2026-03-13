@@ -3,8 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using RetroRewindWebsite.Data;
 using RetroRewindWebsite.HealthChecks;
-using RetroRewindWebsite.Helpers;
-using RetroRewindWebsite.Repositories;
+using RetroRewindWebsite.Repositories.Player;
+using RetroRewindWebsite.Repositories.RaceResult;
+using RetroRewindWebsite.Repositories.TimeTrial;
 using RetroRewindWebsite.Services.Application;
 using RetroRewindWebsite.Services.Background;
 using RetroRewindWebsite.Services.Domain;
@@ -76,8 +77,10 @@ builder.Services.AddHttpClient();
 // ===== REPOSITORIES =====
 builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
 builder.Services.AddScoped<IVRHistoryRepository, VRHistoryRepository>();
-builder.Services.AddScoped<ITimeTrialRepository, TimeTrialRepository>();
-builder.Services.AddScoped<IRaceResultRepository, RaceResultRepository>(); // NEW
+builder.Services.AddScoped<ITrackRepository, TrackRepository>();
+builder.Services.AddScoped<ITTProfileRepository, TTProfileRepository>();
+builder.Services.AddScoped<IGhostSubmissionRepository, GhostSubmissionRepository>();
+builder.Services.AddScoped<IRaceResultRepository, RaceResultRepository>();
 
 // ===== EXTERNAL SERVICES =====
 builder.Services.AddScoped<IRetroWFCApiClient, RetroWFCApiClient>();
@@ -89,9 +92,12 @@ builder.Services.AddScoped<IMiiService, MiiService>();
 builder.Services.AddScoped<IGhostFileService, GhostFileService>();
 
 // ===== APPLICATION SERVICES =====
-builder.Services.AddScoped<ILeaderboardManager, LeaderboardManager>();
+builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
+builder.Services.AddScoped<ILeaderboardSyncService, LeaderboardSyncService>();
+builder.Services.AddScoped<IMiiBatchService, MiiBatchService>();
+builder.Services.AddScoped<IPlayerService, PlayerService>();
 builder.Services.AddSingleton<IRoomStatusService, RoomStatusService>();
-builder.Services.AddScoped<IRaceResultService, RaceResultService>(); // NEW
+builder.Services.AddScoped<IRaceResultService, RaceResultService>();
 
 // ===== BACKGROUND SERVICES =====
 builder.Services.AddSingleton<ILeaderboardBackgroundService, LeaderboardBackgroundService>();
@@ -106,10 +112,10 @@ builder.Services.AddSingleton<IRoomStatusBackgroundService, RoomStatusBackground
 builder.Services.AddHostedService<RoomStatusBackgroundService>(sp =>
     (RoomStatusBackgroundService)sp.GetRequiredService<IRoomStatusBackgroundService>());
 
-// NEW - Race Results Background Service
-builder.Services.AddSingleton<IRaceResultsBackgroundService, RaceResultsBackgroundService>();
-builder.Services.AddHostedService<RaceResultsBackgroundService>(sp =>
-    (RaceResultsBackgroundService)sp.GetRequiredService<IRaceResultsBackgroundService>());
+// Race Results Background Service
+builder.Services.AddSingleton<IRaceResultBackgroundService, RaceResultBackgroundService>();
+builder.Services.AddHostedService<RaceResultBackgroundService>(sp =>
+    (RaceResultBackgroundService)sp.GetRequiredService<IRaceResultBackgroundService>());
 
 // ===== HEALTH CHECKS =====
 builder.Services.AddHealthChecks()

@@ -1,100 +1,97 @@
 ﻿using RetroRewindWebsite.Services.Application;
 
-namespace RetroRewindWebsite.Services.Background
+namespace RetroRewindWebsite.Services.Background;
+
+public class RoomStatusBackgroundService : BackgroundService, IRoomStatusBackgroundService
 {
-    public class RoomStatusBackgroundService : BackgroundService, IRoomStatusBackgroundService
+    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly ILogger<RoomStatusBackgroundService> _logger;
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
+
+    private const int RefreshIntervalSeconds = 60;
+    private const int SemaphoreTimeoutSeconds = 30;
+
+    public RoomStatusBackgroundService(
+        IServiceScopeFactory serviceScopeFactory,
+        ILogger<RoomStatusBackgroundService> logger)
     {
-        private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly ILogger<RoomStatusBackgroundService> _logger;
-        private readonly SemaphoreSlim _semaphore = new(1, 1);
+        _serviceScopeFactory = serviceScopeFactory;
+        _logger = logger;
+    }
 
-        private const int RefreshIntervalSeconds = 60;
-        private const int SemaphoreTimeoutSeconds = 30;
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        _logger.LogInformation("Room status background service started");
 
-        public RoomStatusBackgroundService(
-            IServiceScopeFactory serviceScopeFactory,
-            ILogger<RoomStatusBackgroundService> logger)
+        try
         {
-            _serviceScopeFactory = serviceScopeFactory;
-            _logger = logger;
+            await PerformRefreshAsync(stoppingToken);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Room status background service stopped during initial fetch");
+            return;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during initial room status fetch");
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        while (!stoppingToken.IsCancellationRequested)
         {
-            _logger.LogInformation("Room status background service started");
-
-            // Perform initial fetch immediately
             try
             {
+                await Task.Delay(TimeSpan.FromSeconds(RefreshIntervalSeconds), stoppingToken);
                 await PerformRefreshAsync(stoppingToken);
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation("Room status background service stopped during initial fetch");
-                return;
+                _logger.LogInformation("Room status background service is stopping");
+                break;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during initial room status fetch");
+                _logger.LogError(ex, "Error in room status background service");
             }
-
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                try
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(RefreshIntervalSeconds), stoppingToken);
-                    await PerformRefreshAsync(stoppingToken);
-                }
-                catch (OperationCanceledException)
-                {
-                    _logger.LogInformation("Room status background service is stopping");
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error in room status background service");
-                }
-            }
-
-            _logger.LogInformation("Room status background service stopped");
         }
 
-        public async Task ForceRefreshAsync()
+        _logger.LogInformation("Room status background service stopped");
+    }
+
+    public async Task ForceRefreshAsync()
+    {
+        _logger.LogInformation("Force refresh requested");
+        await PerformRefreshAsync(CancellationToken.None);
+    }
+
+    private async Task PerformRefreshAsync(CancellationToken cancellationToken)
+    {
+        if (!await _semaphore.WaitAsync(TimeSpan.FromSeconds(SemaphoreTimeoutSeconds), cancellationToken))
         {
-            _logger.LogInformation("Force refresh requested");
-            await PerformRefreshAsync(CancellationToken.None);
+            _logger.LogWarning("Previous room status refresh is still running, skipping this cycle");
+            return;
         }
 
-        private async Task PerformRefreshAsync(CancellationToken cancellationToken)
+        try
         {
-            if (!await _semaphore.WaitAsync(TimeSpan.FromSeconds(SemaphoreTimeoutSeconds), cancellationToken))
-            {
-                _logger.LogWarning("Previous room status refresh is still running, skipping this cycle");
-                return;
-            }
+            _logger.LogDebug("Starting scheduled room status refresh");
 
-            try
-            {
-                _logger.LogDebug("Starting scheduled room status refresh");
+            using var scope = _serviceScopeFactory.CreateScope();
+            var roomStatusService = scope.ServiceProvider.GetRequiredService<IRoomStatusService>();
+            await roomStatusService.RefreshRoomDataAsync();
 
-                using var scope = _serviceScopeFactory.CreateScope();
-                var roomStatusService = scope.ServiceProvider.GetRequiredService<IRoomStatusService>();
-
-                await roomStatusService.RefreshRoomDataAsync();
-
-                _logger.LogDebug("Scheduled room status refresh completed successfully");
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
+            _logger.LogDebug("Scheduled room status refresh completed successfully");
         }
-
-        public override void Dispose()
+        finally
         {
-            _semaphore?.Dispose();
-            base.Dispose();
-            GC.SuppressFinalize(this);
+            _semaphore.Release();
         }
+    }
+
+    public override void Dispose()
+    {
+        _semaphore?.Dispose();
+        base.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

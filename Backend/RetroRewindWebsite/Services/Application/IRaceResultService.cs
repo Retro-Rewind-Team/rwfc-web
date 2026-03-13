@@ -1,7 +1,10 @@
-﻿namespace RetroRewindWebsite.Services.Application
+﻿namespace RetroRewindWebsite.Services.Application;
+
+public interface IRaceResultService
 {
-    public interface IRaceResultService
-    {
-        Task CollectRaceResultsAsync();
-    }
+    /// <summary>
+    /// Asynchronously collects race results from the configured data source.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation. The task completes when the race results have been collected.</returns>
+    Task CollectRaceResultsAsync();
 }

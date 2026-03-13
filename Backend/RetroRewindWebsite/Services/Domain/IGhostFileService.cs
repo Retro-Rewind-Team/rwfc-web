@@ -1,42 +1,29 @@
-﻿namespace RetroRewindWebsite.Services.Domain
+﻿using RetroRewindWebsite.Models.Domain;
+
+namespace RetroRewindWebsite.Services.Domain;
+
+public interface IGhostFileService
 {
-    public interface IGhostFileService
-    {
-        /// <summary>
-        /// Parses a Mario Kart Wii ghost file (.rkg) and extracts metadata
-        /// </summary>
-        /// <param name="fileStream">Stream containing the .rkg file data</param>
-        /// <returns>Parse result containing extracted ghost data or error information</returns>
-        Task<GhostFileParseResult> ParseGhostFileAsync(Stream fileStream);
+    /// <summary>
+    /// Parses a Ghost file from the provided stream asynchronously and returns the result.
+    /// </summary>
+    /// <remarks>The caller is responsible for disposing the provided stream. This method does not modify the
+    /// stream position.</remarks>
+    /// <param name="fileStream">The stream containing the Ghost file data to parse. Must be readable and positioned at the start of the file
+    /// content.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="GhostFileParseResult"/>
+    /// describing the outcome of the parsing operation.</returns>
+    Task<GhostFileParseResult> ParseGhostFileAsync(Stream fileStream);
 
-        /// <summary>
-        /// Saves a ghost file to disk in the appropriate directory structure
-        /// </summary>
-        /// <param name="fileStream">Stream containing the .rkg file data</param>
-        /// <param name="trackId">ID of the track this ghost is for</param>
-        /// <param name="cc">CC value (150 or 200)</param>
-        /// <param name="playerDisplayName">Display name of the player who set this time</param>
-        /// <returns>File path where the ghost was saved</returns>
-        Task<string> SaveGhostFileAsync(Stream fileStream, int trackId, short cc, string playerDisplayName);
-    }
-
-    public class GhostFileParseResult
-    {
-        public bool Success { get; set; }
-        public string? ErrorMessage { get; set; }
-
-        // Extracted data
-        public short CourseId { get; set; }
-        public int FinishTimeMs { get; set; }
-        public string FinishTimeDisplay { get; set; } = string.Empty;
-        public short VehicleId { get; set; }
-        public short CharacterId { get; set; }
-        public short ControllerType { get; set; }
-        public short DriftType { get; set; }
-        public short DriftCategory { get; set; }
-        public string MiiName { get; set; } = string.Empty;
-        public short LapCount { get; set; }
-        public List<int> LapSplitsMs { get; set; } = [];
-        public DateOnly DateSet { get; set; }
-    }
+    /// <summary>
+    /// Asynchronously saves a ghost file associated with a specific track and player.
+    /// </summary>
+    /// <param name="fileStream">The stream containing the ghost file data to be saved. Must be readable and positioned at the start of the file
+    /// content.</param>
+    /// <param name="trackId">The identifier of the track to which the ghost file will be linked.</param>
+    /// <param name="cc">The course class value for the track. Specifies the difficulty or category of the track.</param>
+    /// <param name="playerDisplayName">The display name of the player associated with the ghost file. Cannot be null or empty.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the unique identifier of the saved
+    /// ghost file.</returns>
+    Task<string> SaveGhostFileAsync(Stream fileStream, int trackId, short cc, string playerDisplayName);
 }

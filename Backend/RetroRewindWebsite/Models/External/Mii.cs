@@ -1,8 +1,7 @@
-﻿namespace RetroRewindWebsite.Models.External
+﻿namespace RetroRewindWebsite.Models.External;
+
+public class Mii
 {
-    public class Mii
-    {
-        public required string Data { get; set; }
-        public required string Name { get; set; }
-    }
+    public required string Data { get; set; }
+    public required string Name { get; set; }
 }

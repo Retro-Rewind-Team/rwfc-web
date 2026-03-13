@@ -1,90 +1,82 @@
-﻿using RetroRewindWebsite.Repositories;
+﻿using RetroRewindWebsite.Repositories.Player;
 
-namespace RetroRewindWebsite.Services.Domain
+namespace RetroRewindWebsite.Services.Domain;
+
+public class MaintenanceService : IMaintenanceService
 {
-    public class MaintenanceService : IMaintenanceService
+    private readonly IPlayerRepository _playerRepository;
+    private readonly IVRHistoryRepository _vrHistoryRepository;
+    private readonly ILogger<MaintenanceService> _logger;
+
+    private const int BatchSize = 100;
+    private const int ProgressLogInterval = 500;
+
+    public MaintenanceService(
+        IPlayerRepository playerRepository,
+        IVRHistoryRepository vrHistoryRepository,
+        ILogger<MaintenanceService> logger)
     {
-        private readonly IPlayerRepository _playerRepository;
-        private readonly IVRHistoryRepository _vrHistoryRepository;
-        private readonly ILogger<MaintenanceService> _logger;
+        _playerRepository = playerRepository;
+        _vrHistoryRepository = vrHistoryRepository;
+        _logger = logger;
+    }
 
-        private const int BatchSize = 100;
-        private const int ProgressLogInterval = 500;
+    public async Task UpdateAllPlayerVRGainsAsync()
+    {
+        _logger.LogInformation("Starting daily update of VR gain stats for all players");
 
-        public MaintenanceService(
-            IPlayerRepository playerRepository,
-            IVRHistoryRepository vrHistoryRepository,
-            ILogger<MaintenanceService> logger)
+        try
         {
-            _playerRepository = playerRepository;
-            _vrHistoryRepository = vrHistoryRepository;
-            _logger = logger;
-        }
+            var skip = 0;
+            var totalProcessed = 0;
 
-        public async Task UpdateAllPlayerVRGainsAsync()
-        {
-            _logger.LogInformation("Starting daily update of VR gain stats for all players");
-
-            try
+            while (true)
             {
-                var skip = 0;
-                var totalProcessed = 0;
+                var playerPids = await _playerRepository.GetPlayerPidsBatchAsync(skip, BatchSize);
 
-                while (true)
+                if (playerPids.Count == 0)
+                    break;
+
+                _logger.LogDebug("Processing batch starting at {Skip}, {Count} players", skip, playerPids.Count);
+
+                // TODO: Replace with a single query that calculates all three gains at once
+                // Currently makes N×3 database calls per batch which is inefficient
+                var vrGainsBatch = new Dictionary<string, (int gain24h, int gain7d, int gain30d)>();
+
+                foreach (var pid in playerPids)
                 {
-                    var playerPids = await _playerRepository.GetPlayerPidsBatchAsync(skip, BatchSize);
-
-                    if (playerPids.Count == 0)
+                    try
                     {
-                        break;
+                        var gain24h = await _vrHistoryRepository.CalculateVRGainAsync(pid, TimeSpan.FromDays(1));
+                        var gain7d = await _vrHistoryRepository.CalculateVRGainAsync(pid, TimeSpan.FromDays(7));
+                        var gain30d = await _vrHistoryRepository.CalculateVRGainAsync(pid, TimeSpan.FromDays(30));
+
+                        vrGainsBatch[pid] = (gain24h, gain7d, gain30d);
                     }
-
-                    _logger.LogDebug("Processing batch starting at {Skip}, {Count} players", skip, playerPids.Count);
-
-                    var vrGainsBatch = new Dictionary<string, (int gain24h, int gain7d, int gain30d)>();
-
-                    foreach (var pid in playerPids)
+                    catch (Exception ex)
                     {
-                        try
-                        {
-                            var gain24h = await _vrHistoryRepository.CalculateVRGainAsync(
-                                pid, TimeSpan.FromDays(1));
-                            var gain7d = await _vrHistoryRepository.CalculateVRGainAsync(
-                                pid, TimeSpan.FromDays(7));
-                            var gain30d = await _vrHistoryRepository.CalculateVRGainAsync(
-                                pid, TimeSpan.FromDays(30));
-
-                            vrGainsBatch[pid] = (gain24h, gain7d, gain30d);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogWarning(ex, "Error calculating VR gains for player PID {Pid}", pid);
-                        }
-                    }
-
-                    if (vrGainsBatch.Count > 0)
-                    {
-                        await _playerRepository.UpdatePlayerVRGainsBatchAsync(vrGainsBatch);
-                    }
-
-                    totalProcessed += playerPids.Count;
-                    skip += BatchSize;
-
-                    if (totalProcessed % ProgressLogInterval == 0)
-                    {
-                        _logger.LogInformation("Updated VR gains for {Count} players so far", totalProcessed);
+                        _logger.LogWarning(ex, "Error calculating VR gains for player PID {Pid}", pid);
                     }
                 }
 
-                _logger.LogInformation(
-                    "Daily update of VR gain stats completed. Total players processed: {Count}",
-                    totalProcessed);
+                if (vrGainsBatch.Count > 0)
+                    await _playerRepository.UpdatePlayerVRGainsBatchAsync(vrGainsBatch);
+
+                totalProcessed += playerPids.Count;
+                skip += BatchSize;
+
+                if (totalProcessed % ProgressLogInterval == 0)
+                    _logger.LogInformation("Updated VR gains for {Count} players so far", totalProcessed);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during daily VR gain update");
-                throw;
-            }
+
+            _logger.LogInformation(
+                "Daily update of VR gain stats completed. Total players processed: {Count}",
+                totalProcessed);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during daily VR gain update");
+            throw;
         }
     }
 }

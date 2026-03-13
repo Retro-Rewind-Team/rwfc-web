@@ -1,128 +1,124 @@
 ﻿using RetroRewindWebsite.Services.Application;
 using RetroRewindWebsite.Services.Domain;
 
-namespace RetroRewindWebsite.Services.Background
+namespace RetroRewindWebsite.Services.Background;
+
+public class LeaderboardBackgroundService : BackgroundService, ILeaderboardBackgroundService
 {
-    public class LeaderboardBackgroundService : BackgroundService, ILeaderboardBackgroundService
+    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly ILogger<LeaderboardBackgroundService> _logger;
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
+    private DateTime? _lastMaintenanceDate;
+
+    private const int RefreshIntervalMinutes = 1;
+    private const int MaintenanceHourUtc = 11;
+    private const int SemaphoreTimeoutSeconds = 30;
+
+    public LeaderboardBackgroundService(
+        IServiceScopeFactory serviceScopeFactory,
+        ILogger<LeaderboardBackgroundService> logger)
     {
-        private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly ILogger<LeaderboardBackgroundService> _logger;
-        private readonly SemaphoreSlim _semaphore = new(1, 1);
-        private DateTime? _lastMaintenanceDate;
+        _serviceScopeFactory = serviceScopeFactory;
+        _logger = logger;
+    }
 
-        private const int RefreshIntervalMinutes = 1;
-        private const int MaintenanceHourUtc = 11;
-        private const int SemaphoreTimeoutSeconds = 30;
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        _logger.LogInformation("Leaderboard background service started");
 
-        public LeaderboardBackgroundService(
-            IServiceScopeFactory serviceScopeFactory,
-            ILogger<LeaderboardBackgroundService> logger)
+        while (!stoppingToken.IsCancellationRequested)
         {
-            _serviceScopeFactory = serviceScopeFactory;
-            _logger = logger;
-        }
-
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            _logger.LogInformation("Leaderboard background service started");
-
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                try
-                {
-                    await PerformRefreshAsync(stoppingToken);
-                }
-                catch (OperationCanceledException)
-                {
-                    _logger.LogInformation("Leaderboard background service is stopping");
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error in leaderboard background service");
-                }
-
-                try
-                {
-                    await Task.Delay(TimeSpan.FromMinutes(RefreshIntervalMinutes), stoppingToken);
-                }
-                catch (OperationCanceledException)
-                {
-                    break;
-                }
+                await PerformRefreshAsync(stoppingToken);
             }
-
-            _logger.LogInformation("Leaderboard background service stopped");
-        }
-
-        public async Task ForceRefreshAsync()
-        {
-            _logger.LogInformation("Force refresh requested");
-            await PerformRefreshAsync(CancellationToken.None);
-        }
-
-        private async Task PerformRefreshAsync(CancellationToken cancellationToken)
-        {
-            if (!await _semaphore.WaitAsync(TimeSpan.FromSeconds(SemaphoreTimeoutSeconds), cancellationToken))
+            catch (OperationCanceledException)
             {
-                _logger.LogWarning("Previous refresh operation is still running, skipping this cycle");
-                return;
+                _logger.LogInformation("Leaderboard background service is stopping");
+                break;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in leaderboard background service");
             }
 
             try
             {
-                _logger.LogDebug("Starting scheduled leaderboard refresh");
-
-                using var scope = _serviceScopeFactory.CreateScope();
-                var leaderboardManager = scope.ServiceProvider.GetRequiredService<ILeaderboardManager>();
-
-                await leaderboardManager.RefreshFromApiAsync();
-                await leaderboardManager.RefreshRankingsAsync();
-
-                var now = DateTime.UtcNow;
-                if (now.Hour == MaintenanceHourUtc && now.Minute < RefreshIntervalMinutes)
-                {
-                    if (_lastMaintenanceDate?.Date != now.Date)
-                    {
-                        _logger.LogInformation("Performing daily maintenance tasks for {Date:yyyy-MM-dd}", now.Date);
-
-                        _ = Task.Run(async () =>
-                        {
-                            try
-                            {
-                                await PerformMaintenanceTasksAsync();
-                                _lastMaintenanceDate = now;
-                                _logger.LogInformation("Daily maintenance tasks completed");
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogError(ex, "Maintenance failed");
-                            }
-                        }, cancellationToken);
-                    }
-                }
-
-                _logger.LogDebug("Scheduled leaderboard refresh completed successfully");
+                await Task.Delay(TimeSpan.FromMinutes(RefreshIntervalMinutes), stoppingToken);
             }
-            finally
+            catch (OperationCanceledException)
             {
-                _semaphore.Release();
+                break;
             }
         }
 
-        private async Task PerformMaintenanceTasksAsync()
+        _logger.LogInformation("Leaderboard background service stopped");
+    }
+
+    public async Task ForceRefreshAsync()
+    {
+        _logger.LogInformation("Force refresh requested");
+        await PerformRefreshAsync(CancellationToken.None);
+    }
+
+    private async Task PerformRefreshAsync(CancellationToken cancellationToken)
+    {
+        if (!await _semaphore.WaitAsync(TimeSpan.FromSeconds(SemaphoreTimeoutSeconds), cancellationToken))
         {
+            _logger.LogWarning("Previous refresh operation is still running, skipping this cycle");
+            return;
+        }
+
+        try
+        {
+            _logger.LogDebug("Starting scheduled leaderboard refresh");
+
             using var scope = _serviceScopeFactory.CreateScope();
-            var maintenanceService = scope.ServiceProvider.GetRequiredService<IMaintenanceService>();
+            var syncService = scope.ServiceProvider.GetRequiredService<ILeaderboardSyncService>();
 
-            await maintenanceService.UpdateAllPlayerVRGainsAsync();
+            await syncService.RefreshFromApiAsync();
+            await syncService.RefreshRankingsAsync();
+
+            var now = DateTime.UtcNow;
+            if (now.Hour == MaintenanceHourUtc && now.Minute < RefreshIntervalMinutes
+                && _lastMaintenanceDate?.Date != now.Date)
+            {
+                _logger.LogInformation("Performing daily maintenance tasks for {Date:yyyy-MM-dd}", now.Date);
+
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await PerformMaintenanceTasksAsync();
+                        _lastMaintenanceDate = now;
+                        _logger.LogInformation("Daily maintenance tasks completed");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Maintenance failed");
+                    }
+                }, cancellationToken);
+            }
+
+            _logger.LogDebug("Scheduled leaderboard refresh completed successfully");
         }
-
-        public override void Dispose()
+        finally
         {
-            _semaphore?.Dispose();
-            base.Dispose();
-            GC.SuppressFinalize(this);
+            _semaphore.Release();
         }
+    }
+
+    private async Task PerformMaintenanceTasksAsync()
+    {
+        using var scope = _serviceScopeFactory.CreateScope();
+        var maintenanceService = scope.ServiceProvider.GetRequiredService<IMaintenanceService>();
+        await maintenanceService.UpdateAllPlayerVRGainsAsync();
+    }
+
+    public override void Dispose()
+    {
+        _semaphore?.Dispose();
+        base.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
