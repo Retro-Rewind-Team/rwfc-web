@@ -43,3 +43,10 @@ public class LeaderboardRequest
     [RegularExpression("^(24|week|month)$", ErrorMessage = "Invalid time period")]
     public string TimePeriod { get; set; } = "24";
 }
+
+public record LeaderboardInGameResponseDto(
+    List<InGamePlayerDto> Players,
+    int CurrentPage,
+    int TotalPages,
+    int TotalCount
+);

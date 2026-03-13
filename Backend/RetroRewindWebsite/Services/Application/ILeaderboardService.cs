@@ -14,6 +14,15 @@ public interface ILeaderboardService
     Task<LeaderboardResponseDto> GetLeaderboardAsync(LeaderboardRequest request);
 
     /// <summary>
+    /// Retrieves the leaderboard data for the in-game leaderboard asynchronously based on the specified page number.
+    /// number.
+    /// </summary>
+    /// <param name="page">The page number of the leaderboard to retrieve. Must be greater than or equal to 1.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
+    /// cref="LeaderboardInGameResponseDto"/> with the leaderboard data for the specified page.</returns>
+    Task<LeaderboardInGameResponseDto> GetLeaderboardInGameAsync(int page);
+
+    /// <summary>
     /// Retrieves a list of the top players ranked by performance.
     /// </summary>
     /// <param name="count">The maximum number of players to return. Must be greater than zero.</param>
@@ -21,15 +30,6 @@ public interface ILeaderboardService
     /// objects representing the top players. The list will contain up to the specified number of players and will be
     /// empty if no players are available.</returns>
     Task<List<PlayerDto>> GetTopPlayersAsync(int count);
-
-    /// <summary>
-    /// Retrieves a list of the top players, excluding those with Mii avatars, asynchronously.
-    /// </summary>
-    /// <param name="count">The maximum number of players to return. Must be a positive integer.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a list of player data transfer
-    /// objects for the top players without Mii avatars. The list will contain up to the specified number of players, or
-    /// fewer if not enough players are available.</returns>
-    Task<List<PlayerDto>> GetTopPlayersNoMiiAsync(int count);
 
     /// <summary>
     /// Retrieves a list of players who have gained the most virtual rating (VR) within a specified period.
@@ -40,6 +40,15 @@ public interface ILeaderboardService
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of player data transfer
     /// objects ordered by VR gain, or an empty list if no players meet the criteria.</returns>
     Task<List<PlayerDto>> GetTopVRGainersAsync(int count, string period);
+
+    /// <summary>
+    /// Retrieves a list of the top players currently active for the in-game leaderboard.
+    /// </summary>
+    /// <param name="count">The maximum number of top players to return. Must be greater than zero.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a list of player data transfer
+    /// objects for the top players. The list will contain up to the specified number of players and will be empty if no
+    /// players are found.</returns>
+    Task<List<InGamePlayerDto>> GetTopPlayersInGameAsync(int count);
 
     /// <summary>
     /// Asynchronously retrieves the current leaderboard statistics.

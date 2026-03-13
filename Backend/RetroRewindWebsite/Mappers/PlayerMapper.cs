@@ -49,4 +49,12 @@ public static class PlayerMapper
         MiiImageBase64: entity.MiiImageBase64,
         MiiData: entity.MiiData
     );
+
+    public static InGamePlayerDto ToInGameDto(PlayerEntity entity) => new(
+        Name: entity.Name,
+        FriendCode: entity.Fc,
+        VR: entity.Ev,
+        Rank: entity.Rank,
+        MiiData: entity.MiiData
+    );
 }

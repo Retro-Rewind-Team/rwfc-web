@@ -40,16 +40,29 @@ public class LeaderboardService : ILeaderboardService
         );
     }
 
+    public async Task<LeaderboardInGameResponseDto> GetLeaderboardInGameAsync(int page)
+    {
+        var pagedResult = await _playerRepository.GetLeaderboardPageNoMiiAsync(page);
+        var playerDtos = pagedResult.Items.Select(PlayerMapper.ToInGameDto).ToList();
+
+        return new LeaderboardInGameResponseDto(
+            Players: playerDtos,
+            CurrentPage: pagedResult.CurrentPage,
+            TotalPages: pagedResult.TotalPages,
+            TotalCount: pagedResult.TotalCount
+        );
+    }
+
     public async Task<List<PlayerDto>> GetTopPlayersAsync(int count)
     {
         var players = await _playerRepository.GetTopPlayersAsync(count);
         return [.. players.Select(PlayerMapper.ToDto)];
     }
 
-    public async Task<List<PlayerDto>> GetTopPlayersNoMiiAsync(int count)
+    public async Task<List<InGamePlayerDto>> GetTopPlayersInGameAsync(int count)
     {
         var players = await _playerRepository.GetTopPlayersAsync(count);
-        return [.. players.Select(PlayerMapper.ToDtoWithoutMii)];
+        return [.. players.Select(PlayerMapper.ToInGameDto)];
     }
 
     public async Task<List<PlayerDto>> GetTopVRGainersAsync(int count, string period)
@@ -64,6 +77,21 @@ public class LeaderboardService : ILeaderboardService
 
         var players = await _playerRepository.GetTopVRGainersAsync(count, timeSpan);
         return [.. players.Select(PlayerMapper.ToDtoWithoutMii)];
+    }
+
+    public async Task<LeaderboardResponseDto> GetLeaderboardNoMiiAsync(int page)
+    {
+        var pagedResult = await _playerRepository.GetLeaderboardPageNoMiiAsync(page);
+        var playerDtos = pagedResult.Items.Select(PlayerMapper.ToDtoWithoutMii).ToList();
+
+        return new LeaderboardResponseDto(
+            Players: playerDtos,
+            CurrentPage: pagedResult.CurrentPage,
+            TotalPages: pagedResult.TotalPages,
+            TotalCount: pagedResult.TotalCount,
+            PageSize: pagedResult.PageSize,
+            Stats: await GetStatsAsync()
+        );
     }
 
     public async Task<LeaderboardStatsDto> GetStatsAsync()

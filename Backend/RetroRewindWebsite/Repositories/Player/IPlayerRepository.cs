@@ -85,6 +85,14 @@ public interface IPlayerRepository : IRepository<PlayerEntity>
     /// specified rank window. The list may be empty if no players are found.</returns>
     Task<List<PlayerEntity>> GetPlayersAroundRankAsync(int rank, int window);
 
+    /// <summary>
+    /// Retrieves a paged list of leaderboard entries excluding players with Mii avatars.
+    /// </summary>
+    /// <param name="page">The zero-based index of the leaderboard page to retrieve. Must be greater than or equal to 0.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a paged collection of player
+    /// entities without Mii avatars.</returns>
+    Task<PagedResult<PlayerEntity>> GetLeaderboardPageNoMiiAsync(int page);
+
     // ===== STATISTICS =====
 
     /// <summary>

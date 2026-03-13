@@ -17,7 +17,7 @@ public class LeaderboardController : ControllerBase
     private readonly ILogger<LeaderboardController> _logger;
 
     private const int MinTopPlayersCount = 1;
-    private const int MaxTopPlayersCount = 50;
+    private const int MaxTopPlayersCount = 100;
     private const int DefaultTopPlayersCount = 10;
     private const int MaxBatchMiiCount = 25;
 
@@ -52,6 +52,23 @@ public class LeaderboardController : ControllerBase
         }
     }
 
+    [HttpGet("in-game")]
+    public async Task<ActionResult<LeaderboardInGameResponseDto>> GetLeaderboardInGame(
+        [FromQuery] int page = 1)
+    {
+        try
+        {
+            var response = await _leaderboardService.GetLeaderboardInGameAsync(page);
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving in-game leaderboard data");
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while retrieving in-game leaderboard data");
+        }
+    }
+
     [HttpGet("top/{count}")]
     public async Task<ActionResult<List<PlayerDto>>> GetTopPlayers(int count = DefaultTopPlayersCount)
     {
@@ -69,18 +86,18 @@ public class LeaderboardController : ControllerBase
         }
     }
 
-    [HttpGet("top/no-mii/{count}")]
-    public async Task<ActionResult<List<PlayerDto>>> GetTopPlayersNoMii(int count = DefaultTopPlayersCount)
+    [HttpGet("top/in-game/{count}")]
+    public async Task<ActionResult<List<InGamePlayerDto>>> GetTopPlayersInGame(int count = DefaultTopPlayersCount)
     {
         try
         {
             count = Math.Clamp(count, MinTopPlayersCount, MaxTopPlayersCount);
-            var players = await _leaderboardService.GetTopPlayersNoMiiAsync(count);
+            var players = await _leaderboardService.GetTopPlayersInGameAsync(count);
             return Ok(players);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving top {Count} players without Mii images", count);
+            _logger.LogError(ex, "Error retrieving top {Count} in-game players", count);
             return StatusCode(StatusCodes.Status500InternalServerError,
                 "An error occurred while retrieving top players");
         }

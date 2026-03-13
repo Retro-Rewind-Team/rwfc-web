@@ -115,6 +115,15 @@ public class PlayerRepository : IPlayerRepository
             .ToListAsync();
     }
 
+    public async Task<PagedResult<PlayerEntity>> GetLeaderboardPageNoMiiAsync(int page)
+    {
+        var query = _context.Players
+            .AsNoTracking()
+            .OrderBy(p => p.Rank);
+
+        return await PagedResult<PlayerEntity>.CreateAsync(query, page, 50);
+    }
+
     // ===== STATISTICS =====
 
     public async Task<int> GetTotalPlayersCountAsync() =>
