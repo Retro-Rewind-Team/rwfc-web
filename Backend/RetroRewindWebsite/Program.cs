@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Npgsql;
 using RetroRewindWebsite.Data;
 using RetroRewindWebsite.HealthChecks;
 using RetroRewindWebsite.Repositories.Player;
@@ -62,8 +63,12 @@ if (string.IsNullOrEmpty(connectionString))
     throw new InvalidOperationException($"{environment} connection string is not configured.");
 }
 
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+dataSourceBuilder.EnableDynamicJson();
+var dataSource = dataSourceBuilder.Build();
+
 builder.Services.AddDbContext<LeaderboardDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(dataSource));
 
 // ===== CACHING =====
 builder.Services.AddMemoryCache(options =>
