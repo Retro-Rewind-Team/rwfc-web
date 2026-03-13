@@ -20,7 +20,13 @@ public record RoomDto(
     int? AverageVR,
     RaceDto? Race,
     bool Suspend
-);
+)
+{
+    public string RoomType => RoomDtoExtensions.GetRoomType(this);
+    public bool IsPublic => RoomDtoExtensions.IsPublic(this);
+    public bool IsJoinable => RoomDtoExtensions.IsJoinable(this);
+    public bool IsSuspended => Suspend;
+}
 
 public record RoomPlayerDto(
     string Pid,

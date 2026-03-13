@@ -1,8 +1,8 @@
-﻿using RetroRewindWebsite.Models.DTOs.Player;
-using RetroRewindWebsite.Models.DTOs.Room;
+﻿using RetroRewindWebsite.Models.DTOs.Room;
 using RetroRewindWebsite.Models.External;
 using RetroRewindWebsite.Services.External;
 using System.Collections.Concurrent;
+using RetroRewindWebsite.Mappers;
 
 namespace RetroRewindWebsite.Services.Application;
 
@@ -124,87 +124,12 @@ public class RoomStatusService : IRoomStatusService
 
     private RoomStatusResponseDto CreateResponseDto(RoomStatusSnapshot snapshot) =>
         new(
-            Rooms: [.. snapshot.Rooms.Select(MapToRoomDto)],
+            Rooms: [.. snapshot.Rooms.Select(RoomMapper.ToDto)],
             Timestamp: snapshot.Timestamp,
             Id: snapshot.Id,
             MinimumId: GetMinimumId(),
             MaximumId: GetMaximumId()
         );
-
-    private static RoomDto MapToRoomDto(Group group)
-    {
-        var players = group.Players.Values.Select(MapToRoomPlayerDto).ToList();
-
-        var playersWithVR = players.Where(p => p.VR is > 0).ToList();
-        int? averageVR = playersWithVR.Count > 0
-            ? (int)Math.Round(playersWithVR.Average(p => p.VR!.Value))
-            : null;
-
-        return new RoomDto(
-            Id: group.Id,
-            Type: group.Type,
-            Created: group.Created,
-            Host: group.Host,
-            Rk: group.Rk,
-            Players: players,
-            AverageVR: averageVR,
-            Race: group.Race != null
-                ? new RaceDto(group.Race.Num, group.Race.Course, group.Race.Cc)
-                : null,
-            Suspend: group.Suspend
-        );
-    }
-
-    private static RoomPlayerDto MapToRoomPlayerDto(ExternalPlayer player)
-    {
-        var connectionMap = string.IsNullOrEmpty(player.Conn_map)
-            ? new List<string>()
-            : [.. player.Conn_map.Select(c => c.ToString())];
-
-        var mii = player.Mii?.FirstOrDefault() is { } firstMii
-            ? new MiiDto(firstMii.Data, firstMii.Name)
-            : null;
-
-        return new RoomPlayerDto(
-            Pid: player.Pid,
-            Name: player.Name,
-            FriendCode: player.Fc,
-            VR: string.IsNullOrEmpty(player.Ev) ? null : player.VR,
-            BR: string.IsNullOrEmpty(player.Eb) ? null : player.BR,
-            IsOpenHost: player.IsOpenHost,
-            IsSuspended: player.IsSuspended,
-            Mii: mii,
-            ConnectionMap: connectionMap
-        );
-    }
-
-    private static string GetRoomType(string? rk) => rk switch
-    {
-        "vs_10" => "Retro Tracks",
-        "vs_11" => "Online TT",
-        "vs_12" => "200cc",
-        "vs_13" => "Item Rain",
-        "vs_14" => "Regular Battle",
-        "bt_15" => "Elimination Battle",
-        "vs_20" => "Custom Tracks",
-        "vs_21" => "Vanilla Tracks",
-        "vs_666" => "Luminous 150cc",
-        "vs_667" => "Luminous Online TT",
-        "vs_668" => "CTGP-C",
-        "vs_669" => "CTGP-C Online TT",
-        "vs_670" => "CTGP-C Placeholder",
-        "vs_751" => "Versus",
-        "vs_-1" or "vs" => "Regular",
-        "vs_875" => "OptPack 150cc",
-        "vs_876" => "OptPack Online TT",
-        "vs_877" or "vs_878" or "vs_879" or "vs_880" => "OptPack",
-        "vs_1312" => "WTP 150cc",
-        "vs_1313" => "WTP 200cc",
-        "vs_1314" => "WTP Online TT",
-        "vs_1315" => "WTP Item Rain",
-        "vs_1316" => "WTP STYD",
-        _ => string.Empty
-    };
 
     private class RoomStatusSnapshot
     {

@@ -108,6 +108,14 @@ public class LeaderboardSyncService : ILeaderboardSyncService
         }
     }
 
+    /// <summary>
+    /// Updates the properties of an existing player entity based on data from an external player source.
+    /// </summary>
+    /// <remarks>This method synchronizes key fields such as name, friend code, and VR value. If the VR value
+    /// changes, it checks for suspicious status updates. Mii data changes will invalidate cached images. The method
+    /// also updates the timestamps for last seen and last updated.</remarks>
+    /// <param name="existingPlayer">The player entity to update. Must not be null.</param>
+    /// <param name="apiPlayer">The external player data used to update the existing player. Must not be null.</param>
     private void UpdateExistingPlayer(PlayerEntity existingPlayer, ExternalPlayer apiPlayer)
     {
         var previousVR = existingPlayer.Ev;
@@ -146,6 +154,15 @@ public class LeaderboardSyncService : ILeaderboardSyncService
         existingPlayer.LastUpdated = DateTime.UtcNow;
     }
 
+    /// <summary>
+    /// Records the player's VR history and updates their recent VR gain statistics asynchronously.
+    /// </summary>
+    /// <remarks>Updates the player's VR gain for the last 24 hours, week, and month after recording the VR
+    /// change. If an error occurs during tracking, a warning is logged and the player's statistics may not be
+    /// updated.</remarks>
+    /// <param name="player">The player entity whose VR history is being tracked. Cannot be null.</param>
+    /// <param name="previousVR">The previous VR value for the player, used to calculate the VR change.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     private async Task TrackVRHistoryAsync(PlayerEntity player, int previousVR)
     {
         try
@@ -177,6 +194,15 @@ public class LeaderboardSyncService : ILeaderboardSyncService
         }
     }
 
+    /// <summary>
+    /// Extracts a list of external players from the specified groups, including only those players with a positive VR
+    /// value and belonging to allowed room types.
+    /// </summary>
+    /// <remarks>Groups with a non-empty room type that is not allowed are skipped. Only players with a
+    /// positive VR value are included in the result.</remarks>
+    /// <param name="groups">A list of groups from which to extract external players. Only groups with allowed room types are considered.</param>
+    /// <returns>A list of external players with a VR value greater than zero from the allowed groups. The list will be empty if
+    /// no matching players are found.</returns>
     private static List<ExternalPlayer> ExtractPlayersFromGroups(List<Group> groups)
     {
         var players = new List<ExternalPlayer>();
@@ -196,6 +222,14 @@ public class LeaderboardSyncService : ILeaderboardSyncService
         return players;
     }
 
+    /// <summary>
+    /// Creates a new player entity based on the provided external player data.
+    /// </summary>
+    /// <remarks>The returned entity is initialized with default values for certain fields, such as rank and
+    /// VR gain statistics. The Mii data is extracted from the first available Mii entry, or set to an empty string if
+    /// none are present.</remarks>
+    /// <param name="apiPlayer">The external player information used to populate the player entity. Cannot be null.</param>
+    /// <returns>A new instance of PlayerEntity initialized with data from the specified external player.</returns>
     private static PlayerEntity CreatePlayerEntity(ExternalPlayer apiPlayer)
     {
         var miiData = apiPlayer.Mii?.FirstOrDefault()?.Data ?? string.Empty;

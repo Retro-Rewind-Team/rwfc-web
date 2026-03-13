@@ -116,11 +116,27 @@ public class MiiBatchService : IMiiBatchService
         return result;
     }
 
+    /// <summary>
+    /// Determines whether the player's Mii image is cached and still valid based on the cache duration.
+    /// </summary>
+    /// <remarks>The cache is considered valid if the player's Mii image is present and was fetched within the
+    /// configured cache duration. This method does not refresh or update the cache.</remarks>
+    /// <param name="player">The player entity whose Mii image cache status is being evaluated. Cannot be null.</param>
+    /// <returns>A value indicating whether the player's Mii image is cached and has not expired. Returns <see langword="true"/>
+    /// if the image is cached and valid; otherwise, <see langword="false"/>.</returns>
     private static bool IsMiiImageCached(Models.Entities.Player.PlayerEntity player) =>
         !string.IsNullOrEmpty(player.MiiImageBase64) &&
         player.MiiImageFetchedAt.HasValue &&
         player.MiiImageFetchedAt.Value > DateTime.UtcNow.AddDays(-MiiImageCacheDays);
 
+    /// <summary>
+    /// Queues an asynchronous operation to store a Mii image for the specified player.
+    /// </summary>
+    /// <remarks>The operation is performed in a background task and does not block the calling thread. Any
+    /// exceptions encountered during the operation are logged and do not propagate to the caller.</remarks>
+    /// <param name="pid">The unique identifier of the player whose Mii image will be updated. Cannot be null.</param>
+    /// <param name="miiImage">The Mii image data to store for the player. Cannot be null.</param>
+    /// <param name="fc">The friend code associated with the player. Used for logging purposes.</param>
     private void QueueStoreMiiImageAsync(string pid, string miiImage, string fc)
     {
         _ = Task.Run(async () =>
@@ -139,6 +155,15 @@ public class MiiBatchService : IMiiBatchService
         });
     }
 
+    /// <summary>
+    /// Fetches the Mii image for the specified player and stores it asynchronously if available.
+    /// </summary>
+    /// <remarks>If the Mii image is successfully retrieved, it is queued for storage. If the operation times
+    /// out or encounters an error, the returned Mii image will be null. The method logs warnings for timeout and
+    /// failure scenarios.</remarks>
+    /// <param name="player">The player entity containing the friend code and Mii data used to retrieve the Mii image. Cannot be null.</param>
+    /// <returns>A tuple containing the player's friend code and the fetched Mii image as a string. The Mii image will be null if
+    /// the fetch operation fails or times out.</returns>
     private async Task<(string fc, string? mii)> FetchAndStoreMiiAsync(
         Models.Entities.Player.PlayerEntity player)
     {
@@ -166,6 +191,15 @@ public class MiiBatchService : IMiiBatchService
         }
     }
 
+    /// <summary>
+    /// Retrieves the legacy Mii image associated with the specified friend code and Mii data.
+    /// </summary>
+    /// <remarks>If the operation fails or times out, the returned Mii image will be null. The method applies
+    /// a timeout to the fetch operation to prevent indefinite waiting.</remarks>
+    /// <param name="fc">The friend code used to identify the user whose Mii image is to be fetched.</param>
+    /// <param name="miiData">The Mii data string used to generate or locate the legacy Mii image.</param>
+    /// <returns>A tuple containing the friend code and the Mii image as a string. The Mii image will be null if the fetch
+    /// operation fails.</returns>
     private async Task<(string fc, string? mii)> FetchLegacyMiiAsync(string fc, string miiData)
     {
         try

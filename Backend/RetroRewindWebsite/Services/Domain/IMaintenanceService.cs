@@ -3,7 +3,8 @@
 public interface IMaintenanceService
 {
     /// <summary>
-    /// Update VR gain statistics for all players (daily maintenance task)
+    /// Asynchronously updates the VR gain values for all players.
     /// </summary>
+    /// <returns>A task that represents the asynchronous update operation.</returns>
     Task UpdateAllPlayerVRGainsAsync();
 }
