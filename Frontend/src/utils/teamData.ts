@@ -136,13 +136,6 @@ export const teamData: Record<string, TeamMember[]> = {
     ],
     Moderators: [
         {
-            name: "Bodacious",
-            discord: "bodacious12",
-            role: "Discord Moderator",
-            image: "/profiles/Bodacious.png",
-            fc: "1212-1212-1245",
-        },
-        {
             name: "Dynohack",
             discord: "dynohack",
             role: "Discord Moderator",
@@ -150,17 +143,18 @@ export const teamData: Record<string, TeamMember[]> = {
             fc: "0001-0000-0011",
         },
         {
-            name: "nbats",
-            discord: "nbatman",
-            role: "Discord Moderator",
-            image: "/profiles/nbats.png",
-        },
-        {
             name: "Noël",
             discord: "noel1908",
             role: "Discord Moderator",
             image: "/profiles/noel.png",
             fc: "3316-1616-1616",
+        },
+        {
+            name: "wrkus",
+            discord: "wrkus",
+            role: "Community Staff",
+            image: "/profiles/wrkus.png",
+            fc: "3006-4772-3801",
         },
     ],
     "Community Staff": [
@@ -179,6 +173,13 @@ export const teamData: Record<string, TeamMember[]> = {
             fc: "2243-2234-2234",
         },
         {
+            name: "Fen",
+            discord: "fenixien",
+            role: "RWFC Moderator",
+            image: "/profiles/Fenixien.png",
+            fc: "0654-0090-0000",
+        },
+        {
             name: "HyperLexus",
             discord: "hyperlexus",
             role: "Community Staff",
@@ -191,13 +192,6 @@ export const teamData: Record<string, TeamMember[]> = {
             role: "Community Staff",
             image: "/profiles/Zeraora.png",
             fc: "1165-6565-6533",
-        },
-        {
-            name: "wrkus",
-            discord: "wrkus",
-            role: "Community Staff",
-            image: "/profiles/wrkus.png",
-            fc: "3006-4772-3801",
         },
     ],
     "RWFC Moderators": [
@@ -242,6 +236,13 @@ export const teamData: Record<string, TeamMember[]> = {
             role: "RWFC Moderator",
             image: "/profiles/Eggzact.png",
             fc: "2243-2234-2234",
+        },
+        {
+            name: "Fen",
+            discord: "fenixien",
+            role: "RWFC Moderator",
+            image: "/profiles/Fenixien.png",
+            fc: "0654-0090-0000",
         },
         {
             name: "Flavian",
