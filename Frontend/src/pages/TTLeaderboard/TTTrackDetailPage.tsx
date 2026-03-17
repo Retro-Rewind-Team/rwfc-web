@@ -25,28 +25,6 @@ export default function TTTrackDetailPage() {
 
     const ttTrack = useTTTrackDetail(trackId, selectedCC, glitchAllowed, mode);
 
-    const flapHolder = () => {
-        if (mode() !== "regular") return null;
-        const flapMs = ttTrack.flapQuery.data?.fastestLapMs;
-        if (!flapMs) return null;
-        const submissions = ttTrack.leaderboardQuery.data?.submissions ?? [];
-        for (const submission of submissions) {
-            for (let i = 0; i < submission.lapSplitsMs.length; i++) {
-                if (submission.lapSplitsMs[i] === flapMs) {
-                    return {
-                        playerName: submission.playerName,
-                        miiName: submission.miiName,
-                        lapNumber: i + 1,
-                        time: ttTrack.flapQuery.data!.fastestLapDisplay,
-                        shroomless: submission.shroomless,
-                        glitch: submission.glitch,
-                    };
-                }
-            }
-        }
-        return null;
-    };
-
     const categoryLabel = () => {
         const parts: string[] = [];
         if (mode() === "flap") parts.push("Flap");
@@ -128,32 +106,6 @@ export default function TTTrackDetailPage() {
                                             <span class="capitalize">{track().category} Track</span>
                                         </div>
                                     </div>
-
-                                    {/* FLAP display — only in regular mode */}
-                                    <Show when={mode() === "regular" && flapHolder()}>
-                                        {(holder) => (
-                                            <div class="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-3">
-                                                <div class="text-xs text-white/70 uppercase tracking-wide font-semibold mb-1">
-                                                    Track FLAP
-                                                </div>
-                                                <div class="text-2xl font-black text-green-300 mb-1">
-                                                    {holder().time}
-                                                </div>
-                                                <div class="text-xs text-white/80">
-                                                    <div class="font-semibold">{holder().playerName}</div>
-                                                    <div class="flex items-center gap-2 mt-1">
-                                                        <span>Lap {holder().lapNumber}</span>
-                                                        <Show when={holder().shroomless}>
-                                                            <span class="bg-yellow-100/20 text-yellow-200 px-1.5 py-0.5 rounded text-xs">🍄</span>
-                                                        </Show>
-                                                        <Show when={holder().glitch}>
-                                                            <span class="bg-purple-100/20 text-purple-200 px-1.5 py-0.5 rounded text-xs">⚡</span>
-                                                        </Show>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </Show>
                                 </div>
                             </div>
 
