@@ -116,16 +116,6 @@ export default function TTPlayerProfilePage() {
                         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
                             <div class="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
                                 <div class="flex items-center space-x-6">
-                                    {/* Player Image Placeholder */}
-                                    <div class="flex-shrink-0">
-                                        <div class="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                                            <svg class="w-14 h-14 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                                            </svg>
-                                            {/* Future: Replace with <img src={profile().imageUrl} /> */}
-                                        </div>
-                                    </div>
-                                    
                                     <div>
                                         <div class="flex items-center gap-3 mb-2">
                                             <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
