@@ -38,6 +38,7 @@ export interface GhostSubmission {
     driftCategory: number;
     shroomless: boolean;
     glitch: boolean;
+    isFlap: boolean;
     miiName: string;
     lapCount: number;
     lapSplitsMs: number[];
@@ -56,6 +57,7 @@ export interface TrackLeaderboard {
     glitchAllowed: boolean;
     shroomless: boolean | null;
     vehicleFilter: string | null;
+    isFlap: boolean;
     submissions: GhostSubmission[];
     totalSubmissions: number;
     currentPage: number;
@@ -99,8 +101,9 @@ export interface TTPlayerStats {
     top10Count: number;
 }
 
-// Filter types shared across hooks and components
 export type VehicleFilter = "all" | "karts" | "bikes";
 export type ShroomlessFilter = "all" | "only" | "exclude";
 export type DriftFilter = "all" | "manual" | "hybrid";
 export type DriftCategoryFilter = "all" | "inside" | "outside";
+
+export type LeaderboardMode = "regular" | "flap";

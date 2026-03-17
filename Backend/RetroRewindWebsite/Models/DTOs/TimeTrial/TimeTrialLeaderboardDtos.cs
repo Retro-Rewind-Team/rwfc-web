@@ -6,6 +6,7 @@ public record TrackLeaderboardDto(
     bool GlitchAllowed,
     bool? Shroomless,
     string? VehicleFilter,
+    bool IsFlap,
     List<GhostSubmissionDto> Submissions,
     int TotalSubmissions,
     int CurrentPage,

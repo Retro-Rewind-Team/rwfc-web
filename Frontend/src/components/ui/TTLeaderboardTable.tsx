@@ -8,6 +8,7 @@ interface TTLeaderboardTableProps {
     submissions: GhostSubmission[];
     fastestLapMs: number | null;
     trackLaps: number;
+    isFlap: boolean;
     onDownloadGhost: (submission: GhostSubmission) => void;
 }
 
@@ -68,38 +69,37 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
         );
     };
 
+    // In flap mode the primary time shown is fastest lap, not finish time
+    const primaryTimeDisplay = (submission: GhostSubmission) =>
+        props.isFlap ? submission.fastestLapDisplay : submission.finishTimeDisplay;
+
+    const headerColor = () => props.isFlap ? "bg-orange-500" : "bg-blue-600";
+
     return (
         <div class="overflow-x-auto">
             <table class="w-full">
-                <thead class="bg-blue-600 text-white">
+                <thead class={`${headerColor()} text-white`}>
                     <tr>
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Rank</th>
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Player</th>
                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                            Rank
+                            {props.isFlap ? "Fastest Lap" : "Time"}
                         </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                            Player
-                        </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                            Time
-                        </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden md:table-cell">
-                            Fastest Lap
-                        </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden lg:table-cell">
-                            Character
-                        </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden lg:table-cell">
-                            Vehicle
-                        </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">
-                            Controller
-                        </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">
-                            Date
-                        </th>
-                        <th class="px-2 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
-                            Actions
-                        </th>
+                        <Show when={!props.isFlap}>
+                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden md:table-cell">
+                                Fastest Lap
+                            </th>
+                        </Show>
+                        <Show when={props.isFlap}>
+                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden md:table-cell">
+                                Finish Time
+                            </th>
+                        </Show>
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden lg:table-cell">Character</th>
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden lg:table-cell">Vehicle</th>
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">Controller</th>
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">Date</th>
+                        <th class="px-2 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -112,7 +112,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                             return (
                                 <>
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                        {/* Rank — from backend, Olympic-style */}
+                                        {/* Rank */}
                                         <td class="px-3 sm:px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center justify-center sm:justify-start">
                                                 {getRankDisplay(submission.rank)}
@@ -143,11 +143,15 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                             </A>
                                         </td>
 
-                                        {/* Time */}
+                                        {/* Primary time — fastest lap in flap mode, finish time in regular */}
                                         <td class="px-3 sm:px-6 py-4">
                                             <div class="flex flex-col gap-1">
-                                                <div class="text-base sm:text-lg font-bold text-blue-600 dark:text-blue-400 whitespace-nowrap">
-                                                    {submission.finishTimeDisplay}
+                                                <div class={`text-base sm:text-lg font-bold whitespace-nowrap ${
+                                                    props.isFlap
+                                                        ? "text-orange-500 dark:text-orange-400"
+                                                        : "text-blue-600 dark:text-blue-400"
+                                                }`}>
+                                                    {primaryTimeDisplay(submission)}
                                                 </div>
                                                 <div class="flex gap-1">
                                                     <Show when={submission.shroomless}>
@@ -161,42 +165,56 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                         </span>
                                                     </Show>
                                                 </div>
-                                                {/* FLAP inline on mobile */}
+                                                {/* Secondary time inline on mobile */}
                                                 <div class="md:hidden">
-                                                    <div class="flex items-center gap-2">
-                                                        <span class={`font-mono text-xs font-medium ${
-                                                            holdsFLAP
-                                                                ? "text-green-600 dark:text-green-400 font-bold"
-                                                                : "text-gray-600 dark:text-gray-400"
-                                                        }`}>
-                                                            FL: {submission.fastestLapDisplay}
+                                                    <Show when={props.isFlap}>
+                                                        <span class="font-mono text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                            Finish: {submission.finishTimeDisplay}
                                                         </span>
-                                                        <Show when={holdsFLAP}>
-                                                            <span class="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide">
-                                                                FLAP
+                                                    </Show>
+                                                    <Show when={!props.isFlap}>
+                                                        <div class="flex items-center gap-2">
+                                                            <span class={`font-mono text-xs font-medium ${
+                                                                holdsFLAP
+                                                                    ? "text-green-600 dark:text-green-400 font-bold"
+                                                                    : "text-gray-600 dark:text-gray-400"
+                                                            }`}>
+                                                                FL: {submission.fastestLapDisplay}
                                                             </span>
-                                                        </Show>
-                                                    </div>
+                                                            <Show when={holdsFLAP}>
+                                                                <span class="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide">
+                                                                    FLAP
+                                                                </span>
+                                                            </Show>
+                                                        </div>
+                                                    </Show>
                                                 </div>
                                             </div>
                                         </td>
 
-                                        {/* Fastest Lap */}
+                                        {/* Secondary time column — desktop */}
                                         <td class="px-3 sm:px-6 py-4 whitespace-nowrap hidden md:table-cell">
-                                            <div class="flex items-center gap-2">
-                                                <span class={`font-mono text-sm font-medium ${
-                                                    holdsFLAP
-                                                        ? "text-green-600 dark:text-green-400 font-bold"
-                                                        : "text-gray-700 dark:text-gray-300"
-                                                }`}>
-                                                    {submission.fastestLapDisplay}
+                                            <Show when={props.isFlap}>
+                                                <span class="font-mono text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                    {submission.finishTimeDisplay}
                                                 </span>
-                                                <Show when={holdsFLAP}>
-                                                    <span class="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">
-                                                        FLAP
+                                            </Show>
+                                            <Show when={!props.isFlap}>
+                                                <div class="flex items-center gap-2">
+                                                    <span class={`font-mono text-sm font-medium ${
+                                                        holdsFLAP
+                                                            ? "text-green-600 dark:text-green-400 font-bold"
+                                                            : "text-gray-700 dark:text-gray-300"
+                                                    }`}>
+                                                        {submission.fastestLapDisplay}
                                                     </span>
-                                                </Show>
-                                            </div>
+                                                    <Show when={holdsFLAP}>
+                                                        <span class="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">
+                                                            FLAP
+                                                        </span>
+                                                    </Show>
+                                                </div>
+                                            </Show>
                                         </td>
 
                                         {/* Character */}
@@ -259,7 +277,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                         </td>
                                     </tr>
 
-                                    {/* Expanded Row — Lap Splits */}
+                                    {/* Expanded Row */}
                                     <Show when={isExpanded()}>
                                         <tr class="bg-gray-50 dark:bg-gray-800/50">
                                             <td colspan="9" class="px-3 sm:px-6 py-4">
@@ -330,6 +348,14 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                                         {submission.fastestLapDisplay}
                                                                     </span>
                                                                 </div>
+                                                                <Show when={props.isFlap}>
+                                                                    <div class="flex justify-between">
+                                                                        <span class="text-gray-600 dark:text-gray-400">Finish Time:</span>
+                                                                        <span class="font-mono font-medium text-gray-900 dark:text-white">
+                                                                            {submission.finishTimeDisplay}
+                                                                        </span>
+                                                                    </div>
+                                                                </Show>
                                                             </div>
                                                             {/* Mobile: extra details */}
                                                             <div class="lg:hidden pt-2 mt-2 border-t border-gray-200 dark:border-gray-600 space-y-1 text-sm">

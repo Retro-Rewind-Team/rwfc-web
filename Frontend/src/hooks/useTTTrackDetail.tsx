@@ -1,18 +1,19 @@
 import { createEffect, createSignal } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { timeTrialApi } from "../services/api/timeTrial";
-import { GhostSubmission, DriftFilter, DriftCategoryFilter, ShroomlessFilter, VehicleFilter } from "../types/timeTrial";
+import { GhostSubmission, DriftFilter, DriftCategoryFilter, ShroomlessFilter, VehicleFilter, LeaderboardMode } from "../types/timeTrial";
 
 export function useTTTrackDetail(
     trackId: () => number,
     cc: () => 150 | 200,
-    glitchAllowed: () => boolean
+    glitchAllowed: () => boolean,
+    mode: () => LeaderboardMode
 ) {
-    // Category filters — sent to server, affect BKT/WR/FLAP
+    // Category filters — server-side, affect BKT/WR/FLAP
     const [shroomlessFilter, setShroomlessFilter] = createSignal<ShroomlessFilter>("all");
     const [vehicleFilter, setVehicleFilter] = createSignal<VehicleFilter>("all");
 
-    // Display-only filters — applied client-side, do not affect BKT
+    // Display-only filters — client-side, do not affect BKT
     const [driftFilter, setDriftFilter] = createSignal<DriftFilter>("all");
     const [driftCategoryFilter, setDriftCategoryFilter] = createSignal<DriftCategoryFilter>("all");
 
@@ -20,10 +21,11 @@ export function useTTTrackDetail(
     const [currentPage, setCurrentPage] = createSignal(1);
     const [pageSize, setPageSize] = createSignal(10);
 
-    // Reset page when any server-side filter or CC changes
+    // Reset page when any server-side filter, CC, glitch, or mode changes
     createEffect(() => {
         cc();
         glitchAllowed();
+        mode();
         shroomlessFilter();
         vehicleFilter();
         setCurrentPage(1);
@@ -36,30 +38,33 @@ export function useTTTrackDetail(
         staleTime: 1000 * 60 * 60,
     }));
 
-    // Fetch leaderboard — server applies category filters
+    // Fetch leaderboard — switches between regular and flap based on mode
     const leaderboardQuery = useQuery(() => ({
         queryKey: [
             "tt-leaderboard",
             trackId(),
             cc(),
             glitchAllowed(),
+            mode(),
             shroomlessFilter(),
             vehicleFilter(),
             currentPage(),
             pageSize(),
         ],
-        queryFn: () => timeTrialApi.getLeaderboard(
-            trackId(),
-            cc(),
-            glitchAllowed(),
-            shroomlessFilter(),
-            vehicleFilter(),
-            currentPage(),
-            pageSize()
-        ),
+        queryFn: () => mode() === "flap"
+            ? timeTrialApi.getFlapLeaderboard(
+                trackId(), cc(), glitchAllowed(),
+                shroomlessFilter(), vehicleFilter(),
+                currentPage(), pageSize()
+            )
+            : timeTrialApi.getLeaderboard(
+                trackId(), cc(), glitchAllowed(),
+                shroomlessFilter(), vehicleFilter(),
+                currentPage(), pageSize()
+            ),
     }));
 
-    // Fetch FLAP separately so it reflects the full category, not just the current page
+    // FLAP — only relevant in regular mode, not shown in flap mode
     const flapQuery = useQuery(() => ({
         queryKey: [
             "tt-flap",
@@ -70,15 +75,14 @@ export function useTTTrackDetail(
             vehicleFilter(),
         ],
         queryFn: () => timeTrialApi.getFastestLap(
-            trackId(),
-            cc(),
-            glitchAllowed(),
-            shroomlessFilter(),
-            vehicleFilter()
+            trackId(), cc(), glitchAllowed(),
+            shroomlessFilter(), vehicleFilter()
         ),
+        // Don't fetch FLAP when in flap mode — the leaderboard itself is the flap data
+        enabled: mode() === "regular",
     }));
 
-    // Fetch WR history — server applies category filters
+    // WR history — only shown in regular mode
     const wrHistoryQuery = useQuery(() => ({
         queryKey: [
             "tt-wr-history",
@@ -89,16 +93,13 @@ export function useTTTrackDetail(
             vehicleFilter(),
         ],
         queryFn: () => timeTrialApi.getWorldRecordHistory(
-            trackId(),
-            cc(),
-            glitchAllowed(),
-            shroomlessFilter(),
-            vehicleFilter()
+            trackId(), cc(), glitchAllowed(),
+            shroomlessFilter(), vehicleFilter()
         ),
+        enabled: mode() === "regular",
     }));
 
     // Apply display-only filters (drift type/category) client-side
-    // These do not affect BKT, WR, or FLAP — purely cosmetic table filtering
     const filteredSubmissions = () => {
         const submissions = leaderboardQuery.data?.submissions ?? [];
         const drift = driftFilter();
@@ -113,7 +114,6 @@ export function useTTTrackDetail(
         });
     };
 
-    // Apply display-only filters to WR history as well
     const filteredWRHistory = () => {
         const history = wrHistoryQuery.data ?? [];
         const drift = driftFilter();
@@ -128,29 +128,17 @@ export function useTTTrackDetail(
         });
     };
 
-    // Reset page when display filters change too, since filtered count may change
+    // Reset page when display filters change
     createEffect(() => {
         driftFilter();
         driftCategoryFilter();
         setCurrentPage(1);
     });
 
-    const handleShroomlessFilterChange = (filter: ShroomlessFilter) => {
-        setShroomlessFilter(filter);
-    };
-
-    const handleVehicleFilterChange = (filter: VehicleFilter) => {
-        setVehicleFilter(filter);
-    };
-
-    const handleDriftFilterChange = (filter: DriftFilter) => {
-        setDriftFilter(filter);
-    };
-
-    const handleDriftCategoryFilterChange = (filter: DriftCategoryFilter) => {
-        setDriftCategoryFilter(filter);
-    };
-
+    const handleShroomlessFilterChange = (filter: ShroomlessFilter) => setShroomlessFilter(filter);
+    const handleVehicleFilterChange = (filter: VehicleFilter) => setVehicleFilter(filter);
+    const handleDriftFilterChange = (filter: DriftFilter) => setDriftFilter(filter);
+    const handleDriftCategoryFilterChange = (filter: DriftCategoryFilter) => setDriftCategoryFilter(filter);
     const handlePageSizeChange = (size: number) => {
         setPageSize(size);
         setCurrentPage(1);
@@ -175,8 +163,10 @@ export function useTTTrackDetail(
     const refreshAll = () => {
         trackQuery.refetch();
         leaderboardQuery.refetch();
-        flapQuery.refetch();
-        wrHistoryQuery.refetch();
+        if (mode() === "regular") {
+            flapQuery.refetch();
+            wrHistoryQuery.refetch();
+        }
     };
 
     return {

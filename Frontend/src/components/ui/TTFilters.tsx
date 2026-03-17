@@ -1,12 +1,13 @@
 import { A } from "@solidjs/router";
 import { Show } from "solid-js";
-import { DriftCategoryFilter, DriftFilter, ShroomlessFilter, VehicleFilter } from "../../types/timeTrial";
+import { DriftCategoryFilter, DriftFilter, LeaderboardMode, ShroomlessFilter, VehicleFilter } from "../../types/timeTrial";
 
 interface TTFiltersProps {
     trackId: number;
     trackSupportsGlitch: boolean;
     currentCC: 150 | 200;
     currentGlitchAllowed: boolean;
+    currentMode: LeaderboardMode;
     shroomlessFilter: ShroomlessFilter;
     vehicleFilter: VehicleFilter;
     driftFilter: DriftFilter;
@@ -19,6 +20,13 @@ interface TTFiltersProps {
     onPageSizeChange: (size: number) => void;
 }
 
+// Builds the route for a given combination of cc, glitch, and mode
+function buildRoute(trackId: number, cc: 150 | 200, glitchAllowed: boolean, mode: LeaderboardMode): string {
+    const flapPrefix = mode === "flap" ? "flap-" : "";
+    const glitchPrefix = !glitchAllowed ? "no-glitch-" : "";
+    return `/timetrial/${flapPrefix}${glitchPrefix}${cc}cc/${trackId}`;
+}
+
 export default function TTFilters(props: TTFiltersProps) {
     return (
         <div class="space-y-4">
@@ -29,9 +37,7 @@ export default function TTFilters(props: TTFiltersProps) {
                 </label>
                 <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
                     <A
-                        href={props.currentGlitchAllowed
-                            ? `/timetrial/150cc/${props.trackId}`
-                            : `/timetrial/no-glitch-150cc/${props.trackId}`}
+                        href={buildRoute(props.trackId, 150, props.currentGlitchAllowed, props.currentMode)}
                         class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
                             props.currentCC === 150
                                 ? "bg-green-600 text-white shadow-sm"
@@ -41,9 +47,7 @@ export default function TTFilters(props: TTFiltersProps) {
                         150cc
                     </A>
                     <A
-                        href={props.currentGlitchAllowed
-                            ? `/timetrial/200cc/${props.trackId}`
-                            : `/timetrial/no-glitch-200cc/${props.trackId}`}
+                        href={buildRoute(props.trackId, 200, props.currentGlitchAllowed, props.currentMode)}
                         class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
                             props.currentCC === 200
                                 ? "bg-sky-600 text-white shadow-sm"
@@ -63,7 +67,7 @@ export default function TTFilters(props: TTFiltersProps) {
                     </label>
                     <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
                         <A
-                            href={`/timetrial/${props.currentCC}cc/${props.trackId}`}
+                            href={buildRoute(props.trackId, props.currentCC, true, props.currentMode)}
                             class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
                                 props.currentGlitchAllowed
                                     ? "bg-blue-600 text-white shadow-sm"
@@ -73,7 +77,7 @@ export default function TTFilters(props: TTFiltersProps) {
                             Unrestricted
                         </A>
                         <A
-                            href={`/timetrial/no-glitch-${props.currentCC}cc/${props.trackId}`}
+                            href={buildRoute(props.trackId, props.currentCC, false, props.currentMode)}
                             class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
                                 !props.currentGlitchAllowed
                                     ? "bg-green-600 text-white shadow-sm"
@@ -86,7 +90,36 @@ export default function TTFilters(props: TTFiltersProps) {
                 </div>
             </Show>
 
-            {/* All filters grid */}
+            {/* Flap Mode Toggle */}
+            <div>
+                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    Leaderboard Type
+                </label>
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
+                    <A
+                        href={buildRoute(props.trackId, props.currentCC, props.currentGlitchAllowed, "regular")}
+                        class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
+                            props.currentMode === "regular"
+                                ? "bg-blue-600 text-white shadow-sm"
+                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                        }`}
+                    >
+                        Regular
+                    </A>
+                    <A
+                        href={buildRoute(props.trackId, props.currentCC, props.currentGlitchAllowed, "flap")}
+                        class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
+                            props.currentMode === "flap"
+                                ? "bg-orange-500 text-white shadow-sm"
+                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                        }`}
+                    >
+                        ⚡ Flap
+                    </A>
+                </div>
+            </div>
+
+            {/* Category + display filters grid */}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {/* Vehicle Type */}
                 <div>

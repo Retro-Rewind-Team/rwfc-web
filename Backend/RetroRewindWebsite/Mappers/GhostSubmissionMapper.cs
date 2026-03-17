@@ -7,7 +7,7 @@ namespace RetroRewindWebsite.Mappers;
 public static class GhostSubmissionMapper
 {
     /// <summary>
-    /// Maps a single entity without rank context (WR fetch, profile view, etc.)
+    /// Maps a single entity without rank context.
     /// </summary>
     public static GhostSubmissionDetailDto ToDto(GhostSubmissionEntity entity, int? rank = null)
     {
@@ -35,6 +35,7 @@ public static class GhostSubmissionMapper
             DriftType: entity.DriftType,
             Shroomless: entity.Shroomless,
             Glitch: entity.Glitch,
+            IsFlap: entity.IsFlap,
             DriftCategory: entity.DriftCategory,
             MiiName: entity.MiiName,
             LapCount: entity.LapCount,
@@ -58,7 +59,7 @@ public static class GhostSubmissionMapper
     }
 
     /// <summary>
-    /// Maps a page of leaderboard results with Olympic-style ranks (1,1,3).
+    /// Maps a page of regular leaderboard results with Olympic-style ranks (1,1,3).
     /// Rankings are based purely on FinishTimeMs, ties are draws.
     /// pageOffset is (currentPage - 1) * pageSize so ranks are globally correct across pages.
     /// </summary>
@@ -67,7 +68,6 @@ public static class GhostSubmissionMapper
         int pageOffset)
     {
         var result = new List<GhostSubmissionDetailDto>(entities.Count);
-        _ = pageOffset + 1;
 
         for (int i = 0; i < entities.Count; i++)
         {
@@ -81,6 +81,40 @@ public static class GhostSubmissionMapper
             else
             {
                 rank = entities[i].FinishTimeMs == entities[i - 1].FinishTimeMs
+                    ? result[i - 1].Rank!.Value
+                    : globalIndex + 1;
+            }
+
+            result.Add(ToDto(entities[i], rank));
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Maps a page of flap leaderboard results with Olympic-style ranks (1,1,3).
+    /// Rankings based on FastestLapMs (MIN of lap splits) — ties are draws.
+    /// Since the SQL already sorted by fastest lap, we compare adjacent fastest laps.
+    /// </summary>
+    public static List<GhostSubmissionDetailDto> ToFlapLeaderboardDtos(
+        IList<GhostSubmissionEntity> entities,
+        int pageOffset)
+    {
+        var result = new List<GhostSubmissionDetailDto>(entities.Count);
+
+        for (int i = 0; i < entities.Count; i++)
+        {
+            int globalIndex = pageOffset + i;
+            int rank;
+
+            if (i == 0)
+            {
+                rank = globalIndex + 1;
+            }
+            else
+            {
+                // Rank by fastest lap
+                rank = GetFastestLap(entities[i].LapSplitsMs) == GetFastestLap(entities[i - 1].LapSplitsMs)
                     ? result[i - 1].Rank!.Value
                     : globalIndex + 1;
             }

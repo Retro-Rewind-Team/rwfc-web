@@ -316,7 +316,8 @@ public class ModerationController : ControllerBase
                 DateSet = ghostData.DateSet,
                 SubmittedAt = DateTime.UtcNow,
                 Shroomless = request.Shroomless,
-                Glitch = request.Glitch
+                Glitch = request.Glitch,
+                IsFlap = request.IsFlap
             };
 
             await _ghostSubmissionRepository.AddAsync(submission);

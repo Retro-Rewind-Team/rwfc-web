@@ -121,6 +121,7 @@ public class TimeTrialController : ControllerBase
                 glitchAllowed,
                 shroomlessFilter,
                 vehicle,
+                IsFlap: false,
                 submissions.Cast<GhostSubmissionDto>().ToList(),
                 pagedResult.TotalCount,
                 pagedResult.CurrentPage,
@@ -135,6 +136,65 @@ public class TimeTrialController : ControllerBase
             _logger.LogError(ex, "Error retrieving leaderboard for track {TrackId} {CC}cc", trackId, cc);
             return StatusCode(StatusCodes.Status500InternalServerError,
                 "An error occurred while retrieving leaderboard");
+        }
+    }
+
+    [HttpGet("leaderboard/flap")]
+    public async Task<ActionResult<TrackLeaderboardDto>> GetFlapLeaderboard(
+        [FromQuery] int trackId,
+        [FromQuery] short cc,
+        [FromQuery] bool glitchAllowed = true,
+        [FromQuery] string? shroomless = null,
+        [FromQuery] string? vehicle = null,
+        [FromQuery] int page = MinPage,
+        [FromQuery] int pageSize = DefaultPageSize)
+    {
+        try
+        {
+            var ccValidation = ValidateCc(cc);
+            if (ccValidation != null) return ccValidation;
+
+            page = Math.Max(MinPage, page);
+            pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
+
+            var track = await _trackRepository.GetByIdAsync(trackId);
+            if (track == null)
+                return NotFound($"Track with ID {trackId} not found");
+
+            var (shroomlessFilter, vehicleMin, vehicleMax) = ParseCategoryFilters(shroomless, vehicle);
+
+            var pagedResult = await _ghostSubmissionRepository.GetFlapLeaderboardAsync(
+                trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax, page, pageSize);
+
+            var pageOffset = (page - 1) * pageSize;
+            var submissions = GhostSubmissionMapper.ToFlapLeaderboardDtos(pagedResult.Items, pageOffset);
+
+            // FLAP for flap leaderboard is just the fastest lap among flap submissions
+            var flapMs = submissions.Count > 0
+                ? submissions.Min(s => s.FastestLapMs)
+                : (int?)null;
+
+            return Ok(new TrackLeaderboardDto(
+                MapToTrackDto(track),
+                cc,
+                glitchAllowed,
+                shroomlessFilter,
+                vehicle,
+                IsFlap: true,
+                submissions.Cast<GhostSubmissionDto>().ToList(),
+                pagedResult.TotalCount,
+                pagedResult.CurrentPage,
+                pagedResult.PageSize,
+                pagedResult.TotalPages,
+                flapMs,
+                flapMs.HasValue ? GhostSubmissionMapper.FormatLapTime(flapMs.Value) : null
+            ));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving flap leaderboard for track {TrackId} {CC}cc", trackId, cc);
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while retrieving flap leaderboard");
         }
     }
 
@@ -424,8 +484,6 @@ public class TimeTrialController : ControllerBase
             if (profile == null)
                 return NotFound($"Profile not found for ID {ttProfileId}");
 
-            var totalSubmissions = await _ghostSubmissionRepository.GetProfileSubmissionsCountAsync(profile.Id);
-
             var submissions150 = await _ghostSubmissionRepository.GetPlayerSubmissionsAsync(
                 profile.Id, 1, int.MaxValue, cc: CC_150);
             var submissions200 = await _ghostSubmissionRepository.GetPlayerSubmissionsAsync(
@@ -458,11 +516,6 @@ public class TimeTrialController : ControllerBase
         return null;
     }
 
-    /// <summary>
-    /// Parses shroomless and vehicle query string params into typed filter values.
-    /// shroomless: "only" = true, "exclude" = false, null/anything else = null (all)
-    /// vehicle: "karts" = 0-17, "bikes" = 18-35, null/anything else = null (all)
-    /// </summary>
     private static (bool? shroomless, short? vehicleMin, short? vehicleMax) ParseCategoryFilters(
         string? shroomless,
         string? vehicle)

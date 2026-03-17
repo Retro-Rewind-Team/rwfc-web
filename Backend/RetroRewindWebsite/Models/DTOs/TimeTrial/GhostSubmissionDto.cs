@@ -18,6 +18,7 @@ public record GhostSubmissionDto(
     short DriftType,
     bool Shroomless,
     bool Glitch,
+    bool IsFlap,
     short DriftCategory,
     string MiiName,
     short LapCount,
@@ -49,6 +50,7 @@ public record GhostSubmissionDetailDto(
     short DriftType,
     bool Shroomless,
     bool Glitch,
+    bool IsFlap,
     short DriftCategory,
     string MiiName,
     short LapCount,
@@ -69,7 +71,7 @@ public record GhostSubmissionDetailDto(
 ) : GhostSubmissionDto(
     Id, TrackId, TrackName, TTProfileId, PlayerName, CountryCode, CountryAlpha2, CountryName,
     CC, FinishTimeMs, FinishTimeDisplay, VehicleId, CharacterId, ControllerType,
-    DriftType, Shroomless, Glitch, DriftCategory, MiiName, LapCount, LapSplitsMs,
+    DriftType, Shroomless, Glitch, IsFlap, DriftCategory, MiiName, LapCount, LapSplitsMs,
     LapSplitsDisplay, FastestLapMs, FastestLapDisplay, GhostFilePath, DateSet, SubmittedAt, Rank
 );
 
@@ -81,4 +83,5 @@ public class GhostSubmissionRequest
     public int TtProfileId { get; set; }
     public bool Shroomless { get; set; }
     public bool Glitch { get; set; }
+    public bool IsFlap { get; set; }
 }

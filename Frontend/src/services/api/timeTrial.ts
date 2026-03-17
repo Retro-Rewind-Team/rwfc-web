@@ -55,6 +55,23 @@ export const timeTrialApi = {
         return apiRequest<TrackLeaderboard>(`/timetrial/leaderboard?${params}`);
     },
 
+    async getFlapLeaderboard(
+        trackId: number,
+        cc: 150 | 200,
+        glitchAllowed: boolean,
+        shroomless: ShroomlessFilter,
+        vehicle: VehicleFilter,
+        page = 1,
+        pageSize = 10
+    ): Promise<TrackLeaderboard> {
+        const params = buildCategoryParams(glitchAllowed, shroomless, vehicle);
+        params.append("trackId", trackId.toString());
+        params.append("cc", cc.toString());
+        params.append("page", page.toString());
+        params.append("pageSize", pageSize.toString());
+        return apiRequest<TrackLeaderboard>(`/timetrial/leaderboard/flap?${params}`);
+    },
+
     async getTopTimes(
         trackId: number,
         cc: 150 | 200,
@@ -130,11 +147,9 @@ export const timeTrialApi = {
         const response = await fetch(
             `${import.meta.env.VITE_API_URL || "/api"}/timetrial/ghost/${id}/download`
         );
-
         if (!response.ok) {
             throw new Error(`Failed to download ghost: ${response.statusText}`);
         }
-
         return response.blob();
     },
 

@@ -66,7 +66,7 @@ public interface IGhostSubmissionRepository
     /// allowance, shroomless status, vehicle range, and pagination parameters.
     /// </summary>
     /// <param name="trackId">The unique identifier of the track for which to retrieve leaderboard entries.</param>
-    /// <param name="cc">The engine class to filter leaderboard entries by. Typical values are 50, 100, 150, or 200.</param>
+    /// <param name="cc">The engine class to filter leaderboard entries by. Values are 150 or 200.</param>
     /// <param name="glitchAllowed">A value indicating whether glitch submissions are included in the leaderboard. Set to <see langword="true"/> to
     /// allow glitches; otherwise, <see langword="false"/>.</param>
     /// <param name="shroomless">An optional value indicating whether to filter for shroomless submissions. If <see langword="true"/>, only
@@ -120,12 +120,37 @@ public interface IGhostSubmissionRepository
         int count);
 
     /// <summary>
+    /// Retrieves a paged leaderboard of ghost submissions for the specified track, filtered by engine class, glitch
+    /// allowance, shroomless mode, vehicle range, and pagination parameters.
+    /// </summary>
+    /// <param name="trackId">The identifier of the track for which to retrieve leaderboard entries.</param>
+    /// <param name="cc">The engine class to filter leaderboard entries by. Values are 150 or 200.</param>
+    /// <param name="glitchAllowed">A value indicating whether glitch runs are allowed in the leaderboard results.</param>
+    /// <param name="shroomless">A value indicating whether to filter for shroomless runs. If null, both shroomless and non-shroomless runs are
+    /// included.</param>
+    /// <param name="minVehicleId">The minimum vehicle identifier to include in the results. If null, no lower bound is applied.</param>
+    /// <param name="maxVehicleId">The maximum vehicle identifier to include in the results. If null, no upper bound is applied.</param>
+    /// <param name="page">The zero-based page index of the leaderboard results to retrieve. Must be greater than or equal to 0.</param>
+    /// <param name="pageSize">The number of leaderboard entries to include per page. Must be greater than 0.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a paged collection of ghost
+    /// submission entities matching the specified filters.</returns>
+    Task<PagedResult<GhostSubmissionEntity>> GetFlapLeaderboardAsync(
+        int trackId,
+        short cc,
+        bool glitchAllowed,
+        bool? shroomless,
+        short? minVehicleId,
+        short? maxVehicleId,
+        int page,
+        int pageSize);
+
+    /// <summary>
     /// Retrieves the fastest ghost submission for the specified track and configuration asynchronously.
     /// </summary>
     /// <remarks>If multiple submissions match the criteria, the one with the lowest completion time is
     /// returned. This method does not guarantee thread safety for concurrent calls.</remarks>
     /// <param name="trackId">The unique identifier of the track for which to retrieve the world record.</param>
-    /// <param name="cc">The engine class, in cubic centimeters, used for the record attempt. Typical values are 50, 100, 150, or 200.</param>
+    /// <param name="cc">The engine class, in cubic centimeters, used for the record attempt. Values are 150 or 200.</param>
     /// <param name="glitchAllowed">A value indicating whether glitch techniques are permitted in the record search. Set to <see langword="true"/>
     /// to include glitch runs; otherwise, <see langword="false"/>.</param>
     /// <param name="shroomless">A value indicating whether the record must be achieved without using mushrooms. If <see langword="true"/>, only
@@ -270,7 +295,7 @@ public interface IGhostSubmissionRepository
     /// Retrieves the best known ghost submission time for a specified track and set of filtering criteria for the Discord bot.
     /// </summary>
     /// <param name="trackId">The identifier of the track for which to retrieve the best known time.</param>
-    /// <param name="cc">The engine class to filter results by. Typically represents speed categories such as 50cc, 100cc, etc.</param>
+    /// <param name="cc">The engine class to filter results by, which is either 150 or 200.</param>
     /// <param name="nonGlitchOnly">Specifies whether to include only non-glitch submissions. Set to <see langword="true"/> to exclude glitch runs;
     /// otherwise, include all.</param>
     /// <param name="shroomless">Indicates whether to filter for shroomless runs. If <see langword="true"/>, only shroomless submissions are

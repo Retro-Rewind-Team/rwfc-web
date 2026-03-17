@@ -3,26 +3,42 @@ import { createMemo, Show } from "solid-js";
 import { useTTTrackDetail } from "../../hooks/useTTTrackDetail";
 import { AlertBox, LoadingSpinner } from "../../components/common";
 import { TTFilters, TTLeaderboardTable, TTWRHistory } from "../../components/ui";
+import { LeaderboardMode } from "../../types/timeTrial";
+
+// Route format: /timetrial/[flap-][no-glitch-]{cc}cc/{trackId}
+// Examples:
+//   150cc             — regular, unrestricted, 150
+//   no-glitch-200cc   — regular, non-glitch, 200
+//   flap-150cc        — flap, unrestricted, 150
+//   flap-no-glitch-200cc — flap, non-glitch, 200
+function parseRouteCC(ccParam: string): { cc: 150 | 200; glitchAllowed: boolean; mode: LeaderboardMode } {
+    const isFlap = ccParam.startsWith("flap-");
+    const withoutFlap = isFlap ? ccParam.slice("flap-".length) : ccParam;
+    const isNoGlitch = withoutFlap.startsWith("no-glitch-");
+    const withoutGlitch = isNoGlitch ? withoutFlap.slice("no-glitch-".length) : withoutFlap;
+    const cc = withoutGlitch === "200cc" ? 200 : 150;
+
+    return {
+        cc,
+        glitchAllowed: !isNoGlitch,
+        mode: isFlap ? "flap" : "regular",
+    };
+}
 
 export default function TTTrackDetailPage() {
     const params = useParams();
 
-    const selectedCC = createMemo((): 150 | 200 => {
-        const cc = params.cc;
-        if (cc === "no-glitch-150cc" || cc === "150cc") return 150;
-        if (cc === "no-glitch-200cc" || cc === "200cc") return 200;
-        return 150;
-    });
-
-    const glitchAllowed = createMemo((): boolean => {
-        return !params.cc?.startsWith("no-glitch-");
-    });
-
+    const parsed = createMemo(() => parseRouteCC(params.cc ?? "150cc"));
+    const selectedCC = createMemo((): 150 | 200 => parsed().cc);
+    const glitchAllowed = createMemo((): boolean => parsed().glitchAllowed);
+    const mode = createMemo((): LeaderboardMode => parsed().mode);
     const trackId = createMemo(() => Number(params.trackId));
 
-    const ttTrack = useTTTrackDetail(trackId, selectedCC, glitchAllowed);
+    const ttTrack = useTTTrackDetail(trackId, selectedCC, glitchAllowed, mode);
 
+    // FLAP holder — only computed in regular mode, derived from flapQuery
     const flapHolder = () => {
+        if (mode() !== "regular") return null;
         const flapMs = ttTrack.flapQuery.data?.fastestLapMs;
         if (!flapMs) return null;
 
@@ -45,10 +61,17 @@ export default function TTTrackDetailPage() {
     };
 
     const categoryLabel = () => {
-        if (!glitchAllowed()) {
-            return selectedCC() === 150 ? "Non-Glitch/Shortcut 150cc" : "Non-Glitch/Shortcut 200cc";
-        }
-        return selectedCC() === 150 ? "All Times 150cc" : "All Times 200cc";
+        const parts: string[] = [];
+        if (mode() === "flap") parts.push("Flap");
+        if (!glitchAllowed()) parts.push("Non-Glitch/Shortcut");
+        parts.push(`${selectedCC()}cc`);
+        return parts.join(" ");
+    };
+
+    const headerGradient = () => {
+        if (mode() === "flap") return "bg-gradient-to-r from-orange-500 to-amber-500";
+        if (!glitchAllowed()) return "bg-gradient-to-r from-green-600 to-emerald-600";
+        return "bg-blue-600";
     };
 
     return (
@@ -96,17 +119,13 @@ export default function TTTrackDetailPage() {
                     <div class="space-y-6">
                         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
                             {/* Header */}
-                            <div class={`px-6 py-4 ${
-                                !glitchAllowed()
-                                    ? "bg-gradient-to-r from-green-600 to-emerald-600"
-                                    : "bg-blue-600"
-                            }`}>
+                            <div class={`px-6 py-4 ${headerGradient()}`}>
                                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                     <div>
                                         <h1 class="text-3xl font-bold text-white mb-1">
                                             {track().name}
                                         </h1>
-                                        <div class="flex items-center gap-3 text-sm text-blue-100">
+                                        <div class="flex items-center gap-3 text-sm text-white/80">
                                             <span class="font-semibold">{categoryLabel()}</span>
                                             <span>•</span>
                                             <span>{track().laps} lap{track().laps !== 1 ? "s" : ""}</span>
@@ -115,17 +134,17 @@ export default function TTTrackDetailPage() {
                                         </div>
                                     </div>
 
-                                    {/* FLAP Display */}
-                                    <Show when={flapHolder()}>
+                                    {/* FLAP display — only in regular mode */}
+                                    <Show when={mode() === "regular" && flapHolder()}>
                                         {(holder) => (
                                             <div class="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-3">
-                                                <div class="text-xs text-blue-100 uppercase tracking-wide font-semibold mb-1">
+                                                <div class="text-xs text-white/70 uppercase tracking-wide font-semibold mb-1">
                                                     Track FLAP
                                                 </div>
                                                 <div class="text-2xl font-black text-green-300 mb-1">
                                                     {holder().time}
                                                 </div>
-                                                <div class="text-xs text-blue-100">
+                                                <div class="text-xs text-white/80">
                                                     <div class="font-semibold">{holder().playerName}</div>
                                                     <div class="flex items-center gap-2 mt-1">
                                                         <span>Lap {holder().lapNumber}</span>
@@ -140,6 +159,25 @@ export default function TTTrackDetailPage() {
                                             </div>
                                         )}
                                     </Show>
+
+                                    {/* Flap mode header stat — best flap among flap submissions */}
+                                    <Show when={mode() === "flap" && leaderboardQuery_bestFlap()}>
+                                        <div class="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-3">
+                                            <div class="text-xs text-white/70 uppercase tracking-wide font-semibold mb-1">
+                                                Best Flap Run
+                                            </div>
+                                            <div class="text-2xl font-black text-white mb-1">
+                                                {ttTrack.leaderboardQuery.data?.fastestLapDisplay}
+                                            </div>
+                                            <Show when={ttTrack.leaderboardQuery.data?.submissions[0]}>
+                                                {(top) => (
+                                                    <div class="text-xs text-white/80 font-semibold">
+                                                        {top().playerName}
+                                                    </div>
+                                                )}
+                                            </Show>
+                                        </div>
+                                    </Show>
                                 </div>
                             </div>
 
@@ -150,6 +188,7 @@ export default function TTTrackDetailPage() {
                                     trackSupportsGlitch={track().supportsGlitch}
                                     currentCC={selectedCC()}
                                     currentGlitchAllowed={glitchAllowed()}
+                                    currentMode={mode()}
                                     shroomlessFilter={ttTrack.shroomlessFilter()}
                                     vehicleFilter={ttTrack.vehicleFilter()}
                                     driftFilter={ttTrack.driftFilter()}
@@ -186,20 +225,27 @@ export default function TTTrackDetailPage() {
                                     when={ttTrack.filteredSubmissions().length > 0}
                                     fallback={
                                         <div class="p-12 text-center">
-                                            <div class="text-6xl mb-4">🏆</div>
+                                            <div class="text-6xl mb-4">{mode() === "flap" ? "⚡" : "🏆"}</div>
                                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
                                                 No Times Found
                                             </h3>
                                             <p class="text-gray-600 dark:text-gray-400">
-                                                Try adjusting your filters or be the first to submit a time!
+                                                {mode() === "flap"
+                                                    ? "No flap runs have been submitted for this category yet."
+                                                    : "Try adjusting your filters or be the first to submit a time!"
+                                                }
                                             </p>
                                         </div>
                                     }
                                 >
                                     <TTLeaderboardTable
                                         submissions={ttTrack.filteredSubmissions()}
-                                        fastestLapMs={ttTrack.flapQuery.data?.fastestLapMs ?? null}
+                                        fastestLapMs={mode() === "regular"
+                                            ? (ttTrack.flapQuery.data?.fastestLapMs ?? null)
+                                            : (ttTrack.leaderboardQuery.data?.fastestLapMs ?? null)
+                                        }
                                         trackLaps={track().laps}
+                                        isFlap={mode() === "flap"}
                                         onDownloadGhost={ttTrack.handleDownloadGhost}
                                     />
                                 </Show>
@@ -267,16 +313,23 @@ export default function TTTrackDetailPage() {
                             </Show>
                         </div>
 
-                        {/* WR History */}
-                        <TTWRHistory
-                            history={ttTrack.filteredWRHistory()}
-                            isLoading={ttTrack.wrHistoryQuery.isLoading}
-                            isError={ttTrack.wrHistoryQuery.isError}
-                            onDownloadGhost={ttTrack.handleDownloadGhost}
-                        />
+                        {/* WR History — only shown in regular mode */}
+                        <Show when={mode() === "regular"}>
+                            <TTWRHistory
+                                history={ttTrack.filteredWRHistory()}
+                                isLoading={ttTrack.wrHistoryQuery.isLoading}
+                                isError={ttTrack.wrHistoryQuery.isError}
+                                onDownloadGhost={ttTrack.handleDownloadGhost}
+                            />
+                        </Show>
                     </div>
                 )}
             </Show>
         </div>
     );
+
+    // Helper accessor for the flap mode header stat
+    function leaderboardQuery_bestFlap() {
+        return mode() === "flap" && ttTrack.leaderboardQuery.data?.fastestLapMs != null;
+    }
 }

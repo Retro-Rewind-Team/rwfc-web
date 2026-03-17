@@ -83,6 +83,9 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
             .Take(limit)
             .ToListAsync();
     }
+
+    // ===== LEADERBOARD =====
+
     public async Task<PagedResult<GhostSubmissionEntity>> GetTrackLeaderboardAsync(
         int trackId,
         short cc,
@@ -114,6 +117,64 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
             .ToListAsync();
     }
 
+    // ===== FLAP LEADERBOARD =====
+
+    public async Task<PagedResult<GhostSubmissionEntity>> GetFlapLeaderboardAsync(
+        int trackId,
+        short cc,
+        bool glitchAllowed,
+        bool? shroomless,
+        short? minVehicleId,
+        short? maxVehicleId,
+        int page,
+        int pageSize)
+    {
+        try
+        {
+            // Count total matching flap submissions for pagination
+            var totalCount = await _context.Database
+                .SqlQuery<int>($@"
+                    SELECT CAST(COUNT(*) AS INTEGER) AS ""Value""
+                    FROM ""GhostSubmissions""
+                    WHERE ""TrackId"" = {trackId}
+                      AND ""CC"" = {cc}
+                      AND ""IsFlap"" = true
+                      AND ({glitchAllowed} OR ""Glitch"" = false)
+                      AND ({shroomless == null} OR ""Shroomless"" = {shroomless ?? false})
+                      AND ({!minVehicleId.HasValue} OR (""VehicleId"" >= {minVehicleId ?? 0} AND ""VehicleId"" <= {maxVehicleId ?? 0}))
+                ")
+                .FirstOrDefaultAsync();
+
+            // Fetch paged results ordered by fastest lap
+            var items = await _context.GhostSubmissions
+                .FromSqlInterpolated($@"
+                    SELECT g.*
+                    FROM ""GhostSubmissions"" g
+                    WHERE g.""TrackId"" = {trackId}
+                      AND g.""CC"" = {cc}
+                      AND g.""IsFlap"" = true
+                      AND ({glitchAllowed} OR g.""Glitch"" = false)
+                      AND ({shroomless == null} OR g.""Shroomless"" = {shroomless ?? false})
+                      AND ({!minVehicleId.HasValue} OR (g.""VehicleId"" >= {minVehicleId ?? 0} AND g.""VehicleId"" <= {maxVehicleId ?? 0}))
+                    ORDER BY (
+                        SELECT MIN(lap::int)
+                        FROM jsonb_array_elements_text(g.""LapSplitsMs""::jsonb) AS lap
+                    ) ASC
+                    LIMIT {pageSize} OFFSET {(page - 1) * pageSize}
+                ")
+                .Include(g => g.Track)
+                .Include(g => g.TTProfile)
+                .ToListAsync();
+
+            return new PagedResult<GhostSubmissionEntity>(items, totalCount, page, pageSize);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting flap leaderboard for track {TrackId} CC {CC}", trackId, cc);
+            throw;
+        }
+    }
+
     // ===== WORLD RECORD =====
 
     public async Task<GhostSubmissionEntity?> GetWorldRecordAsync(
@@ -140,18 +201,6 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
     {
         try
         {
-            // Build filter conditions for the SQL query
-            var glitchCondition = glitchAllowed ? "TRUE" : "\"Glitch\" = false";
-            var shroomlessCondition = shroomless switch
-            {
-                true => "AND \"Shroomless\" = true",
-                false => "AND \"Shroomless\" = false",
-                null => ""
-            };
-            var vehicleCondition = (minVehicleId.HasValue && maxVehicleId.HasValue)
-                ? $"AND \"VehicleId\" >= {minVehicleId.Value} AND \"VehicleId\" <= {maxVehicleId.Value}"
-                : "";
-
             var wrHistory = await _context.GhostSubmissions
                 .FromSqlInterpolated($@"
                     WITH FilteredSubmissions AS (
@@ -159,6 +208,7 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
                         FROM ""GhostSubmissions""
                         WHERE ""TrackId"" = {trackId}
                           AND ""CC"" = {cc}
+                          AND ""IsFlap"" = false
                           AND ({glitchAllowed} OR ""Glitch"" = false)
                           AND ({shroomless == null} OR ""Shroomless"" = {shroomless ?? false})
                           AND ({!minVehicleId.HasValue} OR (""VehicleId"" >= {minVehicleId ?? 0} AND ""VehicleId"" <= {maxVehicleId ?? 0}))
@@ -181,7 +231,7 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
                         ""Id"", ""TrackId"", ""TTProfileId"", ""CC"", ""FinishTimeMs"", ""FinishTimeDisplay"",
                         ""VehicleId"", ""CharacterId"", ""ControllerType"", ""DriftType"", ""MiiName"",
                         ""LapCount"", ""LapSplitsMs"", ""GhostFilePath"", ""DateSet"", ""SubmittedAt"",
-                        ""Shroomless"", ""Glitch"", ""DriftCategory""
+                        ""Shroomless"", ""Glitch"", ""DriftCategory"", ""IsFlap""
                     FROM WorldRecords
                     WHERE PreviousBest IS NULL OR ""FinishTimeMs"" <= PreviousBest
                     ORDER BY ""DateSet"" ASC, ""SubmittedAt"" ASC
@@ -219,6 +269,7 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
                         FROM ""GhostSubmissions""
                         WHERE ""TrackId"" = {trackId}
                           AND ""CC"" = {cc}
+                          AND ""IsFlap"" = false
                           AND ({glitchAllowed} OR ""Glitch"" = false)
                           AND ({shroomless == null} OR ""Shroomless"" = {shroomless ?? false})
                           AND ({!minVehicleId.HasValue} OR (""VehicleId"" >= {minVehicleId ?? 0} AND ""VehicleId"" <= {maxVehicleId ?? 0}))
@@ -293,6 +344,7 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
                         SELECT DISTINCT ON (""TrackId"", ""CC"", ""Glitch"")
                             ""TrackId"", ""CC"", ""Glitch"", ""TTProfileId""
                         FROM ""GhostSubmissions""
+                        WHERE ""IsFlap"" = false
                         ORDER BY ""TrackId"", ""CC"", ""Glitch"", ""FinishTimeMs"", ""SubmittedAt""
                     ) wr
                     WHERE wr.""TTProfileId"" = {ttProfileId}
@@ -320,6 +372,7 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
                                 ORDER BY ""FinishTimeMs""
                             ) as Position
                         FROM ""GhostSubmissions""
+                        WHERE ""IsFlap"" = false
                     )
                     SELECT COALESCE(AVG(CAST(Position AS FLOAT)), 0.0) as ""Value""
                     FROM RankedSubmissions
@@ -348,6 +401,7 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
                                 ORDER BY ""FinishTimeMs""
                             ) as Position
                         FROM ""GhostSubmissions""
+                        WHERE ""IsFlap"" = false
                     )
                     SELECT CAST(COUNT(*) AS INTEGER) as ""Value""
                     FROM RankedSubmissions
@@ -377,6 +431,7 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
                         SELECT DISTINCT ON (""TrackId"", ""CC"", ""Glitch"")
                             ""TrackId"", ""CC"", ""Glitch"", ""TTProfileId""
                         FROM ""GhostSubmissions""
+                        WHERE ""IsFlap"" = false
                         ORDER BY ""TrackId"", ""CC"", ""Glitch"", ""FinishTimeMs"", ""SubmittedAt""
                     ) wr
                     WHERE wr.""TTProfileId"" = p.""Id""
@@ -407,7 +462,7 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
             .AsNoTracking()
             .Include(g => g.Track)
             .Include(g => g.TTProfile)
-            .Where(g => g.TrackId == trackId && g.CC == cc);
+            .Where(g => g.TrackId == trackId && g.CC == cc && !g.IsFlap);
 
         if (nonGlitchOnly)
             query = query.Where(g => !g.Glitch);
@@ -432,12 +487,9 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
     // ===== PRIVATE HELPERS =====
 
     /// <summary>
-    /// Builds the base filtered query shared by leaderboard, WR, and top times methods.
-    /// glitchAllowed=true means all submissions are included (unrestricted category).
-    /// glitchAllowed=false means only non-glitch submissions are included.
-    /// shroomless=null means all, true means shroomless only, false means non-shroomless only.
-    /// Vehicle range: both must be provided together or neither.
-    /// No secondary sort on SubmittedAt — ties are intentional draws.
+    /// Base filtered query for regular leaderboard/WR queries.
+    /// Always excludes flap runs — those are only returned by GetFlapLeaderboardAsync.
+    /// glitchAllowed=true returns all submissions, false returns only non-glitch.
     /// </summary>
     private IQueryable<GhostSubmissionEntity> BuildLeaderboardQuery(
         int trackId,
@@ -451,7 +503,7 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
             .AsNoTracking()
             .Include(g => g.Track)
             .Include(g => g.TTProfile)
-            .Where(g => g.TrackId == trackId && g.CC == cc);
+            .Where(g => g.TrackId == trackId && g.CC == cc && !g.IsFlap);
 
         if (!glitchAllowed)
             query = query.Where(g => !g.Glitch);

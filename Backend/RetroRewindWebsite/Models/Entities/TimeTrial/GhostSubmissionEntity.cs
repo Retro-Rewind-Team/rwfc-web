@@ -27,6 +27,7 @@ public class GhostSubmissionEntity
 
     public bool Shroomless { get; set; } = false;
     public bool Glitch { get; set; } = false;
+    public bool IsFlap { get; set; } = false;
     public short DriftCategory { get; set; }
 
     public required string GhostFilePath { get; set; }
