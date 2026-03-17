@@ -272,8 +272,36 @@ export default function LeaderboardPage() {
                                 >
                                     ← Previous
                                 </button>
-                                <span class="px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg font-medium border-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
-                                    Page {activeLeaderboard().currentPage()} of {activeLeaderboard().leaderboardQuery.data!.totalPages}
+                                <span class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 font-medium whitespace-nowrap">
+                                    Page
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        max={activeLeaderboard().leaderboardQuery.data!.totalPages}
+                                        value={activeLeaderboard().currentPage()}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") {
+                                                const val = parseInt((e.target as HTMLInputElement).value);
+                                                const total = activeLeaderboard().leaderboardQuery.data!.totalPages;
+                                                if (!isNaN(val) && val >= 1 && val <= total) {
+                                                    activeLeaderboard().setCurrentPage(val);
+                                                } else {
+                                                    (e.target as HTMLInputElement).value = String(activeLeaderboard().currentPage());
+                                                }
+                                            }
+                                        }}
+                                        onBlur={(e) => {
+                                            const val = parseInt(e.target.value);
+                                            const total = activeLeaderboard().leaderboardQuery.data!.totalPages;
+                                            if (!isNaN(val) && val >= 1 && val <= total) {
+                                                activeLeaderboard().setCurrentPage(val);
+                                            } else {
+                                                e.target.value = String(activeLeaderboard().currentPage());
+                                            }
+                                        }}
+                                        class="w-16 px-2 py-1 text-center border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    />
+                                    of {activeLeaderboard().leaderboardQuery.data!.totalPages}
                                 </span>
                                 <button
                                     onClick={() =>
