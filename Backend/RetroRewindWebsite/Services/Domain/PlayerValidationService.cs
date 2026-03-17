@@ -72,7 +72,7 @@ public class PlayerValidationService : IPlayerValidationService
                 player.Name, player.Fc, vrJump, newJumpCount);
 
             return new SuspiciousStatusUpdate(
-                IsSuspicious: false,
+                IsSuspicious: player.IsSuspicious,
                 SuspiciousVRJumps: newJumpCount,
                 FlagReason: player.FlagReason
             );
