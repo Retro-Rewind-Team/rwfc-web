@@ -6,6 +6,5 @@ public record TTPlayerStatsDto(
     int Tracks150cc,
     int Tracks200cc,
     double AverageFinishPosition,
-    int Top10Count,
-    List<GhostSubmissionDto> RecentSubmissions
+    int Top10Count
 );

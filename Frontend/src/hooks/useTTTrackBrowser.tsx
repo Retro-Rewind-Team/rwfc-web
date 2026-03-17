@@ -1,64 +1,61 @@
 import { createMemo, createSignal } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { timeTrialApi } from "../services/api/timeTrial";
+import { ShroomlessFilter, VehicleFilter } from "../types/timeTrial";
 
 export function useTTTrackBrowser() {
     const [selectedCategory, setSelectedCategory] = createSignal<"retro" | "custom">("retro");
     const [selectedCC, setSelectedCC] = createSignal<150 | 200>(150);
-    const [selectedNonGlitchOnly, setSelectedNonGlitchOnly] = createSignal<boolean>(false); // false = all times, true = non-glitch only
+    const [glitchAllowed, setGlitchAllowed] = createSignal<boolean>(true);
+    const [shroomlessFilter, setShroomlessFilter] = createSignal<ShroomlessFilter>("all");
+    const [vehicleFilter, setVehicleFilter] = createSignal<VehicleFilter>("all");
     const [searchQuery, setSearchQuery] = createSignal("");
 
-    // Fetch all tracks
+    // Fetch all tracks — static, cached for 1 hour
     const tracksQuery = useQuery(() => ({
         queryKey: ["tt-tracks"],
         queryFn: () => timeTrialApi.getAllTracks(),
-        staleTime: 1000 * 60 * 60, // 1 hour
+        staleTime: 1000 * 60 * 60,
     }));
 
-    // Fetch all world records in a single request
+    // Fetch world records for the current category combination
+    // All filter dimensions are part of the query key so cache entries are per-category
     const worldRecordsQuery = useQuery(() => ({
-        queryKey: ["tt-world-records-all"],
-        queryFn: () => timeTrialApi.getAllWorldRecords(),
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        queryKey: [
+            "tt-world-records-all",
+            selectedCC(),
+            glitchAllowed(),
+            shroomlessFilter(),
+            vehicleFilter(),
+        ],
+        queryFn: () => timeTrialApi.getAllWorldRecords(
+            selectedCC(),
+            glitchAllowed(),
+            shroomlessFilter(),
+            vehicleFilter()
+        ),
+        staleTime: 1000 * 60 * 5,
     }));
 
-    // Filter tracks by category and search
+    // Filter and sort tracks by category and search — purely local
     const filteredTracks = createMemo(() => {
-        const tracks = tracksQuery.data || [];
+        const tracks = tracksQuery.data ?? [];
         const category = selectedCategory();
         const search = searchQuery().toLowerCase();
 
         return tracks
             .filter((track) => track.category === category)
-            .filter((track) => 
+            .filter((track) =>
                 search === "" || track.name.toLowerCase().includes(search)
             )
             .sort((a, b) => a.sortOrder - b.sortOrder);
     });
 
-    // Get world record for a specific track (filtering cached data)
-    // Returns a function that creates a memo for each track
+    // Look up the active WR for a given track from the already-fetched world records
     const getWorldRecordForTrack = (trackId: number) => {
         return createMemo(() => {
-            const records = worldRecordsQuery.data || [];
-            const trackRecord = records.find((r) => r.trackId === trackId);
-            
-            if (!trackRecord) return null;
-            
-            // Select correct WR based on CC and non-glitch filter
-            const cc = selectedCC();
-            const nonGlitchOnly = selectedNonGlitchOnly();
-            
-            // When nonGlitchOnly is true, show non-glitch WRs (glitch=false)
-            // When false (unrestricted), show all times WRs (glitch=true), fallback to non-glitch if not available
-            if (nonGlitchOnly) {
-                return cc === 150 ? trackRecord.worldRecord150 : trackRecord.worldRecord200;
-            } else {
-                // For unrestricted, try glitch WR first, fallback to non-glitch WR
-                const unrestrictedWR = cc === 150 ? trackRecord.worldRecord150Glitch : trackRecord.worldRecord200Glitch;
-                const fallbackWR = cc === 150 ? trackRecord.worldRecord150 : trackRecord.worldRecord200;
-                return unrestrictedWR || fallbackWR;
-            }
+            const records = worldRecordsQuery.data ?? [];
+            return records.find((r) => r.trackId === trackId)?.activeWorldRecord ?? null;
         });
     };
 
@@ -75,15 +72,25 @@ export function useTTTrackBrowser() {
         setSelectedCC(cc);
     };
 
-    const handleNonGlitchOnlyChange = (nonGlitchOnly: boolean) => {
-        setSelectedNonGlitchOnly(nonGlitchOnly);
+    const handleGlitchAllowedChange = (allowed: boolean) => {
+        setGlitchAllowed(allowed);
+    };
+
+    const handleShroomlessFilterChange = (filter: ShroomlessFilter) => {
+        setShroomlessFilter(filter);
+    };
+
+    const handleVehicleFilterChange = (filter: VehicleFilter) => {
+        setVehicleFilter(filter);
     };
 
     return {
         // State
         selectedCategory,
         selectedCC,
-        selectedNonGlitchOnly,
+        glitchAllowed,
+        shroomlessFilter,
+        vehicleFilter,
         searchQuery,
 
         // Computed
@@ -100,6 +107,8 @@ export function useTTTrackBrowser() {
         handleSearchInput,
         handleCategoryChange,
         handleCCChange,
-        handleNonGlitchOnlyChange,
+        handleGlitchAllowedChange,
+        handleShroomlessFilterChange,
+        handleVehicleFilterChange,
     };
 }

@@ -316,7 +316,8 @@ public class ModerationController : ControllerBase
                 DateSet = ghostData.DateSet,
                 SubmittedAt = DateTime.UtcNow,
                 Shroomless = request.Shroomless,
-                Glitch = request.Glitch
+                Glitch = request.Glitch,
+                IsFlap = request.IsFlap
             };
 
             await _ghostSubmissionRepository.AddAsync(submission);
@@ -595,6 +596,7 @@ public class ModerationController : ControllerBase
         [FromQuery] short? cc = null,
         [FromQuery] bool? glitch = null,
         [FromQuery] bool? shroomless = null,
+        [FromQuery] bool? isFlap = null,
         [FromQuery] short? driftCategory = null,
         [FromQuery] int limit = 25)
     {
@@ -603,9 +605,9 @@ public class ModerationController : ControllerBase
             limit = Math.Clamp(limit, 1, 100);
 
             var submissions = await _ghostSubmissionRepository.SearchAsync(
-                ttProfileId, trackId, cc, glitch, shroomless, driftCategory, limit);
+                ttProfileId, trackId, cc, glitch, shroomless, isFlap, driftCategory, limit);
 
-            var submissionDtos = submissions.Select(GhostSubmissionMapper.ToDto).ToList();
+            var submissionDtos = submissions.Select(s => GhostSubmissionMapper.ToDto(s)).ToList();
 
             return Ok(new GhostSubmissionSearchResultDto(true, submissionDtos.Count, submissionDtos));
         }

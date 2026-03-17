@@ -1,22 +1,28 @@
-import { createEffect, createMemo, createSignal } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { timeTrialApi } from "../services/api/timeTrial";
-import { GhostSubmission } from "../types/timeTrial";
+import { GhostSubmission, DriftFilter, DriftCategoryFilter, ShroomlessFilter, VehicleFilter, LeaderboardMode } from "../types/timeTrial";
 
-export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200, nonGlitchOnly: () => boolean) {
-    const [shroomlessFilter, setShroomlessFilter] = createSignal<"all" | "only" | "exclude">("all");
-    const [vehicleFilter, setVehicleFilter] = createSignal<"all" | "bikes" | "karts">("all");
-    const [driftFilter, setDriftFilter] = createSignal<"all" | "manual" | "hybrid">("all");
-    const [driftCategoryFilter, setDriftCategoryFilter] = createSignal<"all" | "inside" | "outside">("all");
-  
-    // Pagination - default to 10
+export function useTTTrackDetail(
+    trackId: () => number,
+    cc: () => 150 | 200,
+    glitchAllowed: () => boolean,
+    mode: () => LeaderboardMode
+) {
+    const [shroomlessFilter, setShroomlessFilter] = createSignal<ShroomlessFilter>("all");
+    const [vehicleFilter, setVehicleFilter] = createSignal<VehicleFilter>("all");
+    const [driftFilter, setDriftFilter] = createSignal<DriftFilter>("all");
+    const [driftCategoryFilter, setDriftCategoryFilter] = createSignal<DriftCategoryFilter>("all");
     const [currentPage, setCurrentPage] = createSignal(1);
     const [pageSize, setPageSize] = createSignal(10);
 
-    // Reset page to 1 when CC or non-glitch filter changes
+    // Reset page when any server-side filter, CC, glitch, or mode changes
     createEffect(() => {
         cc();
-        nonGlitchOnly();
+        glitchAllowed();
+        mode();
+        shroomlessFilter();
+        vehicleFilter();
         setCurrentPage(1);
     });
 
@@ -24,123 +30,134 @@ export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200, non
     const trackQuery = useQuery(() => ({
         queryKey: ["tt-track", trackId()],
         queryFn: () => timeTrialApi.getTrack(trackId()),
-        staleTime: 1000 * 60 * 60, // 1 hour
+        staleTime: 1000 * 60 * 60,
     }));
 
-    // Fetch leaderboard for this track with pagination
-    // Note: Backend repository will interpret glitch parameter as:
-    // - glitch=true: "Unrestricted" - returns ALL submissions (no filter on Glitch column)
-    // - glitch=false: "Non-glitch only" - returns only submissions WHERE Glitch = false
-    // When nonGlitchOnly=false (unrestricted mode), we pass true to get all submissions
-    // When nonGlitchOnly=true (non-glitch mode), we pass false to exclude glitch submissions
-    const glitchParam = () => !nonGlitchOnly();
-    
+    // Fetch leaderboard — switches between regular and flap based on mode
     const leaderboardQuery = useQuery(() => ({
-        queryKey: ["tt-leaderboard", trackId(), cc(), glitchParam(), currentPage(), pageSize()],
-        queryFn: () => timeTrialApi.getLeaderboard(
+        queryKey: [
+            "tt-leaderboard",
             trackId(),
             cc(),
-            glitchParam(),
+            glitchAllowed(),
+            mode(),
+            shroomlessFilter(),
+            vehicleFilter(),
             currentPage(),
-            pageSize()
+            pageSize(),
+        ],
+        queryFn: () => mode() === "flap"
+            ? timeTrialApi.getFlapLeaderboard(
+                trackId(), cc(), glitchAllowed(),
+                shroomlessFilter(), vehicleFilter(),
+                currentPage(), pageSize()
+            )
+            : timeTrialApi.getLeaderboard(
+                trackId(), cc(), glitchAllowed(),
+                shroomlessFilter(), vehicleFilter(),
+                currentPage(), pageSize()
+            ),
+    }));
+
+    // FLAP stat — only in regular mode
+    const flapQuery = useQuery(() => ({
+        queryKey: [
+            "tt-flap",
+            trackId(),
+            cc(),
+            glitchAllowed(),
+            shroomlessFilter(),
+            vehicleFilter(),
+        ],
+        queryFn: () => timeTrialApi.getFastestLap(
+            trackId(), cc(), glitchAllowed(),
+            shroomlessFilter(), vehicleFilter()
         ),
+        enabled: mode() === "regular",
     }));
 
-    // Fetch world record
-    const worldRecordQuery = useQuery(() => ({
-        queryKey: ["tt-world-record", trackId(), cc(), glitchParam()],
-        queryFn: () => timeTrialApi.getWorldRecord(trackId(), cc(), glitchParam()),
-    }));
-
-    // Fetch world record history
+    // Regular WR history — only in regular mode
     const wrHistoryQuery = useQuery(() => ({
-        queryKey: ["tt-wr-history", trackId(), cc(), glitchParam()],
-        queryFn: () => timeTrialApi.getWorldRecordHistory(trackId(), cc(), glitchParam()),
+        queryKey: [
+            "tt-wr-history",
+            trackId(),
+            cc(),
+            glitchAllowed(),
+            shroomlessFilter(),
+            vehicleFilter(),
+        ],
+        queryFn: () => timeTrialApi.getWorldRecordHistory(
+            trackId(), cc(), glitchAllowed(),
+            shroomlessFilter(), vehicleFilter()
+        ),
+        enabled: mode() === "regular",
     }));
 
-    // Apply filters to submissions
-    const filteredSubmissions = createMemo(() => {
-        const submissions = leaderboardQuery.data?.submissions || [];
-        const vehicleFilterValue = vehicleFilter();
-        const driftFilterValue = driftFilter();
-        const driftCategoryFilterValue = driftCategoryFilter();
-        const shroomlessFilterValue = shroomlessFilter();
+    // Flap WR history — only in flap mode
+    const flapWrHistoryQuery = useQuery(() => ({
+        queryKey: [
+            "tt-flap-wr-history",
+            trackId(),
+            cc(),
+            glitchAllowed(),
+            shroomlessFilter(),
+            vehicleFilter(),
+        ],
+        queryFn: () => timeTrialApi.getFlapWorldRecordHistory(
+            trackId(), cc(), glitchAllowed(),
+            shroomlessFilter(), vehicleFilter()
+        ),
+        enabled: mode() === "flap",
+    }));
 
+    // Apply display-only drift filters client-side
+    const filteredSubmissions = () => {
+        const submissions = leaderboardQuery.data?.submissions ?? [];
+        const drift = driftFilter();
+        const driftCat = driftCategoryFilter();
         return submissions.filter((submission) => {
-            // Vehicle filter (bikes/karts)
-            if (vehicleFilterValue === "bikes" && submission.vehicleId < 18) return false;
-            if (vehicleFilterValue === "karts" && submission.vehicleId >= 18) return false;
-
-            // Drift filter
-            if (driftFilterValue === "manual" && submission.driftType !== 0) return false;
-            if (driftFilterValue === "hybrid" && submission.driftType !== 1) return false;
-
-            // Drift category filter
-            if (driftCategoryFilterValue === "inside" && submission.driftCategory !== 1) return false;
-            if (driftCategoryFilterValue === "outside" && submission.driftCategory !== 0) return false;
-
-            // Shroomless filter
-            if (shroomlessFilterValue === "only" && !submission.shroomless) return false;
-            if (shroomlessFilterValue === "exclude" && submission.shroomless) return false;
-
+            if (drift === "manual" && submission.driftType !== 0) return false;
+            if (drift === "hybrid" && submission.driftType !== 1) return false;
+            if (driftCat === "inside" && submission.driftCategory !== 1) return false;
+            if (driftCat === "outside" && submission.driftCategory !== 0) return false;
             return true;
         });
-    });
+    };
 
-    // Apply filters to WR history
-    const filteredWRHistory = createMemo(() => {
-        const history = wrHistoryQuery.data || [];
-        const vehicleFilterValue = vehicleFilter();
-        const driftFilterValue = driftFilter();
-        const driftCategoryFilterValue = driftCategoryFilter();
-        const shroomlessFilterValue = shroomlessFilter();
+    // Active WR history — whichever mode is current
+    const activeWrHistory = () =>
+        mode() === "flap"
+            ? (flapWrHistoryQuery.data ?? [])
+            : (wrHistoryQuery.data ?? []);
 
+    const filteredWRHistory = () => {
+        const history = activeWrHistory();
+        const drift = driftFilter();
+        const driftCat = driftCategoryFilter();
         return history.filter((submission) => {
-            // Vehicle filter (bikes/karts)
-            if (vehicleFilterValue === "bikes" && submission.vehicleId < 18) return false;
-            if (vehicleFilterValue === "karts" && submission.vehicleId >= 18) return false;
-
-            // Drift filter
-            if (driftFilterValue === "manual" && submission.driftType !== 0) return false;
-            if (driftFilterValue === "hybrid" && submission.driftType !== 1) return false;
-
-            // Drift category filter
-            if (driftCategoryFilterValue === "inside" && submission.driftCategory !== 1) return false;
-            if (driftCategoryFilterValue === "outside" && submission.driftCategory !== 0) return false;
-
-            // Shroomless filter
-            if (shroomlessFilterValue === "only" && !submission.shroomless) return false;
-            if (shroomlessFilterValue === "exclude" && submission.shroomless) return false;
-
+            if (drift === "manual" && submission.driftType !== 0) return false;
+            if (drift === "hybrid" && submission.driftType !== 1) return false;
+            if (driftCat === "inside" && submission.driftCategory !== 1) return false;
+            if (driftCat === "outside" && submission.driftCategory !== 0) return false;
             return true;
         });
-    });
+    };
 
-    // Reset to page 1 when filters change
+    // Active WR history query state — for loading/error display
+    const activeWrHistoryQuery = () =>
+        mode() === "flap" ? flapWrHistoryQuery : wrHistoryQuery;
+
+    // Reset page when display filters change
     createEffect(() => {
-        vehicleFilter();
         driftFilter();
-        driftCategoryFilter(); 
-        shroomlessFilter();
+        driftCategoryFilter();
         setCurrentPage(1);
     });
 
-    const handleShroomlessFilterChange = (filter: "all" | "only" | "exclude") => {
-        setShroomlessFilter(filter);
-    };
-
-    const handleVehicleFilterChange = (filter: "all" | "bikes" | "karts") => {
-        setVehicleFilter(filter);
-    };
-
-    const handleDriftFilterChange = (filter: "all" | "manual" | "hybrid") => {
-        setDriftFilter(filter);
-    };
-
-    const handleDriftCategoryFilterChange = (filter: "all" | "inside" | "outside") => {
-        setDriftCategoryFilter(filter);
-    };
-
+    const handleShroomlessFilterChange = (filter: ShroomlessFilter) => setShroomlessFilter(filter);
+    const handleVehicleFilterChange = (filter: VehicleFilter) => setVehicleFilter(filter);
+    const handleDriftFilterChange = (filter: DriftFilter) => setDriftFilter(filter);
+    const handleDriftCategoryFilterChange = (filter: DriftCategoryFilter) => setDriftCategoryFilter(filter);
     const handlePageSizeChange = (size: number) => {
         setPageSize(size);
         setCurrentPage(1);
@@ -165,41 +182,45 @@ export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200, non
     const refreshAll = () => {
         trackQuery.refetch();
         leaderboardQuery.refetch();
-        worldRecordQuery.refetch();
-        wrHistoryQuery.refetch();
+        if (mode() === "regular") {
+            flapQuery.refetch();
+            wrHistoryQuery.refetch();
+        } else {
+            flapWrHistoryQuery.refetch();
+        }
     };
 
-return {
-    // State
-    cc: cc(),
-    nonGlitchOnly: nonGlitchOnly(),
-    shroomlessFilter,
-    vehicleFilter,
-    driftFilter,
-    driftCategoryFilter,
-    currentPage,
-    pageSize,
+    return {
+        // State
+        shroomlessFilter,
+        vehicleFilter,
+        driftFilter,
+        driftCategoryFilter,
+        currentPage,
+        pageSize,
 
-    // Computed
-    filteredSubmissions,
-    filteredWRHistory,
+        // Computed
+        filteredSubmissions,
+        filteredWRHistory,
 
-    // Queries
-    trackQuery,
-    leaderboardQuery,
-    worldRecordQuery,
-    wrHistoryQuery,
+        // Queries
+        activeWrHistoryQuery,
+        trackQuery,
+        leaderboardQuery,
+        flapQuery,
+        wrHistoryQuery,
 
-    // Handlers
-    handleShroomlessFilterChange,
-    handleVehicleFilterChange,
-    handleDriftFilterChange,
-    handleDriftCategoryFilterChange,
-    handlePageSizeChange,
-    handleDownloadGhost,
-    refreshAll,
+        // Handlers
+        flapWrHistoryQuery,
+        handleShroomlessFilterChange,
+        handleVehicleFilterChange,
+        handleDriftFilterChange,
+        handleDriftCategoryFilterChange,
+        handlePageSizeChange,
+        handleDownloadGhost,
+        refreshAll,
 
-    // Setters
-    setCurrentPage,
-};
+        // Setters
+        setCurrentPage,
+    };
 }

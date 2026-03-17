@@ -18,6 +18,7 @@ public record GhostSubmissionDto(
     short DriftType,
     bool Shroomless,
     bool Glitch,
+    bool IsFlap,
     short DriftCategory,
     string MiiName,
     short LapCount,
@@ -27,7 +28,8 @@ public record GhostSubmissionDto(
     string FastestLapDisplay,
     string GhostFilePath,
     DateOnly DateSet,
-    DateTime SubmittedAt
+    DateTime SubmittedAt,
+    int? Rank = null
 );
 
 public record GhostSubmissionDetailDto(
@@ -48,6 +50,7 @@ public record GhostSubmissionDetailDto(
     short DriftType,
     bool Shroomless,
     bool Glitch,
+    bool IsFlap,
     short DriftCategory,
     string MiiName,
     short LapCount,
@@ -63,12 +66,13 @@ public record GhostSubmissionDetailDto(
     string? ControllerName,
     string? DriftTypeName,
     string? DriftCategoryName,
-    string? TrackSlotName
+    string? TrackSlotName,
+    int? Rank = null
 ) : GhostSubmissionDto(
     Id, TrackId, TrackName, TTProfileId, PlayerName, CountryCode, CountryAlpha2, CountryName,
     CC, FinishTimeMs, FinishTimeDisplay, VehicleId, CharacterId, ControllerType,
-    DriftType, Shroomless, Glitch, DriftCategory, MiiName, LapCount, LapSplitsMs,
-    LapSplitsDisplay, FastestLapMs, FastestLapDisplay, GhostFilePath, DateSet, SubmittedAt
+    DriftType, Shroomless, Glitch, IsFlap, DriftCategory, MiiName, LapCount, LapSplitsMs,
+    LapSplitsDisplay, FastestLapMs, FastestLapDisplay, GhostFilePath, DateSet, SubmittedAt, Rank
 );
 
 public class GhostSubmissionRequest
@@ -79,4 +83,5 @@ public class GhostSubmissionRequest
     public int TtProfileId { get; set; }
     public bool Shroomless { get; set; }
     public bool Glitch { get; set; }
+    public bool IsFlap { get; set; }
 }
