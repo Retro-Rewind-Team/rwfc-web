@@ -9,15 +9,10 @@ export function useTTTrackDetail(
     glitchAllowed: () => boolean,
     mode: () => LeaderboardMode
 ) {
-    // Category filters — server-side, affect BKT/WR/FLAP
     const [shroomlessFilter, setShroomlessFilter] = createSignal<ShroomlessFilter>("all");
     const [vehicleFilter, setVehicleFilter] = createSignal<VehicleFilter>("all");
-
-    // Display-only filters — client-side, do not affect BKT
     const [driftFilter, setDriftFilter] = createSignal<DriftFilter>("all");
     const [driftCategoryFilter, setDriftCategoryFilter] = createSignal<DriftCategoryFilter>("all");
-
-    // Pagination
     const [currentPage, setCurrentPage] = createSignal(1);
     const [pageSize, setPageSize] = createSignal(10);
 
@@ -64,7 +59,7 @@ export function useTTTrackDetail(
             ),
     }));
 
-    // FLAP — only relevant in regular mode, not shown in flap mode
+    // FLAP stat — only in regular mode
     const flapQuery = useQuery(() => ({
         queryKey: [
             "tt-flap",
@@ -78,11 +73,10 @@ export function useTTTrackDetail(
             trackId(), cc(), glitchAllowed(),
             shroomlessFilter(), vehicleFilter()
         ),
-        // Don't fetch FLAP when in flap mode — the leaderboard itself is the flap data
         enabled: mode() === "regular",
     }));
 
-    // WR history — only shown in regular mode
+    // Regular WR history — only in regular mode
     const wrHistoryQuery = useQuery(() => ({
         queryKey: [
             "tt-wr-history",
@@ -99,12 +93,28 @@ export function useTTTrackDetail(
         enabled: mode() === "regular",
     }));
 
-    // Apply display-only filters (drift type/category) client-side
+    // Flap WR history — only in flap mode
+    const flapWrHistoryQuery = useQuery(() => ({
+        queryKey: [
+            "tt-flap-wr-history",
+            trackId(),
+            cc(),
+            glitchAllowed(),
+            shroomlessFilter(),
+            vehicleFilter(),
+        ],
+        queryFn: () => timeTrialApi.getFlapWorldRecordHistory(
+            trackId(), cc(), glitchAllowed(),
+            shroomlessFilter(), vehicleFilter()
+        ),
+        enabled: mode() === "flap",
+    }));
+
+    // Apply display-only drift filters client-side
     const filteredSubmissions = () => {
         const submissions = leaderboardQuery.data?.submissions ?? [];
         const drift = driftFilter();
         const driftCat = driftCategoryFilter();
-
         return submissions.filter((submission) => {
             if (drift === "manual" && submission.driftType !== 0) return false;
             if (drift === "hybrid" && submission.driftType !== 1) return false;
@@ -114,11 +124,16 @@ export function useTTTrackDetail(
         });
     };
 
+    // Active WR history — whichever mode is current
+    const activeWrHistory = () =>
+        mode() === "flap"
+            ? (flapWrHistoryQuery.data ?? [])
+            : (wrHistoryQuery.data ?? []);
+
     const filteredWRHistory = () => {
-        const history = wrHistoryQuery.data ?? [];
+        const history = activeWrHistory();
         const drift = driftFilter();
         const driftCat = driftCategoryFilter();
-
         return history.filter((submission) => {
             if (drift === "manual" && submission.driftType !== 0) return false;
             if (drift === "hybrid" && submission.driftType !== 1) return false;
@@ -127,6 +142,10 @@ export function useTTTrackDetail(
             return true;
         });
     };
+
+    // Active WR history query state — for loading/error display
+    const activeWrHistoryQuery = () =>
+        mode() === "flap" ? flapWrHistoryQuery : wrHistoryQuery;
 
     // Reset page when display filters change
     createEffect(() => {
@@ -166,6 +185,8 @@ export function useTTTrackDetail(
         if (mode() === "regular") {
             flapQuery.refetch();
             wrHistoryQuery.refetch();
+        } else {
+            flapWrHistoryQuery.refetch();
         }
     };
 
@@ -183,12 +204,14 @@ export function useTTTrackDetail(
         filteredWRHistory,
 
         // Queries
+        activeWrHistoryQuery,
         trackQuery,
         leaderboardQuery,
         flapQuery,
         wrHistoryQuery,
 
         // Handlers
+        flapWrHistoryQuery,
         handleShroomlessFilterChange,
         handleVehicleFilterChange,
         handleDriftFilterChange,

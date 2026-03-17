@@ -190,6 +190,28 @@ public interface IGhostSubmissionRepository
         short? maxVehicleId = null);
 
     /// <summary>
+    /// Retrieves the history of world record ghost submissions for the Flap category on a specified track, filtered by
+    /// game settings and vehicle criteria.
+    /// </summary>
+    /// <param name="trackId">The unique identifier of the track for which to retrieve world record history.</param>
+    /// <param name="cc">The engine class to filter results by. Values are 150 or 200.</param>
+    /// <param name="glitchAllowed">Indicates whether glitch techniques are permitted in the record submissions. Set to <see langword="true"/> to
+    /// include glitch runs; otherwise, <see langword="false"/>.</param>
+    /// <param name="shroomless">If specified, filters results to include only shroomless runs (<see langword="true"/>) or runs where mushrooms
+    /// are allowed (<see langword="false"/>). If null, both types are included.</param>
+    /// <param name="minVehicleId">If specified, filters results to include only submissions with vehicle IDs greater than or equal to this value.</param>
+    /// <param name="maxVehicleId">If specified, filters results to include only submissions with vehicle IDs less than or equal to this value.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a list of ghost submission entities
+    /// matching the specified criteria. The list will be empty if no records are found.</returns>
+    Task<List<GhostSubmissionEntity>> GetFlapWorldRecordHistoryAsync(
+        int trackId,
+        short cc,
+        bool glitchAllowed,
+        bool? shroomless = null,
+        short? minVehicleId = null,
+        short? maxVehicleId = null);
+
+    /// <summary>
     /// Asynchronously retrieves the fastest lap time for a specified track and configuration.
     /// </summary>
     /// <remarks>If multiple laps match the criteria, the lap with the lowest time is returned. This method

@@ -8,9 +8,23 @@ interface TTWRHistoryProps {
     isLoading: boolean;
     isError: boolean;
     onDownloadGhost: (submission: GhostSubmission) => void;
+    title?: string;
+    subtitle?: string;
+    isFlap?: boolean;
 }
 
 export default function TTWRHistory(props: TTWRHistoryProps) {
+    const title = () => props.title ?? "World Record History";
+    const subtitle = () => props.subtitle ?? "Track the progression of world records over time";
+    const isFlap = () => props.isFlap ?? false;
+
+    // Returns the relevant comparison time for a submission depending on mode
+    const getComparisonTime = (submission: GhostSubmission) =>
+        isFlap() ? submission.fastestLapMs : submission.finishTimeMs;
+
+    const getTimeDisplay = (submission: GhostSubmission) =>
+        isFlap() ? submission.fastestLapDisplay : submission.finishTimeDisplay;
+
     const formatTimeImprovement = (currentMs: number, previousMs: number) => {
         if (currentMs === previousMs) return null; // tied 
         const diffMs = previousMs - currentMs;
@@ -38,15 +52,13 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
 
     return (
         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div class="bg-gradient-to-r from-amber-500 to-orange-600 px-4 sm:px-6 py-4">
-                <div class="flex items-center gap-3">
-                    <div>
-                        <h3 class="text-xl sm:text-2xl font-bold text-white">World Record History</h3>
-                        <p class="text-xs sm:text-sm text-amber-100">
-                            Track the progression of world records over time
-                        </p>
-                    </div>
-                </div>
+            <div class={`px-4 sm:px-6 py-4 bg-gradient-to-r ${
+                isFlap()
+                    ? "from-orange-500 to-amber-500"
+                    : "from-amber-500 to-orange-600"
+            }`}>
+                <h3 class="text-xl sm:text-2xl font-bold text-white">{title()}</h3>
+                <p class="text-xs sm:text-sm text-white/80">{subtitle()}</p>
             </div>
 
             <Show when={props.isLoading}>
@@ -67,10 +79,13 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                     when={props.history!.length > 0}
                     fallback={
                         <div class="p-12 text-center">
-                            <div class="text-6xl mb-4">🏁</div>
+                            <div class="text-6xl mb-4">{isFlap() ? "⚡" : "🏁"}</div>
                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">No History Yet</h3>
                             <p class="text-gray-600 dark:text-gray-400">
-                                World records will appear here as they're set
+                                {isFlap()
+                                    ? "Flap records will appear here as they're set"
+                                    : "World records will appear here as they're set"
+                                }
                             </p>
                         </div>
                     }
@@ -85,9 +100,11 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                     {(record, index) => {
                                         const isLatest = index() === props.history!.length - 1;
                                         const previousRecord = index() > 0 ? props.history![index() - 1] : null;
-                                        const isTied = previousRecord !== null && record.finishTimeMs === previousRecord.finishTimeMs;
-                                        const improvement = previousRecord && !isTied
-                                            ? formatTimeImprovement(record.finishTimeMs, previousRecord.finishTimeMs)
+                                        const currentTime = getComparisonTime(record);
+                                        const previousTime = previousRecord ? getComparisonTime(previousRecord) : null;
+                                        const isTied = previousTime !== null && currentTime === previousTime;
+                                        const improvement = previousTime !== null && !isTied
+                                            ? formatTimeImprovement(currentTime, previousTime)
                                             : null;
 
                                         return (
@@ -121,10 +138,9 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                                         ? "text-yellow-600 dark:text-yellow-400"
                                                                         : "text-gray-900 dark:text-white"
                                                                 }`}>
-                                                                    {record.finishTimeDisplay}
+                                                                    {getTimeDisplay(record)}
                                                                 </div>
 
-                                                                {/* Improvement / Tied / First Record badge */}
                                                                 <Show when={!previousRecord}>
                                                                     <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-md whitespace-nowrap">
                                                                         FIRST RECORD
@@ -148,9 +164,21 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                                     </div>
                                                                 </Show>
                                                             </div>
+
+                                                            {/* Secondary time in flap mode */}
+                                                            <Show when={isFlap()}>
+                                                                <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                                    Finish: {record.finishTimeDisplay}
+                                                                </div>
+                                                            </Show>
+
                                                             <Show when={isLatest}>
-                                                                <div class="mt-1 text-xs sm:text-sm font-semibold text-yellow-600 dark:text-yellow-400">
-                                                                    Current World Record
+                                                                <div class={`mt-1 text-xs sm:text-sm font-semibold ${
+                                                                    isFlap()
+                                                                        ? "text-orange-500 dark:text-orange-400"
+                                                                        : "text-yellow-600 dark:text-yellow-400"
+                                                                }`}>
+                                                                    {isFlap() ? "Current Flap Record" : "Current World Record"}
                                                                 </div>
                                                             </Show>
                                                         </div>
@@ -173,9 +201,7 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                     {/* Player and Setup */}
                                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-3">
                                                         <div>
-                                                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
-                                                                Player
-                                                            </div>
+                                                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Player</div>
                                                             <div class="flex items-center gap-2">
                                                                 <div class="flex-1 min-w-0">
                                                                     <div class="font-bold text-sm sm:text-base text-gray-900 dark:text-white truncate">
@@ -192,11 +218,8 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                                 />
                                                             </div>
                                                         </div>
-
                                                         <div>
-                                                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
-                                                                Setup
-                                                            </div>
+                                                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Setup</div>
                                                             <div class="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                                                                 {getCharacterName(record.characterId)}
                                                             </div>
@@ -251,27 +274,28 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                     </div>
                                     <div>
                                         <div class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-                                            {props.history![0].finishTimeDisplay}
+                                            {getTimeDisplay(props.history![0])}
                                         </div>
                                         <div class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">First</div>
                                     </div>
                                     <div>
-                                        {/* Total delta: skip if first and last are tied */}
+                                        {/* Total delta */}
                                         <Show
-                                            when={props.history![0].finishTimeMs !== props.history![props.history!.length - 1].finishTimeMs}
+                                            when={
+                                                getComparisonTime(props.history![0]) !==
+                                                getComparisonTime(props.history![props.history!.length - 1])
+                                            }
                                             fallback={
                                                 <>
-                                                    <div class="text-xl sm:text-2xl font-bold text-gray-500 dark:text-gray-400">
-                                                        = Tied
-                                                    </div>
+                                                    <div class="text-xl sm:text-2xl font-bold text-gray-500 dark:text-gray-400">= Tied</div>
                                                     <div class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">Total Δ</div>
                                                 </>
                                             }
                                         >
                                             <div class="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
                                                 {formatTimeImprovement(
-                                                    props.history![props.history!.length - 1].finishTimeMs,
-                                                    props.history![0].finishTimeMs
+                                                    getComparisonTime(props.history![props.history!.length - 1]),
+                                                    getComparisonTime(props.history![0])
                                                 )}
                                             </div>
                                             <div class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">Total Δ</div>

@@ -291,6 +291,34 @@ public class TimeTrialController : ControllerBase
         }
     }
 
+    [HttpGet("worldrecord/history/flap")]
+    public async Task<ActionResult<List<GhostSubmissionDto>>> GetFlapWorldRecordHistory(
+        [FromQuery] int trackId,
+        [FromQuery] short cc,
+        [FromQuery] bool glitchAllowed = true,
+        [FromQuery] string? shroomless = null,
+        [FromQuery] string? vehicle = null)
+    {
+        try
+        {
+            var ccValidation = ValidateCc(cc);
+            if (ccValidation != null) return ccValidation;
+
+            var (shroomlessFilter, vehicleMin, vehicleMax) = ParseCategoryFilters(shroomless, vehicle);
+
+            var history = await _ghostSubmissionRepository.GetFlapWorldRecordHistoryAsync(
+                trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax);
+
+            return Ok(history.Select(g => GhostSubmissionMapper.ToDto(g)).ToList<GhostSubmissionDto>());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving flap WR history for track {TrackId} {CC}cc", trackId, cc);
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while retrieving flap world record history");
+        }
+    }
+
     [HttpGet("worldrecords/all")]
     public async Task<ActionResult<List<TrackWorldRecordsDto>>> GetAllWorldRecords(
         [FromQuery] short cc,

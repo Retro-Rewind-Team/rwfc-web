@@ -126,6 +126,19 @@ export const timeTrialApi = {
         return apiRequest<GhostSubmission[]>(`/timetrial/worldrecord/history?${params}`);
     },
 
+    async getFlapWorldRecordHistory(
+        trackId: number,
+        cc: 150 | 200,
+        glitchAllowed: boolean,
+        shroomless: ShroomlessFilter = "all",
+        vehicle: VehicleFilter = "all"
+    ): Promise<GhostSubmission[]> {
+        const params = buildCategoryParams(glitchAllowed, shroomless, vehicle);
+        params.append("trackId", trackId.toString());
+        params.append("cc", cc.toString());
+        return apiRequest<GhostSubmission[]>(`/timetrial/worldrecord/history/flap?${params}`);
+    },
+
     // ===== FLAP =====
 
     async getFastestLap(

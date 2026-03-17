@@ -5,24 +5,13 @@ import { AlertBox, LoadingSpinner } from "../../components/common";
 import { TTFilters, TTLeaderboardTable, TTWRHistory } from "../../components/ui";
 import { LeaderboardMode } from "../../types/timeTrial";
 
-// Route format: /timetrial/[flap-][no-glitch-]{cc}cc/{trackId}
-// Examples:
-//   150cc             — regular, unrestricted, 150
-//   no-glitch-200cc   — regular, non-glitch, 200
-//   flap-150cc        — flap, unrestricted, 150
-//   flap-no-glitch-200cc — flap, non-glitch, 200
 function parseRouteCC(ccParam: string): { cc: 150 | 200; glitchAllowed: boolean; mode: LeaderboardMode } {
     const isFlap = ccParam.startsWith("flap-");
     const withoutFlap = isFlap ? ccParam.slice("flap-".length) : ccParam;
     const isNoGlitch = withoutFlap.startsWith("no-glitch-");
     const withoutGlitch = isNoGlitch ? withoutFlap.slice("no-glitch-".length) : withoutFlap;
     const cc = withoutGlitch === "200cc" ? 200 : 150;
-
-    return {
-        cc,
-        glitchAllowed: !isNoGlitch,
-        mode: isFlap ? "flap" : "regular",
-    };
+    return { cc, glitchAllowed: !isNoGlitch, mode: isFlap ? "flap" : "regular" };
 }
 
 export default function TTTrackDetailPage() {
@@ -36,12 +25,10 @@ export default function TTTrackDetailPage() {
 
     const ttTrack = useTTTrackDetail(trackId, selectedCC, glitchAllowed, mode);
 
-    // FLAP holder — only computed in regular mode, derived from flapQuery
     const flapHolder = () => {
         if (mode() !== "regular") return null;
         const flapMs = ttTrack.flapQuery.data?.fastestLapMs;
         if (!flapMs) return null;
-
         const submissions = ttTrack.leaderboardQuery.data?.submissions ?? [];
         for (const submission of submissions) {
             for (let i = 0; i < submission.lapSplitsMs.length; i++) {
@@ -73,6 +60,14 @@ export default function TTTrackDetailPage() {
         if (!glitchAllowed()) return "bg-gradient-to-r from-green-600 to-emerald-600";
         return "bg-blue-600";
     };
+
+    const wrHistoryTitle = () =>
+        mode() === "flap" ? "Flap Record History" : "World Record History";
+
+    const wrHistorySubtitle = () =>
+        mode() === "flap"
+            ? "Track the progression of fastest lap records over time"
+            : "Track the progression of world records over time";
 
     return (
         <div class="space-y-6">
@@ -158,25 +153,6 @@ export default function TTTrackDetailPage() {
                                                 </div>
                                             </div>
                                         )}
-                                    </Show>
-
-                                    {/* Flap mode header stat — best flap among flap submissions */}
-                                    <Show when={mode() === "flap" && leaderboardQuery_bestFlap()}>
-                                        <div class="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-3">
-                                            <div class="text-xs text-white/70 uppercase tracking-wide font-semibold mb-1">
-                                                Best Flap Run
-                                            </div>
-                                            <div class="text-2xl font-black text-white mb-1">
-                                                {ttTrack.leaderboardQuery.data?.fastestLapDisplay}
-                                            </div>
-                                            <Show when={ttTrack.leaderboardQuery.data?.submissions[0]}>
-                                                {(top) => (
-                                                    <div class="text-xs text-white/80 font-semibold">
-                                                        {top().playerName}
-                                                    </div>
-                                                )}
-                                            </Show>
-                                        </div>
                                     </Show>
                                 </div>
                             </div>
@@ -313,23 +289,19 @@ export default function TTTrackDetailPage() {
                             </Show>
                         </div>
 
-                        {/* WR History — only shown in regular mode */}
-                        <Show when={mode() === "regular"}>
-                            <TTWRHistory
-                                history={ttTrack.filteredWRHistory()}
-                                isLoading={ttTrack.wrHistoryQuery.isLoading}
-                                isError={ttTrack.wrHistoryQuery.isError}
-                                onDownloadGhost={ttTrack.handleDownloadGhost}
-                            />
-                        </Show>
+                        {/* WR History — shown in both modes, title/data switches based on mode */}
+                        <TTWRHistory
+                            history={ttTrack.filteredWRHistory()}
+                            isLoading={ttTrack.activeWrHistoryQuery().isLoading}
+                            isError={ttTrack.activeWrHistoryQuery().isError}
+                            onDownloadGhost={ttTrack.handleDownloadGhost}
+                            title={wrHistoryTitle()}
+                            subtitle={wrHistorySubtitle()}
+                            isFlap={mode() === "flap"}
+                        />
                     </div>
                 )}
             </Show>
         </div>
     );
-
-    // Helper accessor for the flap mode header stat
-    function leaderboardQuery_bestFlap() {
-        return mode() === "flap" && ttTrack.leaderboardQuery.data?.fastestLapMs != null;
-    }
 }

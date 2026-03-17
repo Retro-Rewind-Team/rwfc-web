@@ -250,6 +250,69 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
         }
     }
 
+    public async Task<List<GhostSubmissionEntity>> GetFlapWorldRecordHistoryAsync(
+        int trackId,
+        short cc,
+        bool glitchAllowed,
+        bool? shroomless = null,
+        short? minVehicleId = null,
+        short? maxVehicleId = null)
+    {
+        try
+        {
+            var history = await _context.GhostSubmissions
+                .FromSqlInterpolated($@"
+                    WITH FilteredSubmissions AS (
+                        SELECT *,
+                               (
+                                   SELECT MIN(lap::int)
+                                   FROM jsonb_array_elements_text(""LapSplitsMs""::jsonb) AS lap
+                               ) AS FastestLap
+                        FROM ""GhostSubmissions""
+                        WHERE ""TrackId"" = {trackId}
+                          AND ""CC"" = {cc}
+                          AND ""IsFlap"" = true
+                          AND ({glitchAllowed} OR ""Glitch"" = false)
+                          AND ({shroomless == null} OR ""Shroomless"" = {shroomless ?? false})
+                          AND ({!minVehicleId.HasValue} OR (""VehicleId"" >= {minVehicleId ?? 0} AND ""VehicleId"" <= {maxVehicleId ?? 0}))
+                    ),
+                    RankedSubmissions AS (
+                        SELECT *,
+                               MIN(FastestLap) OVER (
+                                   ORDER BY ""DateSet"", ""SubmittedAt""
+                                   ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                               ) AS BestSoFar
+                        FROM FilteredSubmissions
+                    ),
+                    FlapRecords AS (
+                        SELECT *,
+                               LAG(FastestLap) OVER (ORDER BY ""DateSet"", ""SubmittedAt"") AS PreviousBest
+                        FROM RankedSubmissions
+                        WHERE FastestLap = BestSoFar
+                    )
+                    SELECT
+                        ""Id"", ""TrackId"", ""TTProfileId"", ""CC"", ""FinishTimeMs"", ""FinishTimeDisplay"",
+                        ""VehicleId"", ""CharacterId"", ""ControllerType"", ""DriftType"", ""MiiName"",
+                        ""LapCount"", ""LapSplitsMs"", ""GhostFilePath"", ""DateSet"", ""SubmittedAt"",
+                        ""Shroomless"", ""Glitch"", ""DriftCategory"", ""IsFlap""
+                    FROM FlapRecords
+                    WHERE PreviousBest IS NULL OR FastestLap <= PreviousBest
+                    ORDER BY ""DateSet"" ASC, ""SubmittedAt"" ASC
+                ")
+                .Include(g => g.Track)
+                .Include(g => g.TTProfile)
+                .ToListAsync();
+
+            return [.. history.OrderBy(g => g.DateSet).ThenBy(g => g.SubmittedAt)];
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting flap WR history for track {TrackId} CC {CC} GlitchAllowed {GlitchAllowed}",
+                trackId, cc, glitchAllowed);
+            throw;
+        }
+    }
+
     // ===== FLAP =====
 
     public async Task<int?> GetFastestLapForTrackAsync(
