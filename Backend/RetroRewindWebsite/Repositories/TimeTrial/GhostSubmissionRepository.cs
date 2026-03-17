@@ -51,6 +51,7 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
         short? cc = null,
         bool? glitch = null,
         bool? shroomless = null,
+        bool? isFlap = null,
         short? driftCategory = null,
         int limit = 25)
     {
@@ -74,6 +75,9 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
 
         if (shroomless.HasValue)
             query = query.Where(g => g.Shroomless == shroomless.Value);
+
+        if (isFlap.HasValue)
+            query = query.Where(g => g.IsFlap == isFlap.Value);
 
         if (driftCategory.HasValue)
             query = query.Where(g => g.DriftCategory == driftCategory.Value);

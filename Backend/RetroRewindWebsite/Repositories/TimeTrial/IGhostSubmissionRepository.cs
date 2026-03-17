@@ -48,6 +48,7 @@ public interface IGhostSubmissionRepository
     /// included.</param>
     /// <param name="shroomless">Indicates whether to filter results by shroomless category. If null, both shroomless and non-shroomless
     /// submissions are included.</param>
+    /// <param name="isFlap"></param>
     /// <param name="driftCategory">The drift category to filter results. If null, submissions from all drift categories are included.</param>
     /// <param name="limit">The maximum number of submissions to return. Must be a positive integer.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of ghost submissions matching
@@ -58,6 +59,7 @@ public interface IGhostSubmissionRepository
         short? cc = null,
         bool? glitch = null,
         bool? shroomless = null,
+        bool? isFlap = null,
         short? driftCategory = null,
         int limit = 25);
 
