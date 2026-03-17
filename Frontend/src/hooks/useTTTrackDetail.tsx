@@ -1,22 +1,31 @@
-import { createEffect, createMemo, createSignal } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { timeTrialApi } from "../services/api/timeTrial";
-import { GhostSubmission } from "../types/timeTrial";
+import { GhostSubmission, DriftFilter, DriftCategoryFilter, ShroomlessFilter, VehicleFilter } from "../types/timeTrial";
 
-export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200, nonGlitchOnly: () => boolean) {
-    const [shroomlessFilter, setShroomlessFilter] = createSignal<"all" | "only" | "exclude">("all");
-    const [vehicleFilter, setVehicleFilter] = createSignal<"all" | "bikes" | "karts">("all");
-    const [driftFilter, setDriftFilter] = createSignal<"all" | "manual" | "hybrid">("all");
-    const [driftCategoryFilter, setDriftCategoryFilter] = createSignal<"all" | "inside" | "outside">("all");
-  
-    // Pagination - default to 10
+export function useTTTrackDetail(
+    trackId: () => number,
+    cc: () => 150 | 200,
+    glitchAllowed: () => boolean
+) {
+    // Category filters — sent to server, affect BKT/WR/FLAP
+    const [shroomlessFilter, setShroomlessFilter] = createSignal<ShroomlessFilter>("all");
+    const [vehicleFilter, setVehicleFilter] = createSignal<VehicleFilter>("all");
+
+    // Display-only filters — applied client-side, do not affect BKT
+    const [driftFilter, setDriftFilter] = createSignal<DriftFilter>("all");
+    const [driftCategoryFilter, setDriftCategoryFilter] = createSignal<DriftCategoryFilter>("all");
+
+    // Pagination
     const [currentPage, setCurrentPage] = createSignal(1);
     const [pageSize, setPageSize] = createSignal(10);
 
-    // Reset page to 1 when CC or non-glitch filter changes
+    // Reset page when any server-side filter or CC changes
     createEffect(() => {
         cc();
-        nonGlitchOnly();
+        glitchAllowed();
+        shroomlessFilter();
+        vehicleFilter();
         setCurrentPage(1);
     });
 
@@ -24,120 +33,121 @@ export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200, non
     const trackQuery = useQuery(() => ({
         queryKey: ["tt-track", trackId()],
         queryFn: () => timeTrialApi.getTrack(trackId()),
-        staleTime: 1000 * 60 * 60, // 1 hour
+        staleTime: 1000 * 60 * 60,
     }));
 
-    // Fetch leaderboard for this track with pagination
-    // Note: Backend repository will interpret glitch parameter as:
-    // - glitch=true: "Unrestricted" - returns ALL submissions (no filter on Glitch column)
-    // - glitch=false: "Non-glitch only" - returns only submissions WHERE Glitch = false
-    // When nonGlitchOnly=false (unrestricted mode), we pass true to get all submissions
-    // When nonGlitchOnly=true (non-glitch mode), we pass false to exclude glitch submissions
-    const glitchParam = () => !nonGlitchOnly();
-    
+    // Fetch leaderboard — server applies category filters
     const leaderboardQuery = useQuery(() => ({
-        queryKey: ["tt-leaderboard", trackId(), cc(), glitchParam(), currentPage(), pageSize()],
+        queryKey: [
+            "tt-leaderboard",
+            trackId(),
+            cc(),
+            glitchAllowed(),
+            shroomlessFilter(),
+            vehicleFilter(),
+            currentPage(),
+            pageSize(),
+        ],
         queryFn: () => timeTrialApi.getLeaderboard(
             trackId(),
             cc(),
-            glitchParam(),
+            glitchAllowed(),
+            shroomlessFilter(),
+            vehicleFilter(),
             currentPage(),
             pageSize()
         ),
     }));
 
-    // Fetch world record
-    const worldRecordQuery = useQuery(() => ({
-        queryKey: ["tt-world-record", trackId(), cc(), glitchParam()],
-        queryFn: () => timeTrialApi.getWorldRecord(trackId(), cc(), glitchParam()),
+    // Fetch FLAP separately so it reflects the full category, not just the current page
+    const flapQuery = useQuery(() => ({
+        queryKey: [
+            "tt-flap",
+            trackId(),
+            cc(),
+            glitchAllowed(),
+            shroomlessFilter(),
+            vehicleFilter(),
+        ],
+        queryFn: () => timeTrialApi.getFastestLap(
+            trackId(),
+            cc(),
+            glitchAllowed(),
+            shroomlessFilter(),
+            vehicleFilter()
+        ),
     }));
 
-    // Fetch world record history
+    // Fetch WR history — server applies category filters
     const wrHistoryQuery = useQuery(() => ({
-        queryKey: ["tt-wr-history", trackId(), cc(), glitchParam()],
-        queryFn: () => timeTrialApi.getWorldRecordHistory(trackId(), cc(), glitchParam()),
+        queryKey: [
+            "tt-wr-history",
+            trackId(),
+            cc(),
+            glitchAllowed(),
+            shroomlessFilter(),
+            vehicleFilter(),
+        ],
+        queryFn: () => timeTrialApi.getWorldRecordHistory(
+            trackId(),
+            cc(),
+            glitchAllowed(),
+            shroomlessFilter(),
+            vehicleFilter()
+        ),
     }));
 
-    // Apply filters to submissions
-    const filteredSubmissions = createMemo(() => {
-        const submissions = leaderboardQuery.data?.submissions || [];
-        const vehicleFilterValue = vehicleFilter();
-        const driftFilterValue = driftFilter();
-        const driftCategoryFilterValue = driftCategoryFilter();
-        const shroomlessFilterValue = shroomlessFilter();
+    // Apply display-only filters (drift type/category) client-side
+    // These do not affect BKT, WR, or FLAP — purely cosmetic table filtering
+    const filteredSubmissions = () => {
+        const submissions = leaderboardQuery.data?.submissions ?? [];
+        const drift = driftFilter();
+        const driftCat = driftCategoryFilter();
 
         return submissions.filter((submission) => {
-            // Vehicle filter (bikes/karts)
-            if (vehicleFilterValue === "bikes" && submission.vehicleId < 18) return false;
-            if (vehicleFilterValue === "karts" && submission.vehicleId >= 18) return false;
-
-            // Drift filter
-            if (driftFilterValue === "manual" && submission.driftType !== 0) return false;
-            if (driftFilterValue === "hybrid" && submission.driftType !== 1) return false;
-
-            // Drift category filter
-            if (driftCategoryFilterValue === "inside" && submission.driftCategory !== 1) return false;
-            if (driftCategoryFilterValue === "outside" && submission.driftCategory !== 0) return false;
-
-            // Shroomless filter
-            if (shroomlessFilterValue === "only" && !submission.shroomless) return false;
-            if (shroomlessFilterValue === "exclude" && submission.shroomless) return false;
-
+            if (drift === "manual" && submission.driftType !== 0) return false;
+            if (drift === "hybrid" && submission.driftType !== 1) return false;
+            if (driftCat === "inside" && submission.driftCategory !== 1) return false;
+            if (driftCat === "outside" && submission.driftCategory !== 0) return false;
             return true;
         });
-    });
+    };
 
-    // Apply filters to WR history
-    const filteredWRHistory = createMemo(() => {
-        const history = wrHistoryQuery.data || [];
-        const vehicleFilterValue = vehicleFilter();
-        const driftFilterValue = driftFilter();
-        const driftCategoryFilterValue = driftCategoryFilter();
-        const shroomlessFilterValue = shroomlessFilter();
+    // Apply display-only filters to WR history as well
+    const filteredWRHistory = () => {
+        const history = wrHistoryQuery.data ?? [];
+        const drift = driftFilter();
+        const driftCat = driftCategoryFilter();
 
         return history.filter((submission) => {
-            // Vehicle filter (bikes/karts)
-            if (vehicleFilterValue === "bikes" && submission.vehicleId < 18) return false;
-            if (vehicleFilterValue === "karts" && submission.vehicleId >= 18) return false;
-
-            // Drift filter
-            if (driftFilterValue === "manual" && submission.driftType !== 0) return false;
-            if (driftFilterValue === "hybrid" && submission.driftType !== 1) return false;
-
-            // Drift category filter
-            if (driftCategoryFilterValue === "inside" && submission.driftCategory !== 1) return false;
-            if (driftCategoryFilterValue === "outside" && submission.driftCategory !== 0) return false;
-
-            // Shroomless filter
-            if (shroomlessFilterValue === "only" && !submission.shroomless) return false;
-            if (shroomlessFilterValue === "exclude" && submission.shroomless) return false;
-
+            if (drift === "manual" && submission.driftType !== 0) return false;
+            if (drift === "hybrid" && submission.driftType !== 1) return false;
+            if (driftCat === "inside" && submission.driftCategory !== 1) return false;
+            if (driftCat === "outside" && submission.driftCategory !== 0) return false;
             return true;
         });
-    });
+    };
 
-    // Reset to page 1 when filters change
+    // Reset page when display filters change too, since filtered count may change
     createEffect(() => {
-        vehicleFilter();
         driftFilter();
-        driftCategoryFilter(); 
-        shroomlessFilter();
+        driftCategoryFilter();
         setCurrentPage(1);
     });
 
-    const handleShroomlessFilterChange = (filter: "all" | "only" | "exclude") => {
+    const handleShroomlessFilterChange = (filter: ShroomlessFilter) => {
         setShroomlessFilter(filter);
     };
 
-    const handleVehicleFilterChange = (filter: "all" | "bikes" | "karts") => {
+    const handleVehicleFilterChange = (filter: VehicleFilter) => {
         setVehicleFilter(filter);
     };
 
-    const handleDriftFilterChange = (filter: "all" | "manual" | "hybrid") => {
+    const handleDriftFilterChange = (filter: DriftFilter) => {
         setDriftFilter(filter);
     };
 
-    const handleDriftCategoryFilterChange = (filter: "all" | "inside" | "outside") => {
+    const handleDriftCategoryFilterChange = (filter: DriftCategoryFilter) => {
         setDriftCategoryFilter(filter);
     };
 
@@ -165,41 +175,39 @@ export function useTTTrackDetail(trackId: () => number, cc: () => 150 | 200, non
     const refreshAll = () => {
         trackQuery.refetch();
         leaderboardQuery.refetch();
-        worldRecordQuery.refetch();
+        flapQuery.refetch();
         wrHistoryQuery.refetch();
     };
 
-return {
-    // State
-    cc: cc(),
-    nonGlitchOnly: nonGlitchOnly(),
-    shroomlessFilter,
-    vehicleFilter,
-    driftFilter,
-    driftCategoryFilter,
-    currentPage,
-    pageSize,
+    return {
+        // State
+        shroomlessFilter,
+        vehicleFilter,
+        driftFilter,
+        driftCategoryFilter,
+        currentPage,
+        pageSize,
 
-    // Computed
-    filteredSubmissions,
-    filteredWRHistory,
+        // Computed
+        filteredSubmissions,
+        filteredWRHistory,
 
-    // Queries
-    trackQuery,
-    leaderboardQuery,
-    worldRecordQuery,
-    wrHistoryQuery,
+        // Queries
+        trackQuery,
+        leaderboardQuery,
+        flapQuery,
+        wrHistoryQuery,
 
-    // Handlers
-    handleShroomlessFilterChange,
-    handleVehicleFilterChange,
-    handleDriftFilterChange,
-    handleDriftCategoryFilterChange,
-    handlePageSizeChange,
-    handleDownloadGhost,
-    refreshAll,
+        // Handlers
+        handleShroomlessFilterChange,
+        handleVehicleFilterChange,
+        handleDriftFilterChange,
+        handleDriftCategoryFilterChange,
+        handlePageSizeChange,
+        handleDownloadGhost,
+        refreshAll,
 
-    // Setters
-    setCurrentPage,
-};
+        // Setters
+        setCurrentPage,
+    };
 }

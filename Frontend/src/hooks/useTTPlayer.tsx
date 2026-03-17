@@ -1,10 +1,28 @@
-import { createMemo, createSignal } from "solid-js";
+import { createEffect, createMemo, createSignal } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { timeTrialApi } from "../services/api/timeTrial";
+import { ShroomlessFilter, VehicleFilter } from "../types/timeTrial";
 
 export function useTTPlayer(ttProfileId: number) {
-    const [selectedCC, setSelectedCC] = createSignal<150 | 200 | "all">("all");
+    // Filters
+    const [selectedCC, setSelectedCC] = createSignal<150 | 200 | undefined>(undefined);
+    const [glitchFilter, setGlitchFilter] = createSignal<boolean | undefined>(undefined);
+    const [shroomlessFilter, setShroomlessFilter] = createSignal<ShroomlessFilter>("all");
+    const [vehicleFilter, setVehicleFilter] = createSignal<VehicleFilter>("all");
     const [searchQuery, setSearchQuery] = createSignal("");
+
+    // Pagination
+    const [currentPage, setCurrentPage] = createSignal(1);
+    const [pageSize, setPageSize] = createSignal(10);
+
+    // Reset to page 1 when any filter changes
+    createEffect(() => {
+        selectedCC();
+        glitchFilter();
+        shroomlessFilter();
+        vehicleFilter();
+        setCurrentPage(1);
+    });
 
     // Fetch player profile
     const profileQuery = useQuery(() => ({
@@ -13,66 +31,88 @@ export function useTTPlayer(ttProfileId: number) {
         retry: 1,
     }));
 
-    // Fetch player submissions
+    // Fetch submissions with all filters and pagination server-side
     const submissionsQuery = useQuery(() => ({
-        queryKey: ["tt-profile-submissions", ttProfileId],
-        queryFn: () => timeTrialApi.getProfileSubmissions(ttProfileId),
+        queryKey: [
+            "tt-profile-submissions",
+            ttProfileId,
+            currentPage(),
+            pageSize(),
+            selectedCC(),
+            glitchFilter(),
+            shroomlessFilter(),
+            vehicleFilter(),
+        ],
+        queryFn: () => timeTrialApi.getProfileSubmissions(
+            ttProfileId,
+            currentPage(),
+            pageSize(),
+            undefined,
+            selectedCC(),
+            glitchFilter(),
+            shroomlessFilter(),
+            vehicleFilter()
+        ),
     }));
 
-    // Fetch player stats
+    // Fetch player stats — always unfiltered
     const statsQuery = useQuery(() => ({
         queryKey: ["tt-profile-stats", ttProfileId],
         queryFn: () => timeTrialApi.getPlayerStats(ttProfileId),
     }));
 
-    // Filter submissions by CC and search
+    // Client-side track name search — applied on top of server results
+    // This is lightweight since we're only searching the current page
     const filteredSubmissions = createMemo(() => {
-        const submissions = submissionsQuery.data || [];
-        const cc = selectedCC();
+        const submissions = submissionsQuery.data?.submissions ?? [];
         const search = searchQuery().toLowerCase();
-
-        return submissions
-            .filter((sub) => {
-                if (cc !== "all" && sub.cc !== cc) return false;
-                if (search && !sub.trackName.toLowerCase().includes(search)) return false;
-                return true;
-            })
-            .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
-    });
-
-    // Group submissions by track
-    const submissionsByTrack = createMemo(() => {
-        const submissions = filteredSubmissions();
-        const grouped = new Map<number, typeof submissions>();
-
-        submissions.forEach((sub) => {
-            const existing = grouped.get(sub.trackId) || [];
-            grouped.set(sub.trackId, [...existing, sub]);
-        });
-
-        return grouped;
-    });
-
-    // Calculate world records held
-    const worldRecordsHeld = createMemo(() => {
-        return profileQuery.data?.currentWorldRecords || 0;
-    });
-
-    // Check if player not found
-    const isPlayerNotFound = createMemo(() => {
-        return (
-            profileQuery.isError &&
-      profileQuery.error instanceof Error &&
-      profileQuery.error.message.includes("404")
+        if (!search) return submissions;
+        return submissions.filter((sub) =>
+            sub.trackName.toLowerCase().includes(search)
         );
     });
+
+    const worldRecordsHeld = createMemo(() =>
+        profileQuery.data?.currentWorldRecords ?? 0
+    );
+
+    const isPlayerNotFound = createMemo(() =>
+        profileQuery.isError &&
+        profileQuery.error instanceof Error &&
+        profileQuery.error.message.includes("404")
+    );
+
+    const totalPages = createMemo(() =>
+        submissionsQuery.data?.totalPages ?? 1
+    );
+
+    const totalSubmissions = createMemo(() =>
+        submissionsQuery.data?.totalSubmissions ?? 0
+    );
 
     const handleSearchInput = (value: string) => {
         setSearchQuery(value);
     };
 
-    const handleCCChange = (cc: 150 | 200 | "all") => {
-        setSelectedCC(cc);
+    const handleCCChange = (cc: 150 | 200 | undefined) => {
+        setSelectedCC(cc as 150 | 200 | undefined);
+    };
+
+    const handleGlitchFilterChange = (glitch: boolean | undefined) => {
+        setGlitchFilter(glitch);
+    };
+
+    const handleShroomlessFilterChange = (filter: ShroomlessFilter) => {
+        setShroomlessFilter(filter);
+    };
+
+    const handleVehicleFilterChange = (filter: VehicleFilter) => {
+        setVehicleFilter(filter);
+    };
+
+    const handlePageSizeChange = (size: number) => {
+        setPageSize(size);
+        setCurrentPage(1);
     };
 
     const handleDownloadGhost = async (submissionId: number) => {
@@ -81,15 +121,12 @@ export function useTTPlayer(ttProfileId: number) {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-      
-            // Find the submission to get the time for filename
-            const submission = submissionsQuery.data?.find(s => s.id === submissionId);
-            if (submission) {
-                a.download = `${submission.finishTimeDisplay.replace(":", "m").replace(".", "s")}.rkg`;
-            } else {
-                a.download = "ghost.rkg";
-            }
-      
+            const submission = submissionsQuery.data?.submissions.find(
+                (s) => s.id === submissionId
+            );
+            a.download = submission
+                ? `${submission.finishTimeDisplay.replace(":", "m").replace(".", "s")}.rkg`
+                : "ghost.rkg";
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -106,15 +143,21 @@ export function useTTPlayer(ttProfileId: number) {
     };
 
     return {
-    // State
+        // State
         selectedCC,
+        glitchFilter,
+        shroomlessFilter,
+        vehicleFilter,
         searchQuery,
+        currentPage,
+        pageSize,
 
         // Computed
         filteredSubmissions,
-        submissionsByTrack,
         worldRecordsHeld,
         isPlayerNotFound,
+        totalPages,
+        totalSubmissions,
 
         // Queries
         profileQuery,
@@ -124,7 +167,14 @@ export function useTTPlayer(ttProfileId: number) {
         // Handlers
         handleSearchInput,
         handleCCChange,
+        handleGlitchFilterChange,
+        handleShroomlessFilterChange,
+        handleVehicleFilterChange,
+        handlePageSizeChange,
         handleDownloadGhost,
         refreshAll,
+
+        // Setters
+        setCurrentPage,
     };
 }

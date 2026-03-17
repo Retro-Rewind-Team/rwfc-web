@@ -83,95 +83,75 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
             .Take(limit)
             .ToListAsync();
     }
-
     public async Task<PagedResult<GhostSubmissionEntity>> GetTrackLeaderboardAsync(
         int trackId,
         short cc,
-        bool glitch,
+        bool glitchAllowed,
+        bool? shroomless,
+        short? minVehicleId,
+        short? maxVehicleId,
         int page,
         int pageSize)
     {
-        var query = _context.GhostSubmissions
-            .AsNoTracking()
-            .Include(g => g.Track)
-            .Include(g => g.TTProfile)
-            .Where(g => g.TrackId == trackId && g.CC == cc);
-
-        if (!glitch)
-            query = query.Where(g => !g.Glitch);
-
-        query = query
-            .OrderBy(g => g.FinishTimeMs)
-            .ThenBy(g => g.SubmittedAt);
-
+        var query = BuildLeaderboardQuery(trackId, cc, glitchAllowed, shroomless, minVehicleId, maxVehicleId);
+        query = query.OrderBy(g => g.FinishTimeMs);
         return await PagedResult<GhostSubmissionEntity>.CreateAsync(query, page, pageSize);
     }
 
     public async Task<List<GhostSubmissionEntity>> GetTopTimesForTrackAsync(
         int trackId,
         short cc,
-        bool glitch,
+        bool glitchAllowed,
+        bool? shroomless,
+        short? minVehicleId,
+        short? maxVehicleId,
         int count)
     {
-        var query = _context.GhostSubmissions
-            .AsNoTracking()
-            .Include(g => g.Track)
-            .Include(g => g.TTProfile)
-            .Where(g => g.TrackId == trackId && g.CC == cc);
-
-        if (!glitch)
-            query = query.Where(g => !g.Glitch);
-
+        var query = BuildLeaderboardQuery(trackId, cc, glitchAllowed, shroomless, minVehicleId, maxVehicleId);
         return await query
             .OrderBy(g => g.FinishTimeMs)
-            .ThenBy(g => g.SubmittedAt)
             .Take(count)
             .ToListAsync();
     }
 
-    public async Task<GhostSubmissionEntity?> GetWorldRecordAsync(int trackId, short cc, bool glitch)
+    // ===== WORLD RECORD =====
+
+    public async Task<GhostSubmissionEntity?> GetWorldRecordAsync(
+        int trackId,
+        short cc,
+        bool glitchAllowed,
+        bool? shroomless = null,
+        short? minVehicleId = null,
+        short? maxVehicleId = null)
     {
-        var query = _context.GhostSubmissions
-            .AsNoTracking()
-            .Include(g => g.Track)
-            .Include(g => g.TTProfile)
-            .Where(g => g.TrackId == trackId && g.CC == cc);
-
-        if (!glitch)
-            query = query.Where(g => !g.Glitch);
-
+        var query = BuildLeaderboardQuery(trackId, cc, glitchAllowed, shroomless, minVehicleId, maxVehicleId);
         return await query
             .OrderBy(g => g.FinishTimeMs)
-            .ThenBy(g => g.SubmittedAt)
             .FirstOrDefaultAsync();
     }
 
-    public async Task<List<GhostSubmissionEntity>> GetPlayerSubmissionsAsync(
-        int ttProfileId,
-        int? trackId = null,
-        short? cc = null)
-    {
-        var query = _context.GhostSubmissions
-            .AsNoTracking()
-            .Include(g => g.Track)
-            .Include(g => g.TTProfile)
-            .Where(g => g.TTProfileId == ttProfileId);
-
-        if (trackId.HasValue)
-            query = query.Where(g => g.TrackId == trackId.Value);
-
-        if (cc.HasValue)
-            query = query.Where(g => g.CC == cc.Value);
-
-        return await query
-            .OrderBy(g => g.FinishTimeMs)
-            .ToListAsync();
-    }
-
-    public async Task<List<GhostSubmissionEntity>> GetWorldRecordHistoryAsync(int trackId, short cc, bool glitch)
+    public async Task<List<GhostSubmissionEntity>> GetWorldRecordHistoryAsync(
+        int trackId,
+        short cc,
+        bool glitchAllowed,
+        bool? shroomless = null,
+        short? minVehicleId = null,
+        short? maxVehicleId = null)
     {
         try
         {
+            // Build filter conditions for the SQL query
+            var glitchCondition = glitchAllowed ? "TRUE" : "\"Glitch\" = false";
+            var shroomlessCondition = shroomless switch
+            {
+                true => "AND \"Shroomless\" = true",
+                false => "AND \"Shroomless\" = false",
+                null => ""
+            };
+            var vehicleCondition = (minVehicleId.HasValue && maxVehicleId.HasValue)
+                ? $"AND \"VehicleId\" >= {minVehicleId.Value} AND \"VehicleId\" <= {maxVehicleId.Value}"
+                : "";
+
             var wrHistory = await _context.GhostSubmissions
                 .FromSqlInterpolated($@"
                     WITH FilteredSubmissions AS (
@@ -179,7 +159,9 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
                         FROM ""GhostSubmissions""
                         WHERE ""TrackId"" = {trackId}
                           AND ""CC"" = {cc}
-                          AND ({glitch} OR ""Glitch"" = false)
+                          AND ({glitchAllowed} OR ""Glitch"" = false)
+                          AND ({shroomless == null} OR ""Shroomless"" = {shroomless ?? false})
+                          AND ({!minVehicleId.HasValue} OR (""VehicleId"" >= {minVehicleId ?? 0} AND ""VehicleId"" <= {maxVehicleId ?? 0}))
                     ),
                     RankedSubmissions AS (
                         SELECT *,
@@ -201,7 +183,7 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
                         ""LapCount"", ""LapSplitsMs"", ""GhostFilePath"", ""DateSet"", ""SubmittedAt"",
                         ""Shroomless"", ""Glitch"", ""DriftCategory""
                     FROM WorldRecords
-                    WHERE PreviousBest IS NULL OR ""FinishTimeMs"" < PreviousBest
+                    WHERE PreviousBest IS NULL OR ""FinishTimeMs"" <= PreviousBest
                     ORDER BY ""DateSet"" ASC, ""SubmittedAt"" ASC
                 ")
                 .Include(g => g.Track)
@@ -212,11 +194,87 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting world record history for track {TrackId} CC {CC} Glitch {Glitch}",
-                trackId, cc, glitch);
+            _logger.LogError(ex, "Error getting world record history for track {TrackId} CC {CC} GlitchAllowed {GlitchAllowed}",
+                trackId, cc, glitchAllowed);
             throw;
         }
     }
+
+    // ===== FLAP =====
+
+    public async Task<int?> GetFastestLapForTrackAsync(
+        int trackId,
+        short cc,
+        bool glitchAllowed,
+        bool? shroomless = null,
+        short? minVehicleId = null,
+        short? maxVehicleId = null)
+    {
+        try
+        {
+            return await _context.Database
+                .SqlQuery<int?>($@"
+                    WITH LapTimes AS (
+                        SELECT jsonb_array_elements_text(""LapSplitsMs""::jsonb)::int AS LapTime
+                        FROM ""GhostSubmissions""
+                        WHERE ""TrackId"" = {trackId}
+                          AND ""CC"" = {cc}
+                          AND ({glitchAllowed} OR ""Glitch"" = false)
+                          AND ({shroomless == null} OR ""Shroomless"" = {shroomless ?? false})
+                          AND ({!minVehicleId.HasValue} OR (""VehicleId"" >= {minVehicleId ?? 0} AND ""VehicleId"" <= {maxVehicleId ?? 0}))
+                    )
+                    SELECT MIN(LapTime) AS ""Value""
+                    FROM LapTimes
+                ")
+                .FirstOrDefaultAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting fastest lap for track {TrackId} CC {CC}", trackId, cc);
+            throw;
+        }
+    }
+
+    // ===== PLAYER SUBMISSIONS =====
+
+    public async Task<PagedResult<GhostSubmissionEntity>> GetPlayerSubmissionsAsync(
+        int ttProfileId,
+        int page,
+        int pageSize,
+        int? trackId = null,
+        short? cc = null,
+        bool? glitch = null,
+        bool? shroomless = null,
+        short? minVehicleId = null,
+        short? maxVehicleId = null)
+    {
+        var query = _context.GhostSubmissions
+            .AsNoTracking()
+            .Include(g => g.Track)
+            .Include(g => g.TTProfile)
+            .Where(g => g.TTProfileId == ttProfileId);
+
+        if (trackId.HasValue)
+            query = query.Where(g => g.TrackId == trackId.Value);
+
+        if (cc.HasValue)
+            query = query.Where(g => g.CC == cc.Value);
+
+        if (glitch.HasValue)
+            query = query.Where(g => g.Glitch == glitch.Value);
+
+        if (shroomless.HasValue)
+            query = query.Where(g => g.Shroomless == shroomless.Value);
+
+        if (minVehicleId.HasValue && maxVehicleId.HasValue)
+            query = query.Where(g => g.VehicleId >= minVehicleId.Value && g.VehicleId <= maxVehicleId.Value);
+
+        query = query.OrderByDescending(g => g.SubmittedAt);
+
+        return await PagedResult<GhostSubmissionEntity>.CreateAsync(query, page, pageSize);
+    }
+
+    // ===== PROFILE STATS =====
 
     public async Task<int> GetTotalSubmissionsCountAsync() =>
         await _context.GhostSubmissions.CountAsync();
@@ -259,7 +317,7 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
                             ""TTProfileId"",
                             RANK() OVER (
                                 PARTITION BY ""TrackId"", ""CC"", ""Glitch""
-                                ORDER BY ""FinishTimeMs"", ""SubmittedAt""
+                                ORDER BY ""FinishTimeMs""
                             ) as Position
                         FROM ""GhostSubmissions""
                     )
@@ -287,7 +345,7 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
                             ""TTProfileId"",
                             RANK() OVER (
                                 PARTITION BY ""TrackId"", ""CC"", ""Glitch""
-                                ORDER BY ""FinishTimeMs"", ""SubmittedAt""
+                                ORDER BY ""FinishTimeMs""
                             ) as Position
                         FROM ""GhostSubmissions""
                     )
@@ -305,49 +363,26 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
         }
     }
 
-    public async Task<int?> GetFastestLapForTrackAsync(int trackId, short cc, bool glitch)
-    {
-        try
-        {
-            return await _context.Database
-                .SqlQuery<int?>($@"
-                    WITH LapTimes AS (
-                        SELECT jsonb_array_elements_text(""LapSplitsMs""::jsonb)::int AS LapTime
-                        FROM ""GhostSubmissions""
-                        WHERE ""TrackId"" = {trackId}
-                          AND ""CC"" = {cc}
-                          AND ({glitch} OR ""Glitch"" = false)
-                    )
-                    SELECT MIN(LapTime) AS ""Value""
-                    FROM LapTimes
-                ")
-                .FirstOrDefaultAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting fastest lap for track {TrackId} CC {CC}", trackId, cc);
-            throw;
-        }
-    }
+    // ===== WORLD RECORD COUNTS =====
 
     public async Task UpdateWorldRecordCountsAsync()
     {
         try
         {
             await _context.Database.ExecuteSqlAsync($@"
-            UPDATE ""TTProfiles"" p
-            SET ""CurrentWorldRecords"" = (
-                SELECT CAST(COUNT(*) AS INTEGER)
-                FROM (
-                    SELECT DISTINCT ON (""TrackId"", ""CC"", ""Glitch"")
-                        ""TrackId"", ""CC"", ""Glitch"", ""TTProfileId""
-                    FROM ""GhostSubmissions""
-                    ORDER BY ""TrackId"", ""CC"", ""Glitch"", ""FinishTimeMs"", ""SubmittedAt""
-                ) wr
-                WHERE wr.""TTProfileId"" = p.""Id""
-            ),
-            ""UpdatedAt"" = {DateTime.UtcNow}
-        ");
+                UPDATE ""TTProfiles"" p
+                SET ""CurrentWorldRecords"" = (
+                    SELECT CAST(COUNT(*) AS INTEGER)
+                    FROM (
+                        SELECT DISTINCT ON (""TrackId"", ""CC"", ""Glitch"")
+                            ""TrackId"", ""CC"", ""Glitch"", ""TTProfileId""
+                        FROM ""GhostSubmissions""
+                        ORDER BY ""TrackId"", ""CC"", ""Glitch"", ""FinishTimeMs"", ""SubmittedAt""
+                    ) wr
+                    WHERE wr.""TTProfileId"" = p.""Id""
+                ),
+                ""UpdatedAt"" = {DateTime.UtcNow}
+            ");
         }
         catch (Exception ex)
         {
@@ -355,6 +390,8 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
             throw;
         }
     }
+
+    // ===== BKT (Discord bot) =====
 
     public async Task<GhostSubmissionEntity?> GetBestKnownTimeAsync(
         int trackId,
@@ -389,7 +426,42 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
 
         return await query
             .OrderBy(g => g.FinishTimeMs)
-            .ThenBy(g => g.SubmittedAt)
             .FirstOrDefaultAsync();
+    }
+
+    // ===== PRIVATE HELPERS =====
+
+    /// <summary>
+    /// Builds the base filtered query shared by leaderboard, WR, and top times methods.
+    /// glitchAllowed=true means all submissions are included (unrestricted category).
+    /// glitchAllowed=false means only non-glitch submissions are included.
+    /// shroomless=null means all, true means shroomless only, false means non-shroomless only.
+    /// Vehicle range: both must be provided together or neither.
+    /// No secondary sort on SubmittedAt — ties are intentional draws.
+    /// </summary>
+    private IQueryable<GhostSubmissionEntity> BuildLeaderboardQuery(
+        int trackId,
+        short cc,
+        bool glitchAllowed,
+        bool? shroomless,
+        short? minVehicleId,
+        short? maxVehicleId)
+    {
+        var query = _context.GhostSubmissions
+            .AsNoTracking()
+            .Include(g => g.Track)
+            .Include(g => g.TTProfile)
+            .Where(g => g.TrackId == trackId && g.CC == cc);
+
+        if (!glitchAllowed)
+            query = query.Where(g => !g.Glitch);
+
+        if (shroomless.HasValue)
+            query = query.Where(g => g.Shroomless == shroomless.Value);
+
+        if (minVehicleId.HasValue && maxVehicleId.HasValue)
+            query = query.Where(g => g.VehicleId >= minVehicleId.Value && g.VehicleId <= maxVehicleId.Value);
+
+        return query;
     }
 }

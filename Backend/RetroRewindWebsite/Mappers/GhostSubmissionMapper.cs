@@ -6,7 +6,10 @@ namespace RetroRewindWebsite.Mappers;
 
 public static class GhostSubmissionMapper
 {
-    public static GhostSubmissionDetailDto ToDto(GhostSubmissionEntity entity)
+    /// <summary>
+    /// Maps a single entity without rank context (WR fetch, profile view, etc.)
+    /// </summary>
+    public static GhostSubmissionDetailDto ToDto(GhostSubmissionEntity entity, int? rank = null)
     {
         var lapSplitsMs = entity.LapSplitsMs;
 
@@ -49,8 +52,43 @@ public static class GhostSubmissionMapper
             ControllerName: MarioKartMappings.GetControllerName(entity.ControllerType),
             DriftTypeName: MarioKartMappings.GetDriftTypeName(entity.DriftType),
             DriftCategoryName: MarioKartMappings.GetDriftCategoryName(entity.DriftCategory),
-            TrackSlotName: entity.Track?.TrackSlot
+            TrackSlotName: entity.Track?.TrackSlot,
+            Rank: rank
         );
+    }
+
+    /// <summary>
+    /// Maps a page of leaderboard results with Olympic-style ranks (1,1,3).
+    /// Rankings are based purely on FinishTimeMs, ties are draws.
+    /// pageOffset is (currentPage - 1) * pageSize so ranks are globally correct across pages.
+    /// </summary>
+    public static List<GhostSubmissionDetailDto> ToLeaderboardDtos(
+        IList<GhostSubmissionEntity> entities,
+        int pageOffset)
+    {
+        var result = new List<GhostSubmissionDetailDto>(entities.Count);
+        _ = pageOffset + 1;
+
+        for (int i = 0; i < entities.Count; i++)
+        {
+            int globalIndex = pageOffset + i;
+            int rank;
+
+            if (i == 0)
+            {
+                rank = globalIndex + 1;
+            }
+            else
+            {
+                rank = entities[i].FinishTimeMs == entities[i - 1].FinishTimeMs
+                    ? result[i - 1].Rank!.Value
+                    : globalIndex + 1;
+            }
+
+            result.Add(ToDto(entities[i], rank));
+        }
+
+        return result;
     }
 
     public static string FormatLapTime(int milliseconds)

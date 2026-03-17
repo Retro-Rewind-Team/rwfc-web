@@ -6,52 +6,35 @@ import { TTFilters, TTLeaderboardTable, TTWRHistory } from "../../components/ui"
 
 export default function TTTrackDetailPage() {
     const params = useParams();
-    
+
     const selectedCC = createMemo((): 150 | 200 => {
         const cc = params.cc;
-        console.log("selectedCC memo updating, params.cc =", cc, "full params:", params);
-        
-        // For no-glitch routes: no-glitch-150cc or no-glitch-200cc
-        if (cc === "no-glitch-150cc") return 150;
-        if (cc === "no-glitch-200cc") return 200;
-        
-        // For normal routes (all times): 150cc or 200cc
-        if (cc === "150cc") return 150;
-        if (cc === "200cc") return 200;
-        
-        return 150; // default
+        if (cc === "no-glitch-150cc" || cc === "150cc") return 150;
+        if (cc === "no-glitch-200cc" || cc === "200cc") return 200;
+        return 150;
     });
 
-    const selectedNonGlitchOnly = createMemo((): boolean => {
-        const cc = params.cc;
-        console.log("selectedNonGlitchOnly memo updating, params.cc =", cc);
-        
-        // Check if route starts with "no-glitch-" to exclude glitch times
-        return cc?.startsWith("no-glitch-") || false;
+    const glitchAllowed = createMemo((): boolean => {
+        return !params.cc?.startsWith("no-glitch-");
     });
 
-    // Parse track ID from route params as a memo
     const trackId = createMemo(() => Number(params.trackId));
 
-    // Use the track detail hook
-    const ttTrack = useTTTrackDetail(trackId, selectedCC, selectedNonGlitchOnly);
+    const ttTrack = useTTTrackDetail(trackId, selectedCC, glitchAllowed);
 
-    // Get FLAP holder info
     const flapHolder = () => {
-        if (!ttTrack.leaderboardQuery.data?.fastestLapMs) return null;
-        
-        const fastestLap = ttTrack.leaderboardQuery.data.fastestLapMs;
-        const submissions = ttTrack.leaderboardQuery.data.submissions || [];
-        
-        // Find the submission that has this FLAP
+        const flapMs = ttTrack.flapQuery.data?.fastestLapMs;
+        if (!flapMs) return null;
+
+        const submissions = ttTrack.leaderboardQuery.data?.submissions ?? [];
         for (const submission of submissions) {
             for (let i = 0; i < submission.lapSplitsMs.length; i++) {
-                if (submission.lapSplitsMs[i] === fastestLap) {
+                if (submission.lapSplitsMs[i] === flapMs) {
                     return {
                         playerName: submission.playerName,
                         miiName: submission.miiName,
                         lapNumber: i + 1,
-                        time: submission.lapSplitsDisplay[i],
+                        time: ttTrack.flapQuery.data!.fastestLapDisplay,
                         shroomless: submission.shroomless,
                         glitch: submission.glitch,
                     };
@@ -61,9 +44,8 @@ export default function TTTrackDetailPage() {
         return null;
     };
 
-    // Get category label for display
     const categoryLabel = () => {
-        if (selectedNonGlitchOnly()) {
+        if (!glitchAllowed()) {
             return selectedCC() === 150 ? "Non-Glitch/Shortcut 150cc" : "Non-Glitch/Shortcut 200cc";
         }
         return selectedCC() === 150 ? "All Times 150cc" : "All Times 200cc";
@@ -77,41 +59,27 @@ export default function TTTrackDetailPage() {
                     href="/timetrial"
                     class="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                 >
-                    <svg
-                        class="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M15 19l-7-7 7-7"
-                        />
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
                     <span>Back to Track Browser</span>
                 </A>
             </div>
 
-            {/* Loading State */}
+            {/* Loading */}
             <Show when={ttTrack.trackQuery.isLoading}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-12 text-center">
                     <LoadingSpinner />
-                    <p class="mt-4 text-gray-600 dark:text-gray-400">
-                        Loading track...
-                    </p>
+                    <p class="mt-4 text-gray-600 dark:text-gray-400">Loading track...</p>
                 </div>
             </Show>
 
-            {/* Error State */}
+            {/* Error */}
             <Show when={ttTrack.trackQuery.isError}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-red-200 dark:border-red-800 p-8">
                     <div class="text-center space-y-4">
                         <div class="text-6xl">⚠️</div>
-                        <h2 class="text-2xl font-bold text-red-900 dark:text-red-100">
-                            Failed to load track
-                        </h2>
+                        <h2 class="text-2xl font-bold text-red-900 dark:text-red-100">Failed to load track</h2>
                         <button
                             onClick={() => ttTrack.trackQuery.refetch()}
                             class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
@@ -126,12 +94,11 @@ export default function TTTrackDetailPage() {
             <Show when={ttTrack.trackQuery.data}>
                 {(track) => (
                     <div class="space-y-6">
-                        {/* Track Header & Filters */}
                         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
                             {/* Header */}
                             <div class={`px-6 py-4 ${
-                                selectedNonGlitchOnly() 
-                                    ? "bg-gradient-to-r from-green-600 to-emerald-600" 
+                                !glitchAllowed()
+                                    ? "bg-gradient-to-r from-green-600 to-emerald-600"
                                     : "bg-blue-600"
                             }`}>
                                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -148,7 +115,7 @@ export default function TTTrackDetailPage() {
                                         </div>
                                     </div>
 
-                                    {/* FLAP Display with holder info */}
+                                    {/* FLAP Display */}
                                     <Show when={flapHolder()}>
                                         {(holder) => (
                                             <div class="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-3">
@@ -182,7 +149,7 @@ export default function TTTrackDetailPage() {
                                     trackId={trackId()}
                                     trackSupportsGlitch={track().supportsGlitch}
                                     currentCC={selectedCC()}
-                                    currentNonGlitchOnly={selectedNonGlitchOnly()}
+                                    currentGlitchAllowed={glitchAllowed()}
                                     shroomlessFilter={ttTrack.shroomlessFilter()}
                                     vehicleFilter={ttTrack.vehicleFilter()}
                                     driftFilter={ttTrack.driftFilter()}
@@ -196,17 +163,15 @@ export default function TTTrackDetailPage() {
                                 />
                             </div>
 
-                            {/* Loading State */}
+                            {/* Leaderboard Loading */}
                             <Show when={ttTrack.leaderboardQuery.isLoading}>
                                 <div class="p-12 text-center">
                                     <LoadingSpinner />
-                                    <p class="mt-4 text-gray-600 dark:text-gray-400">
-                                        Loading times...
-                                    </p>
+                                    <p class="mt-4 text-gray-600 dark:text-gray-400">Loading times...</p>
                                 </div>
                             </Show>
 
-                            {/* Error State */}
+                            {/* Leaderboard Error */}
                             <Show when={ttTrack.leaderboardQuery.isError}>
                                 <div class="p-6">
                                     <AlertBox type="error" icon="⚠️">
@@ -233,16 +198,14 @@ export default function TTTrackDetailPage() {
                                 >
                                     <TTLeaderboardTable
                                         submissions={ttTrack.filteredSubmissions()}
-                                        fastestLapMs={ttTrack.leaderboardQuery.data?.fastestLapMs || null}
+                                        fastestLapMs={ttTrack.flapQuery.data?.fastestLapMs ?? null}
                                         trackLaps={track().laps}
-                                        currentPage={ttTrack.currentPage()}
-                                        pageSize={ttTrack.pageSize()}
                                         onDownloadGhost={ttTrack.handleDownloadGhost}
                                     />
                                 </Show>
 
                                 {/* Pagination */}
-                                <Show when={ttTrack.leaderboardQuery.data!.totalSubmissions > ttTrack.pageSize()}>
+                                <Show when={(ttTrack.leaderboardQuery.data?.totalPages ?? 1) > 1}>
                                     <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t-2 border-gray-200 dark:border-gray-600 gap-2 sm:gap-0">
                                         <div class="flex items-center justify-center sm:justify-start gap-2">
                                             <button
@@ -252,28 +215,52 @@ export default function TTTrackDetailPage() {
                                             >
                                                 ← Previous
                                             </button>
-                                            <span class="px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg font-medium border-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
-                                                Page {ttTrack.currentPage()} of {Math.ceil(ttTrack.leaderboardQuery.data!.totalSubmissions / ttTrack.pageSize())}
+                                            <span class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 font-medium whitespace-nowrap">
+                                                Page
+                                                <input
+                                                    type="number"
+                                                    min={1}
+                                                    max={ttTrack.leaderboardQuery.data!.totalPages}
+                                                    value={ttTrack.currentPage()}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter") {
+                                                            const val = parseInt((e.target as HTMLInputElement).value);
+                                                            const total = ttTrack.leaderboardQuery.data!.totalPages;
+                                                            if (!isNaN(val) && val >= 1 && val <= total) {
+                                                                ttTrack.setCurrentPage(val);
+                                                            } else {
+                                                                (e.target as HTMLInputElement).value = String(ttTrack.currentPage());
+                                                            }
+                                                        }
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        const val = parseInt(e.target.value);
+                                                        const total = ttTrack.leaderboardQuery.data!.totalPages;
+                                                        if (!isNaN(val) && val >= 1 && val <= total) {
+                                                            ttTrack.setCurrentPage(val);
+                                                        } else {
+                                                            e.target.value = String(ttTrack.currentPage());
+                                                        }
+                                                    }}
+                                                    class="w-16 px-2 py-1 text-center border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                />
+                                                of {ttTrack.leaderboardQuery.data!.totalPages}
                                             </span>
                                             <button
-                                                onClick={() =>
-                                                    ttTrack.setCurrentPage(
-                                                        Math.min(
-                                                            Math.ceil(ttTrack.leaderboardQuery.data!.totalSubmissions / ttTrack.pageSize()),
-                                                            ttTrack.currentPage() + 1
-                                                        )
-                                                    )
-                                                }
-                                                disabled={ttTrack.currentPage() === Math.ceil(ttTrack.leaderboardQuery.data!.totalSubmissions / ttTrack.pageSize())}
+                                                onClick={() => ttTrack.setCurrentPage(
+                                                    Math.min(ttTrack.leaderboardQuery.data!.totalPages, ttTrack.currentPage() + 1)
+                                                )}
+                                                disabled={ttTrack.currentPage() === ttTrack.leaderboardQuery.data!.totalPages}
                                                 class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                             >
                                                 Next →
                                             </button>
                                         </div>
-
                                         <div class="text-sm text-gray-600 dark:text-gray-400 font-medium text-center sm:text-right">
-                                            Showing {(ttTrack.currentPage() - 1) * ttTrack.pageSize() + 1} –{" "}
-                                            {Math.min(ttTrack.currentPage() * ttTrack.pageSize(), ttTrack.leaderboardQuery.data!.totalSubmissions)} of {ttTrack.leaderboardQuery.data!.totalSubmissions} times
+                                            Showing {(ttTrack.currentPage() - 1) * ttTrack.pageSize() + 1}–{Math.min(
+                                                ttTrack.currentPage() * ttTrack.pageSize(),
+                                                ttTrack.leaderboardQuery.data!.totalSubmissions
+                                            )} of {ttTrack.leaderboardQuery.data!.totalSubmissions} times
                                         </div>
                                     </div>
                                 </Show>

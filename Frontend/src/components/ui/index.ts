@@ -17,3 +17,4 @@ export { default as TTWRHistory } from "./TTWRHistory";
 export { default as TTPlayerStatsCard } from "./TTPlayerStatsCard";
 export { default as TTPlayerSubmissionsTable } from "./TTPlayerSubmissionsTable";
 export { default as TTLapSplits } from "./TTLapSplits";
+export { default as TTBrowserFilters } from "./TTBrowserFilters";

@@ -86,7 +86,9 @@ public class TimeTrialController : ControllerBase
     public async Task<ActionResult<TrackLeaderboardDto>> GetLeaderboard(
         [FromQuery] int trackId,
         [FromQuery] short cc,
-        [FromQuery] bool glitch = false,
+        [FromQuery] bool glitchAllowed = true,
+        [FromQuery] string? shroomless = null,
+        [FromQuery] string? vehicle = null,
         [FromQuery] int page = MinPage,
         [FromQuery] int pageSize = DefaultPageSize)
     {
@@ -102,27 +104,35 @@ public class TimeTrialController : ControllerBase
             if (track == null)
                 return NotFound($"Track with ID {trackId} not found");
 
+            var (shroomlessFilter, vehicleMin, vehicleMax) = ParseCategoryFilters(shroomless, vehicle);
+
             var pagedResult = await _ghostSubmissionRepository.GetTrackLeaderboardAsync(
-                trackId, cc, glitch, page, pageSize);
+                trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax, page, pageSize);
+
             var flapMs = await _ghostSubmissionRepository.GetFastestLapForTrackAsync(
-                trackId, cc, glitch);
+                trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax);
+
+            var pageOffset = (page - 1) * pageSize;
+            var submissions = GhostSubmissionMapper.ToLeaderboardDtos(pagedResult.Items, pageOffset);
 
             return Ok(new TrackLeaderboardDto(
                 MapToTrackDto(track),
                 cc,
-                glitch,
-                pagedResult.Items.Select(GhostSubmissionMapper.ToDto).ToList<GhostSubmissionDto>(),
+                glitchAllowed,
+                shroomlessFilter,
+                vehicle,
+                submissions.Cast<GhostSubmissionDto>().ToList(),
                 pagedResult.TotalCount,
                 pagedResult.CurrentPage,
                 pagedResult.PageSize,
+                pagedResult.TotalPages,
                 flapMs,
                 flapMs.HasValue ? GhostSubmissionMapper.FormatLapTime(flapMs.Value) : null
             ));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving leaderboard for track {TrackId} {CC}cc",
-                trackId, cc);
+            _logger.LogError(ex, "Error retrieving leaderboard for track {TrackId} {CC}cc", trackId, cc);
             return StatusCode(StatusCodes.Status500InternalServerError,
                 "An error occurred while retrieving leaderboard");
         }
@@ -132,7 +142,9 @@ public class TimeTrialController : ControllerBase
     public async Task<ActionResult<List<GhostSubmissionDto>>> GetTopTimes(
         [FromQuery] int trackId,
         [FromQuery] short cc,
-        [FromQuery] bool glitch = false,
+        [FromQuery] bool glitchAllowed = true,
+        [FromQuery] string? shroomless = null,
+        [FromQuery] string? vehicle = null,
         [FromQuery] int count = DefaultTopCount)
     {
         try
@@ -142,15 +154,17 @@ public class TimeTrialController : ControllerBase
 
             count = Math.Clamp(count, MinTopCount, MaxTopCount);
 
-            var submissions = await _ghostSubmissionRepository.GetTopTimesForTrackAsync(
-                trackId, cc, glitch, count);
+            var (shroomlessFilter, vehicleMin, vehicleMax) = ParseCategoryFilters(shroomless, vehicle);
 
-            return Ok(submissions.Select(GhostSubmissionMapper.ToDto).ToList<GhostSubmissionDto>());
+            var submissions = await _ghostSubmissionRepository.GetTopTimesForTrackAsync(
+                trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax, count);
+
+            var dtos = GhostSubmissionMapper.ToLeaderboardDtos(submissions, 0);
+            return Ok(dtos.Cast<GhostSubmissionDto>().ToList());
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving top times for track {TrackId} {CC}cc",
-                trackId, cc);
+            _logger.LogError(ex, "Error retrieving top times for track {TrackId} {CC}cc", trackId, cc);
             return StatusCode(StatusCodes.Status500InternalServerError,
                 "An error occurred while retrieving top times");
         }
@@ -162,26 +176,28 @@ public class TimeTrialController : ControllerBase
     public async Task<ActionResult<GhostSubmissionDto>> GetWorldRecord(
         [FromQuery] int trackId,
         [FromQuery] short cc,
-        [FromQuery] bool glitch = false)
+        [FromQuery] bool glitchAllowed = true,
+        [FromQuery] string? shroomless = null,
+        [FromQuery] string? vehicle = null)
     {
         try
         {
             var ccValidation = ValidateCc(cc);
             if (ccValidation != null) return ccValidation;
 
-            var wr = await _ghostSubmissionRepository.GetWorldRecordAsync(trackId, cc, glitch);
-            if (wr == null)
-            {
-                var category = glitch ? "glitch" : "no glitch";
-                return NotFound($"No world record found for track {trackId} at {cc}cc ({category})");
-            }
+            var (shroomlessFilter, vehicleMin, vehicleMax) = ParseCategoryFilters(shroomless, vehicle);
 
-            return Ok(GhostSubmissionMapper.ToDto(wr));
+            var wr = await _ghostSubmissionRepository.GetWorldRecordAsync(
+                trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax);
+
+            if (wr == null)
+                return NotFound($"No world record found for track {trackId} at {cc}cc");
+
+            return Ok(GhostSubmissionMapper.ToDto(wr, rank: 1));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving world record for track {TrackId} {CC}cc",
-                trackId, cc);
+            _logger.LogError(ex, "Error retrieving world record for track {TrackId} {CC}cc", trackId, cc);
             return StatusCode(StatusCodes.Status500InternalServerError,
                 "An error occurred while retrieving world record");
         }
@@ -191,56 +207,57 @@ public class TimeTrialController : ControllerBase
     public async Task<ActionResult<List<GhostSubmissionDto>>> GetWorldRecordHistory(
         [FromQuery] int trackId,
         [FromQuery] short cc,
-        [FromQuery] bool glitch = false)
+        [FromQuery] bool glitchAllowed = true,
+        [FromQuery] string? shroomless = null,
+        [FromQuery] string? vehicle = null)
     {
         try
         {
             var ccValidation = ValidateCc(cc);
             if (ccValidation != null) return ccValidation;
 
-            var wrHistory = await _ghostSubmissionRepository.GetWorldRecordHistoryAsync(
-                trackId, cc, glitch);
+            var (shroomlessFilter, vehicleMin, vehicleMax) = ParseCategoryFilters(shroomless, vehicle);
 
-            return Ok(wrHistory.Select(GhostSubmissionMapper.ToDto).ToList<GhostSubmissionDto>());
+            var wrHistory = await _ghostSubmissionRepository.GetWorldRecordHistoryAsync(
+                trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax);
+
+            return Ok(wrHistory.Select(g => GhostSubmissionMapper.ToDto(g)).ToList<GhostSubmissionDto>());
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving WR history for track {TrackId} {CC}cc",
-                trackId, cc);
+            _logger.LogError(ex, "Error retrieving WR history for track {TrackId} {CC}cc", trackId, cc);
             return StatusCode(StatusCodes.Status500InternalServerError,
                 "An error occurred while retrieving world record history");
         }
     }
 
     [HttpGet("worldrecords/all")]
-    public async Task<ActionResult<List<TrackWorldRecordsDto>>> GetAllWorldRecords()
+    public async Task<ActionResult<List<TrackWorldRecordsDto>>> GetAllWorldRecords(
+        [FromQuery] short cc,
+        [FromQuery] bool glitchAllowed = true,
+        [FromQuery] string? shroomless = null,
+        [FromQuery] string? vehicle = null)
     {
         try
         {
+            var ccValidation = ValidateCc(cc);
+            if (ccValidation != null) return ccValidation;
+
+            var (shroomlessFilter, vehicleMin, vehicleMax) = ParseCategoryFilters(shroomless, vehicle);
+
             var tracks = await _trackRepository.GetAllTracksAsync();
             var results = new List<TrackWorldRecordsDto>();
 
-            // TODO: Replace with a single query fetching all WRs at once (currently N×4 DB calls)
+            // TODO: Replace with a single query fetching all WRs at once (currently N DB calls)
             foreach (var track in tracks)
             {
-                var wr150 = await _ghostSubmissionRepository.GetWorldRecordAsync(track.Id, CC_150, false);
-                var wr200 = await _ghostSubmissionRepository.GetWorldRecordAsync(track.Id, CC_200, false);
-
-                GhostSubmissionEntity? wr150Glitch = null;
-                GhostSubmissionEntity? wr200Glitch = null;
-                if (track.SupportsGlitch)
-                {
-                    wr150Glitch = await _ghostSubmissionRepository.GetWorldRecordAsync(track.Id, CC_150, true);
-                    wr200Glitch = await _ghostSubmissionRepository.GetWorldRecordAsync(track.Id, CC_200, true);
-                }
+                var wr = await _ghostSubmissionRepository.GetWorldRecordAsync(
+                    track.Id, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax);
 
                 results.Add(new TrackWorldRecordsDto(
                     track.Id,
                     track.Name,
-                    wr150 != null ? GhostSubmissionMapper.ToDto(wr150) : null,
-                    wr200 != null ? GhostSubmissionMapper.ToDto(wr200) : null,
-                    wr150Glitch != null ? GhostSubmissionMapper.ToDto(wr150Glitch) : null,
-                    wr200Glitch != null ? GhostSubmissionMapper.ToDto(wr200Glitch) : null
+                    wr != null ? GhostSubmissionMapper.ToDto(wr, rank: 1) : null
                 ));
             }
 
@@ -251,6 +268,46 @@ public class TimeTrialController : ControllerBase
             _logger.LogError(ex, "Error retrieving all world records");
             return StatusCode(StatusCodes.Status500InternalServerError,
                 "An error occurred while retrieving world records");
+        }
+    }
+
+    // ===== FLAP ENDPOINT =====
+
+    [HttpGet("flap")]
+    public async Task<ActionResult<FlapDto>> GetFastestLap(
+        [FromQuery] int trackId,
+        [FromQuery] short cc,
+        [FromQuery] bool glitchAllowed = true,
+        [FromQuery] string? shroomless = null,
+        [FromQuery] string? vehicle = null)
+    {
+        try
+        {
+            var ccValidation = ValidateCc(cc);
+            if (ccValidation != null) return ccValidation;
+
+            var track = await _trackRepository.GetByIdAsync(trackId);
+            if (track == null)
+                return NotFound($"Track with ID {trackId} not found");
+
+            var (shroomlessFilter, vehicleMin, vehicleMax) = ParseCategoryFilters(shroomless, vehicle);
+
+            var flapMs = await _ghostSubmissionRepository.GetFastestLapForTrackAsync(
+                trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax);
+
+            if (flapMs == null)
+                return NotFound("No lap times found for the specified category");
+
+            return Ok(new FlapDto(
+                flapMs.Value,
+                GhostSubmissionMapper.FormatLapTime(flapMs.Value)
+            ));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving FLAP for track {TrackId} {CC}cc", trackId, cc);
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while retrieving fastest lap");
         }
     }
 
@@ -268,8 +325,7 @@ public class TimeTrialController : ControllerBase
 
             if (!System.IO.File.Exists(submission.GhostFilePath))
             {
-                _logger.LogWarning("Ghost file not found on disk: {FilePath}",
-                    submission.GhostFilePath);
+                _logger.LogWarning("Ghost file not found on disk: {FilePath}", submission.GhostFilePath);
                 return NotFound("Ghost file not found");
             }
 
@@ -309,10 +365,15 @@ public class TimeTrialController : ControllerBase
     }
 
     [HttpGet("profile/{ttProfileId}/submissions")]
-    public async Task<ActionResult<List<GhostSubmissionDto>>> GetProfileSubmissions(
+    public async Task<ActionResult<PagedSubmissionsDto>> GetProfileSubmissions(
         int ttProfileId,
         [FromQuery] int? trackId = null,
-        [FromQuery] short? cc = null)
+        [FromQuery] short? cc = null,
+        [FromQuery] bool? glitch = null,
+        [FromQuery] string? shroomless = null,
+        [FromQuery] string? vehicle = null,
+        [FromQuery] int page = MinPage,
+        [FromQuery] int pageSize = DefaultPageSize)
     {
         try
         {
@@ -322,19 +383,33 @@ public class TimeTrialController : ControllerBase
                 if (ccValidation != null) return ccValidation;
             }
 
+            page = Math.Max(MinPage, page);
+            pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
+
             var profile = await _ttProfileRepository.GetByIdAsync(ttProfileId);
             if (profile == null)
                 return NotFound($"Profile not found for ID {ttProfileId}");
 
-            var submissions = await _ghostSubmissionRepository.GetPlayerSubmissionsAsync(
-                profile.Id, trackId, cc);
+            var (shroomlessFilter, vehicleMin, vehicleMax) = ParseCategoryFilters(shroomless, vehicle);
 
-            return Ok(submissions.Select(GhostSubmissionMapper.ToDto).ToList<GhostSubmissionDto>());
+            var pagedResult = await _ghostSubmissionRepository.GetPlayerSubmissionsAsync(
+                profile.Id, page, pageSize, trackId, cc, glitch, shroomlessFilter, vehicleMin, vehicleMax);
+
+            var submissions = pagedResult.Items
+                .Select(g => GhostSubmissionMapper.ToDto(g))
+                .ToList<GhostSubmissionDto>();
+
+            return Ok(new PagedSubmissionsDto(
+                submissions,
+                pagedResult.TotalCount,
+                pagedResult.CurrentPage,
+                pagedResult.PageSize,
+                pagedResult.TotalPages
+            ));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving submissions for profile {ProfileId}",
-                ttProfileId);
+            _logger.LogError(ex, "Error retrieving submissions for profile {ProfileId}", ttProfileId);
             return StatusCode(StatusCodes.Status500InternalServerError,
                 "An error occurred while retrieving submissions");
         }
@@ -349,20 +424,20 @@ public class TimeTrialController : ControllerBase
             if (profile == null)
                 return NotFound($"Profile not found for ID {ttProfileId}");
 
-            var submissions = await _ghostSubmissionRepository.GetPlayerSubmissionsAsync(profile.Id);
+            var totalSubmissions = await _ghostSubmissionRepository.GetProfileSubmissionsCountAsync(profile.Id);
+
+            var submissions150 = await _ghostSubmissionRepository.GetPlayerSubmissionsAsync(
+                profile.Id, 1, int.MaxValue, cc: CC_150);
+            var submissions200 = await _ghostSubmissionRepository.GetPlayerSubmissionsAsync(
+                profile.Id, 1, int.MaxValue, cc: CC_200);
 
             return Ok(new TTPlayerStatsDto(
                 MapToTTProfileDto(profile),
-                submissions.Select(s => s.TrackId).Distinct().Count(),
-                submissions.Where(s => s.CC == CC_150).Select(s => s.TrackId).Distinct().Count(),
-                submissions.Where(s => s.CC == CC_200).Select(s => s.TrackId).Distinct().Count(),
+                submissions150.TotalCount + submissions200.TotalCount,
+                submissions150.Items.Select(s => s.TrackId).Distinct().Count(),
+                submissions200.Items.Select(s => s.TrackId).Distinct().Count(),
                 await _ghostSubmissionRepository.CalculateAverageFinishPositionAsync(profile.Id),
-                await _ghostSubmissionRepository.CountTop10FinishesAsync(profile.Id),
-                submissions
-                    .OrderByDescending(s => s.SubmittedAt)
-                    .Take(5)
-                    .Select(GhostSubmissionMapper.ToDto)
-                    .ToList<GhostSubmissionDto>()
+                await _ghostSubmissionRepository.CountTop10FinishesAsync(profile.Id)
             ));
         }
         catch (Exception ex)
@@ -381,6 +456,33 @@ public class TimeTrialController : ControllerBase
             return BadRequest($"CC must be either {CC_150} or {CC_200}");
 
         return null;
+    }
+
+    /// <summary>
+    /// Parses shroomless and vehicle query string params into typed filter values.
+    /// shroomless: "only" = true, "exclude" = false, null/anything else = null (all)
+    /// vehicle: "karts" = 0-17, "bikes" = 18-35, null/anything else = null (all)
+    /// </summary>
+    private static (bool? shroomless, short? vehicleMin, short? vehicleMax) ParseCategoryFilters(
+        string? shroomless,
+        string? vehicle)
+    {
+        bool? shroomlessFilter = shroomless?.ToLower() switch
+        {
+            "only" => true,
+            "exclude" => false,
+            _ => null
+        };
+
+        short? vehicleMin = null;
+        short? vehicleMax = null;
+        switch (vehicle?.ToLower())
+        {
+            case "karts": vehicleMin = 0; vehicleMax = 17; break;
+            case "bikes": vehicleMin = 18; vehicleMax = 35; break;
+        }
+
+        return (shroomlessFilter, vehicleMin, vehicleMax);
     }
 
     private static TrackDto MapToTrackDto(TrackEntity track) => new(

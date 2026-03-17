@@ -3,6 +3,7 @@ import { A } from "@solidjs/router";
 import { useTTTrackBrowser } from "../../hooks/useTTTrackBrowser";
 import { LoadingSpinner } from "../../components/common";
 import { CountryFlag } from "../../components/common";
+import { TTBrowserFilters } from "../../components/ui";
 import { getCharacterName, getControllerName, getDriftCategoryName, getDriftTypeName, getVehicleName } from "../../utils/marioKartMappings";
 
 export default function TTLeaderboardPage() {
@@ -19,23 +20,25 @@ export default function TTLeaderboardPage() {
     const getDriftInfo = (driftType: number, driftCategory: number) => {
         const type = getDriftTypeName(driftType);
         const category = getDriftCategoryName(driftCategory);
-        const categoryShort = category.replace(" Drift", "");
-        return `${type} ${categoryShort}`;
+        return `${type} ${category.replace(" Drift", "")}`;
     };
 
     const getTrackRoute = (trackId: number) => {
         const cc = browser.selectedCC();
-        const nonGlitchOnly = browser.selectedNonGlitchOnly();
-        
-        if (nonGlitchOnly) {
-            return `/timetrial/no-glitch-${cc}cc/${trackId}`;
-        }
-        return `/timetrial/${cc}cc/${trackId}`;
+        const allowed = browser.glitchAllowed();
+        return allowed
+            ? `/timetrial/${cc}cc/${trackId}`
+            : `/timetrial/no-glitch-${cc}cc/${trackId}`;
     };
+
+    const headerGradient = () =>
+        !browser.glitchAllowed()
+            ? "bg-gradient-to-r from-green-600 to-emerald-600"
+            : "bg-blue-600";
 
     return (
         <div class="space-y-8">
-            {/* Hero Header Section */}
+            {/* Hero */}
             <section class="py-12">
                 <div class="max-w-4xl mx-auto text-center">
                     <h1 class="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4">
@@ -48,129 +51,22 @@ export default function TTLeaderboardPage() {
             </section>
 
             {/* Filters */}
-            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-4 sm:p-6">
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6 pb-6 border-b-2 border-gray-200 dark:border-gray-700">
-                    <div class="flex items-center">
-                        <span class="text-3xl mr-3">🏁</span>
-                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-                            Browse Tracks
-                        </h2>
-                    </div>
-                </div>
+            <TTBrowserFilters
+                selectedCategory={browser.selectedCategory()}
+                selectedCC={browser.selectedCC()}
+                glitchAllowed={browser.glitchAllowed()}
+                shroomlessFilter={browser.shroomlessFilter()}
+                vehicleFilter={browser.vehicleFilter()}
+                searchQuery={browser.searchQuery()}
+                onCategoryChange={browser.handleCategoryChange}
+                onCCChange={browser.handleCCChange}
+                onGlitchAllowedChange={browser.handleGlitchAllowedChange}
+                onShroomlessFilterChange={browser.handleShroomlessFilterChange}
+                onVehicleFilterChange={browser.handleVehicleFilterChange}
+                onSearchInput={browser.handleSearchInput}
+            />
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Category Selection */}
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                            Track Category
-                        </label>
-                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
-                            <button
-                                onClick={() => browser.handleCategoryChange("retro")}
-                                class={`flex-1 px-4 sm:px-6 py-2 sm:py-3 rounded-md font-medium transition-all text-sm sm:text-base ${
-                                    browser.selectedCategory() === "retro"
-                                        ? "bg-blue-600 text-white shadow-sm"
-                                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                                }`}
-                            >
-                                Retro
-                            </button>
-                            <button
-                                onClick={() => browser.handleCategoryChange("custom")}
-                                class={`flex-1 px-4 sm:px-6 py-2 sm:py-3 rounded-md font-medium transition-all text-sm sm:text-base ${
-                                    browser.selectedCategory() === "custom"
-                                        ? "bg-blue-600 text-white shadow-sm"
-                                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                                }`}
-                            >
-                                Custom
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* CC Selection */}
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                            Engine Class
-                        </label>
-                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
-                            <button
-                                onClick={() => browser.handleCCChange(150)}
-                                class={`flex-1 px-4 sm:px-6 py-2 sm:py-3 rounded-md font-medium transition-all text-sm sm:text-base ${
-                                    browser.selectedCC() === 150
-                                        ? "bg-green-600 text-white shadow-sm"
-                                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                                }`}
-                            >
-                                150cc
-                            </button>
-                            <button
-                                onClick={() => browser.handleCCChange(200)}
-                                class={`flex-1 px-4 sm:px-6 py-2 sm:py-3 rounded-md font-medium transition-all text-sm sm:text-base ${
-                                    browser.selectedCC() === 200
-                                        ? "bg-sky-600 text-white shadow-sm"
-                                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                                }`}
-                            >
-                                200cc
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Category Type Toggle */}
-                <div class="mt-4">
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Category Type
-                    </label>
-                    <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
-                        <button
-                            onClick={() => browser.handleNonGlitchOnlyChange(false)}
-                            class={`flex-1 px-3 sm:px-6 py-2 sm:py-3 rounded-md font-medium transition-all text-sm sm:text-base ${
-                                !browser.selectedNonGlitchOnly()
-                                    ? "bg-blue-600 text-white shadow-sm"
-                                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                            }`}
-                        >
-                            Unrestricted
-                        </button>
-                        <button
-                            onClick={() => browser.handleNonGlitchOnlyChange(true)}
-                            class={`flex-1 px-3 sm:px-6 py-2 sm:py-3 rounded-md font-medium transition-all text-sm sm:text-base ${
-                                browser.selectedNonGlitchOnly()
-                                    ? "bg-green-600 text-white shadow-sm"
-                                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                            }`}
-                        >
-                            <span class="hidden sm:inline">Non-Glitch/Shortcut</span>
-                            <span class="sm:hidden">No Glitch</span>
-                        </button>
-                    </div>
-                </div>
-
-                {/* Search */}
-                <div class="mt-4">
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Search Tracks
-                    </label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Search by track name..."
-                            value={browser.searchQuery()}
-                            onInput={(e) => browser.handleSearchInput(e.target.value)}
-                            class="w-full pl-10 pr-4 py-2 sm:py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400"
-                        />
-                    </div>
-                </div>
-            </div>
-
-            {/* Loading State */}
+            {/* Loading */}
             <Show when={browser.tracksQuery.isLoading || browser.worldRecordsQuery.isLoading}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-12 text-center">
                     <LoadingSpinner />
@@ -180,7 +76,7 @@ export default function TTLeaderboardPage() {
                 </div>
             </Show>
 
-            {/* Error State */}
+            {/* Error */}
             <Show when={browser.tracksQuery.isError || browser.worldRecordsQuery.isError}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-red-200 dark:border-red-800 p-8">
                     <div class="text-center">
@@ -190,11 +86,8 @@ export default function TTLeaderboardPage() {
                         </h3>
                         <button
                             onClick={() => {
-                                if (browser.tracksQuery.isError) {
-                                    browser.tracksQuery.refetch();
-                                } else {
-                                    browser.worldRecordsQuery.refetch();
-                                }
+                                if (browser.tracksQuery.isError) browser.tracksQuery.refetch();
+                                else browser.worldRecordsQuery.refetch();
                             }}
                             class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
                         >
@@ -205,18 +98,31 @@ export default function TTLeaderboardPage() {
             </Show>
 
             {/* Tracks Table */}
-            <Show when={browser.tracksQuery.data && browser.worldRecordsQuery.data && !browser.tracksQuery.isLoading && !browser.worldRecordsQuery.isLoading}>
+            <Show when={
+                browser.tracksQuery.data &&
+                browser.worldRecordsQuery.data &&
+                !browser.tracksQuery.isLoading &&
+                !browser.worldRecordsQuery.isLoading
+            }>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <div class={`px-4 sm:px-6 py-4 ${
-                        browser.selectedNonGlitchOnly() 
-                            ? "bg-gradient-to-r from-green-600 to-emerald-600" 
-                            : "bg-blue-600"
-                    }`}>
+                    <div class={`px-4 sm:px-6 py-4 ${headerGradient()}`}>
                         <h2 class="text-xl sm:text-2xl font-bold text-white">
                             {browser.selectedCategory() === "retro" ? "Retro Tracks" : "Custom Tracks"}
                         </h2>
                         <p class="text-blue-100 text-xs sm:text-sm">
-                            {browser.filteredTracks().length} track{browser.filteredTracks().length !== 1 ? "s" : ""} • {browser.selectedCC()}cc {browser.selectedNonGlitchOnly() ? "Non-Glitch/Shortcut " : "All "}Records
+                            {browser.filteredTracks().length} track{browser.filteredTracks().length !== 1 ? "s" : ""} •{" "}
+                            {browser.selectedCC()}cc •{" "}
+                            {!browser.glitchAllowed() ? "Non-Glitch/Shortcut" : "Unrestricted"} •{" "}
+                            {browser.vehicleFilter() !== "all"
+                                ? browser.vehicleFilter().charAt(0).toUpperCase() + browser.vehicleFilter().slice(1)
+                                : "All Vehicles"
+                            } •{" "}
+                            {browser.shroomlessFilter() === "only"
+                                ? "Shroomless"
+                                : browser.shroomlessFilter() === "exclude"
+                                    ? "No Shroomless"
+                                    : "All Categories"
+                            }
                         </p>
                     </div>
 
@@ -236,15 +142,9 @@ export default function TTLeaderboardPage() {
                     >
                         <div class="overflow-x-auto">
                             <table class="w-full">
-                                <thead class={`text-white ${
-                                    browser.selectedNonGlitchOnly() 
-                                        ? "bg-green-600" 
-                                        : "bg-blue-600"
-                                }`}>
+                                <thead class={`text-white ${!browser.glitchAllowed() ? "bg-green-600" : "bg-blue-600"}`}>
                                     <tr>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                                            Track
-                                        </th>
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Track</th>
                                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                                             <span class="hidden sm:inline">World Record</span>
                                             <span class="sm:hidden">WR</span>
@@ -253,25 +153,16 @@ export default function TTLeaderboardPage() {
                                             <span class="hidden sm:inline">Record Holder</span>
                                             <span class="sm:hidden">Holder</span>
                                         </th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden md:table-cell">
-                                            Character
-                                        </th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden lg:table-cell">
-                                            Vehicle
-                                        </th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">
-                                            Controller
-                                        </th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">
-                                            Date Set
-                                        </th>
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden md:table-cell">Character</th>
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden lg:table-cell">Vehicle</th>
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">Controller</th>
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">Date Set</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                     <For each={browser.filteredTracks()}>
                                         {(track) => {
                                             const wr = browser.getWorldRecordForTrack(track.id);
-
                                             return (
                                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                                     {/* Track Name */}
@@ -292,7 +183,7 @@ export default function TTLeaderboardPage() {
                                                         </A>
                                                     </td>
 
-                                                    {/* World Record Time */}
+                                                    {/* WR Time */}
                                                     <td class="px-3 sm:px-6 py-4 whitespace-nowrap">
                                                         <Show
                                                             when={wr()}

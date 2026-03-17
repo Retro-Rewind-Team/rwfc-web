@@ -4,18 +4,18 @@ import { getCharacterName, getControllerName, getDriftCategoryName, getDriftType
 import { CountryFlag, LoadingSpinner } from "../common";
 
 interface TTWRHistoryProps {
-  history: GhostSubmission[] | null | undefined;
-  isLoading: boolean;
-  isError: boolean;
-  onDownloadGhost: (submission: GhostSubmission) => void;
+    history: GhostSubmission[] | null | undefined;
+    isLoading: boolean;
+    isError: boolean;
+    onDownloadGhost: (submission: GhostSubmission) => void;
 }
 
 export default function TTWRHistory(props: TTWRHistoryProps) {
     const formatTimeImprovement = (currentMs: number, previousMs: number) => {
+        if (currentMs === previousMs) return null; // tied 
         const diffMs = previousMs - currentMs;
         const seconds = Math.floor(diffMs / 1000);
         const ms = diffMs % 1000;
-    
         if (seconds > 0) {
             return `-${seconds}.${ms.toString().padStart(3, "0")}s`;
         }
@@ -33,8 +33,7 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
     const getDriftInfo = (submission: GhostSubmission) => {
         const driftType = getDriftTypeName(submission.driftType);
         const driftCategory = getDriftCategoryName(submission.driftCategory);
-        const categoryShort = driftCategory.replace(" Drift", "");
-        return `${driftType} ${categoryShort}`;
+        return `${driftType} ${driftCategory.replace(" Drift", "")}`;
     };
 
     return (
@@ -42,9 +41,7 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
             <div class="bg-gradient-to-r from-amber-500 to-orange-600 px-4 sm:px-6 py-4">
                 <div class="flex items-center gap-3">
                     <div>
-                        <h3 class="text-xl sm:text-2xl font-bold text-white">
-                            World Record History
-                        </h3>
+                        <h3 class="text-xl sm:text-2xl font-bold text-white">World Record History</h3>
                         <p class="text-xs sm:text-sm text-amber-100">
                             Track the progression of world records over time
                         </p>
@@ -55,9 +52,7 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
             <Show when={props.isLoading}>
                 <div class="p-12 text-center">
                     <LoadingSpinner />
-                    <p class="mt-4 text-gray-600 dark:text-gray-400">
-                        Loading history...
-                    </p>
+                    <p class="mt-4 text-gray-600 dark:text-gray-400">Loading history...</p>
                 </div>
             </Show>
 
@@ -73,9 +68,7 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                     fallback={
                         <div class="p-12 text-center">
                             <div class="text-6xl mb-4">🏁</div>
-                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                                No History Yet
-                            </h3>
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">No History Yet</h3>
                             <p class="text-gray-600 dark:text-gray-400">
                                 World records will appear here as they're set
                             </p>
@@ -84,65 +77,75 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                 >
                     <div class="p-3 sm:p-6">
                         <div class="relative">
-                            {/* Timeline Line */}
-                            <div class="absolute left-6 sm:left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-amber-400 via-orange-500 to-red-600"></div>
+                            {/* Timeline line */}
+                            <div class="absolute left-6 sm:left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-amber-400 via-orange-500 to-red-600" />
 
-                            {/* Timeline Items */}
                             <div class="space-y-6 sm:space-y-8">
                                 <For each={props.history!}>
                                     {(record, index) => {
                                         const isLatest = index() === props.history!.length - 1;
                                         const previousRecord = index() > 0 ? props.history![index() - 1] : null;
+                                        const isTied = previousRecord !== null && record.finishTimeMs === previousRecord.finishTimeMs;
+                                        const improvement = previousRecord && !isTied
+                                            ? formatTimeImprovement(record.finishTimeMs, previousRecord.finishTimeMs)
+                                            : null;
 
                                         return (
                                             <div class="relative pl-12 sm:pl-16">
-                                                {/* Timeline Dot */}
-                                                <div
-                                                    class={`absolute left-4 sm:left-6 top-3 w-4 h-4 sm:w-5 sm:h-5 rounded-full border-4 ${
-                                                        isLatest
-                                                            ? "bg-yellow-400 border-yellow-300 shadow-lg shadow-yellow-400/50 animate-pulse"
+                                                {/* Timeline dot */}
+                                                <div class={`absolute left-4 sm:left-6 top-3 w-4 h-4 sm:w-5 sm:h-5 rounded-full border-4 ${
+                                                    isLatest
+                                                        ? "bg-yellow-400 border-yellow-300 shadow-lg shadow-yellow-400/50 animate-pulse"
+                                                        : isTied
+                                                            ? "bg-gray-400 border-gray-300"
                                                             : "bg-amber-500 border-amber-400"
-                                                    }`}
-                                                ></div>
+                                                }`} />
 
-                                                {/* Record Card */}
-                                                <div
-                                                    class={`bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 sm:p-4 border-2 transition-all hover:shadow-lg ${
-                                                        isLatest
-                                                            ? "border-yellow-400 shadow-md"
+                                                {/* Record card */}
+                                                <div class={`bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 sm:p-4 border-2 transition-all hover:shadow-lg ${
+                                                    isLatest
+                                                        ? "border-yellow-400 shadow-md"
+                                                        : isTied
+                                                            ? "border-gray-300 dark:border-gray-500"
                                                             : "border-gray-200 dark:border-gray-600"
-                                                    }`}
-                                                >
-                                                    {/* Header with Time and Improvement */}
+                                                }`}>
+                                                    {/* Header */}
                                                     <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
                                                         <div class="flex-1 min-w-0">
                                                             <div class="flex flex-wrap items-center gap-2">
                                                                 <Show when={isLatest}>
                                                                     <span class="text-xl sm:text-2xl">🏆</span>
                                                                 </Show>
-                                                                <div
-                                                                    class={`text-2xl sm:text-3xl font-black ${
-                                                                        isLatest
-                                                                            ? "text-yellow-600 dark:text-yellow-400"
-                                                                            : "text-gray-900 dark:text-white"
-                                                                    }`}
-                                                                >
+                                                                <div class={`text-2xl sm:text-3xl font-black ${
+                                                                    isLatest
+                                                                        ? "text-yellow-600 dark:text-yellow-400"
+                                                                        : "text-gray-900 dark:text-white"
+                                                                }`}>
                                                                     {record.finishTimeDisplay}
                                                                 </div>
-                                                                <Show when={previousRecord}>
+
+                                                                {/* Improvement / Tied / First Record badge */}
+                                                                <Show when={!previousRecord}>
+                                                                    <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-md whitespace-nowrap">
+                                                                        FIRST RECORD
+                                                                    </span>
+                                                                </Show>
+                                                                <Show when={isTied}>
+                                                                    <div class="flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md">
+                                                                        <span class="text-xs sm:text-sm font-bold text-gray-600 dark:text-gray-300">
+                                                                            = Tied
+                                                                        </span>
+                                                                    </div>
+                                                                </Show>
+                                                                <Show when={improvement !== null}>
                                                                     <div class="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 rounded-md">
                                                                         <svg class="w-3 h-3 sm:w-4 sm:h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                                                                         </svg>
                                                                         <span class="text-xs sm:text-sm font-bold text-green-600 dark:text-green-400">
-                                                                            {formatTimeImprovement(record.finishTimeMs, previousRecord!.finishTimeMs)}
+                                                                            {improvement}
                                                                         </span>
                                                                     </div>
-                                                                </Show>
-                                                                <Show when={!previousRecord}>
-                                                                    <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-md whitespace-nowrap">
-                                                                        FIRST RECORD
-                                                                    </span>
                                                                 </Show>
                                                             </div>
                                                             <Show when={isLatest}>
@@ -167,7 +170,7 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                         </div>
                                                     </div>
 
-                                                    {/* Player and Setup Info */}
+                                                    {/* Player and Setup */}
                                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-3">
                                                         <div>
                                                             <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
@@ -212,7 +215,6 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                             <span class="font-medium">Set on:</span>{" "}
                                                             {formatDate(record.dateSet)}
                                                         </div>
-
                                                         <button
                                                             onClick={() => props.onDownloadGhost(record)}
                                                             class="inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors w-full sm:w-auto"
@@ -239,36 +241,41 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                         <div class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                                             {props.history!.length}
                                         </div>
-                                        <div class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                                            Total
-                                        </div>
+                                        <div class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">Total</div>
                                     </div>
                                     <div>
                                         <div class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                                             {new Set(props.history!.map((r) => r.playerName)).size}
                                         </div>
-                                        <div class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                                            Players
-                                        </div>
+                                        <div class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">Players</div>
                                     </div>
                                     <div>
                                         <div class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                                             {props.history![0].finishTimeDisplay}
                                         </div>
-                                        <div class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                                            First
-                                        </div>
+                                        <div class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">First</div>
                                     </div>
                                     <div>
-                                        <div class="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
-                                            {formatTimeImprovement(
-                                                props.history![props.history!.length - 1].finishTimeMs,
-                                                props.history![0].finishTimeMs
-                                            )}
-                                        </div>
-                                        <div class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                                            Total Δ
-                                        </div>
+                                        {/* Total delta: skip if first and last are tied */}
+                                        <Show
+                                            when={props.history![0].finishTimeMs !== props.history![props.history!.length - 1].finishTimeMs}
+                                            fallback={
+                                                <>
+                                                    <div class="text-xl sm:text-2xl font-bold text-gray-500 dark:text-gray-400">
+                                                        = Tied
+                                                    </div>
+                                                    <div class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">Total Δ</div>
+                                                </>
+                                            }
+                                        >
+                                            <div class="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
+                                                {formatTimeImprovement(
+                                                    props.history![props.history!.length - 1].finishTimeMs,
+                                                    props.history![0].finishTimeMs
+                                                )}
+                                            </div>
+                                            <div class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">Total Δ</div>
+                                        </Show>
                                     </div>
                                 </div>
                             </div>

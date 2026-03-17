@@ -605,7 +605,7 @@ public class ModerationController : ControllerBase
             var submissions = await _ghostSubmissionRepository.SearchAsync(
                 ttProfileId, trackId, cc, glitch, shroomless, driftCategory, limit);
 
-            var submissionDtos = submissions.Select(GhostSubmissionMapper.ToDto).ToList();
+            var submissionDtos = submissions.Select(s => GhostSubmissionMapper.ToDto(s)).ToList();
 
             return Ok(new GhostSubmissionSearchResultDto(true, submissionDtos.Count, submissionDtos));
         }
