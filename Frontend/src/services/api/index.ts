@@ -11,4 +11,6 @@ export const api = {
 };
 
 export { leaderboardApi } from "./leaderboard";
+export { roomStatusApi } from "./room";
+export { timeTrialApi } from "./timeTrial";
 export { ApiError } from "./client";

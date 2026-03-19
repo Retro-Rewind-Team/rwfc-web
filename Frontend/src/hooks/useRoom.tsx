@@ -1,6 +1,6 @@
 import { createMemo, createSignal } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
-import { roomStatusApi } from "../services/api/room";
+import { roomStatusApi } from "../services/api";
 
 export function useRoomStatus() {
     // undefined = live (latest), number = specific DB snapshot ID
