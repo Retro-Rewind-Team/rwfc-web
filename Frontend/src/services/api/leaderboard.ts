@@ -126,6 +126,37 @@ export const leaderboardApi = {
             return 8000; // Fallback
         }
     },
+
+    async getRRVersion() {
+        try {
+            const response = await fetch(
+                "https://rwfc.net/updates/RetroRewind/RetroRewindVersion.txt"
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch RetroRewind version");
+            }
+
+            const text = await response.text();
+            const lines = text.trim().split("\n").filter(Boolean);
+            const latest = lines[lines.length - 1].split(" ");
+            const previous = lines[lines.length - 2]?.split(" ")[0] ?? null;
+
+            const updateUrl = latest[1].replace(
+                "http://update.rwfc.net:8000/RetroRewind",
+                "https://rwfc.net/updates/RetroRewind"
+            );
+
+            return {
+                version: latest[0],
+                updateUrl,
+                previousVersion: previous,
+            };
+        } catch (error) {
+            console.warn("Failed to load RetroRewind version:", error);
+            throw error;
+        }
+    },
 };
 
 export const legacyLeaderboardApi = {

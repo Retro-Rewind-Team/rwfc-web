@@ -85,7 +85,6 @@ export default function LeaderboardPage() {
                 {/* Header Row: Title + Actions */}
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6 pb-6 border-b-2 border-gray-200 dark:border-gray-700">
                     <div class="flex items-center">
-                        <span class="text-3xl mr-3">🎮</span>
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
                             Search & Filter
                         </h2>

@@ -6,6 +6,7 @@ using RetroRewindWebsite.Data;
 using RetroRewindWebsite.HealthChecks;
 using RetroRewindWebsite.Repositories.Player;
 using RetroRewindWebsite.Repositories.RaceResult;
+using RetroRewindWebsite.Repositories.Room;
 using RetroRewindWebsite.Repositories.TimeTrial;
 using RetroRewindWebsite.Services.Application;
 using RetroRewindWebsite.Services.Background;
@@ -86,6 +87,7 @@ builder.Services.AddScoped<ITrackRepository, TrackRepository>();
 builder.Services.AddScoped<ITTProfileRepository, TTProfileRepository>();
 builder.Services.AddScoped<IGhostSubmissionRepository, GhostSubmissionRepository>();
 builder.Services.AddScoped<IRaceResultRepository, RaceResultRepository>();
+builder.Services.AddScoped<IRoomSnapshotRepository, RoomSnapshotRepository>();
 
 // ===== EXTERNAL SERVICES =====
 builder.Services.AddScoped<IRetroWFCApiClient, RetroWFCApiClient>();

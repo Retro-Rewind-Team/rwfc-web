@@ -1,7 +1,52 @@
+import { createMemo, Show } from "solid-js";
+import { useQuery } from "@tanstack/solid-query";
+import { timeTrialApi } from "../../services/api/timeTrial";
 import { AlertBox } from "../../components/common";
 import { TutorialCard } from "../../components/ui/";
 
+async function getRRVersion() {
+    const text = await fetch(
+        "https://rwfc.net/updates/RetroRewind/RetroRewindVersion.txt"
+    ).then(r => r.text());
+
+    const lines = text.trim().split("\n").filter(Boolean);
+    const latest = lines[lines.length - 1].split(" ");
+    const previous = lines[lines.length - 2]?.split(" ")[0] ?? null;
+
+    const updateUrl = latest[1].replace(
+        "http://update.rwfc.net:8000/RetroRewind",
+        "https://rwfc.net/updates/RetroRewind"
+    );
+
+    return {
+        version: latest[0],
+        updateUrl,
+        previousVersion: previous,
+    };
+}
+
 export default function DownloadsPage() {
+    const tracksQuery = useQuery(() => ({
+        queryKey: ["tt-tracks"],
+        queryFn: () => timeTrialApi.getAllTracks(),
+        staleTime: 1000 * 60 * 60,
+    }));
+
+    const versionQuery = useQuery(() => ({
+        queryKey: ["rr-version"],
+        queryFn: getRRVersion,
+        staleTime: 1000 * 60 * 60,
+    }));
+
+    const retroTrackCount = createMemo(() =>
+        tracksQuery.data?.filter(t => t.category === "retro").length ?? null
+    );
+    const customTrackCount = createMemo(() =>
+        tracksQuery.data?.filter(t => t.category === "custom").length ?? null
+    );
+
+    const v = () => versionQuery.data ?? null;
+
     const tutorials = [
         {
             title: "(v)Wii Setup Guide",
@@ -68,9 +113,9 @@ export default function DownloadsPage() {
             </div>
 
             {/* Main Download */}
-            <AlertBox type="info" icon="📦" title="Retro Rewind v6.8.3">
+            <AlertBox type="info" icon="📦" title={`Retro Rewind v${v()?.version ?? "..."}`}>
                 <p class="text-lg mb-4">
-                    Complete distribution with 208 retro tracks and 88 custom tracks
+                    Complete distribution with {retroTrackCount() ?? "..."} retro tracks and {customTrackCount() ?? "..."} custom tracks
                 </p>
                 <div class="flex flex-col sm:flex-row gap-3">
                     <a
@@ -81,14 +126,23 @@ export default function DownloadsPage() {
                     >
                         Full Download (First Install)
                     </a>
-                    <a
-                        href="https://rwfc.net/updates/RetroRewind/zip/6.8.3.zip"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-center"
+                    <Show
+                        when={v()}
+                        fallback={
+                            <span class="bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg text-center opacity-50">
+                                Update Only (loading...)
+                            </span>
+                        }
                     >
-                        Update Only (v6.8.2 → v6.8.3)
-                    </a>
+                        <a
+                            href={v()!.updateUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-center"
+                        >
+                            Update Only{v()!.previousVersion ? ` (v${v()!.previousVersion} → v${v()!.version})` : ""}
+                        </a>
+                    </Show>
                     <a
                         href="https://github.com/TeamWheelWizard/WheelWizard/releases"
                         target="_blank"
@@ -147,7 +201,7 @@ export default function DownloadsPage() {
                         Track List
                     </h3>
                     <p class="text-gray-600 dark:text-gray-400 mb-4">
-                        View all 208 retro tracks, 40 Battle Arenas and 88 custom tracks
+                        View all {retroTrackCount() ?? "..."} retro tracks, 40 Battle Arenas and {customTrackCount() ?? "..."} custom tracks
                         included in v6.6.1
                     </p>
                     <a

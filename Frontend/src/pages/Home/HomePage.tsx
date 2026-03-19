@@ -1,6 +1,7 @@
-import { Show } from "solid-js";
+import { Show, createMemo } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { leaderboardApi } from "../../services/api/leaderboard";
+import { timeTrialApi } from "../../services/api/timeTrial";
 import { StatCard } from "../../components/common";
 import { A } from "@solidjs/router";
 
@@ -16,6 +17,14 @@ export default function HomePage() {
         queryFn: () => leaderboardApi.getDiscordMemberCount(),
         refetchInterval: 300000,
     }));
+
+    const tracksQuery = useQuery(() => ({
+        queryKey: ["tt-tracks"],
+        queryFn: () => timeTrialApi.getAllTracks(),
+        staleTime: 1000 * 60 * 60,
+    }));
+
+    const totalTrackCount = createMemo(() => tracksQuery.data?.length ?? null);
 
     return (
         <div class="space-y-12">
@@ -48,8 +57,8 @@ export default function HomePage() {
                                 colorScheme="blue"
                             />
                             <StatCard
-                                value="208"
-                                label="Retro Tracks Available"
+                                value={totalTrackCount()?.toLocaleString() ?? "..."}
+                                label="Tracks Available"
                                 colorScheme="purple"
                             />
                         </div>

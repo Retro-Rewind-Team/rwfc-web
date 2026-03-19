@@ -347,7 +347,7 @@ export const teamData: Record<string, TeamMember[]> = {
             discord: "cyrustheyoshi",
             role: "Developer",
             image: "/profiles/Cyrus.png",
-            fc: "1889-7856-9675",
+            fc: "5069-8054-6757",
         },
         {
             name: "Dynohack",
