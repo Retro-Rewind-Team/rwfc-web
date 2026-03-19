@@ -17,6 +17,7 @@ export interface Race {
   num: number;
   course: number;
   cc: number;
+  trackName: string | null;
 }
 
 export interface Room {
@@ -48,4 +49,36 @@ export interface RoomStatusStats {
   publicRooms: number;
   privateRooms: number;
   lastUpdated: string;
+  peakPlayersToday: number;
+  peakPlayersAllTime: number;
+}
+
+export interface RoomSnapshotRoom {
+  roomId: string;
+  type: string;
+  rk: string | null;
+  playerCount: number;
+  courseId: number | null;
+  trackName: string | null;
+  trackId: number | null;
+}
+
+export interface RoomSnapshot {
+  id: number;
+  timestamp: string;
+  totalPlayers: number;
+  totalRooms: number;
+  publicRooms: number;
+  privateRooms: number;
+  rooms: RoomSnapshotRoom[];
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
 }

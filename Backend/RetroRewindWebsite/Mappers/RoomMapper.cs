@@ -6,7 +6,7 @@ namespace RetroRewindWebsite.Mappers;
 
 public static class RoomMapper
 {
-    public static RoomDto ToDto(Group group)
+    public static RoomDto ToDto(Group group, Dictionary<short, string> trackNames)
     {
         var players = group.Players.Values.Select(ToPlayerDto).ToList();
 
@@ -14,6 +14,10 @@ public static class RoomMapper
         int? averageVR = playersWithVR.Count > 0
             ? (int)Math.Round(playersWithVR.Average(p => p.VR!.Value))
             : null;
+
+        string? trackName = null;
+        if (group.Race != null)
+            trackNames.TryGetValue((short)group.Race.Course, out trackName);
 
         return new RoomDto(
             Id: group.Id,
@@ -24,7 +28,7 @@ public static class RoomMapper
             Players: players,
             AverageVR: averageVR,
             Race: group.Race != null
-                ? new RaceDto(group.Race.Num, group.Race.Course, group.Race.Cc)
+                ? new RaceDto(group.Race.Num, group.Race.Course, group.Race.Cc, trackName)
                 : null,
             Suspend: group.Suspend
         );

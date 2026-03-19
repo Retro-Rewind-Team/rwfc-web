@@ -40,12 +40,14 @@ public record RoomPlayerDto(
     List<string> ConnectionMap
 );
 
-public record RaceDto(int Num, int Course, int Cc);
+public record RaceDto(int Num, int Course, int Cc, string? TrackName);
 
 public record RoomStatusStatsDto(
     int TotalPlayers,
     int TotalRooms,
     int PublicRooms,
     int PrivateRooms,
-    DateTime LastUpdated
+    DateTime LastUpdated,
+    int PeakPlayersToday,
+    int PeakPlayersAllTime
 );

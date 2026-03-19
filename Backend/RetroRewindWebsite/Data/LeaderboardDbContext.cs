@@ -2,6 +2,7 @@
 using RetroRewindWebsite.Models.Entities.Player;
 using RetroRewindWebsite.Models.Entities.TimeTrial;
 using RetroRewindWebsite.Models.Entities.RaceResult;
+using RetroRewindWebsite.Models.Entities.Room;
 
 namespace RetroRewindWebsite.Data;
 
@@ -20,7 +21,7 @@ public class LeaderboardDbContext : DbContext
     public DbSet<TTProfileEntity> TTProfiles { get; set; }
     public DbSet<GhostSubmissionEntity> GhostSubmissions { get; set; }
     public DbSet<RaceResultEntity> RaceResults { get; set; }
-
+    public DbSet<RoomSnapshotEntity> RoomSnapshots { get; set; }
     // ===== MODEL CONFIGURATION =====
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -34,6 +35,7 @@ public class LeaderboardDbContext : DbContext
         ConfigureTTProfileEntity(modelBuilder);
         ConfigureGhostSubmissionEntity(modelBuilder);
         ConfigureRaceResultEntity(modelBuilder);
+        ConfigureRoomSnapshotEntity(modelBuilder);
     }
 
     // ===== PLAYER CONFIGURATION =====
@@ -213,4 +215,19 @@ public class LeaderboardDbContext : DbContext
             entity.Property(e => e.RoomId).HasMaxLength(10).IsRequired();
         });
     }
+
+    private static void ConfigureRoomSnapshotEntity(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<RoomSnapshotEntity>(entity =>
+        {
+            // Index for time-based queries (history endpoint, date range)
+            entity.HasIndex(e => e.Timestamp);
+
+            // JSON column — array of RoomSnapshotEntry
+            entity.Property(e => e.Rooms)
+                  .HasColumnType("jsonb")
+                  .IsRequired();
+        });
+    }
+
 }

@@ -3,10 +3,11 @@ import { useQuery } from "@tanstack/solid-query";
 import { roomStatusApi } from "../services/api/room";
 
 export function useRoomStatus() {
-    const [currentId, setCurrentId] = createSignal<number | "min" | undefined>(
-        undefined
-    );
-    const [autoRefresh, setAutoRefresh] = createSignal(true);
+    // undefined = live (latest), number = specific DB snapshot ID
+    const [currentId, setCurrentId] = createSignal<number | undefined>(undefined);
+    const [minId, setMinId] = createSignal<number>(0);
+    const [maxId, setMaxId] = createSignal<number>(0);
+    const [isJumping, setIsJumping] = createSignal(false);
 
     const statsQuery = useQuery(() => ({
         queryKey: ["roomStatus", "stats"],
@@ -16,107 +17,124 @@ export function useRoomStatus() {
 
     const roomStatusQuery = useQuery(() => ({
         queryKey: ["roomStatus", currentId()],
-        queryFn: () => roomStatusApi.getRoomStatus(currentId()),
-        refetchInterval: () => (autoRefresh() && currentId() === undefined ? 60000 : false),
+        queryFn: async () => {
+            const id = currentId();
+            const data = id === undefined
+                ? await roomStatusApi.getLatestRoomStatus()
+                : await roomStatusApi.getRoomStatusById(id);
+            setMinId(data.minimumId);
+            setMaxId(data.maximumId);
+            return data;
+        },
+        refetchInterval: () => currentId() === undefined ? 60000 : false,
     }));
 
-    const isLatest = createMemo(() => {
-        const data = roomStatusQuery.data;
-        if (!data) return true;
-        return currentId() === undefined || currentId() === data.maximumId;
-    });
+    const isLatest = createMemo(() => currentId() === undefined);
 
     const canGoForward = createMemo(() => {
-        const data = roomStatusQuery.data;
-        if (!data) return false;
-        
-        const current = currentId();
-        
-        // Can always go forward from "min"
-        if (current === "min") return true;
-        
-        // Can go forward if we're not at max
-        if (typeof current === "number") {
-            return current < data.maximumId;
-        }
-        
-        // If undefined (latest), check if current isn't max
-        return data.id < data.maximumId;
+        if (!roomStatusQuery.data) return false;
+        const id = currentId();
+        if (id === undefined) return false;
+        const max = maxId() > 0 ? maxId() : roomStatusQuery.data.maximumId;
+        return id < max;
     });
 
     const canGoBackward = createMemo(() => {
         const data = roomStatusQuery.data;
         if (!data) return false;
-        return data.minimumId < data.id;
+        const id = currentId();
+        if (id === undefined) return data.id > 0; 
+        return id > minId();
     });
 
     const goForward = () => {
-        const data = roomStatusQuery.data;
-        if (!data || !canGoForward()) return;
-
-        const current = currentId();
-        
-        // Handle "min" case by going to minimumId + 1
-        if (current === "min") {
-            setCurrentId(data.minimumId + 1);
-            return;
-        }
-
-        // Handle number case
-        if (typeof current === "number") {
-            const nextId = current + 1;
-            if (nextId <= data.maximumId) {
-                setCurrentId(nextId);
-            }
-        }
+        const id = currentId();
+        if (id === undefined || !canGoForward()) return;
+        const next = id + 1;
+        if (next <= maxId()) setCurrentId(next);
     };
 
     const goBackward = () => {
-        const data = roomStatusQuery.data;
-        if (!data || !canGoBackward()) return;
+        if (!roomStatusQuery.data || !canGoBackward()) return;
+        const id = currentId();
+        if (id === undefined) {
+            // Use the id from the live response directly
+            const liveId = roomStatusQuery.data.id;
+            if (liveId > 0) setCurrentId(liveId - 1);
+            return;
+        }
+        const prev = id - 1;
+        if (prev >= minId()) setCurrentId(prev);
+    };
 
-        const current = currentId() ?? data.id;
-        
-        if (typeof current === "number") {
-            const prevId = current - 1;
-            if (prevId >= data.minimumId) {
-                setCurrentId(prevId);
-            }
+    const goToLatest = () => setCurrentId(undefined);
+
+    const goToOldest = () => {
+        const data = roomStatusQuery.data;
+        if (!data) return;
+        // Use minimumId from the live response directly
+        const min = data.minimumId > 0 ? data.minimumId : minId();
+        if (min > 0) setCurrentId(min);
+    };
+
+    const jumpByMinutes = async (minutes: number) => {
+        const data = roomStatusQuery.data;
+        if (!data) return;
+        setIsJumping(true);
+        try {
+            const base = new Date(data.timestamp);
+            const target = new Date(base.getTime() + minutes * 60 * 1000);
+            const nearest = await roomStatusApi.getNearestStatus(target);
+            setMinId(nearest.minimumId);
+            setMaxId(nearest.maximumId);
+            setCurrentId(nearest.id);
+        } catch (e) {
+            console.warn("jumpByMinutes failed:", e);
+        } finally {
+            setIsJumping(false);
         }
     };
 
-    const goToLatest = () => {
-        setCurrentId(undefined);
+    const goToDateTime = async (date: Date) => {
+        setIsJumping(true);
+        try {
+            const nearest = await roomStatusApi.getNearestStatus(date);
+            setMinId(nearest.minimumId);
+            setMaxId(nearest.maximumId);
+            setCurrentId(nearest.id);
+        } catch (e) {
+            console.warn("goToDateTime failed:", e);
+        } finally {
+            setIsJumping(false);
+        }
     };
 
-    const goToOldest = () => {
-        setCurrentId("min");
-    };
+    const currentDateTimeLocal = createMemo(() => {
+        const data = roomStatusQuery.data;
+        if (!data) return "";
+        const d = new Date(data.timestamp);
+        const pad = (n: number) => String(n).padStart(2, "0");
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    });
 
     const getRoomUptime = (createdDate: string): string => {
         const created = new Date(createdDate);
         const now = isLatest() ? new Date() : new Date(roomStatusQuery.data?.timestamp || Date.now());
         const diff = now.getTime() - created.getTime();
-
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
         return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     };
 
     const getAllFriendCodes = createMemo(() => {
         const rooms = roomStatusQuery.data?.rooms || [];
         const friendCodes = new Set<string>();
-    
         rooms.forEach(room => {
             room.players.forEach(player => {
-                if (player.mii) {
-                    friendCodes.add(player.friendCode);
-                }
+                if (player.mii) friendCodes.add(player.friendCode);
             });
         });
-    
         return Array.from(friendCodes);
     });
 
@@ -132,8 +150,8 @@ export function useRoomStatus() {
 
     return {
         currentId,
-        autoRefresh,
         isLatest,
+        isJumping,
         canGoForward,
         canGoBackward,
         statsQuery,
@@ -143,8 +161,12 @@ export function useRoomStatus() {
         goBackward,
         goToLatest,
         goToOldest,
-        setAutoRefresh,
+        jumpByMinutes,
+        goToDateTime,
+        currentDateTimeLocal,
         getRoomUptime,
         forceRefresh,
+        minId,
+        maxId,
     };
 }

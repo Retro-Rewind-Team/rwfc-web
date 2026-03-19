@@ -12,6 +12,9 @@ public record PagedResult<T>(
     public bool HasNextPage => CurrentPage < TotalPages;
     public bool HasPreviousPage => CurrentPage > 1;
 
+    public PagedResult<TOut> Map<TOut>(Func<T, TOut> mapper) =>
+    new([.. Items.Select(mapper)], TotalCount, CurrentPage, PageSize);
+
     public static async Task<PagedResult<T>> CreateAsync(
         IQueryable<T> query,
         int page,

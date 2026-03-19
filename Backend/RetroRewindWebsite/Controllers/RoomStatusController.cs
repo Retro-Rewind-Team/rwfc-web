@@ -31,41 +31,17 @@ public class RoomStatusController : ControllerBase
         _logger = logger;
     }
 
+    // ===== ROOM STATUS ENDPOINTS =====
+
     [HttpGet]
-    public async Task<ActionResult<RoomStatusResponseDto>> GetRoomStatus([FromQuery] string? id = null)
+    public async Task<ActionResult<RoomStatusResponseDto>> GetRoomStatus()
     {
         try
         {
-            RoomStatusResponseDto? response;
-
-            if (string.IsNullOrEmpty(id))
-            {
-                response = await _roomStatusService.GetLatestStatusAsync();
-            }
-            else if (id.Equals("min", StringComparison.OrdinalIgnoreCase))
-            {
-                var minId = _roomStatusService.GetMinimumId();
-                response = await _roomStatusService.GetStatusByIdAsync(minId);
-            }
-            else if (int.TryParse(id, out var snapshotId))
-            {
-                response = await _roomStatusService.GetStatusByIdAsync(snapshotId);
-            }
-            else
-            {
-                return BadRequest("Invalid ID parameter. Must be a number or 'min'.");
-            }
+            var response = await _roomStatusService.GetLatestStatusAsync();
 
             if (response == null)
-            {
-                var minId = _roomStatusService.GetMinimumId();
-                var maxId = _roomStatusService.GetMaximumId();
-
-                if (maxId == 0)
-                    return NotFound("No room data available yet. The system may still be initializing.");
-
-                return NotFound($"Snapshot with ID {id} not found. Available range: {minId} to {maxId}");
-            }
+                return NotFound("No room data available yet. The system may still be initializing.");
 
             Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
             Response.Headers.Pragma = "no-cache";
@@ -76,6 +52,39 @@ public class RoomStatusController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving room status");
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while retrieving room status");
+        }
+    }
+
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<RoomStatusResponseDto>> GetRoomStatusById(int id)
+    {
+        try
+        {
+            var minId = await _roomStatusService.GetMinIdAsync();
+            var maxId = await _roomStatusService.GetMaxIdAsync();
+
+            var response = await _roomStatusService.GetStatusByDbIdAsync(id);
+
+            if (response == null)
+            {
+                if (maxId == 0)
+                    return NotFound("No room data available yet.");
+
+                return NotFound($"Snapshot with ID {id} not found. Available range: {minId} to {maxId}");
+            }
+
+            // Populate min/max on the response so the frontend can update its navigation bounds
+            response = response with { MinimumId = minId, MaximumId = maxId };
+
+            Response.Headers.CacheControl = "public, max-age=60";
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving room status by ID {Id}", id);
             return StatusCode(StatusCodes.Status500InternalServerError,
                 "An error occurred while retrieving room status");
         }
@@ -97,6 +106,63 @@ public class RoomStatusController : ControllerBase
         }
     }
 
+    [HttpGet("nearest")]
+    public async Task<ActionResult<RoomStatusResponseDto>> GetNearest([FromQuery] DateTime timestamp)
+    {
+        try
+        {
+            var minId = await _roomStatusService.GetMinIdAsync();
+            var maxId = await _roomStatusService.GetMaxIdAsync();
+
+            var response = await _roomStatusService.GetNearestStatusAsync(timestamp);
+
+            if (response == null)
+                return NotFound("No snapshots available.");
+
+            response = response with { MinimumId = minId, MaximumId = maxId };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving nearest snapshot");
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while retrieving the nearest snapshot");
+        }
+    }
+
+    [HttpGet("history")]
+    public async Task<ActionResult> GetHistory(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 60,
+        [FromQuery] DateTime? from = null,
+        [FromQuery] DateTime? to = null)
+    {
+        try
+        {
+            if (page < 1) return BadRequest("Page must be >= 1.");
+            if (pageSize is < 1 or > 1440) return BadRequest("pageSize must be between 1 and 1440.");
+
+            if (from.HasValue && to.HasValue)
+            {
+                if (from.Value > to.Value)
+                    return BadRequest("'from' must be earlier than 'to'.");
+
+                var range = await _roomStatusService.GetSnapshotsByDateRangeAsync(from.Value, to.Value);
+                return Ok(range);
+            }
+
+            var result = await _roomStatusService.GetSnapshotHistoryAsync(page, pageSize);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving room snapshot history");
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while retrieving snapshot history");
+        }
+    }
+
     [HttpPost("refresh")]
     [EnableRateLimiting("RefreshPolicy")]
     public async Task<ActionResult> ForceRefresh()
@@ -113,6 +179,8 @@ public class RoomStatusController : ControllerBase
                 "An error occurred while refreshing room data");
         }
     }
+
+    // ===== MII ENDPOINTS =====
 
     [HttpGet("mii/{fc}")]
     public async Task<ActionResult> GetMiiImage(string fc)
