@@ -145,7 +145,7 @@ export function calculateNeededStats(license: RksysLicense): NeededStats {
         normReq <= 100 ? "ok" : (normReq <= 110 ? "warn" : "bad");
 
     const totalVs = license.vsWins + license.vsLosses;
-    let extraWins = "—";
+    let extraWins = "-";
     if (totalVs > 0 && winPctRaw > cur.winPct) {
         const p = winPctRaw / 100.0;
         const w = license.vsWins;

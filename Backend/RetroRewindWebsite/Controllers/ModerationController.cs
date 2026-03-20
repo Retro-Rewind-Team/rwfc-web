@@ -210,47 +210,6 @@ public class ModerationController : ControllerBase
         }
     }
 
-    [HttpGet("player-stats/{pid}")]
-    public async Task<ActionResult<PlayerStatsResultDto>> GetPlayerStats(string pid)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(pid))
-                return BadRequest("Player ID (Pid) is required");
-
-            var player = await _playerRepository.GetByPidAsync(pid);
-            if (player == null)
-                return NotFound($"Player with PID '{pid}' not found");
-
-            _logger.LogInformation("Retrieved stats for player: {Name} ({Pid})", player.Name, pid);
-
-            return Ok(new PlayerStatsResultDto(
-                true,
-                new PlayerStatsDto(
-                    player.Pid,
-                    player.Name,
-                    player.Fc,
-                    player.Ev,
-                    player.Rank,
-                    player.LastSeen,
-                    player.IsSuspicious,
-                    player.SuspiciousVRJumps,
-                    new VRStatsDto(
-                        player.VRGainLast24Hours,
-                        player.VRGainLastWeek,
-                        player.VRGainLastMonth
-                    )
-                )
-            ));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving stats for PID {Pid}", pid);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving player stats");
-        }
-    }
-
     // ===== GHOST SUBMISSION ENDPOINTS =====
 
     [HttpPost("timetrial/submit")]

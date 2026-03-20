@@ -1,5 +1,6 @@
 import { For, Show } from "solid-js";
 import { A } from "@solidjs/router";
+import { AlertTriangle, Search } from "lucide-solid";
 import { useTTTrackBrowser } from "../../hooks/useTTTrackBrowser";
 import { LoadingSpinner } from "../../components/common";
 import { CountryFlag } from "../../components/common";
@@ -31,24 +32,23 @@ export default function TTLeaderboardPage() {
             : `/timetrial/no-glitch-${cc}cc/${trackId}`;
     };
 
-    const headerGradient = () =>
-        !browser.glitchAllowed()
-            ? "bg-gradient-to-r from-green-600 to-emerald-600"
-            : "bg-blue-600";
+    const headerColor = () =>
+        !browser.glitchAllowed() ? "bg-green-600" : "bg-blue-600";
+
+    const tableHeaderColor = () =>
+        !browser.glitchAllowed() ? "bg-green-600" : "bg-blue-600";
 
     return (
         <div class="space-y-8">
-            {/* Hero */}
-            <section class="py-12">
-                <div class="max-w-4xl mx-auto text-center">
-                    <h1 class="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4">
-                        Time Trial Leaderboards
-                    </h1>
-                    <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                        Browse world records for all Retro Rewind tracks
-                    </p>
-                </div>
-            </section>
+            {/* Page Title */}
+            <div class="pb-6 border-b border-gray-200 dark:border-gray-700">
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+                    Time Trial Leaderboards
+                </h1>
+                <p class="text-lg text-gray-600 dark:text-gray-400">
+                    Browse world records for all Retro Rewind tracks
+                </p>
+            </div>
 
             {/* Filters */}
             <TTBrowserFilters
@@ -68,9 +68,9 @@ export default function TTLeaderboardPage() {
 
             {/* Loading */}
             <Show when={browser.tracksQuery.isLoading || browser.worldRecordsQuery.isLoading}>
-                <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-12 text-center">
+                <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-12 flex flex-col items-center gap-4">
                     <LoadingSpinner />
-                    <p class="mt-4 text-gray-600 dark:text-gray-400">
+                    <p class="text-gray-600 dark:text-gray-400">
                         {browser.tracksQuery.isLoading ? "Loading tracks..." : "Loading world records..."}
                     </p>
                 </div>
@@ -79,9 +79,11 @@ export default function TTLeaderboardPage() {
             {/* Error */}
             <Show when={browser.tracksQuery.isError || browser.worldRecordsQuery.isError}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-red-200 dark:border-red-800 p-8">
-                    <div class="text-center">
-                        <div class="text-6xl mb-4">⚠️</div>
-                        <h3 class="text-xl font-bold text-red-900 dark:text-red-100 mb-2">
+                    <div class="text-center space-y-4">
+                        <div class="flex justify-center text-red-400">
+                            <AlertTriangle size={48} />
+                        </div>
+                        <h3 class="text-xl font-bold text-red-900 dark:text-red-100">
                             {browser.tracksQuery.isError ? "Failed to load tracks" : "Failed to load world records"}
                         </h3>
                         <button
@@ -89,7 +91,7 @@ export default function TTLeaderboardPage() {
                                 if (browser.tracksQuery.isError) browser.tracksQuery.refetch();
                                 else browser.worldRecordsQuery.refetch();
                             }}
-                            class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
                         >
                             Try Again
                         </button>
@@ -105,11 +107,11 @@ export default function TTLeaderboardPage() {
                 !browser.worldRecordsQuery.isLoading
             }>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <div class={`px-4 sm:px-6 py-4 ${headerGradient()}`}>
+                    <div class={`px-4 sm:px-6 py-4 ${headerColor()}`}>
                         <h2 class="text-xl sm:text-2xl font-bold text-white">
                             {browser.selectedCategory() === "retro" ? "Retro Tracks" : "Custom Tracks"}
                         </h2>
-                        <p class="text-blue-100 text-xs sm:text-sm">
+                        <p class="text-white/80 text-xs sm:text-sm">
                             {browser.filteredTracks().length} track{browser.filteredTracks().length !== 1 ? "s" : ""} •{" "}
                             {browser.selectedCC()}cc •{" "}
                             {!browser.glitchAllowed() ? "Non-Glitch/Shortcut" : "Unrestricted"} •{" "}
@@ -130,7 +132,9 @@ export default function TTLeaderboardPage() {
                         when={browser.filteredTracks().length > 0}
                         fallback={
                             <div class="p-12 text-center">
-                                <div class="text-6xl mb-4">🔍</div>
+                                <div class="flex justify-center mb-4 text-gray-300 dark:text-gray-600">
+                                    <Search size={48} />
+                                </div>
                                 <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
                                     No tracks found
                                 </h3>
@@ -142,7 +146,7 @@ export default function TTLeaderboardPage() {
                     >
                         <div class="overflow-x-auto">
                             <table class="w-full">
-                                <thead class={`text-white ${!browser.glitchAllowed() ? "bg-green-600" : "bg-blue-600"}`}>
+                                <thead class={`text-white ${tableHeaderColor()}`}>
                                     <tr>
                                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Track</th>
                                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
@@ -165,7 +169,6 @@ export default function TTLeaderboardPage() {
                                             const wr = browser.getWorldRecordForTrack(track.id);
                                             return (
                                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                                    {/* Track Name */}
                                                     <td class="px-3 sm:px-6 py-4">
                                                         <A
                                                             href={getTrackRoute(track.id)}
@@ -182,15 +185,13 @@ export default function TTLeaderboardPage() {
                                                             </div>
                                                         </A>
                                                     </td>
-
-                                                    {/* WR Time */}
                                                     <td class="px-3 sm:px-6 py-4 whitespace-nowrap">
                                                         <Show
                                                             when={wr()}
                                                             fallback={
                                                                 <span class="text-xs sm:text-sm text-gray-400 dark:text-gray-500 italic">
                                                                     <span class="hidden sm:inline">No record yet</span>
-                                                                    <span class="sm:hidden">—</span>
+                                                                    <span class="sm:hidden">-</span>
                                                                 </span>
                                                             }
                                                         >
@@ -199,8 +200,6 @@ export default function TTLeaderboardPage() {
                                                             </div>
                                                         </Show>
                                                     </td>
-
-                                                    {/* Record Holder */}
                                                     <td class="px-3 sm:px-6 py-4">
                                                         <Show when={wr()}>
                                                             <A
@@ -225,8 +224,6 @@ export default function TTLeaderboardPage() {
                                                             </A>
                                                         </Show>
                                                     </td>
-
-                                                    {/* Character */}
                                                     <td class="px-3 sm:px-6 py-4 hidden md:table-cell">
                                                         <Show when={wr()}>
                                                             <div class="text-sm text-gray-900 dark:text-white">
@@ -234,8 +231,6 @@ export default function TTLeaderboardPage() {
                                                             </div>
                                                         </Show>
                                                     </td>
-
-                                                    {/* Vehicle */}
                                                     <td class="px-3 sm:px-6 py-4 hidden lg:table-cell">
                                                         <Show when={wr()}>
                                                             <div class="text-sm text-gray-900 dark:text-white">
@@ -246,8 +241,6 @@ export default function TTLeaderboardPage() {
                                                             </div>
                                                         </Show>
                                                     </td>
-
-                                                    {/* Controller */}
                                                     <td class="px-3 sm:px-6 py-4 hidden xl:table-cell">
                                                         <Show when={wr()}>
                                                             <div class="text-sm text-gray-900 dark:text-white">
@@ -255,8 +248,6 @@ export default function TTLeaderboardPage() {
                                                             </div>
                                                         </Show>
                                                     </td>
-
-                                                    {/* Date */}
                                                     <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden xl:table-cell">
                                                         <Show when={wr()}>
                                                             {formatDate(wr()!.dateSet)}

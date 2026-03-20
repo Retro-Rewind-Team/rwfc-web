@@ -1,5 +1,6 @@
 import { A, useParams } from "@solidjs/router";
 import { Show } from "solid-js";
+import { ChevronLeft, ChevronRight, UserX, AlertTriangle, SlidersHorizontal, Flag, Car, Search } from "lucide-solid";
 import { useTTPlayer } from "../../hooks/useTTPlayer";
 import { LoadingSpinner } from "../../components/common";
 import { TTPlayerStatsCard, TTPlayerSubmissionsTable } from "../../components/ui";
@@ -16,21 +17,19 @@ export default function TTPlayerProfilePage() {
             <div>
                 <A
                     href="/timetrial"
-                    class="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                    class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                 >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                    <span>Back to Time Trial Leaderboards</span>
+                    <ChevronLeft size={16} />
+                    Back to Time Trial Leaderboards
                 </A>
             </div>
 
             {/* Loading */}
             <Show when={ttPlayer.profileQuery.isLoading}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
-                    <div class="flex justify-center items-center py-12">
+                    <div class="flex justify-center items-center py-12 gap-4">
                         <LoadingSpinner />
-                        <p class="ml-4 text-gray-600 dark:text-gray-300">Loading player profile...</p>
+                        <p class="text-gray-600 dark:text-gray-300">Loading player profile...</p>
                     </div>
                 </div>
             </Show>
@@ -39,10 +38,12 @@ export default function TTPlayerProfilePage() {
             <Show when={ttPlayer.isPlayerNotFound()}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-8">
                     <div class="text-center space-y-4">
-                        <div class="text-6xl">❌</div>
+                        <div class="flex justify-center text-gray-300 dark:text-gray-600">
+                            <UserX size={56} />
+                        </div>
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Player Not Found</h2>
                         <p class="text-gray-600 dark:text-gray-400">No Time Trial profile found for this player.</p>
-                        <p class="text-sm text-gray-500 dark:text-gray-500">This player hasn't submitted any times yet.</p>
+                        <p class="text-sm text-gray-500">This player hasn't submitted any times yet.</p>
                         <div class="pt-4">
                             <A
                                 href="/timetrial"
@@ -59,7 +60,9 @@ export default function TTPlayerProfilePage() {
             <Show when={ttPlayer.profileQuery.isError && !ttPlayer.isPlayerNotFound()}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-red-200 dark:border-red-800 p-8">
                     <div class="text-center space-y-4">
-                        <div class="text-6xl">⚠️</div>
+                        <div class="flex justify-center text-red-400">
+                            <AlertTriangle size={48} />
+                        </div>
                         <h2 class="text-2xl font-bold text-red-900 dark:text-red-100">Error Loading Profile</h2>
                         <button
                             onClick={() => ttPlayer.refreshAll()}
@@ -111,13 +114,13 @@ export default function TTPlayerProfilePage() {
                                     <TTPlayerStatsCard
                                         value={stats().profile.totalSubmissions}
                                         label="Total Submissions"
-                                        icon="🏁"
+                                        icon={<Flag size={28} />}
                                         colorScheme="blue"
                                     />
                                     <TTPlayerStatsCard
                                         value={stats().totalTracks}
                                         label="Tracks Played"
-                                        icon="🏎️"
+                                        icon={<Car size={28} />}
                                         colorScheme="green"
                                     />
                                 </div>
@@ -126,8 +129,8 @@ export default function TTPlayerProfilePage() {
 
                         {/* Filters */}
                         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
-                            <div class="flex items-center mb-4">
-                                <span class="text-2xl mr-3">🔍</span>
+                            <div class="flex items-center gap-2 mb-4">
+                                <SlidersHorizontal size={20} class="text-gray-400 dark:text-gray-500" />
                                 <h2 class="text-xl font-bold text-gray-900 dark:text-white">Filter Submissions</h2>
                             </div>
                             <div class="space-y-4">
@@ -136,7 +139,7 @@ export default function TTPlayerProfilePage() {
                                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                                         Engine Class
                                     </label>
-                                    <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
+                                    <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1 flex border border-gray-200 dark:border-gray-600">
                                         <button
                                             onClick={() => ttPlayer.handleCCChange(undefined)}
                                             class={`flex-1 px-4 py-2 rounded-md font-medium transition-all text-sm ${
@@ -175,7 +178,7 @@ export default function TTPlayerProfilePage() {
                                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                                         Glitch/Shortcut
                                     </label>
-                                    <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
+                                    <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1 flex border border-gray-200 dark:border-gray-600">
                                         <button
                                             onClick={() => ttPlayer.handleGlitchFilterChange(undefined)}
                                             class={`flex-1 px-4 py-2 rounded-md font-medium transition-all text-sm ${
@@ -214,7 +217,7 @@ export default function TTPlayerProfilePage() {
                                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                                         Vehicle Type
                                     </label>
-                                    <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
+                                    <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1 flex border border-gray-200 dark:border-gray-600">
                                         {(["all", "karts", "bikes"] as VehicleFilter[]).map((v) => (
                                             <button
                                                 onClick={() => ttPlayer.handleVehicleFilterChange(v)}
@@ -235,7 +238,7 @@ export default function TTPlayerProfilePage() {
                                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                                         Shroomless
                                     </label>
-                                    <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
+                                    <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1 flex border border-gray-200 dark:border-gray-600">
                                         {(["all", "only", "exclude"] as ShroomlessFilter[]).map((s) => (
                                             <button
                                                 onClick={() => ttPlayer.handleShroomlessFilterChange(s)}
@@ -258,9 +261,7 @@ export default function TTPlayerProfilePage() {
                                     </label>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                            </svg>
+                                            <Search size={18} class="text-gray-400" />
                                         </div>
                                         <input
                                             type="text"
@@ -301,9 +302,9 @@ export default function TTPlayerProfilePage() {
                             </div>
 
                             <Show when={ttPlayer.submissionsQuery.isLoading}>
-                                <div class="p-12 text-center">
+                                <div class="p-12 flex flex-col items-center gap-4">
                                     <LoadingSpinner />
-                                    <p class="mt-4 text-gray-600 dark:text-gray-400">Loading submissions...</p>
+                                    <p class="text-gray-600 dark:text-gray-400">Loading submissions...</p>
                                 </div>
                             </Show>
 
@@ -312,7 +313,9 @@ export default function TTPlayerProfilePage() {
                                     when={ttPlayer.filteredSubmissions().length > 0}
                                     fallback={
                                         <div class="p-12 text-center">
-                                            <div class="text-6xl mb-4">🏁</div>
+                                            <div class="flex justify-center mb-4 text-gray-300 dark:text-gray-600">
+                                                <Flag size={48} />
+                                            </div>
                                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
                                                 No Submissions Found
                                             </h3>
@@ -328,14 +331,15 @@ export default function TTPlayerProfilePage() {
 
                                 {/* Pagination */}
                                 <Show when={ttPlayer.totalPages() > 1}>
-                                    <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t-2 border-gray-200 dark:border-gray-600 gap-2 sm:gap-0">
+                                    <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 dark:border-gray-600 gap-2 sm:gap-0">
                                         <div class="flex items-center justify-center sm:justify-start gap-2">
                                             <button
                                                 onClick={() => ttPlayer.setCurrentPage(Math.max(1, ttPlayer.currentPage() - 1))}
                                                 disabled={ttPlayer.currentPage() === 1}
-                                                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                             >
-                                                ← Previous
+                                                <ChevronLeft size={16} />
+                                                Previous
                                             </button>
                                             <span class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 font-medium whitespace-nowrap">
                                                 Page
@@ -367,13 +371,12 @@ export default function TTPlayerProfilePage() {
                                                 of {ttPlayer.totalPages()}
                                             </span>
                                             <button
-                                                onClick={() => ttPlayer.setCurrentPage(
-                                                    Math.min(ttPlayer.totalPages(), ttPlayer.currentPage() + 1)
-                                                )}
+                                                onClick={() => ttPlayer.setCurrentPage(Math.min(ttPlayer.totalPages(), ttPlayer.currentPage() + 1))}
                                                 disabled={ttPlayer.currentPage() === ttPlayer.totalPages()}
-                                                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                             >
-                                                Next →
+                                                Next
+                                                <ChevronRight size={16} />
                                             </button>
                                         </div>
                                         <div class="text-sm text-gray-600 dark:text-gray-400 font-medium text-center sm:text-right">
@@ -392,4 +395,3 @@ export default function TTPlayerProfilePage() {
         </div>
     );
 }
-

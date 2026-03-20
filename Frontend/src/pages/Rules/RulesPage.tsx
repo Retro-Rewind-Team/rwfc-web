@@ -1,3 +1,4 @@
+import { Scale } from "lucide-solid/icons/index";
 import { AlertBox } from "../../components/common";
 
 export default function RulesPage() {
@@ -17,7 +18,7 @@ export default function RulesPage() {
             </div>
 
             {/* Important Notice */}
-            <AlertBox type="info" icon="ℹ️" title="Important Notice">
+            <AlertBox type="info" title="Important Notice">
                 <p>
                     Punishments are handled on a case-by-case basis, and may differ in
                     lengths if judged necessary by RWFC staff. This rule can be
@@ -149,7 +150,7 @@ export default function RulesPage() {
                     Trolling/Targeting
                 </h2>
 
-                <AlertBox type="success" icon="">
+                <AlertBox type="success">
                     <p>
                         <strong>Allowed:</strong> Stop trolling (coming to a stop with a
                         power item) is allowed as long as it is not being used to
@@ -216,7 +217,7 @@ export default function RulesPage() {
                 </ul>
 
                 <div class="mt-4">
-                    <AlertBox type="error" icon="">
+                    <AlertBox type="error">
                         <p>
                             <strong>Intentional lag/speed up:</strong> If it is discovered that
                             a player is lagging/speeding up their game on purpose, the bans will
@@ -317,7 +318,7 @@ export default function RulesPage() {
             </div>
 
             {/* Appealing Section */}
-            <AlertBox type="info" icon="⚖️" title="Appealing">
+            <AlertBox type="info" icon={<Scale size={20} />} title="Appealing">
                 <p class="mb-4">
                     If you think you were unfairly banned or the length of your ban is
                     not justified, you can always appeal it on the Retro Rewind

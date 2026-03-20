@@ -33,7 +33,7 @@ export function useTTTrackDetail(
         staleTime: 1000 * 60 * 60,
     }));
 
-    // Fetch leaderboard — switches between regular and flap based on mode
+    // Fetch leaderboard - switches between regular and flap based on mode
     const leaderboardQuery = useQuery(() => ({
         queryKey: [
             "tt-leaderboard",
@@ -59,7 +59,7 @@ export function useTTTrackDetail(
             ),
     }));
 
-    // FLAP stat — only in regular mode
+    // FLAP stat - only in regular mode
     const flapQuery = useQuery(() => ({
         queryKey: [
             "tt-flap",
@@ -76,7 +76,7 @@ export function useTTTrackDetail(
         enabled: mode() === "regular",
     }));
 
-    // Regular WR history — only in regular mode
+    // Regular WR history - only in regular mode
     const wrHistoryQuery = useQuery(() => ({
         queryKey: [
             "tt-wr-history",
@@ -93,7 +93,7 @@ export function useTTTrackDetail(
         enabled: mode() === "regular",
     }));
 
-    // Flap WR history — only in flap mode
+    // Flap WR history - only in flap mode
     const flapWrHistoryQuery = useQuery(() => ({
         queryKey: [
             "tt-flap-wr-history",
@@ -124,7 +124,7 @@ export function useTTTrackDetail(
         });
     };
 
-    // Active WR history — whichever mode is current
+    // Active WR history - whichever mode is current
     const activeWrHistory = () =>
         mode() === "flap"
             ? (flapWrHistoryQuery.data ?? [])
@@ -143,7 +143,7 @@ export function useTTTrackDetail(
         });
     };
 
-    // Active WR history query state — for loading/error display
+    // Active WR history query state - for loading/error display
     const activeWrHistoryQuery = () =>
         mode() === "flap" ? flapWrHistoryQuery : wrHistoryQuery;
 

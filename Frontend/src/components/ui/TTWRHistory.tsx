@@ -2,6 +2,7 @@ import { For, Show } from "solid-js";
 import { GhostSubmission } from "../../types/timeTrial";
 import { getCharacterName, getControllerName, getDriftCategoryName, getDriftTypeName, getVehicleName } from "../../utils/marioKartMappings";
 import { CountryFlag, LoadingSpinner } from "../common";
+import { Download, TrendingDown, Trophy, Zap } from "lucide-solid";
 
 interface TTWRHistoryProps {
     history: GhostSubmission[] | null | undefined;
@@ -52,11 +53,7 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
 
     return (
         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div class={`px-4 sm:px-6 py-4 bg-gradient-to-r ${
-                isFlap()
-                    ? "from-orange-500 to-amber-500"
-                    : "from-amber-500 to-orange-600"
-            }`}>
+            <div class={`px-4 sm:px-6 py-4 ${isFlap() ? "bg-orange-500" : "bg-amber-500"}`}>
                 <h3 class="text-xl sm:text-2xl font-bold text-white">{title()}</h3>
                 <p class="text-xs sm:text-sm text-white/80">{subtitle()}</p>
             </div>
@@ -79,7 +76,12 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                     when={props.history!.length > 0}
                     fallback={
                         <div class="p-12 text-center">
-                            <div class="text-6xl mb-4">{isFlap() ? "⚡" : "🏁"}</div>
+                            <div class="flex justify-center mb-4 text-gray-300 dark:text-gray-600">
+                                {isFlap()
+                                    ? <Zap size={48} />
+                                    : <Trophy size={48} />
+                                }
+                            </div>
                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">No History Yet</h3>
                             <p class="text-gray-600 dark:text-gray-400">
                                 {isFlap()
@@ -131,7 +133,10 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                         <div class="flex-1 min-w-0">
                                                             <div class="flex flex-wrap items-center gap-2">
                                                                 <Show when={isLatest}>
-                                                                    <span class="text-xl sm:text-2xl">🏆</span>
+                                                                    <Trophy
+                                                                        size={24}
+                                                                        class="text-yellow-500 dark:text-yellow-400 shrink-0"
+                                                                    />
                                                                 </Show>
                                                                 <div class={`text-2xl sm:text-3xl font-black ${
                                                                     isLatest
@@ -155,9 +160,7 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                                 </Show>
                                                                 <Show when={improvement !== null}>
                                                                     <div class="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 rounded-md">
-                                                                        <svg class="w-3 h-3 sm:w-4 sm:h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                                                        </svg>
+                                                                        <TrendingDown size={14} class="text-green-600 dark:text-green-400" />
                                                                         <span class="text-xs sm:text-sm font-bold text-green-600 dark:text-green-400">
                                                                             {improvement}
                                                                         </span>
@@ -240,11 +243,9 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                         </div>
                                                         <button
                                                             onClick={() => props.onDownloadGhost(record)}
-                                                            class="inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors w-full sm:w-auto"
+                                                            class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors w-full sm:w-auto"
                                                         >
-                                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                                            </svg>
+                                                            <Download size={14} />
                                                             Download Ghost
                                                         </button>
                                                     </div>
@@ -258,7 +259,7 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
 
                         {/* Stats Summary */}
                         <Show when={props.history!.length > 1}>
-                            <div class="mt-6 sm:mt-8 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <div class="mt-6 sm:mt-8 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-700">
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 text-center">
                                     <div>
                                         <div class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">

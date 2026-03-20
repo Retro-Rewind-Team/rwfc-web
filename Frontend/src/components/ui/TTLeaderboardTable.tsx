@@ -25,7 +25,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
         setExpandedRows(expanded);
     };
 
-    // Only used in flap mode — highlights the submission holding the best flap
+    // Only used in flap mode - highlights the submission holding the best flap
     const hasOverallFlap = (submission: GhostSubmission) => {
         if (!props.isFlap || !props.fastestLapMs) return false;
         return submission.lapSplitsMs.some((lap) => lap === props.fastestLapMs);
@@ -65,7 +65,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
         if (rank === 3) return <span class="text-xl sm:text-2xl">🥉</span>;
         return (
             <span class="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-                {rank ?? "—"}
+                {rank ?? "-"}
             </span>
         );
     };
@@ -175,7 +175,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                             </div>
                                         </td>
 
-                                        {/* Secondary time — desktop */}
+                                        {/* Secondary time - desktop */}
                                         <td class="px-3 sm:px-6 py-4 whitespace-nowrap hidden md:table-cell">
                                             <Show when={props.isFlap}>
                                                 {/* In flap mode: show finish time, highlight rank 1 */}

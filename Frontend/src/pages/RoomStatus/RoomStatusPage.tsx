@@ -3,6 +3,7 @@ import { useRoomStatus } from "../../hooks/useRoom";
 import { useMiiLoader } from "../../hooks/useMiiLoader";
 import { RoomCard } from "../../components/ui";
 import { StatCard } from "../../components/common";
+import { ChevronLeft, ChevronRight, ChevronsLeft, Inbox, Info, ServerCrash } from "lucide-solid/icons/index";
 
 export default function RoomStatusPage() {
     const {
@@ -128,9 +129,7 @@ export default function RoomStatusPage() {
                                     class="p-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-all hover:scale-110 disabled:hover:scale-100 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                                     title="Jump to oldest"
                                 >
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z" />
-                                    </svg>
+                                    <ChevronsLeft size={20} />
                                 </button>
 
                                 {/* Previous */}
@@ -139,9 +138,7 @@ export default function RoomStatusPage() {
                                     disabled={!canGoBackward()}
                                     class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg font-semibold transition-all hover:scale-105 disabled:hover:scale-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md"
                                 >
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" />
-                                    </svg>
+                                    <ChevronLeft size={16} />
                                     <span class="hidden sm:inline">Previous</span>
                                 </button>
 
@@ -152,9 +149,7 @@ export default function RoomStatusPage() {
                                     class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg font-semibold transition-all hover:scale-105 disabled:hover:scale-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md"
                                 >
                                     <span class="hidden sm:inline">Next</span>
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" />
-                                    </svg>
+                                    <ChevronRight size={16} />
                                 </button>
 
                                 {/* Jump to latest */}
@@ -164,9 +159,7 @@ export default function RoomStatusPage() {
                                     class="p-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-all hover:scale-110 disabled:hover:scale-100 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                                     title="Jump to latest"
                                 >
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" />
-                                    </svg>
+                                    <ChevronsLeft size={20} class="rotate-180" />
                                 </button>
 
                                 <Show when={isLatest()}>
@@ -180,9 +173,7 @@ export default function RoomStatusPage() {
                             {/* Historical data indicator */}
                             <Show when={!isLatest()}>
                                 <div class="text-xs text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/30 px-3 py-1.5 rounded-full border border-amber-200 dark:border-amber-800">
-                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-                                    </svg>
+                                    <Info size={14} />
                                     Historical data
                                 </div>
                             </Show>
@@ -244,18 +235,20 @@ export default function RoomStatusPage() {
 
             {/* Error State */}
             <Show when={roomStatusQuery.isError}>
-                <div class="bg-red-50 dark:bg-red-950/30 border-2 border-red-200 dark:border-red-800 rounded-xl p-12 shadow-md">
+                <div class="bg-white dark:bg-gray-800 border-2 border-red-200 dark:border-red-800 rounded-xl p-12">
                     <div class="text-center">
-                        <div class="text-7xl mb-6">😵</div>
+                        <div class="flex justify-center mb-6 text-red-400 dark:text-red-500">
+                            <ServerCrash size={48} />
+                        </div>
                         <div class="text-red-600 dark:text-red-400 text-2xl font-bold mb-3">
                             Couldn't load room data
                         </div>
-                        <p class="text-red-500 dark:text-red-400 mb-8 text-lg">
+                        <p class="text-red-500 dark:text-red-400 mb-8">
                             {roomStatusQuery.error?.message || "Something went wrong"}
                         </p>
                         <button
                             onClick={() => roomStatusQuery.refetch()}
-                            class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-10 rounded-lg transition-all hover:scale-105 shadow-lg"
+                            class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-10 rounded-lg transition-colors"
                         >
                             Try Again
                         </button>
@@ -265,16 +258,18 @@ export default function RoomStatusPage() {
 
             {/* No Data State */}
             <Show when={roomStatusQuery.data && !roomStatusQuery.isLoading && roomStatusQuery.data.rooms.length === 0}>
-                <div class="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-2 border-amber-200 dark:border-amber-800 rounded-xl p-12 shadow-md">
+                <div class="bg-white dark:bg-gray-800 border-2 border-amber-200 dark:border-amber-800 rounded-xl p-12">
                     <div class="text-center">
-                        <div class="text-7xl mb-6">🏜️</div>
-                        <div class="text-amber-800 dark:text-amber-200 text-2xl font-bold mb-3">
+                        <div class="flex justify-center mb-6 text-amber-300 dark:text-amber-600">
+                            <Inbox size={48} />
+                        </div>
+                        <div class="text-gray-900 dark:text-white text-2xl font-bold mb-3">
                             No rooms found
                         </div>
-                        <p class="text-amber-700 dark:text-amber-300 mb-2 text-lg">
+                        <p class="text-gray-600 dark:text-gray-400 mb-2">
                             Nobody is racing right now, or the server may be experiencing issues.
                         </p>
-                        <p class="text-sm text-amber-600 dark:text-amber-400 font-medium">
+                        <p class="text-sm text-gray-500 dark:text-gray-500">
                             Use the navigation controls to view historical data
                         </p>
                     </div>

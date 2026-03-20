@@ -9,13 +9,13 @@ import {
     LeaderboardPage,
     LeaderboardPlayerDetailPage,
     NotFoundPage,
+    RaceStatsPage,
     // RankCalculatorPage,
     RatingEditorPage,
     RoomStatusPage, 
     RulesPage, 
     TeamPage, 
     ToolsPage,
-    TracksPage,
     TTLeaderboardPage,
     TTPlayerProfilePage,
     TTTrackDetailPage, 
@@ -71,9 +71,9 @@ function App() {
 
                     {/* Community Pages */}
                     <Route path="/downloads" component={DownloadsPage} />
-                    <Route path="/tracks" component={TracksPage} />
                     <Route path="/rules" component={RulesPage} />
                     <Route path="/team" component={TeamPage} />
+                    <Route path="/stats" component={RaceStatsPage} />
 
                     {/* Tools Pages */}
                     <Route path="/tools" component={ToolsPage} />

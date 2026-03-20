@@ -88,6 +88,7 @@ builder.Services.AddScoped<ITTProfileRepository, TTProfileRepository>();
 builder.Services.AddScoped<IGhostSubmissionRepository, GhostSubmissionRepository>();
 builder.Services.AddScoped<IRaceResultRepository, RaceResultRepository>();
 builder.Services.AddScoped<IRoomSnapshotRepository, RoomSnapshotRepository>();
+builder.Services.AddScoped<IRaceStatsRepository, RaceStatsRepository>();
 
 // ===== EXTERNAL SERVICES =====
 builder.Services.AddScoped<IRetroWFCApiClient, RetroWFCApiClient>();
@@ -105,6 +106,7 @@ builder.Services.AddScoped<IMiiBatchService, MiiBatchService>();
 builder.Services.AddScoped<IPlayerService, PlayerService>();
 builder.Services.AddSingleton<IRoomStatusService, RoomStatusService>();
 builder.Services.AddScoped<IRaceResultService, RaceResultService>();
+builder.Services.AddScoped<IRaceStatsService, RaceStatsService>();
 
 // ===== BACKGROUND SERVICES =====
 builder.Services.AddSingleton<ILeaderboardBackgroundService, LeaderboardBackgroundService>();

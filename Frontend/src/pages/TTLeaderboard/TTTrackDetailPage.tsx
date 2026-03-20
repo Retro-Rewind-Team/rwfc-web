@@ -1,5 +1,6 @@
 import { A, useParams } from "@solidjs/router";
 import { createMemo, Show } from "solid-js";
+import { ChevronLeft, ChevronRight, AlertTriangle, Trophy, Zap } from "lucide-solid";
 import { useTTTrackDetail } from "../../hooks/useTTTrackDetail";
 import { AlertBox, LoadingSpinner } from "../../components/common";
 import { TTFilters, TTLeaderboardTable, TTWRHistory } from "../../components/ui";
@@ -33,9 +34,9 @@ export default function TTTrackDetailPage() {
         return parts.join(" ");
     };
 
-    const headerGradient = () => {
-        if (mode() === "flap") return "bg-gradient-to-r from-orange-500 to-amber-500";
-        if (!glitchAllowed()) return "bg-gradient-to-r from-green-600 to-emerald-600";
+    const headerColor = () => {
+        if (mode() === "flap") return "bg-orange-500";
+        if (!glitchAllowed()) return "bg-green-600";
         return "bg-blue-600";
     };
 
@@ -53,20 +54,18 @@ export default function TTTrackDetailPage() {
             <div>
                 <A
                     href="/timetrial"
-                    class="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                    class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                 >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                    <span>Back to Track Browser</span>
+                    <ChevronLeft size={16} />
+                    Back to Track Browser
                 </A>
             </div>
 
             {/* Loading */}
             <Show when={ttTrack.trackQuery.isLoading}>
-                <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-12 text-center">
+                <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-12 flex flex-col items-center gap-4">
                     <LoadingSpinner />
-                    <p class="mt-4 text-gray-600 dark:text-gray-400">Loading track...</p>
+                    <p class="text-gray-600 dark:text-gray-400">Loading track...</p>
                 </div>
             </Show>
 
@@ -74,7 +73,9 @@ export default function TTTrackDetailPage() {
             <Show when={ttTrack.trackQuery.isError}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-red-200 dark:border-red-800 p-8">
                     <div class="text-center space-y-4">
-                        <div class="text-6xl">⚠️</div>
+                        <div class="flex justify-center text-red-400">
+                            <AlertTriangle size={48} />
+                        </div>
                         <h2 class="text-2xl font-bold text-red-900 dark:text-red-100">Failed to load track</h2>
                         <button
                             onClick={() => ttTrack.trackQuery.refetch()}
@@ -92,7 +93,7 @@ export default function TTTrackDetailPage() {
                     <div class="space-y-6">
                         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
                             {/* Header */}
-                            <div class={`px-6 py-4 ${headerGradient()}`}>
+                            <div class={`px-6 py-4 ${headerColor()}`}>
                                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                     <div>
                                         <h1 class="text-3xl font-bold text-white mb-1">
@@ -110,7 +111,7 @@ export default function TTTrackDetailPage() {
                             </div>
 
                             {/* Filters */}
-                            <div class="bg-gray-50 dark:bg-gray-700/50 p-4 border-b-2 border-gray-200 dark:border-gray-700">
+                            <div class="bg-gray-50 dark:bg-gray-700/50 p-4 border-b border-gray-200 dark:border-gray-700">
                                 <TTFilters
                                     trackId={trackId()}
                                     trackSupportsGlitch={track().supportsGlitch}
@@ -132,16 +133,16 @@ export default function TTTrackDetailPage() {
 
                             {/* Leaderboard Loading */}
                             <Show when={ttTrack.leaderboardQuery.isLoading}>
-                                <div class="p-12 text-center">
+                                <div class="p-12 flex flex-col items-center gap-4">
                                     <LoadingSpinner />
-                                    <p class="mt-4 text-gray-600 dark:text-gray-400">Loading times...</p>
+                                    <p class="text-gray-600 dark:text-gray-400">Loading times...</p>
                                 </div>
                             </Show>
 
                             {/* Leaderboard Error */}
                             <Show when={ttTrack.leaderboardQuery.isError}>
                                 <div class="p-6">
-                                    <AlertBox type="error" icon="⚠️">
+                                    <AlertBox type="error">
                                         Failed to load leaderboard
                                     </AlertBox>
                                 </div>
@@ -153,7 +154,12 @@ export default function TTTrackDetailPage() {
                                     when={ttTrack.filteredSubmissions().length > 0}
                                     fallback={
                                         <div class="p-12 text-center">
-                                            <div class="text-6xl mb-4">{mode() === "flap" ? "⚡" : "🏆"}</div>
+                                            <div class="flex justify-center mb-4 text-gray-300 dark:text-gray-600">
+                                                {mode() === "flap"
+                                                    ? <Zap size={48} />
+                                                    : <Trophy size={48} />
+                                                }
+                                            </div>
                                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
                                                 No Times Found
                                             </h3>
@@ -180,14 +186,15 @@ export default function TTTrackDetailPage() {
 
                                 {/* Pagination */}
                                 <Show when={(ttTrack.leaderboardQuery.data?.totalPages ?? 1) > 1}>
-                                    <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t-2 border-gray-200 dark:border-gray-600 gap-2 sm:gap-0">
+                                    <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 dark:border-gray-600 gap-2 sm:gap-0">
                                         <div class="flex items-center justify-center sm:justify-start gap-2">
                                             <button
                                                 onClick={() => ttTrack.setCurrentPage(Math.max(1, ttTrack.currentPage() - 1))}
                                                 disabled={ttTrack.currentPage() === 1}
-                                                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                             >
-                                                ← Previous
+                                                <ChevronLeft size={16} />
+                                                Previous
                                             </button>
                                             <span class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 font-medium whitespace-nowrap">
                                                 Page
@@ -221,13 +228,12 @@ export default function TTTrackDetailPage() {
                                                 of {ttTrack.leaderboardQuery.data!.totalPages}
                                             </span>
                                             <button
-                                                onClick={() => ttTrack.setCurrentPage(
-                                                    Math.min(ttTrack.leaderboardQuery.data!.totalPages, ttTrack.currentPage() + 1)
-                                                )}
+                                                onClick={() => ttTrack.setCurrentPage(Math.min(ttTrack.leaderboardQuery.data!.totalPages, ttTrack.currentPage() + 1))}
                                                 disabled={ttTrack.currentPage() === ttTrack.leaderboardQuery.data!.totalPages}
-                                                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                             >
-                                                Next →
+                                                Next
+                                                <ChevronRight size={16} />
                                             </button>
                                         </div>
                                         <div class="text-sm text-gray-600 dark:text-gray-400 font-medium text-center sm:text-right">
@@ -241,7 +247,6 @@ export default function TTTrackDetailPage() {
                             </Show>
                         </div>
 
-                        {/* WR History — shown in both modes, title/data switches based on mode */}
                         <TTWRHistory
                             history={ttTrack.filteredWRHistory()}
                             isLoading={ttTrack.activeWrHistoryQuery().isLoading}

@@ -4,6 +4,8 @@ import { parseRatingFile } from "../../utils/ratingParser";
 import { calculateNeededStats, computeContributions, computeScore } from "../../utils/rankCalculator";
 import type { RksysLicense } from "../../types/tools";
 import { AlertBox } from "../../components/common";
+import AlertTriangle from "lucide-solid/icons/alert-triangle";
+import CheckCircle from "lucide-solid/icons/check-circle";
 
 const RANK_ICONS = [
     null,
@@ -133,7 +135,7 @@ export default function RankCalculatorPage() {
     };
 
     const formatMeters = (m: number) => {
-        if (!isFinite(m)) return "—";
+        if (!isFinite(m)) return "-";
         if (m >= 1000) return `${(m / 1000).toFixed(2)} km`;
         return `${Math.round(m)} m`;
     };
@@ -149,7 +151,7 @@ export default function RankCalculatorPage() {
 
     const getVrWarning = () => {
         if (!hasRksys()) return "";
-        if (!hasRating()) return " (VR from rksys.dat only — load RRRating.pul for accurate values)";
+        if (!hasRating()) return " (VR from rksys.dat only - load RRRating.pul for accurate values)";
         
         const license = licenses()[selectedLicense()];
         if (!license) return "";
@@ -230,14 +232,18 @@ export default function RankCalculatorPage() {
             </div>
 
             <Show when={licenses().length === 0}>
-                <AlertBox type="info" icon="ℹ️" title="How to use">
-                    <ol class="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
-                        <li>Upload your <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">rksys.dat</code> file (found in your Wii save data)</li>
-                        <li>(Optional) Upload <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">RRRating.pul</code> for accurate VR values</li>
-                        <li>View your current rank and stats for each license</li>
-                        <li>Enable "What If?" mode to preview stat changes</li>
-                        <li>See what stats you need to reach the next rank tier</li>
-                    </ol>
+                <AlertBox type="info" title="How to read this">
+                    <ul class="space-y-1 text-sm">
+                        <li><strong>Current:</strong> Your stats from the save file (or What If edits)</li>
+                        <li><strong>Needed:</strong> What this stat needs to be (if changed alone) to reach the next rank</li>
+                        <li><strong>Contribution:</strong> How much this stat contributes to your final score (0–100)</li>
+                    </ul>
+                    <p class="mt-3 text-xs">
+                        Colors indicate feasibility:
+                        <span class="text-green-600 dark:text-green-400"> green = achievable</span>,
+                        <span class="text-yellow-600 dark:text-yellow-400"> yellow = difficult</span>,
+                        <span class="text-red-600 dark:text-red-400"> red = very difficult</span>
+                    </p>
                 </AlertBox>
             </Show>
 
@@ -319,7 +325,7 @@ export default function RankCalculatorPage() {
                                     </div>
 
                                     {/* Score Card */}
-                                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-6 border border-blue-200 dark:border-blue-800">
+                                    <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
                                         <div class="flex items-center justify-between">
                                             <div>
                                                 <h3 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
@@ -356,8 +362,9 @@ export default function RankCalculatorPage() {
                                             </Show>
                                         </div>
                                         <Show when={!currentScore?.meetsRaceReq}>
-                                            <p class="text-sm text-yellow-700 dark:text-yellow-400 mt-3">
-                                                ⚠ Needs at least 100 VS races for a non-zero rank (currently {currentScore?.totalVs})
+                                            <p class="flex items-center gap-1.5 text-sm text-yellow-700 dark:text-yellow-400 mt-3">
+                                                <AlertTriangle size={14} />
+                                                Needs at least 100 VS races for a non-zero rank (currently {currentScore?.totalVs})
                                             </p>
                                         </Show>
                                     </div>
@@ -409,12 +416,15 @@ export default function RankCalculatorPage() {
                                                         </Show>
                                                     </td>
                                                     <td class="px-4 py-3">
-                                                        <Show when={neededStats?.byStat?.VR} fallback="—">
+                                                        <Show when={neededStats?.byStat?.VR} fallback="-">
                                                             {(stat) => {
                                                                 const needed = stat();
                                                                 const current = license().vrPoints;
                                                                 return needed.neededRaw <= current ? (
-                                                                    <span class="text-green-600 dark:text-green-400">✓ Sufficient</span>
+                                                                    <span class="inline-flex items-center gap-1 text-green-600 dark:text-green-400">
+                                                                        <CheckCircle size={14} />
+                                                                        Sufficient
+                                                                    </span>
                                                                 ) : (
                                                                     <span class={getFeasibilityClass(needed.feasibility)}>
                                                                         {needed.neededRaw.toLocaleString()} VR
@@ -463,7 +473,7 @@ export default function RankCalculatorPage() {
                                                         </div>
                                                     </td>
                                                     <td class="px-4 py-3">
-                                                        <Show when={neededStats?.byStat?.WinPct} fallback="—">
+                                                        <Show when={neededStats?.byStat?.WinPct} fallback="-">
                                                             {(stat) => {
                                                                 const needed = stat();
                                                                 const current = currentScore?.winPct || 0;
@@ -474,7 +484,7 @@ export default function RankCalculatorPage() {
                                                                         <span class={getFeasibilityClass(needed.feasibility)}>
                                                                             {needed.neededRaw.toFixed(2)}%
                                                                         </span>
-                                                                        <Show when={needed.extraWins && needed.extraWins !== "—"}>
+                                                                        <Show when={needed.extraWins && needed.extraWins !== "-"}>
                                                                             <div class="text-xs text-gray-500">
                                                                                 Min +{needed.extraWins} wins
                                                                             </div>
@@ -511,7 +521,7 @@ export default function RankCalculatorPage() {
                                                         </Show>
                                                     </td>
                                                     <td class="px-4 py-3">
-                                                        <Show when={neededStats?.byStat?.Firsts} fallback="—">
+                                                        <Show when={neededStats?.byStat?.Firsts} fallback="-">
                                                             {(stat) => {
                                                                 const needed = stat();
                                                                 const current = license().firsts;
@@ -552,7 +562,7 @@ export default function RankCalculatorPage() {
                                                         </Show>
                                                     </td>
                                                     <td class="px-4 py-3">
-                                                        <Show when={neededStats?.byStat?.Distance} fallback="—">
+                                                        <Show when={neededStats?.byStat?.Distance} fallback="-">
                                                             {(stat) => {
                                                                 const needed = stat();
                                                                 const current = license().distance;
@@ -593,7 +603,7 @@ export default function RankCalculatorPage() {
                                                         </Show>
                                                     </td>
                                                     <td class="px-4 py-3">
-                                                        <Show when={neededStats?.byStat?.Dist1st} fallback="—">
+                                                        <Show when={neededStats?.byStat?.Dist1st} fallback="-">
                                                             {(stat) => {
                                                                 const needed = stat();
                                                                 const current = license().distance1st;

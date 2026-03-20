@@ -45,4 +45,15 @@ public class TrackRepository : ITrackRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<List<TrackEntity>> GetTracksByCourseIdsAsync(List<short> courseIds)
+    {
+        if (courseIds == null || courseIds.Count == 0)
+            return [];
+
+        return await _context.Tracks
+            .AsNoTracking()
+            .Where(t => courseIds.Contains(t.CourseId))
+            .ToListAsync();
+    }
 }
