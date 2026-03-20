@@ -75,25 +75,4 @@ public class VRHistoryRepository : IVRHistoryRepository
             .Where(h => h.PlayerId == playerId && h.Date >= fromDate)
             .SumAsync(h => h.VRChange);
     }
-
-    public async Task<int> CleanupOldRecordsAsync(DateTime cutoffDate)
-    {
-        try
-        {
-            _logger.LogInformation("Starting cleanup of VR history records before {CutoffDate}", cutoffDate);
-
-            var deletedCount = await _context.VRHistories
-                .Where(h => h.Date < cutoffDate)
-                .ExecuteDeleteAsync();
-
-            _logger.LogInformation("Cleanup completed. Deleted {Count} old VR history records", deletedCount);
-
-            return deletedCount;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during VR history cleanup");
-            throw;
-        }
-    }
 }

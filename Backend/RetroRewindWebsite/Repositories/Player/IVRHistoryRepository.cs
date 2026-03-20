@@ -40,12 +40,4 @@ public interface IVRHistoryRepository : IRepository<VRHistoryEntity>
     /// <returns>A task that represents the asynchronous operation. The task result contains the calculated VR gain as an
     /// integer.</returns>
     Task<int> CalculateVRGainAsync(string playerId, TimeSpan timeSpan);
-
-    /// <summary>
-    /// Asynchronously removes records older than the specified cutoff date.
-    /// </summary>
-    /// <param name="cutoffDate">The date that defines the threshold for record removal. Records with a date earlier than this value will be
-    /// deleted.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the number of records deleted.</returns>
-    Task<int> CleanupOldRecordsAsync(DateTime cutoffDate);
 }

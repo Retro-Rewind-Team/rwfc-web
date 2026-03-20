@@ -484,6 +484,20 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
         }
     }
 
+    public async Task<int> CountDistinctTracksAsync(int ttProfileId, short? cc = null)
+    {
+        var query = _context.GhostSubmissions
+            .Where(g => g.TTProfileId == ttProfileId);
+
+        if (cc.HasValue)
+            query = query.Where(g => g.CC == cc.Value);
+
+        return await query
+            .Select(g => g.TrackId)
+            .Distinct()
+            .CountAsync();
+    }
+
     // ===== WORLD RECORD COUNTS =====
 
     public async Task UpdateWorldRecordCountsAsync()
@@ -493,15 +507,50 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
             await _context.Database.ExecuteSqlAsync($@"
                 UPDATE ""TTProfiles"" p
                 SET ""CurrentWorldRecords"" = (
-                    SELECT CAST(COUNT(*) AS INTEGER)
-                    FROM (
-                        SELECT DISTINCT ON (""TrackId"", ""CC"", ""Glitch"")
-                            ""TrackId"", ""CC"", ""Glitch"", ""TTProfileId""
-                        FROM ""GhostSubmissions""
-                        WHERE ""IsFlap"" = false
-                        ORDER BY ""TrackId"", ""CC"", ""Glitch"", ""FinishTimeMs"", ""SubmittedAt""
-                    ) wr
-                    WHERE wr.""TTProfileId"" = p.""Id""
+                    SELECT CAST(COUNT(*) AS INTEGER) FROM (
+
+                        SELECT ""TTProfileId"" FROM (
+                            SELECT DISTINCT ON (""TrackId"", ""CC"", ""Glitch"")
+                                ""TTProfileId""
+                            FROM ""GhostSubmissions""
+                            WHERE ""IsFlap"" = false AND ""Shroomless"" = false
+                              AND ""VehicleId"" BETWEEN 0 AND 17
+                            ORDER BY ""TrackId"", ""CC"", ""Glitch"", ""FinishTimeMs"", ""SubmittedAt""
+                        ) karts
+
+                        UNION ALL
+
+                        SELECT ""TTProfileId"" FROM (
+                            SELECT DISTINCT ON (""TrackId"", ""CC"", ""Glitch"")
+                                ""TTProfileId""
+                            FROM ""GhostSubmissions""
+                            WHERE ""IsFlap"" = false AND ""Shroomless"" = false
+                              AND ""VehicleId"" BETWEEN 18 AND 35
+                            ORDER BY ""TrackId"", ""CC"", ""Glitch"", ""FinishTimeMs"", ""SubmittedAt""
+                        ) bikes
+
+                        UNION ALL
+
+                        SELECT ""TTProfileId"" FROM (
+                            SELECT DISTINCT ON (""TrackId"", ""CC"", ""Glitch"")
+                                ""TTProfileId""
+                            FROM ""GhostSubmissions""
+                            WHERE ""IsFlap"" = false AND ""Shroomless"" = true
+                            ORDER BY ""TrackId"", ""CC"", ""Glitch"", ""FinishTimeMs"", ""SubmittedAt""
+                        ) shroomless
+
+                        UNION ALL
+
+                        SELECT ""TTProfileId"" FROM (
+                            SELECT DISTINCT ON (""TrackId"", ""CC"", ""Glitch"")
+                                ""TTProfileId""
+                            FROM ""GhostSubmissions""
+                            WHERE ""IsFlap"" = true AND ""Shroomless"" = false
+                            ORDER BY ""TrackId"", ""CC"", ""Glitch"", ""FinishTimeMs"", ""SubmittedAt""
+                        ) flap
+
+                    ) all_wrs
+                    WHERE ""TTProfileId"" = p.""Id""
                 ),
                 ""UpdatedAt"" = {DateTime.UtcNow}
             ");

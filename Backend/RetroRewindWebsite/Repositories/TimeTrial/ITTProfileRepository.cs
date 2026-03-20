@@ -19,10 +19,4 @@ public interface ITTProfileRepository : IRepository<TTProfileEntity>
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of profile entities. The list
     /// will be empty if no profiles are found.</returns>
     Task<List<TTProfileEntity>> GetAllAsync();
-
-    /// <summary>
-    /// Updates the counts of world records asynchronously.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous update operation.</returns>
-    Task UpdateWorldRecordCountsAsync();
 }

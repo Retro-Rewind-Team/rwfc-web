@@ -308,6 +308,15 @@ public interface IGhostSubmissionRepository
     Task<int> CountTop10FinishesAsync(int ttProfileId);
 
     /// <summary>
+    /// Asynchronously counts the number of distinct tracks associated with the specified profile and code.
+    /// </summary>
+    /// <param name="ttProfileId">The identifier of the profile for which to count distinct tracks. Must be a valid profile ID.</param>
+    /// <param name="cc">The cc used to filter tracks. The value must be within the valid range for track ccs. Can be optionally null.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the number of distinct tracks found
+    /// for the given profile and code.</returns>
+    Task<int> CountDistinctTracksAsync(int ttProfileId, short? cc = null);
+
+    /// <summary>
     /// Updates the counts of world records asynchronously.
     /// </summary>
     /// <remarks>Call this method to refresh world record counts. The operation completes when all counts have

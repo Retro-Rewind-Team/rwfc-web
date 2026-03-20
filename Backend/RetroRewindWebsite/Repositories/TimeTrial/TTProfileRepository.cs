@@ -53,30 +53,4 @@ public class TTProfileRepository : ITTProfileRepository
             await _context.SaveChangesAsync();
         }
     }
-
-    public async Task UpdateWorldRecordCountsAsync()
-    {
-        try
-        {
-            await _context.Database.ExecuteSqlAsync($@"
-                UPDATE ""TTProfiles"" p
-                SET ""CurrentWorldRecords"" = (
-                    SELECT CAST(COUNT(*) AS INTEGER)
-                    FROM (
-                        SELECT DISTINCT ON (""TrackId"", ""CC"", ""Glitch"")
-                            ""TrackId"", ""CC"", ""Glitch"", ""TTProfileId""
-                        FROM ""GhostSubmissions""
-                        ORDER BY ""TrackId"", ""CC"", ""Glitch"", ""FinishTimeMs"", ""SubmittedAt""
-                    ) wr
-                    WHERE wr.""TTProfileId"" = p.""Id""
-                ),
-                ""UpdatedAt"" = {DateTime.UtcNow}
-            ");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating world record counts");
-            throw;
-        }
-    }
 }

@@ -506,32 +506,21 @@ public class TimeTrialController : ControllerBase
     [HttpGet("profile/{ttProfileId}/stats")]
     public async Task<ActionResult<TTPlayerStatsDto>> GetPlayerStats(int ttProfileId)
     {
-        try
-        {
-            var profile = await _ttProfileRepository.GetByIdAsync(ttProfileId);
-            if (profile == null)
-                return NotFound($"Profile not found for ID {ttProfileId}");
+        var profile = await _ttProfileRepository.GetByIdAsync(ttProfileId);
+        if (profile == null)
+            return NotFound($"Profile not found for ID {ttProfileId}");
 
-            var submissions150 = await _ghostSubmissionRepository.GetPlayerSubmissionsAsync(
-                profile.Id, 1, int.MaxValue, cc: CC_150);
-            var submissions200 = await _ghostSubmissionRepository.GetPlayerSubmissionsAsync(
-                profile.Id, 1, int.MaxValue, cc: CC_200);
+        var tracks150 = await _ghostSubmissionRepository.CountDistinctTracksAsync(ttProfileId, CC_150);
+        var tracks200 = await _ghostSubmissionRepository.CountDistinctTracksAsync(ttProfileId, CC_200);
 
-            return Ok(new TTPlayerStatsDto(
-                MapToTTProfileDto(profile),
-                submissions150.TotalCount + submissions200.TotalCount,
-                submissions150.Items.Select(s => s.TrackId).Distinct().Count(),
-                submissions200.Items.Select(s => s.TrackId).Distinct().Count(),
-                await _ghostSubmissionRepository.CalculateAverageFinishPositionAsync(profile.Id),
-                await _ghostSubmissionRepository.CountTop10FinishesAsync(profile.Id)
-            ));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving stats for profile {ProfileId}", ttProfileId);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving player stats");
-        }
+        return Ok(new TTPlayerStatsDto(
+            MapToTTProfileDto(profile),
+            await _ghostSubmissionRepository.CountDistinctTracksAsync(ttProfileId),
+            tracks150,
+            tracks200,
+            await _ghostSubmissionRepository.CalculateAverageFinishPositionAsync(ttProfileId),
+            await _ghostSubmissionRepository.CountTop10FinishesAsync(ttProfileId)
+        ));
     }
 
     // ===== HELPER METHODS =====
