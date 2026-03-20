@@ -2,7 +2,7 @@ import { A, useParams } from "@solidjs/router";
 import { Show } from "solid-js";
 import { usePlayer } from "../../hooks";
 import { formatLastSeen } from "../../utils";
-import { PlayerBadges, VRHistoryChartComponent, VRStatsCard } from "../../components/ui";
+import { PlayerBadges, PlayerRaceStatsCard, VRHistoryChartComponent, VRStatsCard } from "../../components/ui";
 import {
     MiiComponent,
     VRTierInfo,
@@ -323,6 +323,7 @@ export default function PlayerDetailPage() {
 
                         {/* VR History Chart */}
                         <VRHistoryChartComponent friendCode={player().friendCode} />
+                        <PlayerRaceStatsCard pid={player().pid} />
                     </div>
                 )}
             </Show>

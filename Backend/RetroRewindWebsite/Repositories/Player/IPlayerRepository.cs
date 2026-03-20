@@ -39,6 +39,8 @@ public interface IPlayerRepository : IRepository<PlayerEntity>
     /// corresponding to the provided friend codes. The list will be empty if no players are found.</returns>
     Task<List<PlayerEntity>> GetPlayersByFriendCodesAsync(List<string> friendCodes);
 
+    Task<List<PlayerEntity>> GetPlayersByPidsAsync(List<string> pids);
+
     // ===== LEADERBOARD QUERIES =====
 
     /// <summary>

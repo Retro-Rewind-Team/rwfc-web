@@ -3,7 +3,6 @@ export * from "./constants";
 export * from "./vrTiers";
 export * from "./vrTierHelpers";
 export * from "./teamData";
-export * from "./trackData";
 export * from "./friendCodeUtils";
 export * from "./rksysParser";
 export * from "./ratingParser";

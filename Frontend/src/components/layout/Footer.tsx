@@ -93,10 +93,10 @@ export default function Footer() {
                             </li>
                             <li>
                                 <A
-                                    href="/tracks"
+                                    href="/stats"
                                     class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
                                 >
-                                    Track List
+                                    Stats
                                 </A>
                             </li>
                             <li>

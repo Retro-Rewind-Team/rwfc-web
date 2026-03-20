@@ -7,3 +7,4 @@ export * from "./room";
 export * from "./vrHistory";
 export * from "./tools";
 export * from "./timeTrial";
+export * from "./raceStats";

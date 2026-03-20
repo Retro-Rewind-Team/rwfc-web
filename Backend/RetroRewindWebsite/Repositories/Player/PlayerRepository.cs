@@ -57,6 +57,17 @@ public class PlayerRepository : IPlayerRepository
             .ToListAsync();
     }
 
+    public async Task<List<PlayerEntity>> GetPlayersByPidsAsync(List<string> pids)
+    {
+        if (pids == null || pids.Count == 0)
+            return [];
+
+        return await _context.Players
+            .AsNoTracking()
+            .Where(p => pids.Contains(p.Pid))
+            .ToListAsync();
+    }
+
     // ===== LEADERBOARD QUERIES =====
 
     public async Task<PagedResult<PlayerEntity>> GetLeaderboardPageAsync(

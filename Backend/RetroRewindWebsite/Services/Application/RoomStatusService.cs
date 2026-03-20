@@ -121,7 +121,7 @@ public class RoomStatusService : IRoomStatusService
         var repository = scope.ServiceProvider.GetRequiredService<IRoomSnapshotRepository>();
 
         var snapshots = await repository.GetByDateRangeAsync(from, to);
-        return snapshots.Select(MapSnapshotToDto).ToList();
+        return [.. snapshots.Select(MapSnapshotToDto)];
     }
 
     public async Task<int> GetMinIdAsync()
@@ -243,7 +243,7 @@ public class RoomStatusService : IRoomStatusService
             _liveCache.TryDequeue(out _);
     }
 
-    private RoomStatusResponseDto EntityToResponseDto(RoomSnapshotEntity entity) =>
+    private static RoomStatusResponseDto EntityToResponseDto(RoomSnapshotEntity entity) =>
         new(
             Rooms: entity.Rooms,
             Timestamp: entity.Timestamp,
@@ -252,7 +252,7 @@ public class RoomStatusService : IRoomStatusService
             MaximumId: 0
         );
 
-    private RoomStatusResponseDto ToResponseDto(List<RoomDto> rooms, int id, DateTime timestamp) =>
+    private static RoomStatusResponseDto ToResponseDto(List<RoomDto> rooms, int id, DateTime timestamp) =>
         new(
             Rooms: rooms,
             Timestamp: timestamp,
@@ -269,7 +269,7 @@ public class RoomStatusService : IRoomStatusService
             TotalRooms: entity.TotalRooms,
             PublicRooms: entity.PublicRooms,
             PrivateRooms: entity.PrivateRooms,
-            Rooms: entity.Rooms.Select(r => new RoomSnapshotRoomDto(
+            Rooms: [.. entity.Rooms.Select(r => new RoomSnapshotRoomDto(
                 RoomId: r.Id,
                 Type: r.Type,
                 Rk: r.Rk,
@@ -277,7 +277,7 @@ public class RoomStatusService : IRoomStatusService
                 CourseId: r.Race?.Course,
                 TrackName: r.Race?.TrackName,
                 TrackId: null
-            )).ToList()
+            ))]
         );
 
     private class RoomStatusSnapshot

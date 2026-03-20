@@ -205,7 +205,7 @@ export default function DownloadsPage() {
                         included in v6.6.1
                     </p>
                     <a
-                        href="/tracks"
+                        href="/home" // TODO: change to /stats or /tracks once those pages are implemented
                         class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium inline-flex items-center"
                     >
                         Browse Tracks

@@ -9,4 +9,3 @@ public record SuspiciousJumpsResultDto(
 );
 
 public record ModerationActionResultDto(bool Success, string Message, PlayerDto? Player = null);
-public record PlayerStatsResultDto(bool Success, PlayerStatsDto Player);

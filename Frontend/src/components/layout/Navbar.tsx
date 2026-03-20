@@ -35,49 +35,56 @@ export default function Navbar() {
                             activeClass="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
                             end
                         >
-              Home
+                            Home
                         </A>
                         <A
                             href="/vr"
                             class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                             activeClass="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
                         >
-              VR Leaderboard
+                            VR Leaderboard
                         </A>
                         <A
                             href="/tt"
                             class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                             activeClass="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
                         >
-              TT Leaderboard
+                            TT Leaderboard
                         </A>
                         <A
                             href="/rooms"
                             class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                             activeClass="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
                         >
-              Rooms
+                            Rooms
                         </A>
                         <A
                             href="/downloads"
                             class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                             activeClass="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
                         >
-              Downloads
+                            Downloads
                         </A>
                         <A
                             href="/team"
                             class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                             activeClass="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
                         >
-              Team
+                            Team
                         </A>
                         <A
                             href="/rules"
                             class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                             activeClass="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
                         >
-              Rules
+                            Rules
+                        </A>
+                        <A
+                            href="/stats"
+                            class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                            activeClass="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
+                        >
+                            Stats
                         </A>
 
                         {/* Theme Toggle for Desktop */}
@@ -176,6 +183,15 @@ export default function Navbar() {
                             end
                         >
                             <span>Rules</span>
+                        </A>
+                        <A
+                            href="/stats"
+                            class="flex items-center space-x-3 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white dark:hover:bg-gray-600 font-medium py-2 px-4 rounded-lg transition-colors"
+                            activeClass="text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-600"
+                            onClick={() => setIsMenuOpen(false)}
+                            end
+                        >
+                            <span>Stats</span>
                         </A>
                     </div>
                 </div>
