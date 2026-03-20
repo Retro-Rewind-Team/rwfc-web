@@ -20,7 +20,7 @@ function readMiiName(dv: DataView, licBase: number): string {
         if (!code) break;
         s += String.fromCharCode(code);
     }
-    return s || "—";
+    return s || "-";
 }
 
 export function parseRksysFile(buffer: ArrayBuffer): RksysLicense[] {

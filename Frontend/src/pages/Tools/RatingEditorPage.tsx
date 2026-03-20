@@ -5,6 +5,8 @@ import type { RatingEntry, RatingFile } from "../../types/tools";
 import { AlertBox } from "../../components/common";
 import { leaderboardApi } from "../../services/api/leaderboard";
 import { validateFileName, validateRatingFile } from "../../utils/fileValidator";
+import { Download } from "lucide-solid/icons/index";
+import AlertTriangle from "lucide-solid/icons/alert-triangle";
 
 export default function RatingEditorPage() {
     const [ratingFile, setRatingFile] = createSignal<RatingFile | null>(null);
@@ -256,11 +258,9 @@ export default function RatingEditorPage() {
                     </label>
 
                     <Show when={ratingFile()}>
-                        <button
-                            onClick={downloadFile}
-                            class="ml-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-                        >
-                            ⬇ Download
+                        <button onClick={downloadFile} class="ml-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors inline-flex items-center gap-2">
+                            <Download size={16} />
+                            Download
                         </button>
                     </Show>
                 </div>
@@ -297,7 +297,7 @@ export default function RatingEditorPage() {
 
             {/* Validation Error */}
             <Show when={validationError()}>
-                <AlertBox type="error" icon="❌" title="Validation Error">
+                <AlertBox type="error" title="Validation Error">
                     <p class="text-gray-700 dark:text-gray-300">
                         {validationError()}
                     </p>
@@ -309,7 +309,7 @@ export default function RatingEditorPage() {
 
             {/* Validation Warnings */}
             <Show when={validationWarnings().length > 0}>
-                <AlertBox type="warning" icon="⚠️" title="Validation Warnings">
+                <AlertBox type="warning" title="Validation Warnings">
                     <ul class="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
                         {validationWarnings().map(warning => (
                             <li>{warning}</li>
@@ -323,7 +323,7 @@ export default function RatingEditorPage() {
             </Show>
 
             <Show when={!ratingFile() && !validationError()}>
-                <AlertBox type="info" icon="ℹ️" title="How to use">
+                <AlertBox type="info" title="How to use">
                     <ol class="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
                         <li>Upload your <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">RRRating.pul</code> file</li>
                         <li>The file will be automatically validated before loading</li>
@@ -347,7 +347,7 @@ export default function RatingEditorPage() {
                 {(file) => (
                     <>
                         <Show when={getDuplicateFCCount() > 0}>
-                            <AlertBox type="warning" icon="⚠️" title="Duplicate Friend Codes Detected">
+                            <AlertBox type="warning" title="Duplicate Friend Codes Detected">
                                 <p class="text-gray-700 dark:text-gray-300">
                                     {getDuplicateFCCount()} entries have duplicate Friend Codes within this file.
                                     Duplicate entries are highlighted in yellow in the table below.
@@ -356,7 +356,7 @@ export default function RatingEditorPage() {
                         </Show>
 
                         <Show when={takenFCs().size > 0}>
-                            <AlertBox type="warning" icon="⚠️" title="Friend Codes Already on Leaderboard">
+                            <AlertBox type="warning" title="Friend Codes Already on Leaderboard">
                                 <p class="text-gray-700 dark:text-gray-300 mb-2">
                                     The following Friend Codes are already registered on the RWFC leaderboard and were not in the original file:
                                 </p>
@@ -423,7 +423,7 @@ export default function RatingEditorPage() {
                                                 const isActive = () => isEntryActive(entry);
                                                 const isSelected = () => selectedRows().has(idx());
                                                 const isDuplicate = () => hasDuplicateFC(idx());
-                                                const friendCode = () => entry.profileId > 0 ? pidToFriendCode(entry.profileId) : "—";
+                                                const friendCode = () => entry.profileId > 0 ? pidToFriendCode(entry.profileId) : "-";
 
                                                 // Fetch player name from leaderboard
                                                 const [playerData] = createResource(
@@ -527,7 +527,7 @@ export default function RatingEditorPage() {
                                                             <span class={isDuplicate() ? "text-yellow-700 dark:text-yellow-400 font-semibold" : "text-gray-600 dark:text-gray-400"}>
                                                                 {friendCode()}
                                                                 <Show when={isDuplicate()}>
-                                                                    <span class="ml-2">⚠️</span>
+                                                                    <AlertTriangle size={12} class="inline ml-1 text-yellow-600 dark:text-yellow-400" />
                                                                 </Show>
                                                             </span>
                                                         </td>
@@ -539,7 +539,7 @@ export default function RatingEditorPage() {
                                                                 <span class={takenFCs().has(friendCode()) ? "text-yellow-700 dark:text-yellow-400 font-semibold" : ""}>
                                                                     {playerData()}
                                                                     <Show when={takenFCs().has(friendCode())}>
-                                                                        <span class="ml-2">⚠️</span>
+                                                                        <AlertTriangle size={12} class="inline ml-1 text-yellow-600 dark:text-yellow-400" />
                                                                     </Show>
                                                                 </span>
                                                             </Show>
@@ -612,23 +612,17 @@ export default function RatingEditorPage() {
 
             {/* Info Box */}
             <Show when={ratingFile()}>
-                <div class="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg p-6">
-                    <div class="flex items-start gap-4">
-                        <div class="text-3xl">ℹ️</div>
-                        <div class="text-sm text-gray-700 dark:text-gray-300">
-                            <p class="font-medium mb-2">File Format Notes:</p>
-                            <ul class="list-disc list-inside space-y-1">
-                                <li><strong>Profile ID:</strong> Must be &gt; 0 for an active entry (0–1,000,000,000)</li>
-                                <li><strong>RWFC Name:</strong> Automatically fetched from the leaderboard for verification</li>
-                                <li><strong>VR/BR:</strong> Float values (0.01–10000.00); ×100 shows integer representation</li>
-                                <li><strong>Flags:</strong> Bit 0 (0x1) = hasData; toggle "Active" to manage automatically</li>
-                                <li><strong>Active:</strong> Entry is active if Profile ID &gt; 0 AND flags bit 0 is set</li>
-                                <li><strong>Warnings:</strong> Yellow highlights indicate duplicate FCs in the file or FCs already registered on the leaderboard</li>
-                                <li><strong>File Validation:</strong> Files are automatically validated on upload to prevent corruption</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+                <AlertBox type="info" title="File Format Notes">
+                    <ul class="list-disc list-inside space-y-1 text-sm">
+                        <li><strong>Profile ID:</strong> Must be &gt; 0 for an active entry (0–1,000,000,000)</li>
+                        <li><strong>RWFC Name:</strong> Automatically fetched from the leaderboard for verification</li>
+                        <li><strong>VR/BR:</strong> Float values (0.01–10000.00); ×100 shows integer representation</li>
+                        <li><strong>Flags:</strong> Bit 0 (0x1) = hasData; toggle "Active" to manage automatically</li>
+                        <li><strong>Active:</strong> Entry is active if Profile ID &gt; 0 AND flags bit 0 is set</li>
+                        <li><strong>Warnings:</strong> Yellow highlights indicate duplicate FCs or FCs already on the leaderboard</li>
+                        <li><strong>File Validation:</strong> Files are automatically validated on upload to prevent corruption</li>
+                    </ul>
+                </AlertBox>
             </Show>
         </div>
     );

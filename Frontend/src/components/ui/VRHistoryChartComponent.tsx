@@ -1,5 +1,8 @@
 import { createSignal, For, Show } from "solid-js";
 import { ProcessedVRHistory, useVRHistory } from "../../hooks/useVRHistory";
+import AlertTriangle from "lucide-solid/icons/alert-triangle";
+import BarChart2 from "lucide-solid/icons/bar-chart-2";
+import { Info } from "lucide-solid/icons/index";
 
 interface VRHistoryChartProps {
   readonly friendCode: string;
@@ -207,7 +210,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
             {/* Header */}
             <div class="flex flex-col space-y-4 mb-6">
                 <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-                    📈 VR History
+                    VR History
                 </h2>
 
                 {/* Period Selection */}
@@ -248,7 +251,9 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
             <Show when={error()}>
                 <div class="h-96 flex items-center justify-center">
                     <div class="text-center">
-                        <div class="text-red-600 dark:text-red-400 text-6xl mb-4">⚠️</div>
+                        <div class="flex justify-center mb-4 text-red-500 dark:text-red-400">
+                            <AlertTriangle size={48} />
+                        </div>
                         <p class="text-red-600 dark:text-red-400 font-medium mb-2">
                             Failed to load VR history
                         </p>
@@ -267,7 +272,9 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
             <Show when={!isLoading() && !error() && historyData().length === 0}>
                 <div class="h-96 flex items-center justify-center">
                     <div class="text-center">
-                        <div class="text-gray-400 dark:text-gray-500 text-6xl mb-4">📊</div>
+                        <div class="flex justify-center mb-4 text-gray-300 dark:text-gray-600">
+                            <BarChart2 size={48} />
+                        </div>
                         <p class="text-gray-600 dark:text-gray-400 font-medium mb-2">
                             No VR history available
                         </p>
@@ -282,53 +289,51 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
             <Show when={!isLoading() && !error() && historyData().length > 0 && stats()}>
                 {/* Stats Summary */}
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
-                    <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 md:p-4 text-center border-2 border-blue-200 dark:border-blue-800">
-                        <div
-                            class={`text-lg md:text-2xl font-bold mb-1 ${
-                                stats()!.totalChange >= 0
-                                    ? "text-emerald-600 dark:text-emerald-400"
-                                    : "text-red-600 dark:text-red-400"
-                            }`}
-                        >
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-3 md:p-4 text-center border border-gray-200 dark:border-gray-700">
+                        <div class={`text-lg md:text-2xl font-bold mb-1 ${
+                            stats()!.totalChange >= 0
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : "text-red-600 dark:text-red-400"
+                        }`}>
                             {stats()!.totalChange >= 0 ? "+" : ""}
                             {stats()!.totalChange.toLocaleString()}
                         </div>
-                        <div class="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium">
+                        <div class="text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
                             Total Change
                         </div>
                     </div>
 
-                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 md:p-4 text-center border-2 border-gray-200 dark:border-gray-600">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-3 md:p-4 text-center border border-gray-200 dark:border-gray-700">
                         <div class="text-lg md:text-2xl font-bold text-gray-900 dark:text-white mb-1">
                             {stats()!.highestVR.toLocaleString()}
                         </div>
-                        <div class="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium">
+                        <div class="text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
                             Peak VR
                         </div>
                     </div>
 
-                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 md:p-4 text-center border-2 border-gray-200 dark:border-gray-600">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-3 md:p-4 text-center border border-gray-200 dark:border-gray-700">
                         <div class="text-lg md:text-2xl font-bold text-gray-900 dark:text-white mb-1">
                             {stats()!.lowestVR.toLocaleString()}
                         </div>
-                        <div class="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium">
+                        <div class="text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
                             Lowest VR
                         </div>
                     </div>
 
-                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 md:p-4 text-center border-2 border-gray-200 dark:border-gray-600">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-3 md:p-4 text-center border border-gray-200 dark:border-gray-700">
                         <div class="text-lg md:text-2xl font-bold text-gray-900 dark:text-white mb-1">
                             {stats()!.changesCount}
                         </div>
-                        <div class="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium">
+                        <div class="text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
                             Data Points
                         </div>
                     </div>
                 </div>
 
                 {/* SVG Chart */}
-                <div 
-                    class="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 rounded-xl p-4 overflow-x-auto"
+                <div
+                    class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 overflow-x-auto border border-gray-100 dark:border-gray-700"
                     onClick={handleTapOutside}
                     onTouchStart={handleTapOutside}
                 >
@@ -609,8 +614,9 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                     </svg>
                 </div>
 
-                <div class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                    💡 {isMobile() ? "Tap" : "Hover over"} points to see details
+                <div class="mt-4 flex items-center justify-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+                    <Info size={14} />
+                    <span>{isMobile() ? "Tap" : "Hover over"} points to see details</span>
                 </div>
             </Show>
         </div>

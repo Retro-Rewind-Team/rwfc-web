@@ -11,7 +11,7 @@ export function useTTTrackBrowser() {
     const [vehicleFilter, setVehicleFilter] = createSignal<VehicleFilter>("all");
     const [searchQuery, setSearchQuery] = createSignal("");
 
-    // Fetch all tracks — static, cached for 1 hour
+    // Fetch all tracks - static, cached for 1 hour
     const tracksQuery = useQuery(() => ({
         queryKey: ["tt-tracks"],
         queryFn: () => timeTrialApi.getAllTracks(),
@@ -37,7 +37,7 @@ export function useTTTrackBrowser() {
         staleTime: 1000 * 60 * 5,
     }));
 
-    // Filter and sort tracks by category and search — purely local
+    // Filter and sort tracks by category and search - purely local
     const filteredTracks = createMemo(() => {
         const tracks = tracksQuery.data ?? [];
         const category = selectedCategory();

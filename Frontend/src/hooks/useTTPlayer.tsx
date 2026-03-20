@@ -55,13 +55,13 @@ export function useTTPlayer(ttProfileId: number) {
         ),
     }));
 
-    // Fetch player stats — always unfiltered
+    // Fetch player stats - always unfiltered
     const statsQuery = useQuery(() => ({
         queryKey: ["tt-profile-stats", ttProfileId],
         queryFn: () => timeTrialApi.getPlayerStats(ttProfileId),
     }));
 
-    // Client-side track name search — applied on top of server results
+    // Client-side track name search - applied on top of server results
     // This is lightweight since we're only searching the current page
     const filteredSubmissions = createMemo(() => {
         const submissions = submissionsQuery.data?.submissions ?? [];

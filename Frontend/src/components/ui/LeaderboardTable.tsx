@@ -3,6 +3,8 @@ import { A } from "@solidjs/router";
 import { Player } from "../../types";
 import { formatLastSeen, getVRGainClass } from "../../utils";
 import { MiiComponent, PlayerBadges, VRTierNumberPlate } from "../ui";
+import { ArrowDown, ArrowUp } from "lucide-solid/icons/index";
+import AlertTriangle from "lucide-solid/icons/alert-triangle";
 
 interface LeaderboardTableProps {
     players: Player[];
@@ -41,7 +43,10 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                             <div class="flex items-center justify-center space-x-2">
                                 <span class="font-bold">Rank</span>
                                 <Show when={props.sortBy === "rank"}>
-                                    <span class="text-sm">{props.ascending ? "↑" : "↓"}</span>
+                                    {props.ascending
+                                        ? <ArrowUp size={14} />
+                                        : <ArrowDown size={14} />
+                                    }
                                 </Show>
                             </div>
                         </th>
@@ -55,7 +60,10 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                             <div class="flex items-center justify-center space-x-2">
                                 <span class="font-bold">VR</span>
                                 <Show when={props.sortBy === "vr"}>
-                                    <span class="text-sm">{props.ascending ? "↓" : "↑"}</span>
+                                    {props.ascending
+                                        ? <ArrowUp size={14} />
+                                        : <ArrowDown size={14} />
+                                    }
                                 </Show>
                             </div>
                         </th>
@@ -71,7 +79,10 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                                 <div class="flex items-center justify-center space-x-2">
                                     <span class="font-bold">Last Seen</span>
                                     <Show when={props.sortBy === "lastSeen"}>
-                                        <span class="text-sm">{props.ascending ? "↓" : "↑"}</span>
+                                        {props.ascending
+                                            ? <ArrowUp size={14} />
+                                            : <ArrowDown size={14} />
+                                        }
                                     </Show>
                                 </div>
                             </th>
@@ -83,7 +94,10 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                                 <div class="flex items-center justify-center space-x-2">
                                     <span class="font-bold">VR Change ({getTimePeriodLabel()})</span>
                                     <Show when={props.sortBy === getVRGainSortField()}>
-                                        <span class="text-sm">{props.ascending ? "↓" : "↑"}</span>
+                                        {props.ascending
+                                            ? <ArrowUp size={14} />
+                                            : <ArrowDown size={14} />
+                                        }
                                     </Show>
                                 </div>
                             </th>
@@ -138,8 +152,9 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
 
                                                 <div class="hidden sm:flex flex-wrap gap-2 mt-1 justify-center sm:justify-start">
                                                     <Show when={player.isSuspicious}>
-                                                        <span class="inline-flex items-center text-xs bg-red-200 dark:bg-red-800 text-red-600 dark:text-red-400 px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap">
-                                                            ⚠️ Suspicious
+                                                        <span class="inline-flex items-center gap-1 text-xs bg-red-200 dark:bg-red-800 text-red-600 dark:text-red-400 px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap">
+                                                            <AlertTriangle size={12} />
+                                                            Suspicious
                                                         </span>
                                                     </Show>
                                                     

@@ -1,6 +1,8 @@
 import { For, Show } from "solid-js";
+import { ChevronLeft, ChevronRight, X } from "lucide-solid";
 import { usePlayerRaceStats } from "../../hooks/usePlayerRaceStats";
 import { PlayerRaceStats, RecentRace, SetupEntry, TrackPlayCount } from "../../types/raceStats";
+import { LoadingSpinner } from "../../components/common";
 
 interface PlayerRaceStatsCardProps {
     pid: string;
@@ -38,7 +40,9 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6 space-y-6">
             {/* Header + filters */}
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">🎮 Race Stats</h2>
+                <div class="flex items-center gap-2">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Race Stats</h2>
+                </div>
                 <div class="flex items-center gap-1">
                     <For each={DAY_OPTIONS}>
                         {(opt) => (
@@ -65,16 +69,17 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                         onClick={() => handleCourseIdChange(undefined)}
                         class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors"
                     >
-                        {activeTrackName()} ✕
+                        {activeTrackName()}
+                        <X size={12} />
                     </button>
                 </div>
             </Show>
 
             {/* Loading */}
             <Show when={raceStatsQuery.isLoading}>
-                <div class="flex items-center justify-center py-8">
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
-                    <p class="ml-3 text-gray-600 dark:text-gray-300">Loading race stats...</p>
+                <div class="flex items-center justify-center py-8 gap-3">
+                    <LoadingSpinner />
+                    <p class="text-gray-600 dark:text-gray-300">Loading race stats...</p>
                 </div>
             </Show>
 
@@ -200,9 +205,10 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                 <button
                                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                     disabled={currentPage() === 1}
-                                    class="px-3 py-1 rounded text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                    class="inline-flex items-center gap-1 px-3 py-1 rounded text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    ← Previous
+                                    <ChevronLeft size={14} />
+                                    Previous
                                 </button>
                                 <span class="text-sm text-gray-500 dark:text-gray-400">
                                     Page {currentPage()} of {stats().totalPages}
@@ -210,9 +216,10 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                 <button
                                     onClick={() => setCurrentPage(p => Math.min(stats().totalPages, p + 1))}
                                     disabled={currentPage() === stats().totalPages}
-                                    class="px-3 py-1 rounded text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                    class="inline-flex items-center gap-1 px-3 py-1 rounded text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    Next →
+                                    Next
+                                    <ChevronRight size={14} />
                                 </button>
                             </div>
                         </Show>

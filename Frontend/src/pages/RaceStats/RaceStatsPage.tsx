@@ -1,7 +1,10 @@
 import { A } from "@solidjs/router";
 import { createMemo, createSignal, For, Show } from "solid-js";
+import type { JSX } from "solid-js";
+import { BarChart2, Users, Map, Gamepad2, Trophy, Calendar, Clock } from "lucide-solid";
 import { useGlobalRaceStats } from "../../hooks/useGlobalRaceStats";
 import { GlobalRaceStats, SetupEntry } from "../../types/raceStats";
+import { LoadingSpinner } from "../../components/common";
 
 const DAY_OPTIONS = [
     { label: "7d", value: 7 },
@@ -39,16 +42,23 @@ export default function RaceStatsPage() {
 
     return (
         <div class="space-y-6">
-            {/* Header + time filter */}
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                    <h1 class="text-4xl font-bold text-gray-900 dark:text-white">📊 Race Statistics</h1>
-                    <Show when={globalStatsQuery.data}>
-                        <p class="text-gray-500 dark:text-gray-400 mt-1 text-sm">
-                            Tracked since {new Date(stats().trackedSince).toLocaleDateString("nl-NL")}
-                        </p>
-                    </Show>
-                </div>
+            {/* Page Title */}
+            <div class="pb-6 border-b border-gray-200 dark:border-gray-700">
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+                    Race Statistics
+                </h1>
+                <p class="text-xl text-gray-600 dark:text-gray-400">
+                    Global race data across all Retro Rewind tracks and players
+                </p>
+                <Show when={globalStatsQuery.data}>
+                    <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm">
+                        Tracked since {new Date(stats().trackedSince).toLocaleDateString("nl-NL")}
+                    </p>
+                </Show>
+            </div>
+
+            {/* Time filter */}
+            <div class="flex justify-end">
                 <div class="flex items-center gap-1 shrink-0">
                     <For each={DAY_OPTIONS}>
                         {(opt) => (
@@ -69,23 +79,41 @@ export default function RaceStatsPage() {
 
             {/* Loading */}
             <Show when={globalStatsQuery.isLoading}>
-                <div class="flex items-center justify-center py-24">
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400"></div>
-                    <p class="ml-4 text-gray-600 dark:text-gray-300">Loading stats...</p>
+                <div class="flex items-center justify-center py-24 gap-4">
+                    <LoadingSpinner />
+                    <p class="text-gray-600 dark:text-gray-300">Loading stats...</p>
                 </div>
             </Show>
 
             <Show when={globalStatsQuery.data}>
                 {/* Overview tiles */}
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <StatTile label="Total Races Tracked" value={stats().totalRacesTracked.toLocaleString()} icon="🏁" />
-                    <StatTile label="Unique Players" value={stats().uniquePlayersCount.toLocaleString()} icon="👥" />
-                    <StatTile label="Tracks Played" value={stats().allPlayedTracks.length.toLocaleString()} icon="🗺️" />
+                    <StatTile
+                        label="Total Races Tracked"
+                        value={stats().totalRacesTracked.toLocaleString()}
+                        icon={<BarChart2 size={24} />}
+                        iconColor="text-blue-500 dark:text-blue-400"
+                    />
+                    <StatTile
+                        label="Unique Players"
+                        value={stats().uniquePlayersCount.toLocaleString()}
+                        icon={<Users size={24} />}
+                        iconColor="text-emerald-500 dark:text-emerald-400"
+                    />
+                    <StatTile
+                        label="Tracks Played"
+                        value={stats().allPlayedTracks.length.toLocaleString()}
+                        icon={<Map size={24} />}
+                        iconColor="text-purple-500 dark:text-purple-400"
+                    />
                 </div>
 
                 {/* Most popular setup */}
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
-                    <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">🎮 Most Popular Setup</h2>
+                    <div class="flex items-center gap-2 mb-4">
+                        <Gamepad2 size={20} class="text-blue-500 dark:text-blue-400" />
+                        <h2 class="text-xl font-bold text-gray-900 dark:text-white">Most Popular Setup</h2>
+                    </div>
                     <div class="grid grid-cols-3 gap-6">
                         <SetupColumn title="Characters" entries={stats().topCharacters} />
                         <SetupColumn title="Vehicles" entries={stats().topVehicles} />
@@ -97,7 +125,10 @@ export default function RaceStatsPage() {
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Most active players */}
                     <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
-                        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">🏆 Most Active Players</h2>
+                        <div class="flex items-center gap-2 mb-4">
+                            <Trophy size={20} class="text-amber-500 dark:text-amber-400" />
+                            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Most Active Players</h2>
+                        </div>
                         <div class="space-y-2">
                             <For each={stats().mostActivePlayers}>
                                 {(player, i) => (
@@ -134,7 +165,10 @@ export default function RaceStatsPage() {
                     {/* Track play counts */}
                     <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                            <h2 class="text-xl font-bold text-gray-900 dark:text-white">🗺️ Track Play Counts</h2>
+                            <div class="flex items-center gap-2">
+                                <Map size={20} class="text-purple-500 dark:text-purple-400" />
+                                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Track Play Counts</h2>
+                            </div>
                             <div class="flex items-center gap-2">
                                 <div class="flex rounded overflow-hidden border border-gray-200 dark:border-gray-600 text-xs">
                                     <button
@@ -155,7 +189,7 @@ export default function RaceStatsPage() {
                                                 : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
                                         }`}
                                     >
-                                        A–Z
+                                        A-Z
                                     </button>
                                 </div>
                                 <input
@@ -202,7 +236,10 @@ export default function RaceStatsPage() {
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* By day of week */}
                     <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
-                        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">📅 Races by Day of Week</h2>
+                        <div class="flex items-center gap-2 mb-4">
+                            <Calendar size={20} class="text-emerald-500 dark:text-emerald-400" />
+                            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Races by Day of Week</h2>
+                        </div>
                         <div class="space-y-2">
                             <For each={stats().racesByDayOfWeek}>
                                 {(day) => (
@@ -225,7 +262,10 @@ export default function RaceStatsPage() {
 
                     {/* By hour */}
                     <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
-                        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">🕐 Races by Hour (UTC)</h2>
+                        <div class="flex items-center gap-2 mb-4">
+                            <Clock size={20} class="text-orange-500 dark:text-orange-400" />
+                            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Races by Hour (UTC)</h2>
+                        </div>
                         <div class="relative h-32">
                             <div class="absolute inset-0 flex items-end gap-px">
                                 <For each={stats().racesByHour}>
@@ -233,13 +273,12 @@ export default function RaceStatsPage() {
                                         <div
                                             class="flex-1 bg-blue-500 dark:bg-blue-600 rounded-t hover:bg-blue-400 dark:hover:bg-blue-500 transition-colors cursor-default"
                                             style={{ height: `${Math.max(2, Math.round((hour.raceCount / maxHourCount()) * 100))}%` }}
-                                            title={`${String(hour.hour).padStart(2, "0")}:00 — ${hour.raceCount.toLocaleString()} races`}
+                                            title={`${String(hour.hour).padStart(2, "0")}:00 - ${hour.raceCount.toLocaleString()} races`}
                                         />
                                     )}
                                 </For>
                             </div>
                         </div>
-                        {/* Hour axis labels */}
                         <div class="flex mt-1">
                             <For each={stats().racesByHour}>
                                 {(hour) => (
@@ -289,10 +328,12 @@ function SetupColumn(props: { title: string; entries: SetupEntry[] }) {
     );
 }
 
-function StatTile(props: { label: string; value: string; icon: string }) {
+function StatTile(props: { label: string; value: string; icon: JSX.Element; iconColor: string }) {
     return (
         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-5 flex items-center gap-4">
-            <div class="text-3xl">{props.icon}</div>
+            <div class={`shrink-0 ${props.iconColor}`}>
+                {props.icon}
+            </div>
             <div>
                 <div class="text-2xl font-bold text-gray-900 dark:text-white">{props.value}</div>
                 <div class="text-sm text-gray-500 dark:text-gray-400">{props.label}</div>
