@@ -61,10 +61,9 @@ public class RaceStatsService : IRaceStatsService
                 .ToDictionary(g => g.Key, g => string.Join(" / ", g.Select(t => t.Name)));
 
             topTracks = [.. topTrackRaw
-                .Select(t => new TrackPlayCountDto(
-                    trackNameMap.TryGetValue(t.CourseId, out var name) ? name : $"Course {t.CourseId}",
-                    t.Count,
-                    t.CourseId))];
+                .Where(t => trackNameMap.ContainsKey(t.CourseId))
+                .Select(t => new TrackPlayCountDto(trackNameMap[t.CourseId], t.Count, t.CourseId))
+                .ToList()];
         }
 
         // Top characters, vehicles, combos
@@ -146,10 +145,8 @@ public class RaceStatsService : IRaceStatsService
             .ToDictionary(g => g.Key, g => string.Join(" / ", g.Select(t => t.Name)));
 
         var allPlayedTracks = allTracksRaw
-            .Select(t => new TrackPlayCountDto(
-                trackNameMap.TryGetValue(t.CourseId, out var name) ? name : $"Course {t.CourseId}",
-                t.Count,
-                t.CourseId))
+            .Where(t => trackNameMap.ContainsKey(t.CourseId))
+            .Select(t => new TrackPlayCountDto(trackNameMap[t.CourseId], t.Count, t.CourseId))
             .ToList();
 
         // Top characters, vehicles, combos
