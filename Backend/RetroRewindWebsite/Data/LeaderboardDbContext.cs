@@ -118,14 +118,11 @@ public class LeaderboardDbContext : DbContext
         modelBuilder.Entity<TrackEntity>(entity =>
         {
             // Indexes
-            entity.HasIndex(e => e.SlotId);
             entity.HasIndex(e => e.Category);
-            entity.HasIndex(e => e.TrackSlot);
             entity.HasIndex(e => e.SupportsGlitch);
 
             // String length constraints
             entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
-            entity.Property(e => e.TrackSlot).HasMaxLength(50).IsRequired();
             entity.Property(e => e.Category).HasMaxLength(10).IsRequired();
         });
     }

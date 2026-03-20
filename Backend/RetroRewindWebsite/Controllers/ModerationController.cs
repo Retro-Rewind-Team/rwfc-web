@@ -287,9 +287,6 @@ public class ModerationController : ControllerBase
             if (parseResult is not GhostFileParseResult.Success ghostData)
                 return BadRequest(((GhostFileParseResult.Failure)parseResult).ErrorMessage);
 
-            var trackSlotValidation = ValidateTrackSlotMatch(ghostData.CourseId, track);
-            if (trackSlotValidation != null) return trackSlotValidation;
-
             string ghostFilePath;
             using (var fileStream = request.GhostFile.OpenReadStream())
             {
@@ -716,25 +713,6 @@ public class ModerationController : ControllerBase
     {
         if (cc != CC_150 && cc != CC_200)
             return BadRequest($"CC must be either {CC_150} or {CC_200}");
-
-        return null;
-    }
-
-    private BadRequestObjectResult? ValidateTrackSlotMatch(short courseId, TrackEntity track)
-    {
-        var rkgTrackSlotName = MarioKartMappings.GetTrackSlotName(courseId);
-        if (rkgTrackSlotName == null)
-            return BadRequest($"Invalid course ID in ghost file: {courseId}");
-
-        if (rkgTrackSlotName != track.TrackSlot)
-        {
-            _logger.LogWarning(
-                "Track slot mismatch: Ghost has {GhostSlot} but track {TrackName} uses {TrackSlot}",
-                rkgTrackSlotName, track.Name, track.TrackSlot);
-
-            return BadRequest(
-                $"Track slot mismatch: This ghost uses '{rkgTrackSlotName}' but '{track.Name}' uses '{track.TrackSlot}'");
-        }
 
         return null;
     }

@@ -53,7 +53,6 @@ public static class GhostSubmissionMapper
             ControllerName: MarioKartMappings.GetControllerName(entity.ControllerType),
             DriftTypeName: MarioKartMappings.GetDriftTypeName(entity.DriftType),
             DriftCategoryName: MarioKartMappings.GetDriftCategoryName(entity.DriftCategory),
-            TrackSlotName: entity.Track?.TrackSlot,
             Rank: rank
         );
     }

@@ -24,11 +24,6 @@ public class TrackRepository : ITrackRepository
             .OrderBy(t => t.SortOrder)
             .ToListAsync();
 
-    public async Task<TrackEntity?> GetTrackByCourseIdAsync(short courseId) =>
-        await _context.Tracks
-            .AsNoTracking()
-            .FirstOrDefaultAsync(t => t.SlotId == courseId);
-
     public async Task AddAsync(TrackEntity track)
     {
         await _context.Tracks.AddAsync(track);

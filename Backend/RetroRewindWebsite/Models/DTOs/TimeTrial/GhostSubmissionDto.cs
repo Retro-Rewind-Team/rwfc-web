@@ -66,7 +66,6 @@ public record GhostSubmissionDetailDto(
     string? ControllerName,
     string? DriftTypeName,
     string? DriftCategoryName,
-    string? TrackSlotName,
     int? Rank = null
 ) : GhostSubmissionDto(
     Id, TrackId, TrackName, TTProfileId, PlayerName, CountryCode, CountryAlpha2, CountryName,

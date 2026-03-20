@@ -558,8 +558,7 @@ public class TimeTrialController : ControllerBase
     private static TrackDto MapToTrackDto(TrackEntity track) => new(
         track.Id,
         track.Name,
-        track.TrackSlot,
-        track.SlotId,
+        track.CourseId,
         track.Category,
         track.Laps,
         track.SupportsGlitch,

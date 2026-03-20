@@ -1,7 +1,6 @@
 export interface Track {
     id: number;
     name: string;
-    trackSlot: string;
     courseId: number;
     sortOrder: number;
     category: "retro" | "custom";
