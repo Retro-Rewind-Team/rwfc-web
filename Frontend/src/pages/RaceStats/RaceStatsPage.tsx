@@ -22,10 +22,14 @@ export default function RaceStatsPage() {
 
     const filteredTracks = createMemo(() => {
         if (!globalStatsQuery.data) return [];
+
+        // Attach original rank before filtering/sorting
+        const ranked = stats().allPlayedTracks.map((t, i) => ({ ...t, originalRank: i + 1 }));
+
         const search = trackSearch().toLowerCase();
         const tracks = search
-            ? stats().allPlayedTracks.filter(t => t.trackName.toLowerCase().includes(search))
-            : stats().allPlayedTracks;
+            ? ranked.filter(t => t.trackName.toLowerCase().includes(search))
+            : ranked;
 
         return trackSort() === "name"
             ? [...tracks].sort((a, b) => a.trackName.localeCompare(b.trackName))
@@ -213,9 +217,9 @@ export default function RaceStatsPage() {
                                 </thead>
                                 <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                                     <For each={filteredTracks()}>
-                                        {(track, i) => (
+                                        {(track) => (
                                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                                <td class="py-1.5 pr-3 text-gray-400 dark:text-gray-500">{i() + 1}</td>
+                                                <td class="py-1.5 pr-3 text-gray-400 dark:text-gray-500">{track.originalRank}</td>
                                                 <td class="py-1.5 pr-3 text-gray-800 dark:text-gray-200">{track.trackName}</td>
                                                 <td class="py-1.5 text-right font-medium text-blue-600 dark:text-blue-400">
                                                     {track.raceCount.toLocaleString()}
