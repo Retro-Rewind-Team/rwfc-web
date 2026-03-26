@@ -241,6 +241,29 @@ public class LeaderboardController : ControllerBase
         }
     }
 
+    // Returns the mii image decoded as a png rather than b64
+    [HttpGet("player/{fc}/mii/image")]
+    public async Task<ActionResult<MiiImageResponseDto>> GetPlayerMiiImage(string fc)
+    {
+        try
+        {
+            var miiImage = await _miiBatchService.GetPlayerMiiAsync(fc);
+            if (miiImage == null)
+                return NotFound($"Mii image not found for player with friend code '{fc}'");
+
+            Response.Headers.CacheControl = "public, max-age=3600";
+            Response.Headers.ETag = $"\"{fc.GetHashCode()}\"";
+
+            return File(Convert.FromBase64String(miiImage), "image/png");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving Mii for player {FriendCode}", fc);
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while retrieving Mii image");
+        }
+    }
+
     [HttpPost("miis/batch")]
     public async Task<ActionResult<BatchMiiResponseDto>> GetPlayerMiisBatch(
         [FromBody] BatchMiiRequestDto request)
