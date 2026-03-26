@@ -54,7 +54,7 @@ export default function PlayerCard(props: PlayerCardProps) {
                             BR {props.player.br ?? "??"}
                         </span>
                         <Show when={props.showOpenHost}>
-                            <span class={`inline-flex items-center gap-1 text-xs border px-2 py-0.5 rounded-md font-semibold ${
+                            <span title={props.player.isOpenHost ? "OpenHost enabled - anyone can add this player's FC and join their rooms immediately." : "OpenHost for this player is disabled. Both players will need to add each other to appear online in the friends list."} aria-label={props.player.isOpenHost ? "OpenHost enabled - anyone can add this player's FC and join their rooms immediately." : "OpenHost for this player is disabled. Both players will need to add each other to appear online in the friends list."} class={`inline-flex items-center gap-1 text-xs border px-2 py-0.5 rounded-md font-semibold ${
                                 props.player.isOpenHost
                                     ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300"
                                     : "bg-red-100 dark:bg-red-900/40 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300"
