@@ -190,7 +190,7 @@ export default function DownloadsPage() {
                 <div class="space-y-2 text-sm">
                     <p><strong>Do NOT use Wiimmfi-patched games</strong> - Retro Rewind uses Retro WFC servers</p>
                     <p><strong>Disable all cheat codes</strong> - Any active cheats will prevent online play</p>
-                    <p><strong>Console users:</strong> Extract to SD card root, use Riivolution with "Pack" and "Separate Savegame" enabled</p>
+                    <p><strong>Console users:</strong> Extract to SD card root and replace existing files, don't delete any files!</p>
                     <p><strong>Dolphin users:</strong> Use Wheel Wizard for easiest setup, disable "Enable Cheats"</p>
                 </div>
             </AlertBox>
