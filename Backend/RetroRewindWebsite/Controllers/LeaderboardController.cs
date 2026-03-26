@@ -243,7 +243,7 @@ public class LeaderboardController : ControllerBase
 
     // Returns the mii image decoded as a png rather than b64
     [HttpGet("player/{fc}/mii/image")]
-    public async Task<ActionResult<MiiImageResponseDto>> GetPlayerMiiImage(string fc)
+    public async Task<IActionResult> GetPlayerMiiImage(string fc)
     {
         try
         {
