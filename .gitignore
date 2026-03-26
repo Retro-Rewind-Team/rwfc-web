@@ -185,3 +185,4 @@ dist
 .pnp.*
 Backend/.editorconfig
 /Backend/RetroRewindWebsite/ghosts
+**/publish
