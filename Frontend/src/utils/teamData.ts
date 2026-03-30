@@ -687,13 +687,6 @@ export const teamData: Record<string, TeamMember[]> = {
             fc: "0007-6000-6000",
         },
         {
-            name: "phil",
-            discord: "phil.xyz",
-            role: "Mogi Staff",
-            image: "/profiles/phil.png",
-            fc: "0987-8432-1619",
-        },
-        {
             name: "Zomb",
             discord: "ancirian",
             role: "Mogi Staff",
@@ -785,6 +778,13 @@ export const teamData: Record<string, TeamMember[]> = {
             role: "Mogi Updater",
             image: "/profiles/ticlass.png",
             fc: "",
+        },
+        {
+            name: "phil",
+            discord: "phil.xyz",
+            role: "Mogi Updater",
+            image: "/profiles/phil.png",
+            fc: "0987-8432-1619",
         },
     ],
 };
