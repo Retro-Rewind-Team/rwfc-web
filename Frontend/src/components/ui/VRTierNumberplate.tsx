@@ -49,7 +49,11 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
 
         if (isTopThree()) {
             gradient = getSpecialTopThreeGradient(props.rank);
-        } else if (["master", "celestial", "mythic", "transcendent", "god"].includes(tier().tier)) {
+        } else if (
+            ["master", "celestial", "mythic", "transcendent", "god"].includes(
+                tier().tier,
+            )
+        ) {
             gradient = getMaximumTierGradient();
         }
 
@@ -133,7 +137,12 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
 
                 {/* Premium shine effect for top tiers */}
                 <Show
-                    when={isTopThree() || ["master", "celestial", "mythic", "transcendent", "god"].includes(tier().tier)}
+                    when={
+                        isTopThree() ||
+            ["master", "celestial", "mythic", "transcendent", "god"].includes(
+                tier().tier,
+            )
+                    }
                 >
                     <div class="absolute inset-0 rounded-lg bg-gradient-to-tr from-transparent via-white/15 to-transparent pointer-events-none"></div>
                 </Show>

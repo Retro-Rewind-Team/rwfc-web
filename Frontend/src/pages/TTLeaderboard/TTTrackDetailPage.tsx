@@ -1,16 +1,32 @@
 import { A, useParams } from "@solidjs/router";
 import { createMemo, Show } from "solid-js";
-import { ChevronLeft, ChevronRight, AlertTriangle, Trophy, Zap } from "lucide-solid";
+import {
+    ChevronLeft,
+    ChevronRight,
+    TriangleAlert,
+    Trophy,
+    Zap,
+} from "lucide-solid";
 import { useTTTrackDetail } from "../../hooks/useTTTrackDetail";
 import { AlertBox, LoadingSpinner } from "../../components/common";
-import { TTFilters, TTLeaderboardTable, TTWRHistory } from "../../components/ui";
+import {
+    TTFilters,
+    TTLeaderboardTable,
+    TTWRHistory,
+} from "../../components/ui";
 import { LeaderboardMode } from "../../types/timeTrial";
 
-function parseRouteCC(ccParam: string): { cc: 150 | 200; glitchAllowed: boolean; mode: LeaderboardMode } {
+function parseRouteCC(ccParam: string): {
+  cc: 150 | 200;
+  glitchAllowed: boolean;
+  mode: LeaderboardMode;
+} {
     const isFlap = ccParam.startsWith("flap-");
     const withoutFlap = isFlap ? ccParam.slice("flap-".length) : ccParam;
     const isNoGlitch = withoutFlap.startsWith("no-glitch-");
-    const withoutGlitch = isNoGlitch ? withoutFlap.slice("no-glitch-".length) : withoutFlap;
+    const withoutGlitch = isNoGlitch
+        ? withoutFlap.slice("no-glitch-".length)
+        : withoutFlap;
     const cc = withoutGlitch === "200cc" ? 200 : 150;
     return { cc, glitchAllowed: !isNoGlitch, mode: isFlap ? "flap" : "regular" };
 }
@@ -57,7 +73,7 @@ export default function TTTrackDetailPage() {
                     class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                 >
                     <ChevronLeft size={16} />
-                    Back to Track Browser
+          Back to Track Browser
                 </A>
             </div>
 
@@ -74,14 +90,16 @@ export default function TTTrackDetailPage() {
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-red-200 dark:border-red-800 p-8">
                     <div class="text-center space-y-4">
                         <div class="flex justify-center text-red-400">
-                            <AlertTriangle size={48} />
+                            <TriangleAlert size={48} />
                         </div>
-                        <h2 class="text-2xl font-bold text-red-900 dark:text-red-100">Failed to load track</h2>
+                        <h2 class="text-2xl font-bold text-red-900 dark:text-red-100">
+              Failed to load track
+                        </h2>
                         <button
                             onClick={() => ttTrack.trackQuery.refetch()}
                             class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
                         >
-                            Try Again
+              Try Again
                         </button>
                     </div>
                 </div>
@@ -102,7 +120,9 @@ export default function TTTrackDetailPage() {
                                         <div class="flex items-center gap-3 text-sm text-white/80">
                                             <span class="font-semibold">{categoryLabel()}</span>
                                             <span>•</span>
-                                            <span>{track().laps} lap{track().laps !== 1 ? "s" : ""}</span>
+                                            <span>
+                                                {track().laps} lap{track().laps !== 1 ? "s" : ""}
+                                            </span>
                                             <span>•</span>
                                             <span class="capitalize">{track().category} Track</span>
                                         </div>
@@ -123,10 +143,14 @@ export default function TTTrackDetailPage() {
                                     driftFilter={ttTrack.driftFilter()}
                                     driftCategoryFilter={ttTrack.driftCategoryFilter()}
                                     pageSize={ttTrack.pageSize()}
-                                    onShroomlessFilterChange={ttTrack.handleShroomlessFilterChange}
+                                    onShroomlessFilterChange={
+                                        ttTrack.handleShroomlessFilterChange
+                                    }
                                     onVehicleFilterChange={ttTrack.handleVehicleFilterChange}
                                     onDriftFilterChange={ttTrack.handleDriftFilterChange}
-                                    onDriftCategoryFilterChange={ttTrack.handleDriftCategoryFilterChange}
+                                    onDriftCategoryFilterChange={
+                                        ttTrack.handleDriftCategoryFilterChange
+                                    }
                                     onPageSizeChange={ttTrack.handlePageSizeChange}
                                 />
                             </div>
@@ -135,48 +159,54 @@ export default function TTTrackDetailPage() {
                             <Show when={ttTrack.leaderboardQuery.isLoading}>
                                 <div class="p-12 flex flex-col items-center gap-4">
                                     <LoadingSpinner />
-                                    <p class="text-gray-600 dark:text-gray-400">Loading times...</p>
+                                    <p class="text-gray-600 dark:text-gray-400">
+                    Loading times...
+                                    </p>
                                 </div>
                             </Show>
 
                             {/* Leaderboard Error */}
                             <Show when={ttTrack.leaderboardQuery.isError}>
                                 <div class="p-6">
-                                    <AlertBox type="error">
-                                        Failed to load leaderboard
-                                    </AlertBox>
+                                    <AlertBox type="error">Failed to load leaderboard</AlertBox>
                                 </div>
                             </Show>
 
                             {/* Leaderboard Table */}
-                            <Show when={ttTrack.leaderboardQuery.data && !ttTrack.leaderboardQuery.isLoading}>
+                            <Show
+                                when={
+                                    ttTrack.leaderboardQuery.data &&
+                  !ttTrack.leaderboardQuery.isLoading
+                                }
+                            >
                                 <Show
                                     when={ttTrack.filteredSubmissions().length > 0}
                                     fallback={
                                         <div class="p-12 text-center">
                                             <div class="flex justify-center mb-4 text-gray-300 dark:text-gray-600">
-                                                {mode() === "flap"
-                                                    ? <Zap size={48} />
-                                                    : <Trophy size={48} />
-                                                }
+                                                {mode() === "flap" ? (
+                                                    <Zap size={48} />
+                                                ) : (
+                                                    <Trophy size={48} />
+                                                )}
                                             </div>
                                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                                                No Times Found
+                        No Times Found
                                             </h3>
                                             <p class="text-gray-600 dark:text-gray-400">
                                                 {mode() === "flap"
                                                     ? "No flap runs have been submitted for this category yet."
-                                                    : "Try adjusting your filters or be the first to submit a time!"
-                                                }
+                                                    : "Try adjusting your filters or be the first to submit a time!"}
                                             </p>
                                         </div>
                                     }
                                 >
                                     <TTLeaderboardTable
                                         submissions={ttTrack.filteredSubmissions()}
-                                        fastestLapMs={mode() === "regular"
-                                            ? (ttTrack.flapQuery.data?.fastestLapMs ?? null)
-                                            : (ttTrack.leaderboardQuery.data?.fastestLapMs ?? null)
+                                        fastestLapMs={
+                                            mode() === "regular"
+                                                ? (ttTrack.flapQuery.data?.fastestLapMs ?? null)
+                                                : (ttTrack.leaderboardQuery.data?.fastestLapMs ?? null)
                                         }
                                         trackLaps={track().laps}
                                         isFlap={mode() === "flap"}
@@ -185,19 +215,25 @@ export default function TTTrackDetailPage() {
                                 </Show>
 
                                 {/* Pagination */}
-                                <Show when={(ttTrack.leaderboardQuery.data?.totalPages ?? 1) > 1}>
+                                <Show
+                                    when={(ttTrack.leaderboardQuery.data?.totalPages ?? 1) > 1}
+                                >
                                     <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 dark:border-gray-600 gap-2 sm:gap-0">
                                         <div class="flex items-center justify-center sm:justify-start gap-2">
                                             <button
-                                                onClick={() => ttTrack.setCurrentPage(Math.max(1, ttTrack.currentPage() - 1))}
+                                                onClick={() =>
+                                                    ttTrack.setCurrentPage(
+                                                        Math.max(1, ttTrack.currentPage() - 1),
+                                                    )
+                                                }
                                                 disabled={ttTrack.currentPage() === 1}
                                                 class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                             >
                                                 <ChevronLeft size={16} />
-                                                Previous
+                        Previous
                                             </button>
                                             <span class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 font-medium whitespace-nowrap">
-                                                Page
+                        Page
                                                 <input
                                                     type="number"
                                                     min={1}
@@ -205,18 +241,24 @@ export default function TTTrackDetailPage() {
                                                     value={ttTrack.currentPage()}
                                                     onKeyDown={(e) => {
                                                         if (e.key === "Enter") {
-                                                            const val = parseInt((e.target as HTMLInputElement).value);
-                                                            const total = ttTrack.leaderboardQuery.data!.totalPages;
+                                                            const val = parseInt(
+                                                                (e.target as HTMLInputElement).value,
+                                                            );
+                                                            const total =
+                                ttTrack.leaderboardQuery.data!.totalPages;
                                                             if (!isNaN(val) && val >= 1 && val <= total) {
                                                                 ttTrack.setCurrentPage(val);
                                                             } else {
-                                                                (e.target as HTMLInputElement).value = String(ttTrack.currentPage());
+                                                                (e.target as HTMLInputElement).value = String(
+                                                                    ttTrack.currentPage(),
+                                                                );
                                                             }
                                                         }
                                                     }}
                                                     onBlur={(e) => {
                                                         const val = parseInt(e.target.value);
-                                                        const total = ttTrack.leaderboardQuery.data!.totalPages;
+                                                        const total =
+                              ttTrack.leaderboardQuery.data!.totalPages;
                                                         if (!isNaN(val) && val >= 1 && val <= total) {
                                                             ttTrack.setCurrentPage(val);
                                                         } else {
@@ -225,22 +267,35 @@ export default function TTTrackDetailPage() {
                                                     }}
                                                     class="w-16 px-2 py-1 text-center border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                 />
-                                                of {ttTrack.leaderboardQuery.data!.totalPages}
+                        of {ttTrack.leaderboardQuery.data!.totalPages}
                                             </span>
                                             <button
-                                                onClick={() => ttTrack.setCurrentPage(Math.min(ttTrack.leaderboardQuery.data!.totalPages, ttTrack.currentPage() + 1))}
-                                                disabled={ttTrack.currentPage() === ttTrack.leaderboardQuery.data!.totalPages}
+                                                onClick={() =>
+                                                    ttTrack.setCurrentPage(
+                                                        Math.min(
+                              ttTrack.leaderboardQuery.data!.totalPages,
+                              ttTrack.currentPage() + 1,
+                                                        ),
+                                                    )
+                                                }
+                                                disabled={
+                                                    ttTrack.currentPage() ===
+                          ttTrack.leaderboardQuery.data!.totalPages
+                                                }
                                                 class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                             >
-                                                Next
+                        Next
                                                 <ChevronRight size={16} />
                                             </button>
                                         </div>
                                         <div class="text-sm text-gray-600 dark:text-gray-400 font-medium text-center sm:text-right">
-                                            Showing {(ttTrack.currentPage() - 1) * ttTrack.pageSize() + 1}–{Math.min(
+                      Showing{" "}
+                                            {(ttTrack.currentPage() - 1) * ttTrack.pageSize() + 1}–
+                                            {Math.min(
                                                 ttTrack.currentPage() * ttTrack.pageSize(),
-                                                ttTrack.leaderboardQuery.data!.totalSubmissions
-                                            )} of {ttTrack.leaderboardQuery.data!.totalSubmissions} times
+                        ttTrack.leaderboardQuery.data!.totalSubmissions,
+                                            )}{" "}
+                      of {ttTrack.leaderboardQuery.data!.totalSubmissions} times
                                         </div>
                                     </div>
                                 </Show>

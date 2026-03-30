@@ -1,7 +1,8 @@
+import { RouteSectionProps } from "@solidjs/router";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 
-export default function Layout(props: any) {
+export default function Layout(props: RouteSectionProps) {
     return (
         <div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
             <Navbar />

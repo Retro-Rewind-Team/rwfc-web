@@ -61,7 +61,7 @@ export function useMiiLoader(): UseMiiLoaderReturn {
 
     const loadMiisBatch = async (friendCodes: string[]): Promise<void> => {
         const uncachedFriendCodes = friendCodes.filter(
-            (fc) => globalMiiCache[fc] === undefined && !loadingPromises.has(fc)
+            (fc) => globalMiiCache[fc] === undefined && !loadingPromises.has(fc),
         );
 
         if (uncachedFriendCodes.length === 0) {
@@ -105,7 +105,7 @@ export function useMiiImage(friendCode: string): {
 } {
     const miiLoader = useMiiLoader();
     const [miiImage, setMiiImage] = createSignal<string | null | undefined>(
-        miiLoader.getMiiImage(friendCode)
+        miiLoader.getMiiImage(friendCode),
     );
 
     createEffect(() => {
@@ -136,7 +136,7 @@ export function useMiiImage(friendCode: string): {
 
 export function useIntersectionObserver(
     callback: () => void,
-    options: IntersectionObserverInit = {}
+    options: IntersectionObserverInit = {},
 ) {
     let element: Element | null = null;
     let observer: IntersectionObserver | null = null;
@@ -160,7 +160,7 @@ export function useIntersectionObserver(
                 rootMargin: "50px",
                 threshold: 0.1,
                 ...options,
-            }
+            },
         );
 
         observer.observe(el);

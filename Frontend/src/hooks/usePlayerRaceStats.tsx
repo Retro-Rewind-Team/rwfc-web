@@ -7,7 +7,9 @@ const PAGE_SIZE = 20;
 export function usePlayerRaceStats(pid: string | undefined) {
     const [days, setDays] = createSignal<number | undefined>(undefined);
     const [courseId, setCourseId] = createSignal<number | undefined>(undefined);
-    const [activeTrackName, setActiveTrackName] = createSignal<string | undefined>(undefined);
+    const [activeTrackName, setActiveTrackName] = createSignal<
+    string | undefined
+  >(undefined);
     const [currentPage, setCurrentPage] = createSignal(1);
 
     // Reset to page 1 when filters change
@@ -19,12 +21,13 @@ export function usePlayerRaceStats(pid: string | undefined) {
 
     const raceStatsQuery = useQuery(() => ({
         queryKey: ["player-race-stats", pid, days(), courseId(), currentPage()],
-        queryFn: () => raceStatsApi.getPlayerRaceStats(pid!, {
-            days: days(),
-            courseId: courseId(),
-            page: currentPage(),
-            pageSize: PAGE_SIZE,
-        }),
+        queryFn: () =>
+            raceStatsApi.getPlayerRaceStats(pid!, {
+                days: days(),
+                courseId: courseId(),
+                page: currentPage(),
+                pageSize: PAGE_SIZE,
+            }),
         enabled: !!pid,
         retry: 1,
     }));

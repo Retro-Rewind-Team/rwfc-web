@@ -19,14 +19,15 @@ export function useRoomStatus() {
         queryKey: ["roomStatus", currentId()],
         queryFn: async () => {
             const id = currentId();
-            const data = id === undefined
-                ? await roomStatusApi.getLatestRoomStatus()
-                : await roomStatusApi.getRoomStatusById(id);
+            const data =
+        id === undefined
+            ? await roomStatusApi.getLatestRoomStatus()
+            : await roomStatusApi.getRoomStatusById(id);
             setMinId(data.minimumId);
             setMaxId(data.maximumId);
             return data;
         },
-        refetchInterval: () => currentId() === undefined ? 60000 : false,
+        refetchInterval: () => (currentId() === undefined ? 60000 : false),
     }));
 
     const isLatest = createMemo(() => currentId() === undefined);
@@ -43,7 +44,7 @@ export function useRoomStatus() {
         const data = roomStatusQuery.data;
         if (!data) return false;
         const id = currentId();
-        if (id === undefined) return data.id > 0; 
+        if (id === undefined) return data.id > 0;
         return id > minId();
     });
 
@@ -119,7 +120,9 @@ export function useRoomStatus() {
 
     const getRoomUptime = (createdDate: string): string => {
         const created = new Date(createdDate);
-        const now = isLatest() ? new Date() : new Date(roomStatusQuery.data?.timestamp || Date.now());
+        const now = isLatest()
+            ? new Date()
+            : new Date(roomStatusQuery.data?.timestamp || Date.now());
         const diff = now.getTime() - created.getTime();
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -130,8 +133,8 @@ export function useRoomStatus() {
     const getAllFriendCodes = createMemo(() => {
         const rooms = roomStatusQuery.data?.rooms || [];
         const friendCodes = new Set<string>();
-        rooms.forEach(room => {
-            room.players.forEach(player => {
+        rooms.forEach((room) => {
+            room.players.forEach((player) => {
                 if (player.mii) friendCodes.add(player.friendCode);
             });
         });

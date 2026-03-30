@@ -1,41 +1,45 @@
 import { ShroomlessFilter, VehicleFilter } from "../../types/timeTrial";
 
 interface TTBrowserFiltersProps {
-    selectedCategory: "retro" | "custom";
-    selectedCC: 150 | 200;
-    glitchAllowed: boolean;
-    shroomlessFilter: ShroomlessFilter;
-    vehicleFilter: VehicleFilter;
-    searchQuery: string;
-    onCategoryChange: (category: "retro" | "custom") => void;
-    onCCChange: (cc: 150 | 200) => void;
-    onGlitchAllowedChange: (allowed: boolean) => void;
-    onShroomlessFilterChange: (filter: ShroomlessFilter) => void;
-    onVehicleFilterChange: (filter: VehicleFilter) => void;
-    onSearchInput: (value: string) => void;
+  selectedCategory: "retro" | "custom";
+  selectedCC: 150 | 200;
+  glitchAllowed: boolean;
+  shroomlessFilter: ShroomlessFilter;
+  vehicleFilter: VehicleFilter;
+  searchQuery: string;
+  onCategoryChange: (category: "retro" | "custom") => void;
+  onCCChange: (cc: 150 | 200) => void;
+  onGlitchAllowedChange: (allowed: boolean) => void;
+  onShroomlessFilterChange: (filter: ShroomlessFilter) => void;
+  onVehicleFilterChange: (filter: VehicleFilter) => void;
+  onSearchInput: (value: string) => void;
 }
 
 export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
     return (
         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* Header */}
-            <div class={`px-4 sm:px-6 py-4 ${!props.glitchAllowed ? "bg-gradient-to-r from-green-600 to-emerald-600" : "bg-blue-600"}`}>
+            <div
+                class={`px-4 sm:px-6 py-4 ${!props.glitchAllowed ? "bg-gradient-to-r from-green-600 to-emerald-600" : "bg-blue-600"}`}
+            >
                 <div class="flex items-center gap-3">
                     <div>
-                        <h2 class="text-xl sm:text-2xl font-bold text-white">Browse Tracks</h2>
+                        <h2 class="text-xl sm:text-2xl font-bold text-white">
+              Browse Tracks
+                        </h2>
                         <p class="text-blue-100 text-xs sm:text-sm">
                             {props.selectedCC}cc •{" "}
                             {!props.glitchAllowed ? "Non-Glitch/Shortcut" : "Unrestricted"} •{" "}
                             {props.vehicleFilter !== "all"
-                                ? props.vehicleFilter.charAt(0).toUpperCase() + props.vehicleFilter.slice(1)
-                                : "All Vehicles"
-                            } •{" "}
+                                ? props.vehicleFilter.charAt(0).toUpperCase() +
+                  props.vehicleFilter.slice(1)
+                                : "All Vehicles"}{" "}
+              •{" "}
                             {props.shroomlessFilter === "only"
                                 ? "Shroomless"
                                 : props.shroomlessFilter === "exclude"
                                     ? "No Shroomless"
-                                    : "All Categories"
-                            }
+                                    : "All Categories"}
                         </p>
                     </div>
                 </div>
@@ -47,7 +51,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                     {/* Track Category */}
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                            Track Category
+              Track Category
                         </label>
                         <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
                             {(["retro", "custom"] as const).map((cat) => (
@@ -68,7 +72,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                     {/* Engine Class */}
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                            Engine Class
+              Engine Class
                         </label>
                         <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
                             <button
@@ -79,7 +83,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                                         : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                                 }`}
                             >
-                                150cc
+                150cc
                             </button>
                             <button
                                 onClick={() => props.onCCChange(200)}
@@ -89,7 +93,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                                         : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                                 }`}
                             >
-                                200cc
+                200cc
                             </button>
                         </div>
                     </div>
@@ -97,7 +101,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                     {/* Category Type */}
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                            Category Type
+              Category Type
                         </label>
                         <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
                             <button
@@ -108,7 +112,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                                         : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                                 }`}
                             >
-                                Unrestricted
+                Unrestricted
                             </button>
                             <button
                                 onClick={() => props.onGlitchAllowedChange(false)}
@@ -118,7 +122,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                                         : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                                 }`}
                             >
-                                No Glitch
+                No Glitch
                             </button>
                         </div>
                     </div>
@@ -126,7 +130,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                     {/* Vehicle Type */}
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                            Vehicle Type
+              Vehicle Type
                         </label>
                         <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
                             {(["all", "karts", "bikes"] as VehicleFilter[]).map((v) => (
@@ -147,7 +151,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                     {/* Shroomless */}
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                            Shroomless
+              Shroomless
                         </label>
                         <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
                             {(["all", "only", "exclude"] as ShroomlessFilter[]).map((s) => (
@@ -168,12 +172,22 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                     {/* Search */}
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                            Search Tracks
+              Search Tracks
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                <svg
+                                    class="h-4 w-4 text-gray-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                    />
                                 </svg>
                             </div>
                             <input

@@ -99,7 +99,9 @@ export default function VRTierInfo(props: Readonly<VRTierInfoProps>) {
             <Show when={!nextTier() && !props.isSuspicious}>
                 <div class="flex items-center space-x-2 text-sm text-purple-600 dark:text-purple-400">
                     <Star size={16} />
-                    <span class="font-medium">Maximum tier reached - VR cap achieved!</span>
+                    <span class="font-medium">
+            Maximum tier reached - VR cap achieved!
+                    </span>
                 </div>
             </Show>
 

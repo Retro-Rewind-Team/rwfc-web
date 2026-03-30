@@ -1,10 +1,10 @@
 import { apiRequest } from "./client";
 import {
     BatchMiiResponse,
+    PagedResult,
     RoomSnapshot,
     RoomStatusResponse,
     RoomStatusStats,
-    PagedResult,
 } from "../../types";
 
 export const roomStatusApi = {
@@ -18,7 +18,7 @@ export const roomStatusApi = {
 
     async getNearestStatus(timestamp: Date): Promise<RoomStatusResponse> {
         return apiRequest<RoomStatusResponse>(
-            `/roomstatus/nearest?timestamp=${encodeURIComponent(timestamp.toISOString())}`
+            `/roomstatus/nearest?timestamp=${encodeURIComponent(timestamp.toISOString())}`,
         );
     },
 
@@ -26,21 +26,24 @@ export const roomStatusApi = {
         return apiRequest<RoomStatusStats>("/roomstatus/stats");
     },
 
-    async getSnapshotHistory(page: number, pageSize: number): Promise<PagedResult<RoomSnapshot>> {
+    async getSnapshotHistory(
+        page: number,
+        pageSize: number,
+    ): Promise<PagedResult<RoomSnapshot>> {
         return apiRequest<PagedResult<RoomSnapshot>>(
-            `/roomstatus/history?page=${page}&pageSize=${pageSize}`
+            `/roomstatus/history?page=${page}&pageSize=${pageSize}`,
         );
     },
 
     async getSnapshotsByDateRange(from: Date, to: Date): Promise<RoomSnapshot[]> {
         return apiRequest<RoomSnapshot[]>(
-            `/roomstatus/history?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`
+            `/roomstatus/history?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`,
         );
     },
 
     async getMiiImage(friendCode: string): Promise<Blob> {
         const response = await fetch(
-            `${import.meta.env.VITE_API_BASE_URL}/api/roomstatus/mii/${friendCode}`
+            `${import.meta.env.VITE_API_BASE_URL}/api/roomstatus/mii/${friendCode}`,
         );
         if (!response.ok)
             throw new Error(`Failed to fetch Mii image: ${response.status}`);
@@ -64,11 +67,11 @@ export const roomStatusApi = {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ friendCodes: chunk }),
-                    }
+                    },
                 );
                 Object.assign(allMiis, response.miis);
 
-                const missingFcs = chunk.filter(fc => !response.miis[fc]);
+                const missingFcs = chunk.filter((fc) => !response.miis[fc]);
                 if (missingFcs.length > 0) {
                     try {
                         const fallback = await apiRequest<BatchMiiResponse>(
@@ -77,7 +80,7 @@ export const roomStatusApi = {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ friendCodes: missingFcs }),
-                            }
+                            },
                         );
                         Object.assign(allMiis, fallback.miis);
                     } catch (e) {
@@ -85,7 +88,10 @@ export const roomStatusApi = {
                     }
                 }
             } catch (e) {
-                console.warn(`Failed to load Mii batch for ${chunk.length} players:`, e);
+                console.warn(
+                    `Failed to load Mii batch for ${chunk.length} players:`,
+                    e,
+                );
             }
         }
 

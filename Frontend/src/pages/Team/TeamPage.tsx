@@ -7,7 +7,8 @@ import type { TeamMember } from "../../types/team";
 import { Check, Heart } from "lucide-solid/icons/index";
 
 export default function TeamPage() {
-    const { copiedText, copiedPosition, isVisible, copyToClipboard } = useClipboard();
+    const { copiedText, copiedPosition, isVisible, copyToClipboard } =
+    useClipboard();
 
     return (
         <div class="max-w-7xl mx-auto space-y-12">
@@ -23,7 +24,7 @@ export default function TeamPage() {
                     }}
                 >
                     <Check size={14} class="text-emerald-400 shrink-0" />
-                    Copied {copiedText()}
+          Copied {copiedText()}
                 </div>
             )}
 
@@ -31,10 +32,10 @@ export default function TeamPage() {
             <div class="text-center">
                 <div class="py-8">
                     <h1 class="text-5xl font-bold mb-3 text-gray-900 dark:text-white">
-                        The Retro Rewind Team
+            The Retro Rewind Team
                     </h1>
                     <p class="text-lg text-gray-600 dark:text-gray-400">
-                        Meet the people who make Retro Rewind possible
+            Meet the people who make Retro Rewind possible
                     </p>
                 </div>
             </div>
@@ -79,7 +80,7 @@ export default function TeamPage() {
                                         class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors inline-flex items-center gap-2"
                                     >
                                         <Heart size={18} />
-                                        Support Team WheelWizard
+                    Support Team WheelWizard
                                     </a>
                                 </div>
                             )}

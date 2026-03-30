@@ -127,8 +127,6 @@ export function isBike(vehicleId: number): boolean {
     return vehicleId >= 18 && vehicleId <= 35;
 }
 
-
-
 // Check if vehicle is a kart (decimal: 0-17)
 export function isKart(vehicleId: number): boolean {
     return vehicleId >= 0 && vehicleId <= 17;

@@ -39,7 +39,7 @@ export function useLegacyLeaderboard() {
             search: search() || undefined,
             sortBy: sortBy(),
             ascending: ascending(),
-        })
+        }),
     );
 
     const leaderboardQuery = useQuery(() => ({

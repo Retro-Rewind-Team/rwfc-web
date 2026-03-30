@@ -1,27 +1,38 @@
 import { A } from "@solidjs/router";
 import { Show } from "solid-js";
-import { DriftCategoryFilter, DriftFilter, LeaderboardMode, ShroomlessFilter, VehicleFilter } from "../../types/timeTrial";
+import {
+    DriftCategoryFilter,
+    DriftFilter,
+    LeaderboardMode,
+    ShroomlessFilter,
+    VehicleFilter,
+} from "../../types/timeTrial";
 
 interface TTFiltersProps {
-    trackId: number;
-    trackSupportsGlitch: boolean;
-    currentCC: 150 | 200;
-    currentGlitchAllowed: boolean;
-    currentMode: LeaderboardMode;
-    shroomlessFilter: ShroomlessFilter;
-    vehicleFilter: VehicleFilter;
-    driftFilter: DriftFilter;
-    driftCategoryFilter: DriftCategoryFilter;
-    pageSize: number;
-    onShroomlessFilterChange: (filter: ShroomlessFilter) => void;
-    onVehicleFilterChange: (filter: VehicleFilter) => void;
-    onDriftFilterChange: (filter: DriftFilter) => void;
-    onDriftCategoryFilterChange: (filter: DriftCategoryFilter) => void;
-    onPageSizeChange: (size: number) => void;
+  trackId: number;
+  trackSupportsGlitch: boolean;
+  currentCC: 150 | 200;
+  currentGlitchAllowed: boolean;
+  currentMode: LeaderboardMode;
+  shroomlessFilter: ShroomlessFilter;
+  vehicleFilter: VehicleFilter;
+  driftFilter: DriftFilter;
+  driftCategoryFilter: DriftCategoryFilter;
+  pageSize: number;
+  onShroomlessFilterChange: (filter: ShroomlessFilter) => void;
+  onVehicleFilterChange: (filter: VehicleFilter) => void;
+  onDriftFilterChange: (filter: DriftFilter) => void;
+  onDriftCategoryFilterChange: (filter: DriftCategoryFilter) => void;
+  onPageSizeChange: (size: number) => void;
 }
 
 // Builds the route for a given combination of cc, glitch, and mode
-function buildRoute(trackId: number, cc: 150 | 200, glitchAllowed: boolean, mode: LeaderboardMode): string {
+function buildRoute(
+    trackId: number,
+    cc: 150 | 200,
+    glitchAllowed: boolean,
+    mode: LeaderboardMode,
+): string {
     const flapPrefix = mode === "flap" ? "flap-" : "";
     const glitchPrefix = !glitchAllowed ? "no-glitch-" : "";
     return `/timetrial/${flapPrefix}${glitchPrefix}${cc}cc/${trackId}`;
@@ -33,28 +44,38 @@ export default function TTFilters(props: TTFiltersProps) {
             {/* CC Switcher */}
             <div>
                 <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                    Engine Class
+          Engine Class
                 </label>
                 <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
                     <A
-                        href={buildRoute(props.trackId, 150, props.currentGlitchAllowed, props.currentMode)}
+                        href={buildRoute(
+                            props.trackId,
+                            150,
+                            props.currentGlitchAllowed,
+                            props.currentMode,
+                        )}
                         class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
                             props.currentCC === 150
                                 ? "bg-green-600 text-white shadow-sm"
                                 : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                         }`}
                     >
-                        150cc
+            150cc
                     </A>
                     <A
-                        href={buildRoute(props.trackId, 200, props.currentGlitchAllowed, props.currentMode)}
+                        href={buildRoute(
+                            props.trackId,
+                            200,
+                            props.currentGlitchAllowed,
+                            props.currentMode,
+                        )}
                         class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
                             props.currentCC === 200
                                 ? "bg-sky-600 text-white shadow-sm"
                                 : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                         }`}
                     >
-                        200cc
+            200cc
                     </A>
                 </div>
             </div>
@@ -63,28 +84,38 @@ export default function TTFilters(props: TTFiltersProps) {
             <Show when={props.trackSupportsGlitch}>
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                        Category Type
+            Category Type
                     </label>
                     <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
                         <A
-                            href={buildRoute(props.trackId, props.currentCC, true, props.currentMode)}
+                            href={buildRoute(
+                                props.trackId,
+                                props.currentCC,
+                                true,
+                                props.currentMode,
+                            )}
                             class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
                                 props.currentGlitchAllowed
                                     ? "bg-blue-600 text-white shadow-sm"
                                     : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                             }`}
                         >
-                            Unrestricted
+              Unrestricted
                         </A>
                         <A
-                            href={buildRoute(props.trackId, props.currentCC, false, props.currentMode)}
+                            href={buildRoute(
+                                props.trackId,
+                                props.currentCC,
+                                false,
+                                props.currentMode,
+                            )}
                             class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
                                 !props.currentGlitchAllowed
                                     ? "bg-green-600 text-white shadow-sm"
                                     : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                             }`}
                         >
-                            Non-Glitch/Shortcut
+              Non-Glitch/Shortcut
                         </A>
                     </div>
                 </div>
@@ -93,28 +124,38 @@ export default function TTFilters(props: TTFiltersProps) {
             {/* Flap Mode Toggle */}
             <div>
                 <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                    Leaderboard Type
+          Leaderboard Type
                 </label>
                 <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
                     <A
-                        href={buildRoute(props.trackId, props.currentCC, props.currentGlitchAllowed, "regular")}
+                        href={buildRoute(
+                            props.trackId,
+                            props.currentCC,
+                            props.currentGlitchAllowed,
+                            "regular",
+                        )}
                         class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
                             props.currentMode === "regular"
                                 ? "bg-blue-600 text-white shadow-sm"
                                 : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                         }`}
                     >
-                        Regular
+            Regular
                     </A>
                     <A
-                        href={buildRoute(props.trackId, props.currentCC, props.currentGlitchAllowed, "flap")}
+                        href={buildRoute(
+                            props.trackId,
+                            props.currentCC,
+                            props.currentGlitchAllowed,
+                            "flap",
+                        )}
                         class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
                             props.currentMode === "flap"
                                 ? "bg-orange-500 text-white shadow-sm"
                                 : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                         }`}
                     >
-                        ⚡ Flap
+            ⚡ Flap
                     </A>
                 </div>
             </div>
@@ -124,7 +165,7 @@ export default function TTFilters(props: TTFiltersProps) {
                 {/* Vehicle Type */}
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                        Vehicle Type
+            Vehicle Type
                     </label>
                     <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
                         {(["all", "karts", "bikes"] as VehicleFilter[]).map((v) => (
@@ -145,7 +186,7 @@ export default function TTFilters(props: TTFiltersProps) {
                 {/* Shroomless */}
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                        Shroomless
+            Shroomless
                     </label>
                     <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
                         {(["all", "only", "exclude"] as ShroomlessFilter[]).map((s) => (
@@ -166,7 +207,7 @@ export default function TTFilters(props: TTFiltersProps) {
                 {/* Drift Type */}
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                        Drift Type
+            Drift Type
                     </label>
                     <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
                         {(["all", "manual", "hybrid"] as DriftFilter[]).map((d) => (
@@ -187,28 +228,33 @@ export default function TTFilters(props: TTFiltersProps) {
                 {/* Drift Category */}
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                        Drift Category
+            Drift Category
                     </label>
                     <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
-                        {(["all", "inside", "outside"] as DriftCategoryFilter[]).map((d) => (
-                            <button
-                                onClick={() => props.onDriftCategoryFilterChange(d)}
-                                class={`flex-1 px-2 py-2 rounded-md font-medium transition-all text-xs ${
-                                    props.driftCategoryFilter === d
-                                        ? "bg-indigo-600 text-white shadow-sm"
-                                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                                }`}
-                            >
-                                {d.charAt(0).toUpperCase() + d.slice(1)}
-                            </button>
-                        ))}
+                        {(["all", "inside", "outside"] as DriftCategoryFilter[]).map(
+                            (d) => (
+                                <button
+                                    onClick={() => props.onDriftCategoryFilterChange(d)}
+                                    class={`flex-1 px-2 py-2 rounded-md font-medium transition-all text-xs ${
+                                        props.driftCategoryFilter === d
+                                            ? "bg-indigo-600 text-white shadow-sm"
+                                            : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                                    }`}
+                                >
+                                    {d.charAt(0).toUpperCase() + d.slice(1)}
+                                </button>
+                            ),
+                        )}
                     </div>
                 </div>
 
                 {/* Results Per Page */}
                 <div>
-                    <label for="tt-page-size-select" class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                        Results Per Page
+                    <label
+                        for="tt-page-size-select"
+                        class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1"
+                    >
+            Results Per Page
                     </label>
                     <select
                         id="tt-page-size-select"

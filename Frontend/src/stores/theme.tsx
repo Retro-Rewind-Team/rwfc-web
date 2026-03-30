@@ -2,6 +2,7 @@ import {
     createContext,
     createEffect,
     createSignal,
+    JSX,
     onMount,
     useContext,
 } from "solid-js";
@@ -10,7 +11,7 @@ export type Theme = "light" | "dark" | "system";
 
 const [theme, setTheme] = createSignal<Theme>("system");
 const [resolvedTheme, setResolvedTheme] = createSignal<"light" | "dark">(
-    "dark"
+    "dark",
 );
 
 // Theme context
@@ -26,7 +27,7 @@ const ThemeContext = createContext<{
           toggleTheme: () => {},
       });
 
-export function ThemeProvider(props: Readonly<{ children: any }>) {
+export function ThemeProvider(props: Readonly<{ children: JSX.Element }>) {
     const getSystemTheme = (): "light" | "dark" => {
         if (typeof window !== "undefined" && window.matchMedia) {
             return window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -61,7 +62,7 @@ export function ThemeProvider(props: Readonly<{ children: any }>) {
         if (metaThemeColor) {
             metaThemeColor.setAttribute(
                 "content",
-                themeToApply === "dark" ? "#0f172a" : "#ffffff"
+                themeToApply === "dark" ? "#0f172a" : "#ffffff",
             );
         }
     };

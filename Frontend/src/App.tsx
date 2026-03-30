@@ -13,19 +13,19 @@ import {
     RaceStatsPage,
     // RankCalculatorPage,
     RatingEditorPage,
-    RoomStatusPage, 
-    RulesPage, 
-    TeamPage, 
+    RoomStatusPage,
+    RulesPage,
+    TeamPage,
     ToolsPage,
     TTLeaderboardPage,
     TTPlayerProfilePage,
-    TTTrackDetailPage, 
+    TTTrackDetailPage,
 } from "./pages";
 
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
-            staleTime: 1000 * 60 * 2, 
+            staleTime: 1000 * 60 * 2,
             gcTime: 1000 * 60 * 10,
             retry: (failureCount, error) => {
                 // Don't retry if it's a 404 error
@@ -50,21 +50,33 @@ function App() {
                     {/* VR Leaderboard Routes */}
                     <Route path="/vr" component={LeaderboardPage} />
                     <Route path="/leaderboard" component={LeaderboardPage} />
-                    <Route path="/vr/player/:friendCode" component={LeaderboardPlayerDetailPage} />
-                    <Route path="/player/:friendCode" component={LeaderboardPlayerDetailPage} />
+                    <Route
+                        path="/vr/player/:friendCode"
+                        component={LeaderboardPlayerDetailPage}
+                    />
+                    <Route
+                        path="/player/:friendCode"
+                        component={LeaderboardPlayerDetailPage}
+                    />
 
                     {/* Time Trial Routes */}
                     <Route path="/tt-leaderboard" component={TTLeaderboardPage} />
                     <Route path="/tt" component={TTLeaderboardPage} />
                     <Route path="/timetrial" component={TTLeaderboardPage} />
-                    
+
                     {/* Individual Track Pages */}
                     <Route path="/timetrial/:cc/:trackId" component={TTTrackDetailPage} />
                     <Route path="/tt/:cc/:trackId" component={TTTrackDetailPage} />
-                    
+
                     {/* TT Player Profile */}
-                    <Route path="/tt/player/:ttProfileId" component={TTPlayerProfilePage} />
-                    <Route path="/timetrial/player/:ttProfileId" component={TTPlayerProfilePage} />
+                    <Route
+                        path="/tt/player/:ttProfileId"
+                        component={TTPlayerProfilePage}
+                    />
+                    <Route
+                        path="/timetrial/player/:ttProfileId"
+                        component={TTPlayerProfilePage}
+                    />
 
                     {/* Room Browser Routes */}
                     <Route path="/room-browser" component={RoomStatusPage} />

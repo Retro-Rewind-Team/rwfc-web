@@ -1,7 +1,7 @@
 export interface ValidationResult {
-    valid: boolean;
-    error?: string;
-    warnings?: string[];
+  valid: boolean;
+  error?: string;
+  warnings?: string[];
 }
 
 export function validateFontSzs(buffer: ArrayBuffer): ValidationResult {
@@ -12,7 +12,7 @@ export function validateFontSzs(buffer: ArrayBuffer): ValidationResult {
     if (buffer.byteLength < 16) {
         return {
             valid: false,
-            error: "File too small to be a valid Font.szs (needs at least 16 bytes)"
+            error: "File too small to be a valid Font.szs (needs at least 16 bytes)",
         };
     }
 
@@ -21,13 +21,13 @@ export function validateFontSzs(buffer: ArrayBuffer): ValidationResult {
         view.getUint8(0),
         view.getUint8(1),
         view.getUint8(2),
-        view.getUint8(3)
+        view.getUint8(3),
     );
 
     if (magic !== "Yaz0") {
         return {
             valid: false,
-            error: `Invalid file format. Expected Yaz0 magic bytes, got "${magic}"`
+            error: `Invalid file format. Expected Yaz0 magic bytes, got "${magic}"`,
         };
     }
 
@@ -36,7 +36,7 @@ export function validateFontSzs(buffer: ArrayBuffer): ValidationResult {
     if (decompressedSize === 0 || decompressedSize > 100 * 1024 * 1024) {
         return {
             valid: false,
-            error: `Suspicious decompressed size: ${decompressedSize.toLocaleString()} bytes`
+            error: `Suspicious decompressed size: ${decompressedSize.toLocaleString()} bytes`,
         };
     }
 
@@ -59,7 +59,7 @@ export function validateBrfnt(buffer: ArrayBuffer): ValidationResult {
     if (buffer.byteLength < 32) {
         return {
             valid: false,
-            error: "File too small to be a valid .brfnt (needs at least 32 bytes)"
+            error: "File too small to be a valid .brfnt (needs at least 32 bytes)",
         };
     }
 
@@ -68,20 +68,22 @@ export function validateBrfnt(buffer: ArrayBuffer): ValidationResult {
         view.getUint8(0),
         view.getUint8(1),
         view.getUint8(2),
-        view.getUint8(3)
+        view.getUint8(3),
     );
 
     if (magic !== "RFNT") {
         return {
             valid: false,
-            error: `Invalid file format. Expected RFNT magic bytes, got "${magic}"`
+            error: `Invalid file format. Expected RFNT magic bytes, got "${magic}"`,
         };
     }
 
     // Check BOM (Byte Order Mark) - should be 0xFEFF for big-endian
     const bom = view.getUint16(4, false);
-    if (bom !== 0xFEFF) {
-        warnings.push(`Unusual byte order mark: 0x${bom.toString(16).toUpperCase()} (expected 0xFEFF)`);
+    if (bom !== 0xfeff) {
+        warnings.push(
+            `Unusual byte order mark: 0x${bom.toString(16).toUpperCase()} (expected 0xFEFF)`,
+        );
     }
 
     // Warn about unusually small/large font files
@@ -103,7 +105,8 @@ export function validateRatingFile(buffer: ArrayBuffer): ValidationResult {
     if (buffer.byteLength < 8) {
         return {
             valid: false,
-            error: "File too small to be a valid RRRating.pul (needs at least 8 bytes)"
+            error:
+        "File too small to be a valid RRRating.pul (needs at least 8 bytes)",
         };
     }
 
@@ -112,20 +115,22 @@ export function validateRatingFile(buffer: ArrayBuffer): ValidationResult {
         view.getUint8(0),
         view.getUint8(1),
         view.getUint8(2),
-        view.getUint8(3)
+        view.getUint8(3),
     );
 
     if (magic !== "RRRT") {
         return {
             valid: false,
-            error: `Invalid file format. Expected RRRT magic bytes, got "${magic}"`
+            error: `Invalid file format. Expected RRRT magic bytes, got "${magic}"`,
         };
     }
 
     // Check version
     const version = view.getUint16(4, false);
     if (version !== 1) {
-        warnings.push(`Unexpected version: ${version} (expected 1). File may not parse correctly.`);
+        warnings.push(
+            `Unexpected version: ${version} (expected 1). File may not parse correctly.`,
+        );
     }
 
     // Check entry count
@@ -139,7 +144,7 @@ export function validateRatingFile(buffer: ArrayBuffer): ValidationResult {
     if (count > maxEntriesBySize) {
         return {
             valid: false,
-            error: `Header claims ${count} entries but file only has space for ${maxEntriesBySize}`
+            error: `Header claims ${count} entries but file only has space for ${maxEntriesBySize}`,
         };
     }
 
@@ -148,12 +153,14 @@ export function validateRatingFile(buffer: ArrayBuffer): ValidationResult {
     if (buffer.byteLength < expectedSize) {
         return {
             valid: false,
-            error: `File too small for ${count} entries (expected ${expectedSize} bytes, got ${buffer.byteLength})`
+            error: `File too small for ${count} entries (expected ${expectedSize} bytes, got ${buffer.byteLength})`,
         };
     }
 
     if (buffer.byteLength > expectedSize) {
-        warnings.push(`File has extra data (${buffer.byteLength - expectedSize} bytes beyond expected size)`);
+        warnings.push(
+            `File has extra data (${buffer.byteLength - expectedSize} bytes beyond expected size)`,
+        );
     }
 
     // Warn about unusually large entry counts
@@ -168,26 +175,28 @@ export function validateRksysFile(buffer: ArrayBuffer): ValidationResult {
     const warnings: string[] = [];
 
     // Expected size for rksys.dat (approximately 110,000 bytes)
-    const expectedSize = 0x1AE48; // 110,152 bytes
+    const expectedSize = 0x1ae48; // 110,152 bytes
     const minSize = 100000; // At least 100 KB
     const maxSize = 150000; // At most 150 KB
 
     if (buffer.byteLength < minSize) {
         return {
             valid: false,
-            error: `File too small to be a valid rksys.dat (expected ~${expectedSize.toLocaleString()} bytes, got ${buffer.byteLength.toLocaleString()})`
+            error: `File too small to be a valid rksys.dat (expected ~${expectedSize.toLocaleString()} bytes, got ${buffer.byteLength.toLocaleString()})`,
         };
     }
 
     if (buffer.byteLength > maxSize) {
         return {
             valid: false,
-            error: `File too large to be a valid rksys.dat (expected ~${expectedSize.toLocaleString()} bytes, got ${buffer.byteLength.toLocaleString()})`
+            error: `File too large to be a valid rksys.dat (expected ~${expectedSize.toLocaleString()} bytes, got ${buffer.byteLength.toLocaleString()})`,
         };
     }
 
     if (buffer.byteLength !== expectedSize) {
-        warnings.push(`File size differs from expected (expected ${expectedSize.toLocaleString()} bytes, got ${buffer.byteLength.toLocaleString()})`);
+        warnings.push(
+            `File size differs from expected (expected ${expectedSize.toLocaleString()} bytes, got ${buffer.byteLength.toLocaleString()})`,
+        );
     }
 
     return { valid: true, warnings };
@@ -198,13 +207,16 @@ export function getFileExtension(filename: string): string {
     return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : "";
 }
 
-export function validateFileName(filename: string, expectedExtensions: string[]): ValidationResult {
+export function validateFileName(
+    filename: string,
+    expectedExtensions: string[],
+): ValidationResult {
     const ext = getFileExtension(filename);
-    
+
     if (!expectedExtensions.includes(ext)) {
         return {
             valid: false,
-            error: `Invalid file extension ".${ext}". Expected: ${expectedExtensions.map(e => `.${e}`).join(", ")}`
+            error: `Invalid file extension ".${ext}". Expected: ${expectedExtensions.map((e) => `.${e}`).join(", ")}`,
         };
     }
 

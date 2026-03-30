@@ -1,18 +1,27 @@
 import { createEffect, createSignal } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { timeTrialApi } from "../services/api/timeTrial";
-import { GhostSubmission, DriftFilter, DriftCategoryFilter, ShroomlessFilter, VehicleFilter, LeaderboardMode } from "../types/timeTrial";
+import {
+    DriftCategoryFilter,
+    DriftFilter,
+    GhostSubmission,
+    LeaderboardMode,
+    ShroomlessFilter,
+    VehicleFilter,
+} from "../types/timeTrial";
 
 export function useTTTrackDetail(
     trackId: () => number,
     cc: () => 150 | 200,
     glitchAllowed: () => boolean,
-    mode: () => LeaderboardMode
+    mode: () => LeaderboardMode,
 ) {
-    const [shroomlessFilter, setShroomlessFilter] = createSignal<ShroomlessFilter>("all");
+    const [shroomlessFilter, setShroomlessFilter] =
+    createSignal<ShroomlessFilter>("all");
     const [vehicleFilter, setVehicleFilter] = createSignal<VehicleFilter>("all");
     const [driftFilter, setDriftFilter] = createSignal<DriftFilter>("all");
-    const [driftCategoryFilter, setDriftCategoryFilter] = createSignal<DriftCategoryFilter>("all");
+    const [driftCategoryFilter, setDriftCategoryFilter] =
+    createSignal<DriftCategoryFilter>("all");
     const [currentPage, setCurrentPage] = createSignal(1);
     const [pageSize, setPageSize] = createSignal(10);
 
@@ -46,17 +55,26 @@ export function useTTTrackDetail(
             currentPage(),
             pageSize(),
         ],
-        queryFn: () => mode() === "flap"
-            ? timeTrialApi.getFlapLeaderboard(
-                trackId(), cc(), glitchAllowed(),
-                shroomlessFilter(), vehicleFilter(),
-                currentPage(), pageSize()
-            )
-            : timeTrialApi.getLeaderboard(
-                trackId(), cc(), glitchAllowed(),
-                shroomlessFilter(), vehicleFilter(),
-                currentPage(), pageSize()
-            ),
+        queryFn: () =>
+            mode() === "flap"
+                ? timeTrialApi.getFlapLeaderboard(
+                    trackId(),
+                    cc(),
+                    glitchAllowed(),
+                    shroomlessFilter(),
+                    vehicleFilter(),
+                    currentPage(),
+                    pageSize(),
+                )
+                : timeTrialApi.getLeaderboard(
+                    trackId(),
+                    cc(),
+                    glitchAllowed(),
+                    shroomlessFilter(),
+                    vehicleFilter(),
+                    currentPage(),
+                    pageSize(),
+                ),
     }));
 
     // FLAP stat - only in regular mode
@@ -69,10 +87,14 @@ export function useTTTrackDetail(
             shroomlessFilter(),
             vehicleFilter(),
         ],
-        queryFn: () => timeTrialApi.getFastestLap(
-            trackId(), cc(), glitchAllowed(),
-            shroomlessFilter(), vehicleFilter()
-        ),
+        queryFn: () =>
+            timeTrialApi.getFastestLap(
+                trackId(),
+                cc(),
+                glitchAllowed(),
+                shroomlessFilter(),
+                vehicleFilter(),
+            ),
         enabled: mode() === "regular",
     }));
 
@@ -86,10 +108,14 @@ export function useTTTrackDetail(
             shroomlessFilter(),
             vehicleFilter(),
         ],
-        queryFn: () => timeTrialApi.getWorldRecordHistory(
-            trackId(), cc(), glitchAllowed(),
-            shroomlessFilter(), vehicleFilter()
-        ),
+        queryFn: () =>
+            timeTrialApi.getWorldRecordHistory(
+                trackId(),
+                cc(),
+                glitchAllowed(),
+                shroomlessFilter(),
+                vehicleFilter(),
+            ),
         enabled: mode() === "regular",
     }));
 
@@ -103,10 +129,14 @@ export function useTTTrackDetail(
             shroomlessFilter(),
             vehicleFilter(),
         ],
-        queryFn: () => timeTrialApi.getFlapWorldRecordHistory(
-            trackId(), cc(), glitchAllowed(),
-            shroomlessFilter(), vehicleFilter()
-        ),
+        queryFn: () =>
+            timeTrialApi.getFlapWorldRecordHistory(
+                trackId(),
+                cc(),
+                glitchAllowed(),
+                shroomlessFilter(),
+                vehicleFilter(),
+            ),
         enabled: mode() === "flap",
     }));
 
@@ -119,7 +149,8 @@ export function useTTTrackDetail(
             if (drift === "manual" && submission.driftType !== 0) return false;
             if (drift === "hybrid" && submission.driftType !== 1) return false;
             if (driftCat === "inside" && submission.driftCategory !== 1) return false;
-            if (driftCat === "outside" && submission.driftCategory !== 0) return false;
+            if (driftCat === "outside" && submission.driftCategory !== 0)
+                return false;
             return true;
         });
     };
@@ -138,7 +169,8 @@ export function useTTTrackDetail(
             if (drift === "manual" && submission.driftType !== 0) return false;
             if (drift === "hybrid" && submission.driftType !== 1) return false;
             if (driftCat === "inside" && submission.driftCategory !== 1) return false;
-            if (driftCat === "outside" && submission.driftCategory !== 0) return false;
+            if (driftCat === "outside" && submission.driftCategory !== 0)
+                return false;
             return true;
         });
     };
@@ -154,10 +186,14 @@ export function useTTTrackDetail(
         setCurrentPage(1);
     });
 
-    const handleShroomlessFilterChange = (filter: ShroomlessFilter) => setShroomlessFilter(filter);
-    const handleVehicleFilterChange = (filter: VehicleFilter) => setVehicleFilter(filter);
-    const handleDriftFilterChange = (filter: DriftFilter) => setDriftFilter(filter);
-    const handleDriftCategoryFilterChange = (filter: DriftCategoryFilter) => setDriftCategoryFilter(filter);
+    const handleShroomlessFilterChange = (filter: ShroomlessFilter) =>
+        setShroomlessFilter(filter);
+    const handleVehicleFilterChange = (filter: VehicleFilter) =>
+        setVehicleFilter(filter);
+    const handleDriftFilterChange = (filter: DriftFilter) =>
+        setDriftFilter(filter);
+    const handleDriftCategoryFilterChange = (filter: DriftCategoryFilter) =>
+        setDriftCategoryFilter(filter);
     const handlePageSizeChange = (size: number) => {
         setPageSize(size);
         setCurrentPage(1);
@@ -191,7 +227,7 @@ export function useTTTrackDetail(
     };
 
     return {
-        // State
+    // State
         shroomlessFilter,
         vehicleFilter,
         driftFilter,

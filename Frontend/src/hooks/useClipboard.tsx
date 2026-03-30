@@ -2,10 +2,13 @@ import { createSignal } from "solid-js";
 
 export function useClipboard() {
     const [copiedText, setCopiedText] = createSignal<string>("");
-    const [copiedPosition, setCopiedPosition] = createSignal<{ x: number; y: number }>({ 
-        x: 0, 
-        y: 0 
-    });
+    const [copiedPosition, setCopiedPosition] = createSignal<{
+    x: number;
+    y: number;
+  }>({
+      x: 0,
+      y: 0,
+  });
     const [isVisible, setIsVisible] = createSignal(false);
 
     const copyToClipboard = (text: string, label: string, event: MouseEvent) => {

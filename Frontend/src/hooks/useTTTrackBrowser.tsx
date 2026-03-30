@@ -4,10 +4,13 @@ import { timeTrialApi } from "../services/api/timeTrial";
 import { ShroomlessFilter, VehicleFilter } from "../types/timeTrial";
 
 export function useTTTrackBrowser() {
-    const [selectedCategory, setSelectedCategory] = createSignal<"retro" | "custom">("retro");
+    const [selectedCategory, setSelectedCategory] = createSignal<
+    "retro" | "custom"
+  >("retro");
     const [selectedCC, setSelectedCC] = createSignal<150 | 200>(150);
     const [glitchAllowed, setGlitchAllowed] = createSignal<boolean>(true);
-    const [shroomlessFilter, setShroomlessFilter] = createSignal<ShroomlessFilter>("all");
+    const [shroomlessFilter, setShroomlessFilter] =
+    createSignal<ShroomlessFilter>("all");
     const [vehicleFilter, setVehicleFilter] = createSignal<VehicleFilter>("all");
     const [searchQuery, setSearchQuery] = createSignal("");
 
@@ -28,12 +31,13 @@ export function useTTTrackBrowser() {
             shroomlessFilter(),
             vehicleFilter(),
         ],
-        queryFn: () => timeTrialApi.getAllWorldRecords(
-            selectedCC(),
-            glitchAllowed(),
-            shroomlessFilter(),
-            vehicleFilter()
-        ),
+        queryFn: () =>
+            timeTrialApi.getAllWorldRecords(
+                selectedCC(),
+                glitchAllowed(),
+                shroomlessFilter(),
+                vehicleFilter(),
+            ),
         staleTime: 1000 * 60 * 5,
     }));
 
@@ -45,8 +49,8 @@ export function useTTTrackBrowser() {
 
         return tracks
             .filter((track) => track.category === category)
-            .filter((track) =>
-                search === "" || track.name.toLowerCase().includes(search)
+            .filter(
+                (track) => search === "" || track.name.toLowerCase().includes(search),
             )
             .sort((a, b) => a.sortOrder - b.sortOrder);
     });
@@ -55,7 +59,9 @@ export function useTTTrackBrowser() {
     const getWorldRecordForTrack = (trackId: number) => {
         return createMemo(() => {
             const records = worldRecordsQuery.data ?? [];
-            return records.find((r) => r.trackId === trackId)?.activeWorldRecord ?? null;
+            return (
+                records.find((r) => r.trackId === trackId)?.activeWorldRecord ?? null
+            );
         });
     };
 
@@ -85,7 +91,7 @@ export function useTTTrackBrowser() {
     };
 
     return {
-        // State
+    // State
         selectedCategory,
         selectedCC,
         glitchAllowed,

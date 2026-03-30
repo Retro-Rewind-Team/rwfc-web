@@ -1,11 +1,16 @@
 import { For, Show } from "solid-js";
 import { A } from "@solidjs/router";
-import { AlertTriangle, Search } from "lucide-solid";
+import { Search, TriangleAlert } from "lucide-solid";
 import { useTTTrackBrowser } from "../../hooks/useTTTrackBrowser";
-import { LoadingSpinner } from "../../components/common";
-import { CountryFlag } from "../../components/common";
+import { CountryFlag, LoadingSpinner } from "../../components/common";
 import { TTBrowserFilters } from "../../components/ui";
-import { getCharacterName, getControllerName, getDriftCategoryName, getDriftTypeName, getVehicleName } from "../../utils/marioKartMappings";
+import {
+    getCharacterName,
+    getControllerName,
+    getDriftCategoryName,
+    getDriftTypeName,
+    getVehicleName,
+} from "../../utils/marioKartMappings";
 
 export default function TTLeaderboardPage() {
     const browser = useTTTrackBrowser();
@@ -43,10 +48,10 @@ export default function TTLeaderboardPage() {
             {/* Page Title */}
             <div class="pb-6 border-b border-gray-200 dark:border-gray-700">
                 <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                    Time Trial Leaderboards
+          Time Trial Leaderboards
                 </h1>
                 <p class="text-lg text-gray-600 dark:text-gray-400">
-                    Browse world records for all Retro Rewind tracks
+          Browse world records for all Retro Rewind tracks
                 </p>
             </div>
 
@@ -67,24 +72,34 @@ export default function TTLeaderboardPage() {
             />
 
             {/* Loading */}
-            <Show when={browser.tracksQuery.isLoading || browser.worldRecordsQuery.isLoading}>
+            <Show
+                when={
+                    browser.tracksQuery.isLoading || browser.worldRecordsQuery.isLoading
+                }
+            >
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-12 flex flex-col items-center gap-4">
                     <LoadingSpinner />
                     <p class="text-gray-600 dark:text-gray-400">
-                        {browser.tracksQuery.isLoading ? "Loading tracks..." : "Loading world records..."}
+                        {browser.tracksQuery.isLoading
+                            ? "Loading tracks..."
+                            : "Loading world records..."}
                     </p>
                 </div>
             </Show>
 
             {/* Error */}
-            <Show when={browser.tracksQuery.isError || browser.worldRecordsQuery.isError}>
+            <Show
+                when={browser.tracksQuery.isError || browser.worldRecordsQuery.isError}
+            >
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-red-200 dark:border-red-800 p-8">
                     <div class="text-center space-y-4">
                         <div class="flex justify-center text-red-400">
-                            <AlertTriangle size={48} />
+                            <TriangleAlert size={48} />
                         </div>
                         <h3 class="text-xl font-bold text-red-900 dark:text-red-100">
-                            {browser.tracksQuery.isError ? "Failed to load tracks" : "Failed to load world records"}
+                            {browser.tracksQuery.isError
+                                ? "Failed to load tracks"
+                                : "Failed to load world records"}
                         </h3>
                         <button
                             onClick={() => {
@@ -93,38 +108,46 @@ export default function TTLeaderboardPage() {
                             }}
                             class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
                         >
-                            Try Again
+              Try Again
                         </button>
                     </div>
                 </div>
             </Show>
 
             {/* Tracks Table */}
-            <Show when={
-                browser.tracksQuery.data &&
-                browser.worldRecordsQuery.data &&
-                !browser.tracksQuery.isLoading &&
-                !browser.worldRecordsQuery.isLoading
-            }>
+            <Show
+                when={
+                    browser.tracksQuery.data &&
+          browser.worldRecordsQuery.data &&
+          !browser.tracksQuery.isLoading &&
+          !browser.worldRecordsQuery.isLoading
+                }
+            >
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
                     <div class={`px-4 sm:px-6 py-4 ${headerColor()}`}>
                         <h2 class="text-xl sm:text-2xl font-bold text-white">
-                            {browser.selectedCategory() === "retro" ? "Retro Tracks" : "Custom Tracks"}
+                            {browser.selectedCategory() === "retro"
+                                ? "Retro Tracks"
+                                : "Custom Tracks"}
                         </h2>
                         <p class="text-white/80 text-xs sm:text-sm">
-                            {browser.filteredTracks().length} track{browser.filteredTracks().length !== 1 ? "s" : ""} •{" "}
+                            {browser.filteredTracks().length} track
+                            {browser.filteredTracks().length !== 1 ? "s" : ""} •{" "}
                             {browser.selectedCC()}cc •{" "}
-                            {!browser.glitchAllowed() ? "Non-Glitch/Shortcut" : "Unrestricted"} •{" "}
+                            {!browser.glitchAllowed()
+                                ? "Non-Glitch/Shortcut"
+                                : "Unrestricted"}{" "}
+              •{" "}
                             {browser.vehicleFilter() !== "all"
-                                ? browser.vehicleFilter().charAt(0).toUpperCase() + browser.vehicleFilter().slice(1)
-                                : "All Vehicles"
-                            } •{" "}
+                                ? browser.vehicleFilter().charAt(0).toUpperCase() +
+                  browser.vehicleFilter().slice(1)
+                                : "All Vehicles"}{" "}
+              •{" "}
                             {browser.shroomlessFilter() === "only"
                                 ? "Shroomless"
                                 : browser.shroomlessFilter() === "exclude"
                                     ? "No Shroomless"
-                                    : "All Categories"
-                            }
+                                    : "All Categories"}
                         </p>
                     </div>
 
@@ -136,10 +159,10 @@ export default function TTLeaderboardPage() {
                                     <Search size={48} />
                                 </div>
                                 <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                                    No tracks found
+                  No tracks found
                                 </h3>
                                 <p class="text-gray-600 dark:text-gray-400">
-                                    Try adjusting your search
+                  Try adjusting your search
                                 </p>
                             </div>
                         }
@@ -148,7 +171,9 @@ export default function TTLeaderboardPage() {
                             <table class="w-full">
                                 <thead class={`text-white ${tableHeaderColor()}`}>
                                     <tr>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Track</th>
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                      Track
+                                        </th>
                                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                                             <span class="hidden sm:inline">World Record</span>
                                             <span class="sm:hidden">WR</span>
@@ -157,10 +182,18 @@ export default function TTLeaderboardPage() {
                                             <span class="hidden sm:inline">Record Holder</span>
                                             <span class="sm:hidden">Holder</span>
                                         </th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden md:table-cell">Character</th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden lg:table-cell">Vehicle</th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">Controller</th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">Date Set</th>
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden md:table-cell">
+                      Character
+                                        </th>
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden lg:table-cell">
+                      Vehicle
+                                        </th>
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">
+                      Controller
+                                        </th>
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">
+                      Date Set
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -177,7 +210,9 @@ export default function TTLeaderboardPage() {
                                                             <div class="font-semibold text-sm sm:text-base text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                                                                 {track.name}
                                                                 <Show when={track.supportsGlitch}>
-                                                                    <span class="ml-2 text-purple-600 dark:text-purple-400 text-sm">⚡</span>
+                                                                    <span class="ml-2 text-purple-600 dark:text-purple-400 text-sm">
+                                    ⚡
+                                                                    </span>
                                                                 </Show>
                                                             </div>
                                                             <div class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
@@ -190,7 +225,9 @@ export default function TTLeaderboardPage() {
                                                             when={wr()}
                                                             fallback={
                                                                 <span class="text-xs sm:text-sm text-gray-400 dark:text-gray-500 italic">
-                                                                    <span class="hidden sm:inline">No record yet</span>
+                                                                    <span class="hidden sm:inline">
+                                    No record yet
+                                                                    </span>
                                                                     <span class="sm:hidden">-</span>
                                                                 </span>
                                                             }
@@ -237,7 +274,10 @@ export default function TTLeaderboardPage() {
                                                                 {getVehicleName(wr()!.vehicleId)}
                                                             </div>
                                                             <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                                {getDriftInfo(wr()!.driftType, wr()!.driftCategory)}
+                                                                {getDriftInfo(
+                                  wr()!.driftType,
+                                  wr()!.driftCategory,
+                                                                )}
                                                             </div>
                                                         </Show>
                                                     </td>
@@ -249,9 +289,7 @@ export default function TTLeaderboardPage() {
                                                         </Show>
                                                     </td>
                                                     <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden xl:table-cell">
-                                                        <Show when={wr()}>
-                                                            {formatDate(wr()!.dateSet)}
-                                                        </Show>
+                                                        <Show when={wr()}>{formatDate(wr()!.dateSet)}</Show>
                                                     </td>
                                                 </tr>
                                             );

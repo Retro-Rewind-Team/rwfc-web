@@ -1,15 +1,25 @@
 import { createSignal, Show } from "solid-js";
-import { Package, PenTool, Wrench, Loader } from "lucide-solid";
-import { yaz0Compress, yaz0CompressLiteralOnly, yaz0Decompress } from "../../utils/yaz0";
+import { Loader, Package, PenTool, Wrench } from "lucide-solid";
+import {
+    yaz0Compress,
+    yaz0CompressLiteralOnly,
+    yaz0Decompress,
+} from "../../utils/yaz0";
 import { replaceBrfntInU8 } from "../../utils/u8Parser";
-import { validateBrfnt, validateFileName, validateFontSzs } from "../../utils/fileValidator";
+import {
+    validateBrfnt,
+    validateFileName,
+    validateFontSzs,
+} from "../../utils/fileValidator";
 import { AlertBox } from "../../components/common";
 
 const getLogClass = (line: string) => {
-    if (line.startsWith("[OK]") || line.startsWith("[DONE]")) return "text-green-400";
+    if (line.startsWith("[OK]") || line.startsWith("[DONE]"))
+        return "text-green-400";
     if (line.startsWith("[ERROR]")) return "text-red-400";
     if (line.startsWith("[WARN]")) return "text-yellow-400";
-    if (line.startsWith("[INFO]") || line.startsWith("[SAVE]")) return "text-blue-400";
+    if (line.startsWith("[INFO]") || line.startsWith("[SAVE]"))
+        return "text-blue-400";
     return "text-gray-400";
 };
 
@@ -19,7 +29,9 @@ export default function FontPatcherPage() {
     const [processing, setProcessing] = createSignal(false);
     const [log, setLog] = createSignal<string[]>([]);
     const [useLiteralOnly, setUseLiteralOnly] = createSignal(false);
-    const [validationWarnings, setValidationWarnings] = createSignal<string[]>([]);
+    const [validationWarnings, setValidationWarnings] = createSignal<string[]>(
+        [],
+    );
 
     const addLog = (message: string) => setLog((prev) => [...prev, message]);
     const clearLog = () => setLog([]);
@@ -51,14 +63,18 @@ export default function FontPatcherPage() {
             }
 
             if (validation.warnings && validation.warnings.length > 0) {
-                validation.warnings.forEach(w => addLog(`[WARN] ${w}`));
+                validation.warnings.forEach((w) => addLog(`[WARN] ${w}`));
                 setValidationWarnings(validation.warnings);
             }
 
             setFontFile(file);
-            addLog(`[OK] Loaded Font.szs: ${file.name} (${file.size.toLocaleString()} bytes)`);
+            addLog(
+                `[OK] Loaded Font.szs: ${file.name} (${file.size.toLocaleString()} bytes)`,
+            );
         } catch (error) {
-            addLog(`[ERROR] Error reading file: ${error instanceof Error ? error.message : String(error)}`);
+            addLog(
+                `[ERROR] Error reading file: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     };
 
@@ -89,14 +105,18 @@ export default function FontPatcherPage() {
             }
 
             if (validation.warnings && validation.warnings.length > 0) {
-                validation.warnings.forEach(w => addLog(`[WARN] ${w}`));
+                validation.warnings.forEach((w) => addLog(`[WARN] ${w}`));
                 setValidationWarnings(validation.warnings);
             }
 
             setBrfntFile(file);
-            addLog(`[OK] Loaded replacement .brfnt: ${file.name} (${file.size.toLocaleString()} bytes)`);
+            addLog(
+                `[OK] Loaded replacement .brfnt: ${file.name} (${file.size.toLocaleString()} bytes)`,
+            );
         } catch (error) {
-            addLog(`[ERROR] Error reading file: ${error instanceof Error ? error.message : String(error)}`);
+            addLog(
+                `[ERROR] Error reading file: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     };
 
@@ -129,14 +149,18 @@ export default function FontPatcherPage() {
                 }
 
                 if (validation.warnings && validation.warnings.length > 0) {
-                    validation.warnings.forEach(w => addLog(`[WARN] ${w}`));
+                    validation.warnings.forEach((w) => addLog(`[WARN] ${w}`));
                     setValidationWarnings(validation.warnings);
                 }
 
                 setFontFile(file);
-                addLog(`[OK] Dropped Font.szs: ${file.name} (${file.size.toLocaleString()} bytes)`);
+                addLog(
+                    `[OK] Dropped Font.szs: ${file.name} (${file.size.toLocaleString()} bytes)`,
+                );
             } catch (error) {
-                addLog(`[ERROR] Error reading file: ${error instanceof Error ? error.message : String(error)}`);
+                addLog(
+                    `[ERROR] Error reading file: ${error instanceof Error ? error.message : String(error)}`,
+                );
             }
         } else {
             const nameValidation = validateFileName(file.name, ["brfnt"]);
@@ -157,14 +181,18 @@ export default function FontPatcherPage() {
                 }
 
                 if (validation.warnings && validation.warnings.length > 0) {
-                    validation.warnings.forEach(w => addLog(`[WARN] ${w}`));
+                    validation.warnings.forEach((w) => addLog(`[WARN] ${w}`));
                     setValidationWarnings(validation.warnings);
                 }
 
                 setBrfntFile(file);
-                addLog(`[OK] Dropped replacement .brfnt: ${file.name} (${file.size.toLocaleString()} bytes)`);
+                addLog(
+                    `[OK] Dropped replacement .brfnt: ${file.name} (${file.size.toLocaleString()} bytes)`,
+                );
             } catch (error) {
-                addLog(`[ERROR] Error reading file: ${error instanceof Error ? error.message : String(error)}`);
+                addLog(
+                    `[ERROR] Error reading file: ${error instanceof Error ? error.message : String(error)}`,
+                );
             }
         }
     };
@@ -178,8 +206,14 @@ export default function FontPatcherPage() {
         const font = fontFile();
         const brfnt = brfntFile();
 
-        if (!font) { addLog("[ERROR] Please select a Font.szs file"); return; }
-        if (!brfnt) { addLog("[ERROR] Please select a replacement .brfnt file"); return; }
+        if (!font) {
+            addLog("[ERROR] Please select a Font.szs file");
+            return;
+        }
+        if (!brfnt) {
+            addLog("[ERROR] Please select a replacement .brfnt file");
+            return;
+        }
 
         setProcessing(true);
         clearLog();
@@ -196,9 +230,13 @@ export default function FontPatcherPage() {
             const replacementData = new Uint8Array(await brfnt.arrayBuffer());
             addLog(`[OK] Loaded ${replacementData.length.toLocaleString()} bytes`);
 
-            addLog("[INFO] Patching U8 archive (replacing tt_kart_extension_font.brfnt)...");
+            addLog(
+                "[INFO] Patching U8 archive (replacing tt_kart_extension_font.brfnt)...",
+            );
             const newU8 = replaceBrfntInU8(u8, replacementData);
-            addLog(`[OK] Patched U8 archive (${newU8.length.toLocaleString()} bytes)`);
+            addLog(
+                `[OK] Patched U8 archive (${newU8.length.toLocaleString()} bytes)`,
+            );
 
             let newSZS: Uint8Array;
             if (useLiteralOnly()) {
@@ -217,7 +255,9 @@ export default function FontPatcherPage() {
             downloadFile(newSZS, outName);
             addLog(`[DONE] Done! Downloaded: ${outName}`);
         } catch (error) {
-            addLog(`[ERROR] ${error instanceof Error ? error.message : String(error)}`);
+            addLog(
+                `[ERROR] ${error instanceof Error ? error.message : String(error)}`,
+            );
             console.error(error);
         } finally {
             setProcessing(false);
@@ -225,7 +265,9 @@ export default function FontPatcherPage() {
     };
 
     const downloadFile = (data: Uint8Array, fileName: string) => {
-        const blob = new Blob([new Uint8Array(data)], { type: "application/octet-stream" });
+        const blob = new Blob([new Uint8Array(data)], {
+            type: "application/octet-stream",
+        });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -241,18 +283,30 @@ export default function FontPatcherPage() {
             {/* Header */}
             <div class="text-center py-6 border-b border-gray-200 dark:border-gray-700">
                 <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                    Font Patcher
+          Font Patcher
                 </h1>
                 <p class="text-gray-600 dark:text-gray-400">
-                    Replace tt_kart_extension_font.brfnt in Font.szs archives
+          Replace tt_kart_extension_font.brfnt in Font.szs archives
                 </p>
             </div>
 
             {/* Instructions */}
             <AlertBox type="info" title="How to use">
                 <ol class="list-decimal list-inside space-y-2 text-sm">
-                    <li>Upload your <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">Font.szs</code> file</li>
-                    <li>Upload your custom <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">tt_kart_extension_font.brfnt</code> file</li>
+                    <li>
+            Upload your{" "}
+                        <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">
+              Font.szs
+                        </code>{" "}
+            file
+                    </li>
+                    <li>
+            Upload your custom{" "}
+                        <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">
+              tt_kart_extension_font.brfnt
+                        </code>{" "}
+            file
+                    </li>
                     <li>Click "Patch Font" to create a modified Font.szs</li>
                     <li>The patched file will download automatically</li>
                 </ol>
@@ -262,11 +316,14 @@ export default function FontPatcherPage() {
             <Show when={validationWarnings().length > 0}>
                 <AlertBox type="warning" title="Validation Warnings">
                     <ul class="list-disc list-inside space-y-1 text-sm">
-                        {validationWarnings().map(w => <li>{w}</li>)}
+                        {validationWarnings().map((w) => (
+                            <li>{w}</li>
+                        ))}
                     </ul>
                     <p class="mt-3 text-sm">
-                        The file passed basic validation but has some unusual characteristics.
-                        You can proceed, but double-check your file if the patch doesn't work.
+            The file passed basic validation but has some unusual
+            characteristics. You can proceed, but double-check your file if the
+            patch doesn't work.
                     </p>
                 </AlertBox>
             </Show>
@@ -276,7 +333,7 @@ export default function FontPatcherPage() {
                 {/* Font.szs */}
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        1. Font.szs File
+            1. Font.szs File
                     </h3>
                     <div
                         onDrop={(e) => handleDrop(e, "font")}
@@ -287,11 +344,11 @@ export default function FontPatcherPage() {
                             <Package size={36} />
                         </div>
                         <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                            Drag & drop Font.szs here
+              Drag & drop Font.szs here
                         </p>
                         <label class="cursor-pointer">
                             <span class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-block text-sm font-medium">
-                                Choose File
+                Choose File
                             </span>
                             <input
                                 type="file"
@@ -316,7 +373,7 @@ export default function FontPatcherPage() {
                 {/* .brfnt */}
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        2. Replacement .brfnt
+            2. Replacement .brfnt
                     </h3>
                     <div
                         onDrop={(e) => handleDrop(e, "brfnt")}
@@ -327,11 +384,11 @@ export default function FontPatcherPage() {
                             <PenTool size={36} />
                         </div>
                         <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                            Drag & drop .brfnt here
+              Drag & drop .brfnt here
                         </p>
                         <label class="cursor-pointer">
                             <span class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-block text-sm font-medium">
-                                Choose File
+                Choose File
                             </span>
                             <input
                                 type="file"
@@ -356,7 +413,9 @@ export default function FontPatcherPage() {
 
             {/* Options */}
             <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Options</h3>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Options
+                </h3>
                 <label class="flex items-center gap-3 cursor-pointer">
                     <input
                         type="checkbox"
@@ -366,10 +425,11 @@ export default function FontPatcherPage() {
                     />
                     <div>
                         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Use literal-only Yaz0 (no real compression)
+              Use literal-only Yaz0 (no real compression)
                         </span>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            Only recommended if compressed output causes issues. File will be larger but more compatible.
+              Only recommended if compressed output causes issues. File will be
+              larger but more compatible.
                         </p>
                     </div>
                 </label>
@@ -382,9 +442,16 @@ export default function FontPatcherPage() {
                     disabled={!fontFile() || !brfntFile() || processing()}
                     class="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
                 >
-                    <Show when={processing()} fallback={<><Wrench size={18} /> Patch Font</>}>
+                    <Show
+                        when={processing()}
+                        fallback={
+                            <>
+                                <Wrench size={18} /> Patch Font
+                            </>
+                        }
+                    >
                         <Loader size={18} class="animate-spin" />
-                        Processing...
+            Processing...
                     </Show>
                 </button>
             </div>
@@ -404,11 +471,21 @@ export default function FontPatcherPage() {
             {/* Important Notes */}
             <AlertBox type="warning" title="Important Notes">
                 <ul class="space-y-1 text-sm">
-                    <li>Files are validated before processing to ensure correct format</li>
-                    <li>The patched Font.szs is compatible with Retro Rewind and most MKW distributions</li>
-                    <li>Make sure your .brfnt file is properly formatted for Mario Kart Wii</li>
+                    <li>
+            Files are validated before processing to ensure correct format
+                    </li>
+                    <li>
+            The patched Font.szs is compatible with Retro Rewind and most MKW
+            distributions
+                    </li>
+                    <li>
+            Make sure your .brfnt file is properly formatted for Mario Kart Wii
+                    </li>
                     <li>Keep a backup of your original Font.szs before replacing</li>
-                    <li>If the patched file doesn't work, try enabling "literal-only" compression</li>
+                    <li>
+            If the patched file doesn't work, try enabling "literal-only"
+            compression
+                    </li>
                 </ul>
             </AlertBox>
         </div>

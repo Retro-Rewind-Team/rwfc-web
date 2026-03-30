@@ -3,7 +3,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 export class ApiError extends Error {
     constructor(
     public status: number,
-    message: string
+    message: string,
     ) {
         super(message);
         this.name = "ApiError";
@@ -12,7 +12,7 @@ export class ApiError extends Error {
 
 export async function apiRequest<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
 ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
 
@@ -28,7 +28,7 @@ export async function apiRequest<T>(
         if (!response.ok) {
             throw new ApiError(
                 response.status,
-                `HTTP ${response.status}: ${response.statusText}`
+                `HTTP ${response.status}: ${response.statusText}`,
             );
         }
 
@@ -36,7 +36,7 @@ export async function apiRequest<T>(
     } catch (error) {
         if (error instanceof ApiError) throw error;
         throw new Error(
-            `Network error: ${error instanceof Error ? error.message : "Unknown error"}`
+            `Network error: ${error instanceof Error ? error.message : "Unknown error"}`,
         );
     }
 }

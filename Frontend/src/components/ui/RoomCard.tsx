@@ -1,13 +1,24 @@
 import { createSignal, For, Show } from "solid-js";
-import { ChevronDown, Clock, Lock, Unlock, Users, TrendingUp, MapPin, CheckCircle, XCircle, PauseCircle } from "lucide-solid";
+import {
+    ChevronDown,
+    CircleCheck,
+    CirclePause,
+    CircleX,
+    Clock,
+    Lock,
+    LockOpen,
+    MapPin,
+    TrendingUp,
+    Users,
+} from "lucide-solid";
 import { Room } from "../../types";
 import PlayerCard from "./PlayerCard";
 
 interface RoomCardProps {
-    room: Room;
-    getRoomUptime: (created: string) => string;
-    isLatest: boolean;
-    tick: number;
+  room: Room;
+  getRoomUptime: (created: string) => string;
+  isLatest: boolean;
+  tick: number;
 }
 
 export default function RoomCard(props: RoomCardProps) {
@@ -38,32 +49,38 @@ export default function RoomCard(props: RoomCardProps) {
 
                         <div class="flex flex-wrap items-center gap-2">
                             {/* Public/Private */}
-                            <div class={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs ${
-                                props.room.isPublic
-                                    ? "bg-emerald-500/90 text-white"
-                                    : "bg-red-500/90 text-white"
-                            }`}>
-                                {props.room.isPublic
-                                    ? <Unlock size={12} />
-                                    : <Lock size={12} />
-                                }
+                            <div
+                                class={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs ${
+                                    props.room.isPublic
+                                        ? "bg-emerald-500/90 text-white"
+                                        : "bg-red-500/90 text-white"
+                                }`}
+                            >
+                                {props.room.isPublic ? (
+                                    <LockOpen size={12} />
+                                ) : (
+                                    <Lock size={12} />
+                                )}
                                 <span>{props.room.isPublic ? "Public" : "Private"}</span>
                             </div>
 
                             {/* Joinability */}
-                            <div class={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs ${
-                                isVoting()
-                                    ? "bg-purple-500/90 text-white"
-                                    : isJoinable()
-                                        ? "bg-emerald-500/90 text-white"
-                                        : "bg-gray-500/90 text-white"
-                            }`}>
-                                {isVoting()
-                                    ? <PauseCircle size={12} />
-                                    : isJoinable()
-                                        ? <CheckCircle size={12} />
-                                        : <XCircle size={12} />
-                                }
+                            <div
+                                class={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs ${
+                                    isVoting()
+                                        ? "bg-purple-500/90 text-white"
+                                        : isJoinable()
+                                            ? "bg-emerald-500/90 text-white"
+                                            : "bg-gray-500/90 text-white"
+                                }`}
+                            >
+                                {isVoting() ? (
+                                    <CirclePause size={12} />
+                                ) : isJoinable() ? (
+                                    <CircleCheck size={12} />
+                                ) : (
+                                    <CircleX size={12} />
+                                )}
                                 <span>
                                     {isVoting()
                                         ? "Voting"
@@ -101,7 +118,9 @@ export default function RoomCard(props: RoomCardProps) {
                             <Show when={props.room.race?.trackName}>
                                 <div class="flex items-center gap-1.5 px-3 py-1.5 bg-white/25 rounded-lg font-bold text-xs text-white">
                                     <MapPin size={12} />
-                                    <span class="truncate max-w-[160px]">{props.room.race!.trackName}</span>
+                                    <span class="truncate max-w-[160px]">
+                                        {props.room.race!.trackName}
+                                    </span>
                                 </div>
                             </Show>
                         </div>
@@ -123,7 +142,10 @@ export default function RoomCard(props: RoomCardProps) {
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                         <For each={props.room.players}>
                             {(player) => (
-                                <PlayerCard player={player} showOpenHost={props.room.isPublic} />
+                                <PlayerCard
+                                    player={player}
+                                    showOpenHost={props.room.isPublic}
+                                />
                             )}
                         </For>
                     </div>

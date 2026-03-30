@@ -3,7 +3,14 @@ import { useRoomStatus } from "../../hooks/useRoom";
 import { useMiiLoader } from "../../hooks/useMiiLoader";
 import { RoomCard } from "../../components/ui";
 import { StatCard } from "../../components/common";
-import { ChevronLeft, ChevronRight, ChevronsLeft, Inbox, Info, ServerCrash } from "lucide-solid/icons/index";
+import {
+    ChevronLeft,
+    ChevronRight,
+    ChevronsLeft,
+    Inbox,
+    Info,
+    ServerCrash,
+} from "lucide-solid/icons/index";
 
 export default function RoomStatusPage() {
     const {
@@ -30,7 +37,7 @@ export default function RoomStatusPage() {
     // Live uptime ticker
     createEffect(() => {
         const interval = setInterval(() => {
-            if (isLatest()) setTick(t => t + 1);
+            if (isLatest()) setTick((t) => t + 1);
         }, 1000);
         onCleanup(() => clearInterval(interval));
     });
@@ -84,11 +91,11 @@ export default function RoomStatusPage() {
                     <div class="mb-8">
                         <div class="flex items-center justify-center mb-4">
                             <h1 class="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white">
-                                Room Browser
+                Room Browser
                             </h1>
                         </div>
                         <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                            Real-time view of active rooms and players on RWFC servers
+              Real-time view of active rooms and players on RWFC servers
                         </p>
                     </div>
 
@@ -165,7 +172,9 @@ export default function RoomStatusPage() {
                                 <Show when={isLatest()}>
                                     <div class="flex items-center bg-gradient-to-r from-emerald-500 to-emerald-600 px-3 sm:px-5 py-2.5 rounded-xl shadow-lg flex-shrink-0">
                                         <span class="w-2 h-2 bg-white rounded-full mr-2 animate-pulse shadow-lg" />
-                                        <span class="text-xs sm:text-sm font-bold text-white tracking-wide">LIVE</span>
+                                        <span class="text-xs sm:text-sm font-bold text-white tracking-wide">
+                      LIVE
+                                        </span>
                                     </div>
                                 </Show>
                             </div>
@@ -174,7 +183,7 @@ export default function RoomStatusPage() {
                             <Show when={!isLatest()}>
                                 <div class="text-xs text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/30 px-3 py-1.5 rounded-full border border-amber-200 dark:border-amber-800">
                                     <Info size={14} />
-                                    Historical data
+                  Historical data
                                 </div>
                             </Show>
                         </div>
@@ -182,7 +191,7 @@ export default function RoomStatusPage() {
                         {/* Bottom row: time jump controls */}
                         <div class="flex items-center gap-2 flex-wrap">
                             {/* Quick jump buttons */}
-                            {([-60, -1] as const).map(mins => (
+                            {([-60, -1] as const).map((mins) => (
                                 <button
                                     onClick={() => handleJump(mins)}
                                     disabled={isJumping() || !canGoBackward()}
@@ -209,7 +218,7 @@ export default function RoomStatusPage() {
                             </div>
 
                             {/* Quick jump buttons */}
-                            {([1, 60] as const).map(mins => (
+                            {([1, 60] as const).map((mins) => (
                                 <button
                                     onClick={() => handleJump(mins)}
                                     disabled={isJumping() || !canGoForward()}
@@ -228,7 +237,7 @@ export default function RoomStatusPage() {
                 <div class="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-sm p-16 text-center">
                     <div class="animate-spin rounded-full h-20 w-20 border-b-4 border-blue-600 mx-auto mb-6" />
                     <p class="text-xl text-gray-600 dark:text-gray-400 font-semibold">
-                        Loading room data...
+            Loading room data...
                     </p>
                 </div>
             </Show>
@@ -241,7 +250,7 @@ export default function RoomStatusPage() {
                             <ServerCrash size={48} />
                         </div>
                         <div class="text-red-600 dark:text-red-400 text-2xl font-bold mb-3">
-                            Couldn't load room data
+              Couldn't load room data
                         </div>
                         <p class="text-red-500 dark:text-red-400 mb-8">
                             {roomStatusQuery.error?.message || "Something went wrong"}
@@ -250,34 +259,47 @@ export default function RoomStatusPage() {
                             onClick={() => roomStatusQuery.refetch()}
                             class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-10 rounded-lg transition-colors"
                         >
-                            Try Again
+              Try Again
                         </button>
                     </div>
                 </div>
             </Show>
 
             {/* No Data State */}
-            <Show when={roomStatusQuery.data && !roomStatusQuery.isLoading && roomStatusQuery.data.rooms.length === 0}>
+            <Show
+                when={
+                    roomStatusQuery.data &&
+          !roomStatusQuery.isLoading &&
+          roomStatusQuery.data.rooms.length === 0
+                }
+            >
                 <div class="bg-white dark:bg-gray-800 border-2 border-amber-200 dark:border-amber-800 rounded-xl p-12">
                     <div class="text-center">
                         <div class="flex justify-center mb-6 text-amber-300 dark:text-amber-600">
                             <Inbox size={48} />
                         </div>
                         <div class="text-gray-900 dark:text-white text-2xl font-bold mb-3">
-                            No rooms found
+              No rooms found
                         </div>
                         <p class="text-gray-600 dark:text-gray-400 mb-2">
-                            Nobody is racing right now, or the server may be experiencing issues.
+              Nobody is racing right now, or the server may be experiencing
+              issues.
                         </p>
                         <p class="text-sm text-gray-500 dark:text-gray-500">
-                            Use the navigation controls to view historical data
+              Use the navigation controls to view historical data
                         </p>
                     </div>
                 </div>
             </Show>
 
             {/* Rooms List */}
-            <Show when={roomStatusQuery.data && !roomStatusQuery.isLoading && roomStatusQuery.data.rooms.length > 0}>
+            <Show
+                when={
+                    roomStatusQuery.data &&
+          !roomStatusQuery.isLoading &&
+          roomStatusQuery.data.rooms.length > 0
+                }
+            >
                 <div class="space-y-6">
                     <For each={roomStatusQuery.data!.rooms}>
                         {(room) => (

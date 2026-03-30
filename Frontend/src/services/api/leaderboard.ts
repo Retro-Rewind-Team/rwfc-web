@@ -12,7 +12,7 @@ import {
 
 export const leaderboardApi = {
     async getLeaderboard(
-        params: LeaderboardRequest = {}
+        params: LeaderboardRequest = {},
     ): Promise<LeaderboardResponse> {
         const searchParams = new URLSearchParams();
         Object.entries(params).forEach(([key, value]) => {
@@ -42,27 +42,28 @@ export const leaderboardApi = {
 
     async getPlayerHistory(
         friendCode: string,
-        days: number | null = 30
+        days: number | null = 30,
     ): Promise<VRHistoryResponse> {
-        const url = days === null 
-            ? `/leaderboard/player/${friendCode}/history`
-            : `/leaderboard/player/${friendCode}/history?days=${days}`;
+        const url =
+      days === null
+          ? `/leaderboard/player/${friendCode}/history`
+          : `/leaderboard/player/${friendCode}/history?days=${days}`;
         return apiRequest<VRHistoryResponse>(url);
     },
 
     async getPlayerRecentHistory(
         friendCode: string,
-        count = 50
+        count = 50,
     ): Promise<VRHistoryEntry[]> {
         return apiRequest<VRHistoryEntry[]>(
-            `/leaderboard/player/${friendCode}/history/recent?count=${count}`
+            `/leaderboard/player/${friendCode}/history/recent?count=${count}`,
         );
     },
 
     async getPlayerMii(friendCode: string): Promise<MiiResponse | null> {
         try {
             return await apiRequest<MiiResponse>(
-                `/leaderboard/player/${friendCode}/mii`
+                `/leaderboard/player/${friendCode}/mii`,
             );
         } catch (error) {
             if (error instanceof Error && error.message.includes("404")) {
@@ -94,14 +95,14 @@ export const leaderboardApi = {
                             "Content-Type": "application/json",
                         },
                         body: JSON.stringify({ friendCodes: chunk }),
-                    }
+                    },
                 );
 
                 Object.assign(allMiis, response.miis);
             } catch (error) {
                 console.warn(
                     `Failed to load Mii batch for ${chunk.length} players:`,
-                    error
+                    error,
                 );
             }
         }
@@ -112,13 +113,13 @@ export const leaderboardApi = {
     async getDiscordMemberCount(): Promise<number> {
         try {
             const response = await fetch(
-                "https://discord.com/api/v10/invites/retrorewind?with_counts=true"
+                "https://discord.com/api/v10/invites/retrorewind?with_counts=true",
             );
-            
+
             if (!response.ok) {
                 throw new Error("Discord API request failed");
             }
-            
+
             const data = await response.json();
             return data.approximate_member_count;
         } catch (error) {
@@ -130,7 +131,7 @@ export const leaderboardApi = {
     async getRRVersion() {
         try {
             const response = await fetch(
-                "https://rwfc.net/updates/RetroRewind/RetroRewindVersion.txt"
+                "https://rwfc.net/updates/RetroRewind/RetroRewindVersion.txt",
             );
 
             if (!response.ok) {
@@ -144,7 +145,7 @@ export const leaderboardApi = {
 
             const updateUrl = latest[1].replace(
                 "http://update.rwfc.net:8000/RetroRewind",
-                "https://rwfc.net/updates/RetroRewind"
+                "https://rwfc.net/updates/RetroRewind",
             );
 
             return {
@@ -165,7 +166,7 @@ export const legacyLeaderboardApi = {
     },
 
     async getLeaderboard(
-        params: LeaderboardRequest = {}
+        params: LeaderboardRequest = {},
     ): Promise<LeaderboardResponse> {
         const searchParams = new URLSearchParams();
         Object.entries(params).forEach(([key, value]) => {
@@ -174,7 +175,9 @@ export const legacyLeaderboardApi = {
             }
         });
 
-        return apiRequest<LeaderboardResponse>(`/leaderboard/legacy?${searchParams}`);
+        return apiRequest<LeaderboardResponse>(
+            `/leaderboard/legacy?${searchParams}`,
+        );
     },
 
     async getPlayerMiisBatch(friendCodes: string[]): Promise<BatchMiiResponse> {
@@ -199,14 +202,14 @@ export const legacyLeaderboardApi = {
                             "Content-Type": "application/json",
                         },
                         body: JSON.stringify({ friendCodes: chunk }),
-                    }
+                    },
                 );
 
                 Object.assign(allMiis, response.miis);
             } catch (error) {
                 console.warn(
                     `Failed to load legacy Mii batch for ${chunk.length} players:`,
-                    error
+                    error,
                 );
             }
         }

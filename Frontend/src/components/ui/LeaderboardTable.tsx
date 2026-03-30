@@ -4,16 +4,16 @@ import { Player } from "../../types";
 import { formatLastSeen, getVRGainClass } from "../../utils";
 import { MiiComponent, PlayerBadges, VRTierNumberPlate } from "../ui";
 import { ArrowDown, ArrowUp } from "lucide-solid/icons/index";
-import AlertTriangle from "lucide-solid/icons/alert-triangle";
+import TriangleAlert from "lucide-solid/icons/triangle-alert";
 
 interface LeaderboardTableProps {
-    players: Player[];
-    showLegacy: boolean;
-    sortBy: string;
-    ascending: boolean;
-    timePeriod: string;
-    onSort: (field: string) => void;
-    getVRGain: (player: Player) => number;
+  players: Player[];
+  showLegacy: boolean;
+  sortBy: string;
+  ascending: boolean;
+  timePeriod: string;
+  onSort: (field: string) => void;
+  getVRGain: (player: Player) => number;
 }
 
 export default function LeaderboardTable(props: LeaderboardTableProps) {
@@ -32,7 +32,13 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
     return (
         <div class="overflow-x-auto">
             <table class="w-full table-fixed">
-                <thead class={props.showLegacy ? "bg-amber-600 text-white" : "bg-blue-600 text-white"}>
+                <thead
+                    class={
+                        props.showLegacy
+                            ? "bg-amber-600 text-white"
+                            : "bg-blue-600 text-white"
+                    }
+                >
                     <tr>
                         <th
                             class={`px-6 py-4 text-center cursor-pointer transition-colors ${
@@ -43,10 +49,11 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                             <div class="flex items-center justify-center space-x-2">
                                 <span class="font-bold">Rank</span>
                                 <Show when={props.sortBy === "rank"}>
-                                    {props.ascending
-                                        ? <ArrowUp size={14} />
-                                        : <ArrowDown size={14} />
-                                    }
+                                    {props.ascending ? (
+                                        <ArrowUp size={14} />
+                                    ) : (
+                                        <ArrowDown size={14} />
+                                    )}
                                 </Show>
                             </div>
                         </th>
@@ -60,17 +67,18 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                             <div class="flex items-center justify-center space-x-2">
                                 <span class="font-bold">VR</span>
                                 <Show when={props.sortBy === "vr"}>
-                                    {props.ascending
-                                        ? <ArrowUp size={14} />
-                                        : <ArrowDown size={14} />
-                                    }
+                                    {props.ascending ? (
+                                        <ArrowUp size={14} />
+                                    ) : (
+                                        <ArrowDown size={14} />
+                                    )}
                                 </Show>
                             </div>
                         </th>
                         <th class="px-6 py-4 text-center hidden md:table-cell font-bold">
-                            Friend Code
+              Friend Code
                         </th>
-                        
+
                         <Show when={!props.showLegacy}>
                             <th
                                 class="px-6 py-4 text-center cursor-pointer hover:bg-blue-700 transition-colors hidden md:table-cell"
@@ -79,10 +87,11 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                                 <div class="flex items-center justify-center space-x-2">
                                     <span class="font-bold">Last Seen</span>
                                     <Show when={props.sortBy === "lastSeen"}>
-                                        {props.ascending
-                                            ? <ArrowUp size={14} />
-                                            : <ArrowDown size={14} />
-                                        }
+                                        {props.ascending ? (
+                                            <ArrowUp size={14} />
+                                        ) : (
+                                            <ArrowDown size={14} />
+                                        )}
                                     </Show>
                                 </div>
                             </th>
@@ -92,12 +101,15 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                                 onClick={() => props.onSort(getVRGainSortField())}
                             >
                                 <div class="flex items-center justify-center space-x-2">
-                                    <span class="font-bold">VR Change ({getTimePeriodLabel()})</span>
+                                    <span class="font-bold">
+                    VR Change ({getTimePeriodLabel()})
+                                    </span>
                                     <Show when={props.sortBy === getVRGainSortField()}>
-                                        {props.ascending
-                                            ? <ArrowUp size={14} />
-                                            : <ArrowDown size={14} />
-                                        }
+                                        {props.ascending ? (
+                                            <ArrowUp size={14} />
+                                        ) : (
+                                            <ArrowDown size={14} />
+                                        )}
                                     </Show>
                                 </div>
                             </th>
@@ -108,12 +120,16 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                     <For each={props.players}>
                         {(player) => {
                             const vrGain = !props.showLegacy ? props.getVRGain(player) : 0;
-                            const isOnline = !props.showLegacy && formatLastSeen(player.lastSeen) === "Now Online";
+                            const isOnline =
+                !props.showLegacy &&
+                formatLastSeen(player.lastSeen) === "Now Online";
 
                             return (
                                 <tr
                                     class={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
-                                        player.isSuspicious ? "bg-red-50 dark:bg-red-950/30 border-l-4 border-red-500" : ""
+                                        player.isSuspicious
+                                            ? "bg-red-50 dark:bg-red-950/30 border-l-4 border-red-500"
+                                            : ""
                                     }`}
                                 >
                                     <td class="px-6 py-4 text-center">
@@ -153,14 +169,14 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                                                 <div class="hidden sm:flex flex-wrap gap-2 mt-1 justify-center sm:justify-start">
                                                     <Show when={player.isSuspicious}>
                                                         <span class="inline-flex items-center gap-1 text-xs bg-red-200 dark:bg-red-800 text-red-600 dark:text-red-400 px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap">
-                                                            <AlertTriangle size={12} />
-                                                            Suspicious
+                                                            <TriangleAlert size={12} />
+                              Suspicious
                                                         </span>
                                                     </Show>
-                                                    
+
                                                     {/*Player Badges */}
-                                                    <PlayerBadges 
-                                                        friendCode={player.friendCode} 
+                                                    <PlayerBadges
+                                                        friendCode={player.friendCode}
                                                         size="sm"
                                                     />
                                                 </div>
@@ -183,7 +199,9 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                                     <Show when={!props.showLegacy}>
                                         <td
                                             class={`px-6 py-4 text-center hidden md:table-cell font-medium ${
-                                                isOnline ? "text-emerald-600 dark:text-emerald-400" : "text-gray-600 dark:text-gray-400"
+                                                isOnline
+                                                    ? "text-emerald-600 dark:text-emerald-400"
+                                                    : "text-gray-600 dark:text-gray-400"
                                             }`}
                                         >
                                             {isOnline && (
@@ -195,7 +213,9 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                                         </td>
 
                                         <td class="px-6 py-4 text-center">
-                                            <span class={`text-lg font-bold ${getVRGainClass(vrGain)}`}>
+                                            <span
+                                                class={`text-lg font-bold ${getVRGainClass(vrGain)}`}
+                                            >
                                                 {vrGain > 0 ? "+" : ""}
                                                 {vrGain}
                                             </span>

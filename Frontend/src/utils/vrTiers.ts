@@ -3,7 +3,8 @@ import { VRTierInfo } from "../types";
 export const VR_TIERS: readonly VRTierInfo[] = [
     {
         tier: "god",
-        gradient: "from-white via-cyan-200 via-blue-300 via-purple-400 via-pink-500 via-red-500 via-orange-500 via-yellow-500 via-lime-500 to-white",
+        gradient:
+      "from-white via-cyan-200 via-blue-300 via-purple-400 via-pink-500 via-red-500 via-orange-500 via-yellow-500 via-lime-500 to-white",
         glow: true,
         icon: "⭐",
         label: "God",
@@ -77,7 +78,8 @@ export const VR_TIERS: readonly VRTierInfo[] = [
         glow: false,
         icon: "🚀",
         label: "Veteran",
-        description: "Experienced racer with refined technique and reliable results.",
+        description:
+      "Experienced racer with refined technique and reliable results.",
         minVR: 20000,
         maxVR: 24999,
     },
@@ -183,8 +185,25 @@ export const ELITE_TIERS = [
     "rising",
 ] as const;
 
-export const GLOW_TIERS = ["god", "transcendent", "mythic", "celestial", "master", "legend", "elite"] as const;
-export const ICON_TIERS = ["god", "transcendent", "mythic", "celestial", "master", "legend", "elite", "suspicious"] as const;
+export const GLOW_TIERS = [
+    "god",
+    "transcendent",
+    "mythic",
+    "celestial",
+    "master",
+    "legend",
+    "elite",
+] as const;
+export const ICON_TIERS = [
+    "god",
+    "transcendent",
+    "mythic",
+    "celestial",
+    "master",
+    "legend",
+    "elite",
+    "suspicious",
+] as const;
 
 export const TROPHY_RANKS = {
     FIRST: 1,

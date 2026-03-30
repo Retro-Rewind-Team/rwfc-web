@@ -1,11 +1,16 @@
 import { For, Show } from "solid-js";
 import { ChevronLeft, ChevronRight, X } from "lucide-solid";
 import { usePlayerRaceStats } from "../../hooks/usePlayerRaceStats";
-import { PlayerRaceStats, RecentRace, SetupEntry, TrackPlayCount } from "../../types/raceStats";
+import {
+    PlayerRaceStats,
+    RecentRace,
+    SetupEntry,
+    TrackPlayCount,
+} from "../../types/raceStats";
 import { LoadingSpinner } from "../../components/common";
 
 interface PlayerRaceStatsCardProps {
-    pid: string;
+  pid: string;
 }
 
 const DAY_OPTIONS = [
@@ -32,8 +37,11 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
 
     const formatTimestamp = (ts: string) =>
         new Date(ts).toLocaleString("nl-NL", {
-            day: "2-digit", month: "2-digit", year: "numeric",
-            hour: "2-digit", minute: "2-digit",
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
         });
 
     return (
@@ -41,7 +49,9 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
             {/* Header + filters */}
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-2">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Race Stats</h2>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+            Race Stats
+                    </h2>
                 </div>
                 <div class="flex items-center gap-1">
                     <For each={DAY_OPTIONS}>
@@ -64,7 +74,9 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
             {/* Active track filter badge */}
             <Show when={courseId() !== undefined}>
                 <div class="flex items-center gap-2 -mt-3">
-                    <span class="text-xs text-gray-500 dark:text-gray-400">Filtered by track:</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">
+            Filtered by track:
+                    </span>
                     <button
                         onClick={() => handleCourseIdChange(undefined)}
                         class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors"
@@ -86,21 +98,31 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
             {/* No data */}
             <Show when={!raceStatsQuery.isLoading && !hasRaceStats()}>
                 <p class="text-gray-500 dark:text-gray-400 text-sm">
-                    No race data available for this player yet.
+          No race data available for this player yet.
                 </p>
             </Show>
 
             <Show when={hasRaceStats()}>
                 <div class="space-y-6">
                     <p class="text-xs text-gray-400 dark:text-gray-500 -mt-4">
-                        Tracked since {new Date(stats().trackedSince).toLocaleDateString("nl-NL")}
+            Tracked since{" "}
+                        {new Date(stats().trackedSince).toLocaleDateString("nl-NL")}
                     </p>
 
                     {/* Summary tiles */}
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        <StatTile label="Total Races" value={stats().totalRaces.toLocaleString()} />
-                        <StatTile label="Total Frames in 1st" value={stats().totalFramesIn1st.toLocaleString()} />
-                        <StatTile label="Avg Frames in 1st" value={stats().avgFramesIn1stPerRace.toFixed(1)} />
+                        <StatTile
+                            label="Total Races"
+                            value={stats().totalRaces.toLocaleString()}
+                        />
+                        <StatTile
+                            label="Total Frames in 1st"
+                            value={stats().totalFramesIn1st.toLocaleString()}
+                        />
+                        <StatTile
+                            label="Avg Frames in 1st"
+                            value={stats().avgFramesIn1stPerRace.toFixed(1)}
+                        />
                     </div>
 
                     {/* Setup stats + top tracks */}
@@ -116,7 +138,7 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                         <Show when={stats().topTracks.length > 0}>
                             <div>
                                 <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
-                                    Most Played Tracks
+                  Most Played Tracks
                                 </h3>
                                 <div class="space-y-2">
                                     <For each={stats().topTracks}>
@@ -129,7 +151,12 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                                     <span
                                                         class="text-gray-700 dark:text-gray-300 text-sm truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                                                         title={`Filter by ${track.trackName}`}
-                                                        onClick={() => handleCourseIdChange(track.courseId, track.trackName)}
+                                                        onClick={() =>
+                                                            handleCourseIdChange(
+                                                                track.courseId,
+                                                                track.trackName,
+                                                            )
+                                                        }
                                                     >
                                                         {track.trackName}
                                                     </span>
@@ -149,7 +176,7 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                     <div>
                         <div class="flex items-center justify-between mb-3">
                             <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                                Recent Races
+                Recent Races
                             </h3>
                             <span class="text-xs text-gray-400 dark:text-gray-500">
                                 {stats().totalRecentRaces.toLocaleString()} total
@@ -162,8 +189,12 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                     <tr class="text-left text-xs text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-gray-700">
                                         <th class="pb-2 font-medium">Track</th>
                                         <th class="pb-2 font-medium">Time</th>
-                                        <th class="pb-2 font-medium hidden sm:table-cell">Character</th>
-                                        <th class="pb-2 font-medium hidden md:table-cell">Vehicle</th>
+                                        <th class="pb-2 font-medium hidden sm:table-cell">
+                      Character
+                                        </th>
+                                        <th class="pb-2 font-medium hidden md:table-cell">
+                      Vehicle
+                                        </th>
                                         <th class="pb-2 font-medium text-right">Date</th>
                                     </tr>
                                 </thead>
@@ -175,7 +206,12 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                                     <span
                                                         class="text-gray-800 dark:text-gray-200 truncate block cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                                                         title={`Filter by ${race.trackName}`}
-                                                        onClick={() => handleCourseIdChange(race.courseId, race.trackName)}
+                                                        onClick={() =>
+                                                            handleCourseIdChange(
+                                                                race.courseId,
+                                                                race.trackName,
+                                                            )
+                                                        }
                                                     >
                                                         {race.trackName}
                                                     </span>
@@ -203,22 +239,24 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                         <Show when={stats().totalPages > 1}>
                             <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                                 <button
-                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                                     disabled={currentPage() === 1}
                                     class="inline-flex items-center gap-1 px-3 py-1 rounded text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                 >
                                     <ChevronLeft size={14} />
-                                    Previous
+                  Previous
                                 </button>
                                 <span class="text-sm text-gray-500 dark:text-gray-400">
-                                    Page {currentPage()} of {stats().totalPages}
+                  Page {currentPage()} of {stats().totalPages}
                                 </span>
                                 <button
-                                    onClick={() => setCurrentPage(p => Math.min(stats().totalPages, p + 1))}
+                                    onClick={() =>
+                                        setCurrentPage((p) => Math.min(stats().totalPages, p + 1))
+                                    }
                                     disabled={currentPage() === stats().totalPages}
                                     class="inline-flex items-center gap-1 px-3 py-1 rounded text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    Next
+                  Next
                                     <ChevronRight size={14} />
                                 </button>
                             </div>
@@ -262,8 +300,12 @@ function SetupColumn(props: { title: string; entries: SetupEntry[] }) {
 function StatTile(props: { label: string; value: string }) {
     return (
         <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-center">
-            <div class="text-lg font-bold text-gray-900 dark:text-white">{props.value}</div>
-            <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{props.label}</div>
+            <div class="text-lg font-bold text-gray-900 dark:text-white">
+                {props.value}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                {props.label}
+            </div>
         </div>
     );
 }

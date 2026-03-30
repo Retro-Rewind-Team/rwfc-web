@@ -1,6 +1,11 @@
 // Yaz0 decompression for Nintendo archives
 export function yaz0Decompress(src: Uint8Array): Uint8Array {
-    if (src[0] !== 0x59 || src[1] !== 0x61 || src[2] !== 0x7A || src[3] !== 0x30) {
+    if (
+        src[0] !== 0x59 ||
+    src[1] !== 0x61 ||
+    src[2] !== 0x7a ||
+    src[3] !== 0x30
+    ) {
         throw new Error("Input is not Yaz0-compressed (missing 'Yaz0' magic).");
     }
 
@@ -22,7 +27,8 @@ export function yaz0Decompress(src: Uint8Array): Uint8Array {
 
         if (currCodeByte & 0x80) {
             // Literal byte
-            if (srcPos >= src.length) throw new Error("Yaz0 stream truncated (literal).");
+            if (srcPos >= src.length)
+                throw new Error("Yaz0 stream truncated (literal).");
             dst[dstPos++] = src[srcPos++];
         } else {
             // Compressed run
@@ -31,12 +37,13 @@ export function yaz0Decompress(src: Uint8Array): Uint8Array {
             }
             const byte1 = src[srcPos++];
             const byte2 = src[srcPos++];
-            let dist = ((byte1 & 0x0F) << 8) | byte2;
+            let dist = ((byte1 & 0x0f) << 8) | byte2;
             dist += 1;
 
             let length = byte1 >> 4;
             if (length === 0) {
-                if (srcPos >= src.length) throw new Error("Yaz0 stream truncated (length extension).");
+                if (srcPos >= src.length)
+                    throw new Error("Yaz0 stream truncated (length extension).");
                 length = src[srcPos++] + 0x12;
             } else {
                 length += 2;
@@ -53,7 +60,9 @@ export function yaz0Decompress(src: Uint8Array): Uint8Array {
     }
 
     if (dstPos !== uncompressedSize) {
-        console.warn(`Yaz0 decompression: size mismatch (expected ${uncompressedSize}, got ${dstPos})`);
+        console.warn(
+            `Yaz0 decompression: size mismatch (expected ${uncompressedSize}, got ${dstPos})`,
+        );
     }
 
     return dst;
@@ -65,12 +74,12 @@ export function yaz0Compress(uncompressed: Uint8Array): Uint8Array {
     const out: number[] = [];
 
     // Yaz0 header
-    out.push(0x59, 0x61, 0x7A, 0x30); // 'Yaz0'
+    out.push(0x59, 0x61, 0x7a, 0x30); // 'Yaz0'
     out.push(
-        (size >>> 24) & 0xFF,
-        (size >>> 16) & 0xFF,
-        (size >>> 8) & 0xFF,
-        size & 0xFF
+        (size >>> 24) & 0xff,
+        (size >>> 16) & 0xff,
+        (size >>> 8) & 0xff,
+        size & 0xff,
     );
     // 8 reserved bytes
     for (let i = 0; i < 8; i++) out.push(0x00);
@@ -93,11 +102,15 @@ export function yaz0Compress(uncompressed: Uint8Array): Uint8Array {
             let bestDist = 0;
 
             if (pos < size - 2) {
-                const k = ((uncompressed[pos] << 8) | uncompressed[pos + 1]) & 0xFFFF;
+                const k = ((uncompressed[pos] << 8) | uncompressed[pos + 1]) & 0xffff;
                 let idx = head[k];
                 let searchCount = 0;
 
-                while (idx >= 0 && (pos - idx) <= 0x1000 && searchCount < MAX_SEARCH_DEPTH) {
+                while (
+                    idx >= 0 &&
+          pos - idx <= 0x1000 &&
+          searchCount < MAX_SEARCH_DEPTH
+                ) {
                     const dist = pos - idx;
                     let maxLen = size - pos;
                     if (maxLen > 0x111) maxLen = 0x111;
@@ -107,7 +120,7 @@ export function yaz0Compress(uncompressed: Uint8Array): Uint8Array {
                     let length = 2;
                     while (
                         length < maxLen &&
-                        uncompressed[idx + length] === uncompressed[pos + length]
+            uncompressed[idx + length] === uncompressed[pos + length]
                     ) {
                         length++;
                     }
@@ -129,18 +142,18 @@ export function yaz0Compress(uncompressed: Uint8Array): Uint8Array {
                 const distMinus1 = bestDist - 1;
 
                 if (runLen >= 0x12) {
-                    out.push(((0) << 4) | ((distMinus1 >> 8) & 0x0F));
-                    out.push(distMinus1 & 0xFF);
-                    out.push((runLen - 0x12) & 0xFF);
+                    out.push((0 << 4) | ((distMinus1 >> 8) & 0x0f));
+                    out.push(distMinus1 & 0xff);
+                    out.push((runLen - 0x12) & 0xff);
                 } else {
-                    out.push(((runLen - 2) << 4) | ((distMinus1 >> 8) & 0x0F));
-                    out.push(distMinus1 & 0xFF);
+                    out.push(((runLen - 2) << 4) | ((distMinus1 >> 8) & 0x0f));
+                    out.push(distMinus1 & 0xff);
                 }
 
                 const start = pos;
                 const end = Math.min(pos + runLen, size - 1);
                 for (let i = start; i < end; i++) {
-                    const k2 = ((uncompressed[i] << 8) | uncompressed[i + 1]) & 0xFFFF;
+                    const k2 = ((uncompressed[i] << 8) | uncompressed[i + 1]) & 0xffff;
                     prev[i] = head[k2];
                     head[k2] = i;
                 }
@@ -152,7 +165,8 @@ export function yaz0Compress(uncompressed: Uint8Array): Uint8Array {
                 out.push(uncompressed[pos]);
 
                 if (pos < size - 1) {
-                    const k2 = ((uncompressed[pos] << 8) | uncompressed[pos + 1]) & 0xFFFF;
+                    const k2 =
+            ((uncompressed[pos] << 8) | uncompressed[pos + 1]) & 0xffff;
                     prev[pos] = head[k2];
                     head[k2] = pos;
                 }
@@ -173,12 +187,12 @@ export function yaz0CompressLiteralOnly(uncompressed: Uint8Array): Uint8Array {
     const out: number[] = [];
 
     // Yaz0 magic
-    out.push(0x59, 0x61, 0x7A, 0x30);
+    out.push(0x59, 0x61, 0x7a, 0x30);
     out.push(
-        (size >>> 24) & 0xFF,
-        (size >>> 16) & 0xFF,
-        (size >>> 8) & 0xFF,
-        size & 0xFF
+        (size >>> 24) & 0xff,
+        (size >>> 16) & 0xff,
+        (size >>> 8) & 0xff,
+        size & 0xff,
     );
     for (let i = 0; i < 8; i++) out.push(0x00);
 

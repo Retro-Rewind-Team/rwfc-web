@@ -1,16 +1,14 @@
 import { getVRGainClass } from "../../utils";
 
 interface VRStatsCardProps {
-    value: number;
-    label: string;
+  value: number;
+  label: string;
 }
 
 export default function VRStatsCard(props: VRStatsCardProps) {
     return (
         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6 text-center">
-            <div
-                class={`text-3xl font-bold mb-2 ${getVRGainClass(props.value)}`}
-            >
+            <div class={`text-3xl font-bold mb-2 ${getVRGainClass(props.value)}`}>
                 {props.value >= 0 ? "+" : ""}
                 {props.value}
             </div>

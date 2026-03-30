@@ -1,17 +1,38 @@
-import type { NeededStats, RankScore, RksysLicense, StatContribution } from "../types/tools";
+import type {
+    NeededStats,
+    RankScore,
+    RksysLicense,
+    StatContribution,
+} from "../types/tools";
 
 // Ranking model constants (from Retro Rewind implementation)
-const W_VR = 0.60;
+const W_VR = 0.6;
 const W_RWIN = 0.15;
 const W_FIRSTS = 0.15;
 const W_DIST = 0.05;
 const W_DIST1ST = 0.05;
 
-const AH = { VR: 100.0, RWIN: 55.0, FIRSTS: 100.0, DIST: 100.0, DIST1ST: 100.0 };
+const AH = {
+    VR: 100.0,
+    RWIN: 55.0,
+    FIRSTS: 100.0,
+    DIST: 100.0,
+    DIST1ST: 100.0,
+};
 const AL = { VR: 5.0, RWIN: 50.0, FIRSTS: 0.0, DIST: 0.0, DIST1ST: 0.0 };
 
-const M1 = W_VR * AH.VR + W_RWIN * AH.RWIN + W_FIRSTS * AH.FIRSTS + W_DIST * AH.DIST + W_DIST1ST * AH.DIST1ST;
-const M2 = W_VR * AL.VR + W_RWIN * AL.RWIN + W_FIRSTS * AL.FIRSTS + W_DIST * AL.DIST + W_DIST1ST * AL.DIST1ST;
+const M1 =
+  W_VR * AH.VR +
+  W_RWIN * AH.RWIN +
+  W_FIRSTS * AH.FIRSTS +
+  W_DIST * AH.DIST +
+  W_DIST1ST * AH.DIST1ST;
+const M2 =
+  W_VR * AL.VR +
+  W_RWIN * AL.RWIN +
+  W_FIRSTS * AL.FIRSTS +
+  W_DIST * AL.DIST +
+  W_DIST1ST * AL.DIST1ST;
 
 const ALPHA = 90.0 / (M1 - M2);
 const BETA = 100.0 - ALPHA * M1;
@@ -53,7 +74,7 @@ function nextThresholdFromScore(score: number): number | null {
 export function computeScore(license: RksysLicense): RankScore {
     const { vrPoints, vsWins, vsLosses, firsts, distance, distance1st } = license;
     const totalVs = vsWins + vsLosses;
-    const winPct = totalVs > 0 ? (100.0 * vsWins / totalVs) : 45.0;
+    const winPct = totalVs > 0 ? (100.0 * vsWins) / totalVs : 45.0;
 
     const vrInternal = toInternalVr(vrPoints);
     let vrClamped = vrInternal;
@@ -61,14 +82,20 @@ export function computeScore(license: RksysLicense): RankScore {
     if (vrClamped < 0.0) vrClamped = 0.0;
     const vrNorm = (vrClamped / 1000.0) * 100.0;
 
-    const firstsNorm = (firsts >= 2500.0) ? 100.0 : (100.0 * firsts / 2500.0);
-    const distNorm = (distance >= 50000.0) ? 100.0 : (100.0 * distance / 50000.0);
-    const dist1stNorm = (distance1st >= 10000.0) ? 100.0 : (100.0 * distance1st / 10000.0);
+    const firstsNorm = firsts >= 2500.0 ? 100.0 : (100.0 * firsts) / 2500.0;
+    const distNorm = distance >= 50000.0 ? 100.0 : (100.0 * distance) / 50000.0;
+    const dist1stNorm =
+    distance1st >= 10000.0 ? 100.0 : (100.0 * distance1st) / 10000.0;
 
-    const M = W_VR * vrNorm + W_RWIN * winPct + W_FIRSTS * firstsNorm + W_DIST * distNorm + W_DIST1ST * dist1stNorm;
+    const M =
+    W_VR * vrNorm +
+    W_RWIN * winPct +
+    W_FIRSTS * firstsNorm +
+    W_DIST * distNorm +
+    W_DIST1ST * dist1stNorm;
     let score = clamp(ALPHA * M + BETA, 0, 100);
 
-    const meetsRaceReq = (totalVs >= MIN_VS_MATCHES);
+    const meetsRaceReq = totalVs >= MIN_VS_MATCHES;
     if (!meetsRaceReq) {
         score = 0.0;
     }
@@ -87,7 +114,7 @@ export function computeScore(license: RksysLicense): RankScore {
         distNorm,
         dist1stNorm,
         totalVs,
-        meetsRaceReq
+        meetsRaceReq,
     };
 }
 
@@ -98,13 +125,19 @@ type StatWeights = Record<StatKey, number>;
 export function calculateNeededStats(license: RksysLicense): NeededStats {
     const cur = computeScore(license);
     const thr = nextThresholdFromScore(cur.score);
-    
+
     if (thr == null) {
         return { threshold: null, M_req: 0, byStat: null };
     }
 
     const M_req = (thr - BETA) / ALPHA;
-    const totals: StatWeights = { VR: W_VR, RWIN: W_RWIN, FIRSTS: W_FIRSTS, DIST: W_DIST, DIST1ST: W_DIST1ST };
+    const totals: StatWeights = {
+        VR: W_VR,
+        RWIN: W_RWIN,
+        FIRSTS: W_FIRSTS,
+        DIST: W_DIST,
+        DIST1ST: W_DIST1ST,
+    };
 
     const otherSum = (omit: StatKey): number => {
         const parts: StatWeights = {
@@ -112,7 +145,7 @@ export function calculateNeededStats(license: RksysLicense): NeededStats {
             RWIN: cur.winPct,
             FIRSTS: cur.firstsNorm,
             DIST: cur.distNorm,
-            DIST1ST: cur.dist1stNorm
+            DIST1ST: cur.dist1stNorm,
         };
         let s = 0;
         for (const k of Object.keys(parts) as StatKey[]) {
@@ -141,8 +174,8 @@ export function calculateNeededStats(license: RksysLicense): NeededStats {
     const distRaw = clamp(Math.ceil(distNormReq * 500.0), 0, 50000);
     const dist1Raw = clamp(Math.ceil(dist1stNormReq * 100.0), 0, 10000);
 
-    const feas = (normReq: number): "ok" | "warn" | "bad" => 
-        normReq <= 100 ? "ok" : (normReq <= 110 ? "warn" : "bad");
+    const feas = (normReq: number): "ok" | "warn" | "bad" =>
+        normReq <= 100 ? "ok" : normReq <= 110 ? "warn" : "bad";
 
     const totalVs = license.vsWins + license.vsLosses;
     let extraWins = "-";
@@ -162,24 +195,53 @@ export function calculateNeededStats(license: RksysLicense): NeededStats {
         threshold: thr,
         M_req,
         byStat: {
-            VR: { neededNorm: vrNormReq, neededRaw: vrRaw, unit: "VR", feasibility: feas(vrNormReq) },
-            WinPct: { neededNorm: winPctReq, neededRaw: winPctRaw, unit: "%", feasibility: feas(winPctReq), extraWins },
-            Firsts: { neededNorm: firstsNormReq, neededRaw: firstsRaw, unit: "times", feasibility: feas(firstsNormReq) },
-            Distance: { neededNorm: distNormReq, neededRaw: distRaw, unit: "m", feasibility: feas(distNormReq) },
-            Dist1st: { neededNorm: dist1stNormReq, neededRaw: dist1Raw, unit: "m", feasibility: feas(dist1stNormReq) }
-        }
+            VR: {
+                neededNorm: vrNormReq,
+                neededRaw: vrRaw,
+                unit: "VR",
+                feasibility: feas(vrNormReq),
+            },
+            WinPct: {
+                neededNorm: winPctReq,
+                neededRaw: winPctRaw,
+                unit: "%",
+                feasibility: feas(winPctReq),
+                extraWins,
+            },
+            Firsts: {
+                neededNorm: firstsNormReq,
+                neededRaw: firstsRaw,
+                unit: "times",
+                feasibility: feas(firstsNormReq),
+            },
+            Distance: {
+                neededNorm: distNormReq,
+                neededRaw: distRaw,
+                unit: "m",
+                feasibility: feas(distNormReq),
+            },
+            Dist1st: {
+                neededNorm: dist1stNormReq,
+                neededRaw: dist1Raw,
+                unit: "m",
+                feasibility: feas(dist1stNormReq),
+            },
+        },
     };
 }
 
-export function computeContributions(license: RksysLicense): Record<string, StatContribution> {
-    const { score, vrNorm, winPct, firstsNorm, distNorm, dist1stNorm } = computeScore(license);
-    
+export function computeContributions(
+    license: RksysLicense,
+): Record<string, StatContribution> {
+    const { score, vrNorm, winPct, firstsNorm, distNorm, dist1stNorm } =
+    computeScore(license);
+
     const parts: Record<StatKey, { w: number; norm: number }> = {
         VR: { w: W_VR, norm: vrNorm },
         RWIN: { w: W_RWIN, norm: winPct },
         FIRSTS: { w: W_FIRSTS, norm: firstsNorm },
         DIST: { w: W_DIST, norm: distNorm },
-        DIST1ST: { w: W_DIST1ST, norm: dist1stNorm }
+        DIST1ST: { w: W_DIST1ST, norm: dist1stNorm },
     };
 
     const Mi: Record<string, number> = {};
@@ -195,8 +257,8 @@ export function computeContributions(license: RksysLicense): Record<string, Stat
     const out: Record<string, StatContribution> = {};
     const keys = Object.keys(parts) as StatKey[];
     for (const k of keys) {
-        const shareM = sumMi > 0 ? (Mi[k] / sumMi) : (1 / keys.length);
-        const pointsTrue = (ALPHA * Mi[k]) + shareM * delta;
+        const shareM = sumMi > 0 ? Mi[k] / sumMi : 1 / keys.length;
+        const pointsTrue = ALPHA * Mi[k] + shareM * delta;
         const shareFinal = score > 0 ? 100 * (pointsTrue / score) : 0;
         out[k] = { points: pointsTrue, share: shareFinal };
     }

@@ -1,11 +1,15 @@
 import { createMemo, createSignal, For, Show } from "solid-js";
 import { parseRksysFile } from "../../utils/rksysParser";
 import { parseRatingFile } from "../../utils/ratingParser";
-import { calculateNeededStats, computeContributions, computeScore } from "../../utils/rankCalculator";
+import {
+    calculateNeededStats,
+    computeContributions,
+    computeScore,
+} from "../../utils/rankCalculator";
 import type { RksysLicense } from "../../types/tools";
 import { AlertBox } from "../../components/common";
-import AlertTriangle from "lucide-solid/icons/alert-triangle";
-import CheckCircle from "lucide-solid/icons/check-circle";
+import CircleCheck from "lucide-solid/icons/circle-check";
+import TriangleAlert from "lucide-solid/icons/triangle-alert";
 
 const RANK_ICONS = [
     null,
@@ -27,7 +31,9 @@ export default function RankCalculatorPage() {
     const [editedStats, setEditedStats] = createSignal<Partial<RksysLicense>>({});
     const [rksysFileName, setRksysFileName] = createSignal<string>("");
     const [ratingFileName, setRatingFileName] = createSignal<string>("");
-    const [vrOverrides, setVrOverrides] = createSignal<Map<number, number>>(new Map());
+    const [vrOverrides, setVrOverrides] = createSignal<Map<number, number>>(
+        new Map(),
+    );
     const [hasRksys, setHasRksys] = createSignal(false);
     const [hasRating, setHasRating] = createSignal(false);
 
@@ -35,12 +41,12 @@ export default function RankCalculatorPage() {
     const licenses = createMemo(() => {
         const base = baseLicenses();
         const overrides = vrOverrides();
-        
+
         if (!hasRating() || overrides.size === 0) {
             return base;
         }
 
-        return base.map(lic => {
+        return base.map((lic) => {
             const vrRating = overrides.get(lic.profileId);
             if (vrRating !== undefined) {
                 // Convert internal VR (0-10000) to fancy VR (0-1000000)
@@ -81,7 +87,7 @@ export default function RankCalculatorPage() {
         try {
             const arrayBuffer = await file.arrayBuffer();
             const ratingFile = parseRatingFile(arrayBuffer);
-            
+
             // Build VR override map
             const vrMap = new Map<number, number>();
             for (const entry of ratingFile.entries) {
@@ -89,10 +95,10 @@ export default function RankCalculatorPage() {
                     vrMap.set(entry.profileId, entry.vr);
                 }
             }
-            
+
             setVrOverrides(vrMap);
             setHasRating(true);
-            
+
             // Reset edited stats to reflect new VR values
             setEditedStats({});
         } catch (error) {
@@ -104,7 +110,7 @@ export default function RankCalculatorPage() {
     const currentLicense = createMemo(() => {
         const base = licenses()[selectedLicense()];
         if (!base) return null;
-        
+
         if (whatIfMode()) {
             return { ...base, ...editedStats() };
         }
@@ -142,25 +148,30 @@ export default function RankCalculatorPage() {
 
     const getFeasibilityClass = (feasibility: string) => {
         switch (feasibility) {
-        case "ok": return "text-green-600 dark:text-green-400";
-        case "warn": return "text-yellow-600 dark:text-yellow-400";
-        case "bad": return "text-red-600 dark:text-red-400";
-        default: return "text-gray-600 dark:text-gray-400";
+        case "ok":
+            return "text-green-600 dark:text-green-400";
+        case "warn":
+            return "text-yellow-600 dark:text-yellow-400";
+        case "bad":
+            return "text-red-600 dark:text-red-400";
+        default:
+            return "text-gray-600 dark:text-gray-400";
         }
     };
 
     const getVrWarning = () => {
         if (!hasRksys()) return "";
-        if (!hasRating()) return " (VR from rksys.dat only - load RRRating.pul for accurate values)";
-        
+        if (!hasRating())
+            return " (VR from rksys.dat only - load RRRating.pul for accurate values)";
+
         const license = licenses()[selectedLicense()];
         if (!license) return "";
-        
+
         const override = vrOverrides().get(license.profileId);
         if (override === undefined) {
             return " (no RRRating entry for this profile ID)";
         }
-        
+
         return "";
     };
 
@@ -169,10 +180,11 @@ export default function RankCalculatorPage() {
             {/* Header */}
             <div class="text-center py-6">
                 <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                    Rank Calculator
+          Rank Calculator
                 </h1>
                 <p class="text-gray-600 dark:text-gray-400">
-                    Analyze your rksys.dat save file and see what you need for the next rank
+          Analyze your rksys.dat save file and see what you need for the next
+          rank
                 </p>
             </div>
 
@@ -181,7 +193,7 @@ export default function RankCalculatorPage() {
                 <div>
                     <label class="block">
                         <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                            Upload rksys.dat file
+              Upload rksys.dat file
                         </span>
                         <input
                             type="file"
@@ -199,7 +211,7 @@ export default function RankCalculatorPage() {
                     </label>
                     <Show when={rksysFileName()}>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                            Loaded: {rksysFileName()}
+              Loaded: {rksysFileName()}
                         </p>
                     </Show>
                 </div>
@@ -207,7 +219,7 @@ export default function RankCalculatorPage() {
                 <div>
                     <label class="block">
                         <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                            Upload RRRating.pul file (optional - for accurate VR)
+              Upload RRRating.pul file (optional - for accurate VR)
                         </span>
                         <input
                             type="file"
@@ -225,7 +237,7 @@ export default function RankCalculatorPage() {
                     </label>
                     <Show when={ratingFileName()}>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                            Loaded: {ratingFileName()} ({vrOverrides().size} VR overrides)
+              Loaded: {ratingFileName()} ({vrOverrides().size} VR overrides)
                         </p>
                     </Show>
                 </div>
@@ -234,15 +246,35 @@ export default function RankCalculatorPage() {
             <Show when={licenses().length === 0}>
                 <AlertBox type="info" title="How to read this">
                     <ul class="space-y-1 text-sm">
-                        <li><strong>Current:</strong> Your stats from the save file (or What If edits)</li>
-                        <li><strong>Needed:</strong> What this stat needs to be (if changed alone) to reach the next rank</li>
-                        <li><strong>Contribution:</strong> How much this stat contributes to your final score (0–100)</li>
+                        <li>
+                            <strong>Current:</strong> Your stats from the save file (or What
+              If edits)
+                        </li>
+                        <li>
+                            <strong>Needed:</strong> What this stat needs to be (if changed
+              alone) to reach the next rank
+                        </li>
+                        <li>
+                            <strong>Contribution:</strong> How much this stat contributes to
+              your final score (0–100)
+                        </li>
                     </ul>
                     <p class="mt-3 text-xs">
-                        Colors indicate feasibility:
-                        <span class="text-green-600 dark:text-green-400"> green = achievable</span>,
-                        <span class="text-yellow-600 dark:text-yellow-400"> yellow = difficult</span>,
-                        <span class="text-red-600 dark:text-red-400"> red = very difficult</span>
+            Colors indicate feasibility:
+                        <span class="text-green-600 dark:text-green-400">
+                            {" "}
+              green = achievable
+                        </span>
+            ,
+                        <span class="text-yellow-600 dark:text-yellow-400">
+                            {" "}
+              yellow = difficult
+                        </span>
+            ,
+                        <span class="text-red-600 dark:text-red-400">
+                            {" "}
+              red = very difficult
+                        </span>
                     </p>
                 </AlertBox>
             </Show>
@@ -286,7 +318,7 @@ export default function RankCalculatorPage() {
                                     class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                 />
                                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    What If? mode
+                  What If? mode
                                 </span>
                             </label>
                             <button
@@ -299,7 +331,7 @@ export default function RankCalculatorPage() {
                                     disabled:opacity-50 disabled:cursor-not-allowed
                                     transition-colors"
                             >
-                                Reset edits
+                Reset edits
                             </button>
                         </div>
                     </div>
@@ -315,12 +347,20 @@ export default function RankCalculatorPage() {
                                     {/* License Info */}
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                         <div>
-                                            <span class="text-gray-600 dark:text-gray-400">Mii Name:</span>
-                                            <span class="ml-2 font-medium text-gray-900 dark:text-white">{license().name}</span>
+                                            <span class="text-gray-600 dark:text-gray-400">
+                        Mii Name:
+                                            </span>
+                                            <span class="ml-2 font-medium text-gray-900 dark:text-white">
+                                                {license().name}
+                                            </span>
                                         </div>
                                         <div>
-                                            <span class="text-gray-600 dark:text-gray-400">Friend Code:</span>
-                                            <span class="ml-2 font-mono text-gray-900 dark:text-white">{license().friendCode}</span>
+                                            <span class="text-gray-600 dark:text-gray-400">
+                        Friend Code:
+                                            </span>
+                                            <span class="ml-2 font-mono text-gray-900 dark:text-white">
+                                                {license().friendCode}
+                                            </span>
                                         </div>
                                     </div>
 
@@ -329,15 +369,15 @@ export default function RankCalculatorPage() {
                                         <div class="flex items-center justify-between">
                                             <div>
                                                 <h3 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                                                    Current Rank
+                          Current Rank
                                                 </h3>
                                                 <div class="flex items-center gap-3">
                                                     <span class="text-4xl font-bold text-gray-900 dark:text-white">
                                                         {currentScore?.rankLabel}
                                                     </span>
                                                     <Show when={currentScore && currentScore.rank > 0}>
-                                                        <img 
-                                                            src={RANK_ICONS[currentScore!.rank] || ""} 
+                                                        <img
+                                                            src={RANK_ICONS[currentScore!.rank] || ""}
                                                             alt={`Rank ${currentScore!.rankLabel}`}
                                                             class="h-10 w-auto"
                                                             onError={(e) => {
@@ -346,14 +386,14 @@ export default function RankCalculatorPage() {
                                                         />
                                                     </Show>
                                                     <div class="text-sm text-gray-600 dark:text-gray-400">
-                                                        Score: {currentScore?.score.toFixed(2)}
+                            Score: {currentScore?.score.toFixed(2)}
                                                     </div>
                                                 </div>
                                             </div>
                                             <Show when={neededStats?.threshold !== null}>
                                                 <div class="text-right">
                                                     <h3 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                                                        Next Rank At
+                            Next Rank At
                                                     </h3>
                                                     <span class="text-3xl font-bold text-blue-600 dark:text-blue-400">
                                                         {neededStats?.threshold}
@@ -363,8 +403,9 @@ export default function RankCalculatorPage() {
                                         </div>
                                         <Show when={!currentScore?.meetsRaceReq}>
                                             <p class="flex items-center gap-1.5 text-sm text-yellow-700 dark:text-yellow-400 mt-3">
-                                                <AlertTriangle size={14} />
-                                                Needs at least 100 VS races for a non-zero rank (currently {currentScore?.totalVs})
+                                                <TriangleAlert size={14} />
+                        Needs at least 100 VS races for a non-zero rank
+                        (currently {currentScore?.totalVs})
                                             </p>
                                         </Show>
                                     </div>
@@ -375,16 +416,16 @@ export default function RankCalculatorPage() {
                                             <thead class="bg-gray-50 dark:bg-gray-900">
                                                 <tr>
                                                     <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                                        Stat
+                            Stat
                                                     </th>
                                                     <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                                        Current
+                            Current
                                                     </th>
                                                     <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                                        Needed (for next rank)
+                            Needed (for next rank)
                                                     </th>
                                                     <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                                        Contribution
+                            Contribution
                                                     </th>
                                                 </tr>
                                             </thead>
@@ -393,21 +434,30 @@ export default function RankCalculatorPage() {
                                                 <tr>
                                                     <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">
                                                         <div>
-                                                            VR (Race Rating)
+                              VR (Race Rating)
                                                             <span class="text-xs text-gray-500 dark:text-gray-400 block">
                                                                 {getVrWarning()}
                                                             </span>
                                                         </div>
                                                     </td>
                                                     <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
-                                                        <Show 
-                                                            when={whatIfMode()} 
-                                                            fallback={<span>{license().vrPoints.toLocaleString()} VR</span>}
+                                                        <Show
+                                                            when={whatIfMode()}
+                                                            fallback={
+                                                                <span>
+                                                                    {license().vrPoints.toLocaleString()} VR
+                                                                </span>
+                                                            }
                                                         >
                                                             <input
                                                                 type="number"
                                                                 value={license().vrPoints}
-                                                                onInput={(e) => updateStat("vrPoints", parseInt(e.currentTarget.value) || 0)}
+                                                                onInput={(e) =>
+                                                                    updateStat(
+                                                                        "vrPoints",
+                                                                        parseInt(e.currentTarget.value) || 0,
+                                                                    )
+                                                                }
                                                                 min="0"
                                                                 max="1000000"
                                                                 step="100"
@@ -422,11 +472,15 @@ export default function RankCalculatorPage() {
                                                                 const current = license().vrPoints;
                                                                 return needed.neededRaw <= current ? (
                                                                     <span class="inline-flex items-center gap-1 text-green-600 dark:text-green-400">
-                                                                        <CheckCircle size={14} />
-                                                                        Sufficient
+                                                                        <CircleCheck size={14} />
+                                    Sufficient
                                                                     </span>
                                                                 ) : (
-                                                                    <span class={getFeasibilityClass(needed.feasibility)}>
+                                                                    <span
+                                                                        class={getFeasibilityClass(
+                                                                            needed.feasibility,
+                                                                        )}
+                                                                    >
                                                                         {needed.neededRaw.toLocaleString()} VR
                                                                     </span>
                                                                 );
@@ -435,14 +489,16 @@ export default function RankCalculatorPage() {
                                                     </td>
                                                     <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                                                         <div>{contribs?.VR.points.toFixed(2)} pts</div>
-                                                        <div class="text-xs">~{contribs?.VR.share.toFixed(1)}% of score</div>
+                                                        <div class="text-xs">
+                              ~{contribs?.VR.share.toFixed(1)}% of score
+                                                        </div>
                                                     </td>
                                                 </tr>
 
                                                 {/* Win % Row */}
                                                 <tr>
                                                     <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">
-                                                        VS Win %
+                            VS Win %
                                                     </td>
                                                     <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
                                                         <div class="space-y-1">
@@ -452,7 +508,12 @@ export default function RankCalculatorPage() {
                                                                     <input
                                                                         type="number"
                                                                         value={license().vsWins}
-                                                                        onInput={(e) => updateStat("vsWins", parseInt(e.currentTarget.value) || 0)}
+                                                                        onInput={(e) =>
+                                                                            updateStat(
+                                                                                "vsWins",
+                                                                                parseInt(e.currentTarget.value) || 0,
+                                                                            )
+                                                                        }
                                                                         min="0"
                                                                         placeholder="Wins"
                                                                         class="w-20 px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
@@ -460,7 +521,12 @@ export default function RankCalculatorPage() {
                                                                     <input
                                                                         type="number"
                                                                         value={license().vsLosses}
-                                                                        onInput={(e) => updateStat("vsLosses", parseInt(e.currentTarget.value) || 0)}
+                                                                        onInput={(e) =>
+                                                                            updateStat(
+                                                                                "vsLosses",
+                                                                                parseInt(e.currentTarget.value) || 0,
+                                                                            )
+                                                                        }
                                                                         min="0"
                                                                         placeholder="Losses"
                                                                         class="w-20 px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
@@ -468,25 +534,39 @@ export default function RankCalculatorPage() {
                                                                 </div>
                                                             </Show>
                                                             <div class="text-xs text-gray-500">
-                                                                W: {license().vsWins} / L: {license().vsLosses}
+                                W: {license().vsWins} / L: {license().vsLosses}
                                                             </div>
                                                         </div>
                                                     </td>
                                                     <td class="px-4 py-3">
-                                                        <Show when={neededStats?.byStat?.WinPct} fallback="-">
+                                                        <Show
+                                                            when={neededStats?.byStat?.WinPct}
+                                                            fallback="-"
+                                                        >
                                                             {(stat) => {
                                                                 const needed = stat();
                                                                 const current = currentScore?.winPct || 0;
                                                                 return needed.neededRaw <= current ? (
-                                                                    <span class="text-green-600 dark:text-green-400">✓ Sufficient</span>
+                                                                    <span class="text-green-600 dark:text-green-400">
+                                    ✓ Sufficient
+                                                                    </span>
                                                                 ) : (
                                                                     <div class="space-y-1">
-                                                                        <span class={getFeasibilityClass(needed.feasibility)}>
+                                                                        <span
+                                                                            class={getFeasibilityClass(
+                                                                                needed.feasibility,
+                                                                            )}
+                                                                        >
                                                                             {needed.neededRaw.toFixed(2)}%
                                                                         </span>
-                                                                        <Show when={needed.extraWins && needed.extraWins !== "-"}>
+                                                                        <Show
+                                                                            when={
+                                                                                needed.extraWins &&
+                                        needed.extraWins !== "-"
+                                                                            }
+                                                                        >
                                                                             <div class="text-xs text-gray-500">
-                                                                                Min +{needed.extraWins} wins
+                                        Min +{needed.extraWins} wins
                                                                             </div>
                                                                         </Show>
                                                                     </div>
@@ -496,24 +576,33 @@ export default function RankCalculatorPage() {
                                                     </td>
                                                     <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                                                         <div>{contribs?.RWIN.points.toFixed(2)} pts</div>
-                                                        <div class="text-xs">~{contribs?.RWIN.share.toFixed(1)}% of score</div>
+                                                        <div class="text-xs">
+                              ~{contribs?.RWIN.share.toFixed(1)}% of score
+                                                        </div>
                                                     </td>
                                                 </tr>
 
                                                 {/* Times 1st Row */}
                                                 <tr>
                                                     <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">
-                                                        Times 1st Place
+                            Times 1st Place
                                                     </td>
                                                     <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
-                                                        <Show 
-                                                            when={whatIfMode()} 
-                                                            fallback={<span>{license().firsts.toLocaleString()}</span>}
+                                                        <Show
+                                                            when={whatIfMode()}
+                                                            fallback={
+                                                                <span>{license().firsts.toLocaleString()}</span>
+                                                            }
                                                         >
                                                             <input
                                                                 type="number"
                                                                 value={license().firsts}
-                                                                onInput={(e) => updateStat("firsts", parseInt(e.currentTarget.value) || 0)}
+                                                                onInput={(e) =>
+                                                                    updateStat(
+                                                                        "firsts",
+                                                                        parseInt(e.currentTarget.value) || 0,
+                                                                    )
+                                                                }
                                                                 min="0"
                                                                 max="2725"
                                                                 class="w-32 px-2 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
@@ -521,14 +610,23 @@ export default function RankCalculatorPage() {
                                                         </Show>
                                                     </td>
                                                     <td class="px-4 py-3">
-                                                        <Show when={neededStats?.byStat?.Firsts} fallback="-">
+                                                        <Show
+                                                            when={neededStats?.byStat?.Firsts}
+                                                            fallback="-"
+                                                        >
                                                             {(stat) => {
                                                                 const needed = stat();
                                                                 const current = license().firsts;
                                                                 return needed.neededRaw <= current ? (
-                                                                    <span class="text-green-600 dark:text-green-400">✓ Sufficient</span>
+                                                                    <span class="text-green-600 dark:text-green-400">
+                                    ✓ Sufficient
+                                                                    </span>
                                                                 ) : (
-                                                                    <span class={getFeasibilityClass(needed.feasibility)}>
+                                                                    <span
+                                                                        class={getFeasibilityClass(
+                                                                            needed.feasibility,
+                                                                        )}
+                                                                    >
                                                                         {needed.neededRaw.toLocaleString()} times
                                                                     </span>
                                                                 );
@@ -537,24 +635,33 @@ export default function RankCalculatorPage() {
                                                     </td>
                                                     <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                                                         <div>{contribs?.FIRSTS.points.toFixed(2)} pts</div>
-                                                        <div class="text-xs">~{contribs?.FIRSTS.share.toFixed(1)}% of score</div>
+                                                        <div class="text-xs">
+                              ~{contribs?.FIRSTS.share.toFixed(1)}% of score
+                                                        </div>
                                                     </td>
                                                 </tr>
 
                                                 {/* Distance Row */}
                                                 <tr>
                                                     <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">
-                                                        Distance Travelled
+                            Distance Travelled
                                                     </td>
                                                     <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
-                                                        <Show 
-                                                            when={whatIfMode()} 
-                                                            fallback={<span>{formatMeters(license().distance)}</span>}
+                                                        <Show
+                                                            when={whatIfMode()}
+                                                            fallback={
+                                                                <span>{formatMeters(license().distance)}</span>
+                                                            }
                                                         >
                                                             <input
                                                                 type="number"
                                                                 value={Math.round(license().distance)}
-                                                                onInput={(e) => updateStat("distance", parseFloat(e.currentTarget.value) || 0)}
+                                                                onInput={(e) =>
+                                                                    updateStat(
+                                                                        "distance",
+                                                                        parseFloat(e.currentTarget.value) || 0,
+                                                                    )
+                                                                }
                                                                 min="0"
                                                                 max="100000"
                                                                 class="w-32 px-2 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
@@ -562,14 +669,23 @@ export default function RankCalculatorPage() {
                                                         </Show>
                                                     </td>
                                                     <td class="px-4 py-3">
-                                                        <Show when={neededStats?.byStat?.Distance} fallback="-">
+                                                        <Show
+                                                            when={neededStats?.byStat?.Distance}
+                                                            fallback="-"
+                                                        >
                                                             {(stat) => {
                                                                 const needed = stat();
                                                                 const current = license().distance;
                                                                 return needed.neededRaw <= current ? (
-                                                                    <span class="text-green-600 dark:text-green-400">✓ Sufficient</span>
+                                                                    <span class="text-green-600 dark:text-green-400">
+                                    ✓ Sufficient
+                                                                    </span>
                                                                 ) : (
-                                                                    <span class={getFeasibilityClass(needed.feasibility)}>
+                                                                    <span
+                                                                        class={getFeasibilityClass(
+                                                                            needed.feasibility,
+                                                                        )}
+                                                                    >
                                                                         {formatMeters(needed.neededRaw)}
                                                                     </span>
                                                                 );
@@ -578,24 +694,35 @@ export default function RankCalculatorPage() {
                                                     </td>
                                                     <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                                                         <div>{contribs?.DIST.points.toFixed(2)} pts</div>
-                                                        <div class="text-xs">~{contribs?.DIST.share.toFixed(1)}% of score</div>
+                                                        <div class="text-xs">
+                              ~{contribs?.DIST.share.toFixed(1)}% of score
+                                                        </div>
                                                     </td>
                                                 </tr>
 
                                                 {/* Distance 1st Row */}
                                                 <tr>
                                                     <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">
-                                                        Distance while 1st
+                            Distance while 1st
                                                     </td>
                                                     <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
-                                                        <Show 
-                                                            when={whatIfMode()} 
-                                                            fallback={<span>{formatMeters(license().distance1st)}</span>}
+                                                        <Show
+                                                            when={whatIfMode()}
+                                                            fallback={
+                                                                <span>
+                                                                    {formatMeters(license().distance1st)}
+                                                                </span>
+                                                            }
                                                         >
                                                             <input
                                                                 type="number"
                                                                 value={Math.round(license().distance1st)}
-                                                                onInput={(e) => updateStat("distance1st", parseFloat(e.currentTarget.value) || 0)}
+                                                                onInput={(e) =>
+                                                                    updateStat(
+                                                                        "distance1st",
+                                                                        parseFloat(e.currentTarget.value) || 0,
+                                                                    )
+                                                                }
                                                                 min="0"
                                                                 max="25000"
                                                                 class="w-32 px-2 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
@@ -603,14 +730,23 @@ export default function RankCalculatorPage() {
                                                         </Show>
                                                     </td>
                                                     <td class="px-4 py-3">
-                                                        <Show when={neededStats?.byStat?.Dist1st} fallback="-">
+                                                        <Show
+                                                            when={neededStats?.byStat?.Dist1st}
+                                                            fallback="-"
+                                                        >
                                                             {(stat) => {
                                                                 const needed = stat();
                                                                 const current = license().distance1st;
                                                                 return needed.neededRaw <= current ? (
-                                                                    <span class="text-green-600 dark:text-green-400">✓ Sufficient</span>
+                                                                    <span class="text-green-600 dark:text-green-400">
+                                    ✓ Sufficient
+                                                                    </span>
                                                                 ) : (
-                                                                    <span class={getFeasibilityClass(needed.feasibility)}>
+                                                                    <span
+                                                                        class={getFeasibilityClass(
+                                                                            needed.feasibility,
+                                                                        )}
+                                                                    >
                                                                         {formatMeters(needed.neededRaw)}
                                                                     </span>
                                                                 );
@@ -619,7 +755,9 @@ export default function RankCalculatorPage() {
                                                     </td>
                                                     <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                                                         <div>{contribs?.DIST1ST.points.toFixed(2)} pts</div>
-                                                        <div class="text-xs">~{contribs?.DIST1ST.share.toFixed(1)}% of score</div>
+                                                        <div class="text-xs">
+                              ~{contribs?.DIST1ST.share.toFixed(1)}% of score
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -630,15 +768,36 @@ export default function RankCalculatorPage() {
                                     <div class="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
                                         <p class="font-medium mb-2">How to read this:</p>
                                         <ul class="list-disc list-inside space-y-1">
-                                            <li><strong>Current:</strong> Your stats from the save file (or What If edits)</li>
-                                            <li><strong>Needed:</strong> What this stat needs to be (if changed alone) to reach the next rank</li>
-                                            <li><strong>Contribution:</strong> How much this stat contributes to your final score (0-100)</li>
+                                            <li>
+                                                <strong>Current:</strong> Your stats from the save file
+                        (or What If edits)
+                                            </li>
+                                            <li>
+                                                <strong>Needed:</strong> What this stat needs to be (if
+                        changed alone) to reach the next rank
+                                            </li>
+                                            <li>
+                                                <strong>Contribution:</strong> How much this stat
+                        contributes to your final score (0-100)
+                                            </li>
                                         </ul>
                                         <p class="mt-3 text-xs">
-                                            Contributions sum to your total score. Colors indicate feasibility: 
-                                            <span class="text-green-600 dark:text-green-400"> green = achievable</span>, 
-                                            <span class="text-yellow-600 dark:text-yellow-400"> yellow = difficult</span>, 
-                                            <span class="text-red-600 dark:text-red-400"> red = very difficult</span>
+                      Contributions sum to your total score. Colors indicate
+                      feasibility:
+                                            <span class="text-green-600 dark:text-green-400">
+                                                {" "}
+                        green = achievable
+                                            </span>
+                      ,
+                                            <span class="text-yellow-600 dark:text-yellow-400">
+                                                {" "}
+                        yellow = difficult
+                                            </span>
+                      ,
+                                            <span class="text-red-600 dark:text-red-400">
+                                                {" "}
+                        red = very difficult
+                                            </span>
                                         </p>
                                     </div>
                                 </div>

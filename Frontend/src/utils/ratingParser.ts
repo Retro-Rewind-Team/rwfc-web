@@ -11,7 +11,9 @@ function clamp(value: number, min: number, max: number): number {
 export function parseRatingFile(buffer: ArrayBuffer): RatingFile {
     const view = new DataView(buffer);
     if (view.byteLength < 8) {
-        throw new Error("File too small to be a valid RRRating.pul (needs at least 8 bytes).");
+        throw new Error(
+            "File too small to be a valid RRRating.pul (needs at least 8 bytes).",
+        );
     }
 
     let magic = "";
@@ -30,7 +32,10 @@ export function parseRatingFile(buffer: ArrayBuffer): RatingFile {
     }
 
     if (entriesToRead < count) {
-        console.warn("Header count larger than capacity; truncating to", entriesToRead);
+        console.warn(
+            "Header count larger than capacity; truncating to",
+            entriesToRead,
+        );
     }
 
     const entries: RatingEntry[] = [];
@@ -49,7 +54,7 @@ export function parseRatingFile(buffer: ArrayBuffer): RatingFile {
             profileId,
             vr,
             br,
-            flags: flags >>> 0
+            flags: flags >>> 0,
         });
     }
 
@@ -68,7 +73,8 @@ export function buildRatingFile(ratingFile: RatingFile): ArrayBuffer {
     view.setUint8(2, magic.charCodeAt(2) || "R".charCodeAt(0));
     view.setUint8(3, magic.charCodeAt(3) || "T".charCodeAt(0));
 
-    const version = typeof ratingFile.version === "number" ? ratingFile.version : 1;
+    const version =
+    typeof ratingFile.version === "number" ? ratingFile.version : 1;
     view.setUint16(4, version & 0xffff, false);
     view.setUint16(6, totalEntries & 0xffff, false);
 
