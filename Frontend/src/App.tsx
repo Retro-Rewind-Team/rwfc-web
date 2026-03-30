@@ -9,6 +9,7 @@ import {
     LeaderboardPage,
     LeaderboardPlayerDetailPage,
     NotFoundPage,
+    PrivacyPage,
     RaceStatsPage,
     // RankCalculatorPage,
     RatingEditorPage,
@@ -72,6 +73,7 @@ function App() {
                     {/* Community Pages */}
                     <Route path="/downloads" component={DownloadsPage} />
                     <Route path="/rules" component={RulesPage} />
+                    <Route path="/privacy" component={PrivacyPage} />
                     <Route path="/team" component={TeamPage} />
                     <Route path="/stats" component={RaceStatsPage} />
 
