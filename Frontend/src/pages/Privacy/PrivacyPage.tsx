@@ -41,11 +41,11 @@ export default function PrivacyPage() {
                         </p>
                         <ul class="space-y-2 text-gray-600 dark:text-gray-300 ml-6">
                             <li class="flex items-start">
-                                <span class="text-gray-600 mr-2 mt-1">•</span>
+                                <span class="text-blue-600 mr-2 mt-1">•</span>
                                 Your IP address
                             </li>
                             <li class="flex items-start">
-                                <span class="text-gray-600 mr-2 mt-1">•</span>
+                                <span class="text-blue-600 mr-2 mt-1">•</span>
                                 Your browser useragent
                             </li>
                         </ul>
@@ -61,23 +61,23 @@ export default function PrivacyPage() {
                         </p>
                         <ul class="space-y-2 text-gray-600 dark:text-gray-300 ml-6">
                             <li class="flex items-start">
-                                <span class="text-gray-600 mr-2 mt-1">•</span>
+                                <span class="text-blue-600 mr-2 mt-1">•</span>
                                 Your IP address
                             </li>
                             <li class="flex items-start">
-                                <span class="text-gray-600 mr-2 mt-1">•</span>
+                                <span class="text-blue-600 mr-2 mt-1">•</span>
                                 Your Device ID (from your NAND)
                             </li>
                             <li class="flex items-start">
-                                <span class="text-gray-600 mr-2 mt-1">•</span>
+                                <span class="text-blue-600 mr-2 mt-1">•</span>
                                 Your console serial number
                             </li>
                             <li class="flex items-start">
-                                <span class="text-gray-600 mr-2 mt-1">•</span>
+                                <span class="text-blue-600 mr-2 mt-1">•</span>
                                 Your Discord profile (if you choose to link your account)
                             </li>
                             <li class="flex items-start">
-                                <span class="text-gray-600 mr-2 mt-1">•</span>
+                                <span class="text-blue-600 mr-2 mt-1">•</span>
                                 Your Mii, which may contain the name you have
                                 set in your console and your MAC address
                             </li>
