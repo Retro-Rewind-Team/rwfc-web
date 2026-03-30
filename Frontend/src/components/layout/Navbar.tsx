@@ -11,6 +11,7 @@ const navLinks = [
     { href: "/downloads", label: "Downloads" },
     { href: "/team", label: "Team" },
     { href: "/rules", label: "Rules" },
+    { href: "/privacy", label: "Privacy" },
     { href: "/stats", label: "Stats" },
 ];
 

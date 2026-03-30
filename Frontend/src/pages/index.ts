@@ -7,6 +7,7 @@ export { TTTrackDetailPage } from "./TTLeaderboard";
 export { RoomStatusPage } from "./RoomStatus";
 export { DownloadsPage } from "./Downloads";
 export { RulesPage } from "./Rules";
+export { PrivacyPage } from "./Privacy";
 export { TeamPage } from "./Team";
 export { NotFoundPage } from "./NotFound";
 export { ToolsPage } from "./Tools";
