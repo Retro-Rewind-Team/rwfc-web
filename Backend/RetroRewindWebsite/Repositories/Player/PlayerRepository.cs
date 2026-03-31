@@ -36,12 +36,6 @@ public class PlayerRepository : IPlayerRepository
             .FirstOrDefaultAsync(p => p.Fc.Replace("-", "") == normalizedFc);
     }
 
-    public async Task<List<PlayerEntity>> GetAllAsync() =>
-        await _context.Players
-            .AsNoTracking()
-            .OrderBy(p => p.Rank)
-            .ToListAsync();
-
     public async Task<List<PlayerEntity>> GetPlayersByFriendCodesAsync(List<string> friendCodes)
     {
         if (friendCodes == null || friendCodes.Count == 0)
@@ -99,32 +93,6 @@ public class PlayerRepository : IPlayerRepository
             .OrderBy(p => p.Rank)
             .Take(count)
             .ToListAsync();
-
-    public async Task<List<PlayerEntity>> GetTopVRGainersAsync(int count, TimeSpan period)
-    {
-        var query = _context.Players
-            .AsNoTracking()
-            .Where(p => !p.IsSuspicious);
-
-        return period.TotalHours switch
-        {
-            <= 24 => await query.OrderByDescending(p => p.VRGainLast24Hours).Take(count).ToListAsync(),
-            <= 168 => await query.OrderByDescending(p => p.VRGainLastWeek).Take(count).ToListAsync(),
-            _ => await query.OrderByDescending(p => p.VRGainLastMonth).Take(count).ToListAsync()
-        };
-    }
-
-    public async Task<List<PlayerEntity>> GetPlayersAroundRankAsync(int rank, int window)
-    {
-        var startRank = Math.Max(1, rank - window);
-        var endRank = rank + window;
-
-        return await _context.Players
-            .AsNoTracking()
-            .Where(p => p.Rank >= startRank && p.Rank <= endRank)
-            .OrderBy(p => p.Rank)
-            .ToListAsync();
-    }
 
     public async Task<PagedResult<PlayerEntity>> GetLeaderboardPageNoMiiAsync(int page)
     {
@@ -202,14 +170,6 @@ public class PlayerRepository : IPlayerRepository
 
     // ===== BATCH OPERATIONS =====
 
-    public async Task<List<PlayerEntity>> GetPlayersBatchAsync(int skip, int take) =>
-        await _context.Players
-            .AsNoTracking()
-            .OrderBy(p => p.Id)
-            .Skip(skip)
-            .Take(take)
-            .ToListAsync();
-
     public async Task<List<string>> GetPlayerPidsBatchAsync(int skip, int take) =>
         await _context.Players
             .AsNoTracking()
@@ -218,13 +178,6 @@ public class PlayerRepository : IPlayerRepository
             .Take(take)
             .Select(p => p.Pid)
             .ToListAsync();
-
-    public async Task UpdatePlayersAsync(List<PlayerEntity> players)
-    {
-        _context.Players.UpdateRange(players);
-        await _context.SaveChangesAsync();
-        _context.ChangeTracker.Clear();
-    }
 
     public async Task UpdatePlayerVRGainsBatchAsync(
         Dictionary<string, (int gain24h, int gain7d, int gain30d)> vrGains)

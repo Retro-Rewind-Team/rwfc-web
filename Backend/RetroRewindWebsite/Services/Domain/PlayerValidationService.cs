@@ -24,15 +24,6 @@ public class PlayerValidationService : IPlayerValidationService
         (currentVR >= HighVRThreshold && vrChange >= LargeVRJumpThreshold) ||
         vrChange > MaxVRJumpPerRace;
 
-    public bool ShouldFlagPlayer(PlayerEntity player, int previousVR)
-    {
-        if (player.IsSuspicious)
-            return true;
-
-        var vrJump = player.Ev - previousVR;
-        return IsSuspiciousVRJump(vrJump, player.Ev);
-    }
-
     public SuspiciousStatusUpdate? CheckSuspiciousStatus(PlayerEntity player, int previousVR)
     {
         var vrJump = player.Ev - previousVR;

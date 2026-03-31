@@ -278,3 +278,6 @@ dotnet_diagnostic.IDE0059.severity = suggestion
 
 # Mark members as static when possible
 dotnet_diagnostic.CA1822.severity = suggestion
+
+# Disable unnecessary logging argument evaluation warning
+dotnet_diagnostic.CA1873.severity = none

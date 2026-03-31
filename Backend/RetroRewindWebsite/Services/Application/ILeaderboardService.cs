@@ -32,16 +32,6 @@ public interface ILeaderboardService
     Task<List<PlayerDto>> GetTopPlayersAsync(int count);
 
     /// <summary>
-    /// Retrieves a list of players who have gained the most virtual rating (VR) within a specified period.
-    /// </summary>
-    /// <param name="count">The maximum number of top players to return. Must be a positive integer.</param>
-    /// <param name="period">The time period over which VR gains are calculated. Supported values may include "daily", "weekly", or
-    /// "monthly".</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a list of player data transfer
-    /// objects ordered by VR gain, or an empty list if no players meet the criteria.</returns>
-    Task<List<PlayerDto>> GetTopVRGainersAsync(int count, string period);
-
-    /// <summary>
     /// Retrieves a list of the top players currently active for the in-game leaderboard.
     /// </summary>
     /// <param name="count">The maximum number of top players to return. Must be greater than zero.</param>

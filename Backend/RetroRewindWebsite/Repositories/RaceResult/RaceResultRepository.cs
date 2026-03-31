@@ -67,20 +67,4 @@ public class RaceResultRepository : IRaceResultRepository
             .ThenBy(r => r.FinishPos)
             .ToListAsync();
 
-    public async Task<List<RaceResultEntity>> GetRaceResultsByPlayerAsync(long profileId, int limit) =>
-        await _context.RaceResults
-            .AsNoTracking()
-            .Where(r => r.ProfileId == profileId)
-            .OrderByDescending(r => r.RaceTimestamp)
-            .Take(limit)
-            .ToListAsync();
-
-    public async Task<int> GetTotalRaceResultsCountAsync() =>
-        await _context.RaceResults.CountAsync();
-
-    public async Task<DateTime?> GetLastRaceResultTimestampAsync() =>
-        await _context.RaceResults
-            .OrderByDescending(r => r.RaceTimestamp)
-            .Select(r => r.RaceTimestamp)
-            .FirstOrDefaultAsync();
 }

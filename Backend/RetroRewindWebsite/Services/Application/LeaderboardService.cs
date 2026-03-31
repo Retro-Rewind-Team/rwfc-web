@@ -65,35 +65,6 @@ public class LeaderboardService : ILeaderboardService
         return [.. players.Select(PlayerMapper.ToInGameDto)];
     }
 
-    public async Task<List<PlayerDto>> GetTopVRGainersAsync(int count, string period)
-    {
-        var timeSpan = period.ToLower() switch
-        {
-            "24h" or "24" or "day" => TimeSpan.FromDays(1),
-            "7d" or "week" => TimeSpan.FromDays(7),
-            "30d" or "month" => TimeSpan.FromDays(30),
-            _ => TimeSpan.FromDays(1)
-        };
-
-        var players = await _playerRepository.GetTopVRGainersAsync(count, timeSpan);
-        return [.. players.Select(PlayerMapper.ToDtoWithoutMii)];
-    }
-
-    public async Task<LeaderboardResponseDto> GetLeaderboardNoMiiAsync(int page)
-    {
-        var pagedResult = await _playerRepository.GetLeaderboardPageNoMiiAsync(page);
-        var playerDtos = pagedResult.Items.Select(PlayerMapper.ToDtoWithoutMii).ToList();
-
-        return new LeaderboardResponseDto(
-            Players: playerDtos,
-            CurrentPage: pagedResult.CurrentPage,
-            TotalPages: pagedResult.TotalPages,
-            TotalCount: pagedResult.TotalCount,
-            PageSize: pagedResult.PageSize,
-            Stats: await GetStatsAsync()
-        );
-    }
-
     public async Task<LeaderboardStatsDto> GetStatsAsync()
     {
         var totalPlayers = await _playerRepository.GetTotalPlayersCountAsync();

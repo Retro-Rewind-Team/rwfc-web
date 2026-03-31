@@ -23,14 +23,6 @@ public interface IPlayerValidationService
     /// <returns>true if the VR change is considered suspicious; otherwise, false.</returns>
     bool IsSuspiciousVRJump(int vrChange, int currentVR);
     /// <summary>
-    /// Determines whether the specified player should be flagged based on their current state and previous VR value.
-    /// </summary>
-    /// <param name="player">The player entity to evaluate for flagging. Cannot be null.</param>
-    /// <param name="previousVR">The previous VR value associated with the player. Used to assess changes in player behavior.</param>
-    /// <returns>A value indicating whether the player should be flagged. Returns <see langword="true"/> if the player meets the
-    /// flagging criteria; otherwise, <see langword="false"/>.</returns>
-    bool ShouldFlagPlayer(PlayerEntity player, int previousVR);
-    /// <summary>
     /// Evaluates the player's status to determine if a suspicious activity update is required based on the provided
     /// previous VR value.
     /// </summary>

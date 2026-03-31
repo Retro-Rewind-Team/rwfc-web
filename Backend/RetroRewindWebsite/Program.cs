@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.OpenApi;
 using Npgsql;
 using RetroRewindWebsite.Data;
 using RetroRewindWebsite.HealthChecks;
@@ -12,6 +13,7 @@ using RetroRewindWebsite.Services.Application;
 using RetroRewindWebsite.Services.Background;
 using RetroRewindWebsite.Services.Domain;
 using RetroRewindWebsite.Services.External;
+using Scalar.AspNetCore;
 using Serilog;
 using System.Text.Json;
 using System.Threading.RateLimiting;
@@ -205,32 +207,21 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddControllers();
 
 // ===== SWAGGER / OPENAPI =====
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+builder.Services.AddOpenApi(options =>
 {
-    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    options.AddDocumentTransformer((document, context, ct) =>
     {
-        Name = "Authorization",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Description = "Enter 'Bearer' followed by your API key. Example: Bearer your-secret-key"
-    });
-
-    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
+        document.Components ??= new();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+        document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
         {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Description = "Enter your API key as a Bearer token."
+        };
+        return Task.CompletedTask;
     });
 });
 
@@ -280,8 +271,8 @@ app.MapHealthChecks("api/health/ready");
 // ===== CONFIGURE PIPELINE =====
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 // Only redirect to HTTPS in production

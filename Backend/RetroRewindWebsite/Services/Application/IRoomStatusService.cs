@@ -17,8 +17,6 @@ public interface IRoomStatusService
 
     Task<RoomStatusResponseDto?> GetNearestStatusAsync(DateTime timestamp);
 
-    Task<RoomSnapshotDto?> GetNearestSnapshotAsync(DateTime timestamp);
-
     Task<PagedResult<RoomSnapshotDto>> GetSnapshotHistoryAsync(int page, int pageSize);
 
     Task<List<RoomSnapshotDto>> GetSnapshotsByDateRangeAsync(DateTime from, DateTime to);

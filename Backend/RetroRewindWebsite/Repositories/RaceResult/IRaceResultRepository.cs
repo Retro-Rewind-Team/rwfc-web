@@ -30,25 +30,4 @@ public interface IRaceResultRepository : IRepository<RaceResultEntity>
     /// the specified room. The list will be empty if no results are found.</returns>
     Task<List<RaceResultEntity>> GetRaceResultsByRoomAsync(string roomId);
 
-    /// <summary>
-    /// Asynchronously retrieves a list of race results for the specified player profile.
-    /// </summary>
-    /// <param name="profileId">The unique identifier of the player profile for which to retrieve race results.</param>
-    /// <param name="limit">The maximum number of race results to return. Must be greater than zero.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a list of race result entities for
-    /// the specified player. The list may be empty if no results are found.</returns>
-    Task<List<RaceResultEntity>> GetRaceResultsByPlayerAsync(long profileId, int limit);
-
-    /// <summary>
-    /// Asynchronously retrieves the total number of race results available.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the total count of race results.</returns>
-    Task<int> GetTotalRaceResultsCountAsync();
-
-    /// <summary>
-    /// Asynchronously retrieves the timestamp of the most recent race result, if available.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="DateTime"/> value
-    /// representing the timestamp of the last race result, or <see langword="null"/> if no race results are available.</returns>
-    Task<DateTime?> GetLastRaceResultTimestampAsync();
 }

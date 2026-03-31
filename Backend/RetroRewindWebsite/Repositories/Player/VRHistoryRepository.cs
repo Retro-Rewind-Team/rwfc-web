@@ -60,13 +60,6 @@ public class VRHistoryRepository : IVRHistoryRepository
             .Take(count)
             .ToListAsync();
 
-    public async Task<List<VRHistoryEntity>> GetRecentChangesAsync(int count = 50) =>
-        await _context.VRHistories
-            .AsNoTracking()
-            .OrderByDescending(h => h.Date)
-            .Take(count)
-            .ToListAsync();
-
     public async Task<int> CalculateVRGainAsync(string playerId, TimeSpan timeSpan)
     {
         var fromDate = DateTime.UtcNow.Subtract(timeSpan);

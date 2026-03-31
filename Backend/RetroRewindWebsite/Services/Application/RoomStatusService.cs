@@ -97,15 +97,6 @@ public class RoomStatusService : IRoomStatusService
         return entity == null ? null : EntityToResponseDto(entity);
     }
 
-    public async Task<RoomSnapshotDto?> GetNearestSnapshotAsync(DateTime timestamp)
-    {
-        using var scope = _serviceScopeFactory.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IRoomSnapshotRepository>();
-
-        var entity = await repository.GetNearestAsync(timestamp);
-        return entity == null ? null : MapSnapshotToDto(entity);
-    }
-
     public async Task<PagedResult<RoomSnapshotDto>> GetSnapshotHistoryAsync(int page, int pageSize)
     {
         using var scope = _serviceScopeFactory.CreateScope();

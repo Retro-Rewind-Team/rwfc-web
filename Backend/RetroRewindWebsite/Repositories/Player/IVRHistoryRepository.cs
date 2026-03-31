@@ -25,14 +25,6 @@ public interface IVRHistoryRepository : IRepository<VRHistoryEntity>
     Task<List<VRHistoryEntity>> GetPlayerHistoryAsync(string playerId, int count = 100);
 
     /// <summary>
-    /// Retrieves a list of the most recent change history entries.
-    /// </summary>
-    /// <param name="count">The maximum number of recent changes to retrieve. Must be positive. Defaults to 50 if not specified.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a list of recent change history
-    /// entries. The list will be empty if no changes are available.</returns>
-    Task<List<VRHistoryEntity>> GetRecentChangesAsync(int count = 50);
-
-    /// <summary>
     /// Calculates the VR gain for the specified player over a given time span asynchronously.
     /// </summary>
     /// <param name="playerId">The unique identifier of the player for whom the VR gain is calculated. Cannot be null or empty.</param>

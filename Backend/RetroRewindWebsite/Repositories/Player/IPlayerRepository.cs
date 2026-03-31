@@ -25,13 +25,6 @@ public interface IPlayerRepository : IRepository<PlayerEntity>
     Task<PlayerEntity?> GetByFcAsync(string fc);
 
     /// <summary>
-    /// Asynchronously retrieves all player entities from the data store.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a list of player entities. The list
-    /// will be empty if no players are found.</returns>
-    Task<List<PlayerEntity>> GetAllAsync();
-
-    /// <summary>
     /// Retrieves a list of player entities that match the specified friend codes asynchronously.
     /// </summary>
     /// <param name="friendCodes">A list of friend codes to search for. Cannot be null or contain null or empty values.</param>
@@ -69,25 +62,6 @@ public interface IPlayerRepository : IRepository<PlayerEntity>
     Task<List<PlayerEntity>> GetTopPlayersAsync(int count);
 
     /// <summary>
-    /// Retrieves a list of players who have gained the most virtual rewards within a specified time period.
-    /// </summary>
-    /// <param name="count">The maximum number of top players to return. Must be a positive integer.</param>
-    /// <param name="period">The time interval over which virtual reward gains are measured. Must be greater than zero.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a list of players ordered by their
-    /// virtual reward gains, with up to the specified number of entries. The list will be empty if no players meet the
-    /// criteria.</returns>
-    Task<List<PlayerEntity>> GetTopVRGainersAsync(int count, TimeSpan period);
-
-    /// <summary>
-    /// Retrieves a list of players whose ranks are near the specified rank within a given window.
-    /// </summary>
-    /// <param name="rank">The central rank around which to search for players. Must be a positive integer.</param>
-    /// <param name="window">The number of ranks above and below the specified rank to include in the search. Must be a non-negative integer.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a list of players within the
-    /// specified rank window. The list may be empty if no players are found.</returns>
-    Task<List<PlayerEntity>> GetPlayersAroundRankAsync(int rank, int window);
-
-    /// <summary>
     /// Retrieves a paged list of leaderboard entries excluding players with Mii avatars.
     /// </summary>
     /// <param name="page">The zero-based index of the leaderboard page to retrieve. Must be greater than or equal to 0.</param>
@@ -122,15 +96,6 @@ public interface IPlayerRepository : IRepository<PlayerEntity>
     // ===== BATCH OPERATIONS =====
 
     /// <summary>
-    /// Retrieves a batch of player entities asynchronously, starting at the specified offset.
-    /// </summary>
-    /// <param name="skip">The number of player entities to skip before starting the batch retrieval. Must be greater than or equal to 0.</param>
-    /// <param name="take">The maximum number of player entities to retrieve in the batch. Must be greater than 0.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a list of player entities retrieved
-    /// in the batch. The list may be empty if no players are available in the specified range.</returns>
-    Task<List<PlayerEntity>> GetPlayersBatchAsync(int skip, int take);
-
-    /// <summary>
     /// Retrieves a batch of player IDs asynchronously, allowing for pagination of results.
     /// </summary>
     /// <param name="skip">The number of player IDs to skip before starting to collect the batch. Must be zero or greater.</param>
@@ -138,13 +103,6 @@ public interface IPlayerRepository : IRepository<PlayerEntity>
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of player IDs as strings. The
     /// list may be empty if no player IDs are available in the specified range.</returns>
     Task<List<string>> GetPlayerPidsBatchAsync(int skip, int take);
-
-    /// <summary>
-    /// Asynchronously updates the specified collection of player entities in the data store.
-    /// </summary>
-    /// <param name="players">A list of player entities to update. Cannot be null or contain null elements.</param>
-    /// <returns>A task that represents the asynchronous update operation.</returns>
-    Task UpdatePlayersAsync(List<PlayerEntity> players);
 
     /// <summary>
     /// Updates the VR gains for multiple players asynchronously in batch.
