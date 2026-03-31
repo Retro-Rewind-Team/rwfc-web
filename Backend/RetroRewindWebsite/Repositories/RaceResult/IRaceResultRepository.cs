@@ -1,4 +1,4 @@
-﻿using RetroRewindWebsite.Models.Entities.RaceResult;
+using RetroRewindWebsite.Models.Entities.RaceResult;
 using RetroRewindWebsite.Repositories.Common;
 
 namespace RetroRewindWebsite.Repositories.RaceResult;

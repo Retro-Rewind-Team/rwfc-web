@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using RetroRewindWebsite.Filters;
 using RetroRewindWebsite.Models.DTOs.Leaderboard;

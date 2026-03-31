@@ -1,4 +1,4 @@
-﻿namespace RetroRewindWebsite.Models.Domain;
+namespace RetroRewindWebsite.Models.Domain;
 
 public abstract record GhostFileParseResult
 {

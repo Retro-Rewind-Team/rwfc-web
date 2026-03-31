@@ -1,6 +1,6 @@
-﻿using RetroRewindWebsite.Models.Entities.TimeTrial;
 using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs.TimeTrial;
+using RetroRewindWebsite.Models.Entities.TimeTrial;
 
 namespace RetroRewindWebsite.Mappers;
 

@@ -1,4 +1,4 @@
-﻿namespace RetroRewindWebsite.Helpers;
+namespace RetroRewindWebsite.Helpers;
 
 /// <summary>
 /// Helper class for mapping Mario Kart Wii game data IDs to human-readable names

@@ -1,4 +1,4 @@
-﻿using RetroRewindWebsite.Models.DTOs.Leaderboard;
+using RetroRewindWebsite.Models.DTOs.Leaderboard;
 using RetroRewindWebsite.Models.DTOs.Player;
 
 namespace RetroRewindWebsite.Services.Application;

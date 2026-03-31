@@ -1,5 +1,5 @@
-﻿using System.Text.Json;
 using RetroRewindWebsite.Models.External;
+using System.Text.Json;
 
 namespace RetroRewindWebsite.Services.External;
 

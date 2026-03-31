@@ -1,4 +1,4 @@
-﻿namespace RetroRewindWebsite.Models.DTOs.Player;
+namespace RetroRewindWebsite.Models.DTOs.Player;
 
 public record VRJumpDto(DateTime Date, int VRChange, int TotalVR);
 

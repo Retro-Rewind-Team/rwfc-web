@@ -1,4 +1,4 @@
-﻿using RetroRewindWebsite.Repositories.Player;
+using RetroRewindWebsite.Repositories.Player;
 using RetroRewindWebsite.Services.Domain;
 
 namespace RetroRewindWebsite.Services.Background;

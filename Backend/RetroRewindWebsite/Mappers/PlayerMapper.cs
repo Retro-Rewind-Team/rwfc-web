@@ -1,4 +1,4 @@
-﻿using RetroRewindWebsite.Models.DTOs.Player;
+using RetroRewindWebsite.Models.DTOs.Player;
 using RetroRewindWebsite.Models.Entities.Player;
 
 namespace RetroRewindWebsite.Mappers;

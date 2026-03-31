@@ -1,4 +1,4 @@
-﻿namespace RetroRewindWebsite.Models.DTOs.TimeTrial;
+namespace RetroRewindWebsite.Models.DTOs.TimeTrial;
 
 public record GhostSubmissionResultDto(bool Success, string Message, GhostSubmissionDetailDto? Submission = null);
 public record GhostDeletionResultDto(bool Success, string Message);

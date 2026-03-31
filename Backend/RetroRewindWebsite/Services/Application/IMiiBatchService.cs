@@ -1,4 +1,4 @@
-﻿namespace RetroRewindWebsite.Services.Application;
+namespace RetroRewindWebsite.Services.Application;
 
 public interface IMiiBatchService
 {

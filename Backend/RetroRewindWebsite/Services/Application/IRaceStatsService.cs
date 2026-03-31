@@ -1,4 +1,4 @@
-﻿using RetroRewindWebsite.Models.DTOs.RaceStats;
+using RetroRewindWebsite.Models.DTOs.RaceStats;
 
 namespace RetroRewindWebsite.Services.Application
 {

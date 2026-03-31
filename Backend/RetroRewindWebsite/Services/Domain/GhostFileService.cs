@@ -1,4 +1,4 @@
-﻿using RetroRewindWebsite.Models.Domain;
+using RetroRewindWebsite.Models.Domain;
 using System.Text;
 
 namespace RetroRewindWebsite.Services.Domain;

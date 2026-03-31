@@ -1,4 +1,4 @@
-﻿using RetroRewindWebsite.Services.Application;
+using RetroRewindWebsite.Services.Application;
 
 namespace RetroRewindWebsite.Services.Background;
 

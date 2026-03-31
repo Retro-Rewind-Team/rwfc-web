@@ -1,4 +1,4 @@
-﻿namespace RetroRewindWebsite.Models.External;
+namespace RetroRewindWebsite.Models.External;
 
 public class MiiResponse
 {

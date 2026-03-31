@@ -1,4 +1,4 @@
-﻿using RetroRewindWebsite.Models.DTOs.Common;
+using RetroRewindWebsite.Models.DTOs.Common;
 using RetroRewindWebsite.Models.Entities.TimeTrial;
 
 namespace RetroRewindWebsite.Repositories.TimeTrial;

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using RetroRewindWebsite.Models.DTOs.RaceStats;
 using RetroRewindWebsite.Services.Application;
 

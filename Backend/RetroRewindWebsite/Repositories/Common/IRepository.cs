@@ -1,4 +1,4 @@
-﻿namespace RetroRewindWebsite.Repositories.Common;
+namespace RetroRewindWebsite.Repositories.Common;
 
 public interface IRepository<T> where T : class
 {

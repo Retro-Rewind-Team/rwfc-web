@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using RetroRewindWebsite.Models.DTOs.Room;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RetroRewindWebsite.Models.Entities.Room;
 

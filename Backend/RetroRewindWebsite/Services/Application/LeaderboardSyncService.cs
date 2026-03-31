@@ -1,4 +1,4 @@
-﻿using RetroRewindWebsite.Models.Entities.Player;
+using RetroRewindWebsite.Models.Entities.Player;
 using RetroRewindWebsite.Models.External;
 using RetroRewindWebsite.Repositories.Player;
 using RetroRewindWebsite.Services.Domain;

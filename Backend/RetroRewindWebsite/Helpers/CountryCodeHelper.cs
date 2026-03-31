@@ -1,4 +1,4 @@
-﻿namespace RetroRewindWebsite.Helpers;
+namespace RetroRewindWebsite.Helpers;
 
 /// <summary>
 /// Helper class for converting between ISO 3166-1 country codes

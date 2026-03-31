@@ -1,4 +1,4 @@
-﻿using RetroRewindWebsite.Models.DTOs.Common;
+using RetroRewindWebsite.Models.DTOs.Common;
 using RetroRewindWebsite.Models.Entities.Player;
 using RetroRewindWebsite.Repositories.Common;
 
@@ -173,7 +173,7 @@ public interface IPlayerRepository : IRepository<PlayerEntity>
     Task UpdatePlayerMiiImageAsync(string pid, string miiImageBase64);
 
     // ===== LEGACY OPERATIONS =====
-    
+
     /// <summary>
     /// Determines whether a legacy snapshot exists in the current context.
     /// </summary>

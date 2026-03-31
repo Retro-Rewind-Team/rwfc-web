@@ -1,4 +1,4 @@
-﻿namespace RetroRewindWebsite.Models.DTOs.RaceStats;
+namespace RetroRewindWebsite.Models.DTOs.RaceStats;
 
 public record TrackPlayCountDto(string TrackName, int RaceCount, short CourseId);
 

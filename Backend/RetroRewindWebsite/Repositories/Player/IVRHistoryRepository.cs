@@ -1,4 +1,4 @@
-﻿using RetroRewindWebsite.Models.Entities.Player;
+using RetroRewindWebsite.Models.Entities.Player;
 using RetroRewindWebsite.Repositories.Common;
 
 namespace RetroRewindWebsite.Repositories.Player;

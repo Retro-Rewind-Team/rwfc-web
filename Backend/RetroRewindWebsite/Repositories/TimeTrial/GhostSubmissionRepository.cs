@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using RetroRewindWebsite.Data;
 using RetroRewindWebsite.Models.DTOs.Common;
 using RetroRewindWebsite.Models.Entities.TimeTrial;

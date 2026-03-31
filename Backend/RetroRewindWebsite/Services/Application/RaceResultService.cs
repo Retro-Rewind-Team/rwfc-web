@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using RetroRewindWebsite.Models.Entities.RaceResult;
 using RetroRewindWebsite.Repositories.RaceResult;
 using RetroRewindWebsite.Services.External;

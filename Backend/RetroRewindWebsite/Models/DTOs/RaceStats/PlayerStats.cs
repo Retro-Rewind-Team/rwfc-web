@@ -1,4 +1,4 @@
-﻿namespace RetroRewindWebsite.Models.DTOs.RaceStats;
+namespace RetroRewindWebsite.Models.DTOs.RaceStats;
 
 public record PlayerStatsDto(
     string Pid,

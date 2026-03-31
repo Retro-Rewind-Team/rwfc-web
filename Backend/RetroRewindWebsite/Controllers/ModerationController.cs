@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Mappers;
 using RetroRewindWebsite.Models.Domain;

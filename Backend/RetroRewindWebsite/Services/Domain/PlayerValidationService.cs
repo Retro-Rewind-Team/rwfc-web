@@ -1,4 +1,4 @@
-﻿using RetroRewindWebsite.Models.Domain;
+using RetroRewindWebsite.Models.Domain;
 using RetroRewindWebsite.Models.Entities.Player;
 
 namespace RetroRewindWebsite.Services.Domain;

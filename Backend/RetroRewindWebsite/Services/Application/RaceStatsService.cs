@@ -1,4 +1,4 @@
-﻿using RetroRewindWebsite.Helpers;
+using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs.RaceStats;
 using RetroRewindWebsite.Repositories.Player;
 using RetroRewindWebsite.Repositories.RaceResult;

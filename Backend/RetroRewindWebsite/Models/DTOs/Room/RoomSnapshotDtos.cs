@@ -1,4 +1,4 @@
-﻿namespace RetroRewindWebsite.Models.DTOs.Room;
+namespace RetroRewindWebsite.Models.DTOs.Room;
 
 public record RoomSnapshotDto(
     int Id,

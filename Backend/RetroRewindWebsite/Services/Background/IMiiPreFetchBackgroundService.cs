@@ -1,4 +1,4 @@
-﻿namespace RetroRewindWebsite.Services.Background;
+namespace RetroRewindWebsite.Services.Background;
 
 public interface IMiiPreFetchBackgroundService
 {

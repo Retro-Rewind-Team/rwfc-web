@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RetroRewindWebsite.Models.DTOs.Room;
+using System;
+using System.Collections.Generic;
 
 #nullable disable
 

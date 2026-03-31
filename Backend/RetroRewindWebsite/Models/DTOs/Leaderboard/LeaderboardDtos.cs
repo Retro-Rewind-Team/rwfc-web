@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
 using RetroRewindWebsite.Models.DTOs.Player;
+using System.ComponentModel.DataAnnotations;
 
 namespace RetroRewindWebsite.Models.DTOs.Leaderboard;
 

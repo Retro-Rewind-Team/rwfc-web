@@ -1,4 +1,4 @@
-﻿namespace RetroRewindWebsite.Models.DTOs.TimeTrial;
+namespace RetroRewindWebsite.Models.DTOs.TimeTrial;
 
 public record GhostSubmissionDto(
     int Id,

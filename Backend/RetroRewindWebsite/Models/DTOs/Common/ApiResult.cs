@@ -1,4 +1,4 @@
-﻿namespace RetroRewindWebsite.Models.DTOs.Common;
+namespace RetroRewindWebsite.Models.DTOs.Common;
 
 public class ApiResult<T>
 {

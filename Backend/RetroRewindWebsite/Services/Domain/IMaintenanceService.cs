@@ -1,4 +1,4 @@
-﻿namespace RetroRewindWebsite.Services.Domain;
+namespace RetroRewindWebsite.Services.Domain;
 
 public interface IMaintenanceService
 {

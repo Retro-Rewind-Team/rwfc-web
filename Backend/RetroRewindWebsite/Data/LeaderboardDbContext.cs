@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using RetroRewindWebsite.Models.Entities.Player;
-using RetroRewindWebsite.Models.Entities.TimeTrial;
 using RetroRewindWebsite.Models.Entities.RaceResult;
 using RetroRewindWebsite.Models.Entities.Room;
+using RetroRewindWebsite.Models.Entities.TimeTrial;
 
 namespace RetroRewindWebsite.Data;
 

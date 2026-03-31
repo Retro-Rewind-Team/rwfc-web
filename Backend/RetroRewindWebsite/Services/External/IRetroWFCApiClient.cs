@@ -1,4 +1,4 @@
-﻿using RetroRewindWebsite.Models.External;
+using RetroRewindWebsite.Models.External;
 
 namespace RetroRewindWebsite.Services.External;
 
