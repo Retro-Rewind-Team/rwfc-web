@@ -24,7 +24,7 @@ import { LoadingSpinner } from "../../components/common";
 export default function PlayerDetailPage() {
     const params = useParams();
     const { playerQuery, legacyPlayer, hasLegacyData, isPlayerNotFound } =
-    usePlayer(params.friendCode);
+    usePlayer(params.friendCode ?? "0000-0000-0000");
 
     return (
         <div class="space-y-6">
