@@ -183,6 +183,6 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-Backend/.editorconfig
 /Backend/RetroRewindWebsite/ghosts
+CLAUDE.md
 **/publish
