@@ -53,7 +53,7 @@ public class RaceStatsService : IRaceStatsService
         if (!courseId.HasValue)
         {
             var topTrackRaw = await _raceStatsRepository.GetTopTracksByPlayerAsync(profileId, 5, after, courseId);
-            var trackNames = await BuildTrackNameMapAsync(topTrackRaw.Select(t => t.CourseId).ToList());
+            var trackNames = await BuildTrackNameMapAsync([.. topTrackRaw.Select(t => t.CourseId)]);
             topTracks = RaceStatsMapper.MapTrackPlayCounts(topTrackRaw, trackNames);
         }
 
@@ -73,7 +73,7 @@ public class RaceStatsService : IRaceStatsService
             profileId, page, pageSize, after, courseId);
 
         var recentTrackNames = await BuildTrackNameMapAsync(
-            recentRaw.Select(r => r.CourseId).Distinct().ToList());
+            [.. recentRaw.Select(r => r.CourseId).Distinct()]);
         var recentRaces = RaceStatsMapper.MapRecentRaces(recentRaw, recentTrackNames);
 
         var totalPages = (int)Math.Ceiling((double)totalRecentCount / pageSize);
@@ -105,7 +105,7 @@ public class RaceStatsService : IRaceStatsService
             ?? DateTime.UtcNow;
 
         var allTracksRaw = await _raceStatsRepository.GetAllPlayedTracksAsync(after);
-        var trackNames = await BuildTrackNameMapAsync(allTracksRaw.Select(t => t.CourseId).ToList());
+        var trackNames = await BuildTrackNameMapAsync([.. allTracksRaw.Select(t => t.CourseId)]);
         var allPlayedTracks = RaceStatsMapper.MapTrackPlayCounts(allTracksRaw, trackNames);
 
         var topCharacters = RaceStatsMapper.MapCharacterEntries(
