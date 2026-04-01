@@ -1,13 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs.Player;
 using RetroRewindWebsite.Models.DTOs.Room;
 using RetroRewindWebsite.Services.Application;
 using RetroRewindWebsite.Services.Background;
 using RetroRewindWebsite.Services.Domain;
+using System.Security.Cryptography;
 
 namespace RetroRewindWebsite.Controllers;
 
+/// <summary>
+/// Provides live and historical RWFC room status data and room snapshots.
+/// keyed to players currently visible in rooms.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class RoomStatusController : ControllerBase
@@ -16,8 +22,6 @@ public class RoomStatusController : ControllerBase
     private readonly IMiiService _miiService;
     private readonly IRoomStatusBackgroundService _backgroundService;
     private readonly ILogger<RoomStatusController> _logger;
-
-    private const int MaxBatchMiiCount = 25;
 
     public RoomStatusController(
         IRoomStatusService roomStatusService,
@@ -34,6 +38,9 @@ public class RoomStatusController : ControllerBase
     // ===== ROOM STATUS ENDPOINTS =====
 
     [HttpGet]
+    [ProducesResponseType<RoomStatusResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<RoomStatusResponseDto>> GetRoomStatus()
     {
         try
@@ -58,6 +65,9 @@ public class RoomStatusController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [ProducesResponseType<RoomStatusResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<RoomStatusResponseDto>> GetRoomStatusById(int id)
     {
         try
@@ -91,6 +101,8 @@ public class RoomStatusController : ControllerBase
     }
 
     [HttpGet("stats")]
+    [ProducesResponseType<RoomStatusStatsDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<RoomStatusStatsDto>> GetStats()
     {
         try
@@ -107,6 +119,9 @@ public class RoomStatusController : ControllerBase
     }
 
     [HttpGet("nearest")]
+    [ProducesResponseType<RoomStatusResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<RoomStatusResponseDto>> GetNearest([FromQuery] DateTime timestamp)
     {
         try
@@ -132,6 +147,9 @@ public class RoomStatusController : ControllerBase
     }
 
     [HttpGet("history")]
+    [ProducesResponseType<List<RoomSnapshotDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> GetHistory(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 60,
@@ -165,6 +183,8 @@ public class RoomStatusController : ControllerBase
 
     [HttpPost("refresh")]
     [EnableRateLimiting("RefreshPolicy")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> ForceRefresh()
     {
         try
@@ -183,6 +203,9 @@ public class RoomStatusController : ControllerBase
     // ===== MII ENDPOINTS =====
 
     [HttpGet("mii/{fc}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> GetMiiImage(string fc)
     {
         try
@@ -202,7 +225,7 @@ public class RoomStatusController : ControllerBase
             var imageBytes = Convert.FromBase64String(miiImageBase64);
 
             Response.Headers.CacheControl = "public, max-age=3600";
-            Response.Headers.ETag = $"\"{fc.GetHashCode()}\"";
+            Response.Headers.ETag = $"\"{Convert.ToHexString(MD5.HashData(imageBytes))}\"";
 
             return File(imageBytes, "image/png");
         }
@@ -215,14 +238,17 @@ public class RoomStatusController : ControllerBase
     }
 
     [HttpPost("miis/batch")]
+    [ProducesResponseType<BatchMiiResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<BatchMiiResponseDto>> GetMiisBatch(
         [FromBody] BatchMiiRequestDto request)
     {
         try
         {
-            var validationResult = ValidateBatchMiiRequest(request);
-            if (validationResult != null)
-                return validationResult;
+            var miiError = BatchMiiValidation.Validate(request);
+            if (miiError != null)
+                return BadRequest(miiError);
 
             var latestStatus = await _roomStatusService.GetLatestStatusAsync();
             if (latestStatus == null)
@@ -264,17 +290,9 @@ public class RoomStatusController : ControllerBase
 
     // ===== HELPER METHODS =====
 
-    private BadRequestObjectResult? ValidateBatchMiiRequest(BatchMiiRequestDto request)
-    {
-        if (request.FriendCodes == null || request.FriendCodes.Count == 0)
-            return BadRequest("Friend codes list cannot be empty");
-
-        if (request.FriendCodes.Count > MaxBatchMiiCount)
-            return BadRequest($"Maximum {MaxBatchMiiCount} friend codes allowed per batch request");
-
-        return null;
-    }
-
+    /// <summary>
+    /// Returns the raw Mii binary data for the first matching player across all live rooms, or <c>null</c> if not found.
+    /// </summary>
     private static string? FindMiiDataInRooms(List<RoomDto> rooms, string friendCode)
     {
         foreach (var room in rooms)
@@ -289,6 +307,9 @@ public class RoomStatusController : ControllerBase
         return null;
     }
 
+    /// <summary>
+    /// Builds a FC → Mii-data lookup from all players currently in rooms (one entry per FC).
+    /// </summary>
     private static Dictionary<string, string> BuildMiiDataLookup(List<RoomDto> rooms)
     {
         var lookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

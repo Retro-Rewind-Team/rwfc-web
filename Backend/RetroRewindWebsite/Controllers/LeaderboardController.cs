@@ -1,12 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using RetroRewindWebsite.Filters;
+using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs.Leaderboard;
 using RetroRewindWebsite.Models.DTOs.Player;
 using RetroRewindWebsite.Services.Application;
+using System.Security.Cryptography;
 
 namespace RetroRewindWebsite.Controllers;
 
+/// <summary>
+/// Exposes the player leaderboard, individual player profiles, VR history, and Mii avatar endpoints.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class LeaderboardController : ControllerBase
@@ -19,8 +24,6 @@ public class LeaderboardController : ControllerBase
     private const int MinTopPlayersCount = 1;
     private const int MaxTopPlayersCount = 100;
     private const int DefaultTopPlayersCount = 10;
-    private const int MaxBatchMiiCount = 25;
-
     public LeaderboardController(
         ILeaderboardService leaderboardService,
         IPlayerService playerService,
@@ -36,6 +39,8 @@ public class LeaderboardController : ControllerBase
     // ===== LEADERBOARD ENDPOINTS =====
 
     [HttpGet]
+    [ProducesResponseType<LeaderboardResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<LeaderboardResponseDto>> GetLeaderboard(
         [FromQuery] LeaderboardRequest request)
     {
@@ -53,6 +58,8 @@ public class LeaderboardController : ControllerBase
     }
 
     [HttpGet("in-game")]
+    [ProducesResponseType<LeaderboardInGameResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<LeaderboardInGameResponseDto>> GetLeaderboardInGame(
         [FromQuery] int page = 1)
     {
@@ -70,6 +77,8 @@ public class LeaderboardController : ControllerBase
     }
 
     [HttpGet("top/{count}")]
+    [ProducesResponseType<List<PlayerDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<PlayerDto>>> GetTopPlayers(int count = DefaultTopPlayersCount)
     {
         try
@@ -87,6 +96,8 @@ public class LeaderboardController : ControllerBase
     }
 
     [HttpGet("top/in-game/{count}")]
+    [ProducesResponseType<List<InGamePlayerDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<InGamePlayerDto>>> GetTopPlayersInGame(int count = DefaultTopPlayersCount)
     {
         try
@@ -104,6 +115,8 @@ public class LeaderboardController : ControllerBase
     }
 
     [HttpGet("stats")]
+    [ProducesResponseType<LeaderboardStatsDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<LeaderboardStatsDto>> GetStats()
     {
         try
@@ -122,6 +135,9 @@ public class LeaderboardController : ControllerBase
     // ===== PLAYER ENDPOINTS =====
 
     [HttpGet("player/{fc}")]
+    [ProducesResponseType<PlayerDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PlayerDto>> GetPlayer(string fc)
     {
         try
@@ -141,6 +157,9 @@ public class LeaderboardController : ControllerBase
     }
 
     [HttpGet("player/{fc}/history")]
+    [ProducesResponseType<VRHistoryRangeResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<VRHistoryRangeResponseDto>> GetPlayerHistory(
         string fc,
         [FromQuery] int? days)
@@ -162,6 +181,9 @@ public class LeaderboardController : ControllerBase
     }
 
     [HttpGet("player/{fc}/history/recent")]
+    [ProducesResponseType<List<VRHistoryDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<VRHistoryDto>>> GetPlayerRecentHistory(
         string fc,
         [FromQuery] int count = 50)
@@ -185,6 +207,9 @@ public class LeaderboardController : ControllerBase
     // ===== MII ENDPOINTS =====
 
     [HttpGet("player/{fc}/mii")]
+    [ProducesResponseType<MiiResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<MiiResponseDto>> GetPlayerMii(string fc)
     {
         try
@@ -194,7 +219,8 @@ public class LeaderboardController : ControllerBase
                 return NotFound($"Mii image not found for player with friend code '{fc}'");
 
             Response.Headers.CacheControl = "public, max-age=3600";
-            Response.Headers.ETag = $"\"{fc.GetHashCode()}\"";
+            // ETag is an MD5 hash of the image bytes — allows the client to detect image changes without re-downloading
+            Response.Headers.ETag = $"\"{Convert.ToHexString(MD5.HashData(Convert.FromBase64String(miiImage)))}\"";
 
             return Ok(new MiiResponseDto(fc, miiImage));
         }
@@ -208,6 +234,9 @@ public class LeaderboardController : ControllerBase
 
     // Returns the mii image decoded as a png rather than b64
     [HttpGet("player/{fc}/mii/image")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetPlayerMiiImage(string fc)
     {
         try
@@ -216,10 +245,11 @@ public class LeaderboardController : ControllerBase
             if (miiImage == null)
                 return NotFound($"Mii image not found for player with friend code '{fc}'");
 
+            var imageBytes = Convert.FromBase64String(miiImage);
             Response.Headers.CacheControl = "public, max-age=3600";
-            Response.Headers.ETag = $"\"{fc.GetHashCode()}\"";
+            Response.Headers.ETag = $"\"{Convert.ToHexString(MD5.HashData(imageBytes))}\"";
 
-            return File(Convert.FromBase64String(miiImage), "image/png");
+            return File(imageBytes, "image/png");
         }
         catch (Exception ex)
         {
@@ -230,14 +260,17 @@ public class LeaderboardController : ControllerBase
     }
 
     [HttpPost("miis/batch")]
+    [ProducesResponseType<BatchMiiResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<BatchMiiResponseDto>> GetPlayerMiisBatch(
         [FromBody] BatchMiiRequestDto request)
     {
         try
         {
-            var validationResult = ValidateBatchMiiRequest(request);
-            if (validationResult != null)
-                return validationResult;
+            var miiError = BatchMiiValidation.Validate(request);
+            if (miiError != null)
+                return BadRequest(miiError);
 
             var cleanFriendCodes = request.FriendCodes
                 .Where(fc => !string.IsNullOrWhiteSpace(fc))
@@ -268,6 +301,9 @@ public class LeaderboardController : ControllerBase
 
     [HttpGet("player/{fc}/mii/download")]
     [EnableRateLimiting("DownloadPolicy")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DownloadPlayerMii(string fc)
     {
         try
@@ -293,6 +329,8 @@ public class LeaderboardController : ControllerBase
     // ===== LEGACY ENDPOINTS =====
 
     [HttpGet("legacy/available")]
+    [ProducesResponseType<bool>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<bool>> IsLegacyAvailable()
     {
         try
@@ -310,6 +348,8 @@ public class LeaderboardController : ControllerBase
 
     [HttpGet("legacy")]
     [RequireLegacySnapshot]
+    [ProducesResponseType<LeaderboardResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<LeaderboardResponseDto>> GetLegacyLeaderboard(
         [FromQuery] LeaderboardRequest request)
     {
@@ -328,6 +368,9 @@ public class LeaderboardController : ControllerBase
 
     [HttpGet("legacy/player/{friendCode}")]
     [RequireLegacySnapshot]
+    [ProducesResponseType<PlayerDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PlayerDto>> GetLegacyPlayer(string friendCode)
     {
         try
@@ -348,14 +391,17 @@ public class LeaderboardController : ControllerBase
 
     [HttpPost("legacy/miis/batch")]
     [RequireLegacySnapshot]
+    [ProducesResponseType<BatchMiiResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<BatchMiiResponseDto>> GetLegacyPlayerMiisBatch(
         [FromBody] BatchMiiRequestDto request)
     {
         try
         {
-            var validationResult = ValidateBatchMiiRequest(request);
-            if (validationResult != null)
-                return validationResult;
+            var miiError = BatchMiiValidation.Validate(request);
+            if (miiError != null)
+                return BadRequest(miiError);
 
             var cleanFriendCodes = request.FriendCodes
                 .Where(fc => !string.IsNullOrWhiteSpace(fc))
@@ -382,18 +428,5 @@ public class LeaderboardController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError,
                 "An error occurred while retrieving Mii images");
         }
-    }
-
-    // ===== HELPER METHODS =====
-
-    private BadRequestObjectResult? ValidateBatchMiiRequest(BatchMiiRequestDto request)
-    {
-        if (request.FriendCodes == null || request.FriendCodes.Count == 0)
-            return BadRequest("Friend codes list cannot be empty");
-
-        if (request.FriendCodes.Count > MaxBatchMiiCount)
-            return BadRequest($"Maximum {MaxBatchMiiCount} friend codes allowed per batch request");
-
-        return null;
     }
 }

@@ -84,6 +84,8 @@ builder.Services.AddHttpClient();
 
 // ===== REPOSITORIES =====
 builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
+builder.Services.AddScoped<IPlayerMiiRepository, PlayerRepository>();
+builder.Services.AddScoped<ILegacyPlayerRepository, PlayerRepository>();
 builder.Services.AddScoped<IVRHistoryRepository, VRHistoryRepository>();
 builder.Services.AddScoped<ITrackRepository, TrackRepository>();
 builder.Services.AddScoped<ITTProfileRepository, TTProfileRepository>();
@@ -106,6 +108,8 @@ builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
 builder.Services.AddScoped<ILeaderboardSyncService, LeaderboardSyncService>();
 builder.Services.AddScoped<IMiiBatchService, MiiBatchService>();
 builder.Services.AddScoped<IPlayerService, PlayerService>();
+builder.Services.AddScoped<IPlayerModerationService, PlayerModerationService>();
+builder.Services.AddScoped<ITimeTrialService, TimeTrialService>();
 builder.Services.AddSingleton<IRoomStatusService, RoomStatusService>();
 builder.Services.AddScoped<IRaceResultService, RaceResultService>();
 builder.Services.AddScoped<IRaceStatsService, RaceStatsService>();
@@ -123,7 +127,6 @@ builder.Services.AddSingleton<IRoomStatusBackgroundService, RoomStatusBackground
 builder.Services.AddHostedService<RoomStatusBackgroundService>(sp =>
     (RoomStatusBackgroundService)sp.GetRequiredService<IRoomStatusBackgroundService>());
 
-// Race Results Background Service
 builder.Services.AddSingleton<IRaceResultBackgroundService, RaceResultBackgroundService>();
 builder.Services.AddHostedService<RaceResultBackgroundService>(sp =>
     (RaceResultBackgroundService)sp.GetRequiredService<IRaceResultBackgroundService>());
@@ -206,7 +209,7 @@ builder.Services.AddRateLimiter(options =>
 // ===== CONTROLLERS =====
 builder.Services.AddControllers();
 
-// ===== SWAGGER / OPENAPI =====
+// ===== OPENAPI / SCALAR =====
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer((document, context, ct) =>

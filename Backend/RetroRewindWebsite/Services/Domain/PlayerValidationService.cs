@@ -7,11 +7,11 @@ public class PlayerValidationService : IPlayerValidationService
 {
     private readonly ILogger<PlayerValidationService> _logger;
 
-    private const int SuspiciousNewPlayerVR = 20000;
-    private const int HighVRThreshold = 20000;
+    private const int SuspiciousNewPlayerVR = 20000; // A brand-new account at 20 000+ VR has no prior history
+    private const int HighVRThreshold = 20000; // At this VR level a 5 000-point jump should not be tolerated
     private const int LargeVRJumpThreshold = 5000;
-    private const int MaxVRJumpPerRace = 529;
-    private const int SuspiciousJumpCountThreshold = 5;
+    private const int MaxVRJumpPerRace = 529; // 529 = maximum VR gain achievable in a single race (12-player room, first place, VR multiplier)
+    private const int SuspiciousJumpCountThreshold = 5; // Flag after 5 over-max jumps; allows for one-off API glitches
 
     public PlayerValidationService(ILogger<PlayerValidationService> logger)
     {
@@ -28,6 +28,7 @@ public class PlayerValidationService : IPlayerValidationService
     {
         var vrJump = player.Ev - previousVR;
 
+        // Path 1: single large jump while already at high VR, flag immediately, no accumulation needed
         if (player.Ev >= HighVRThreshold && vrJump >= LargeVRJumpThreshold)
         {
             _logger.LogWarning(
@@ -41,6 +42,7 @@ public class PlayerValidationService : IPlayerValidationService
             );
         }
 
+        // Path 2: jump exceeds the single-race maximum, accumulate; flag once the threshold count is reached
         if (vrJump > MaxVRJumpPerRace)
         {
             var newJumpCount = player.SuspiciousVRJumps + 1;

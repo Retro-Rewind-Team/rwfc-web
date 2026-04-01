@@ -8,9 +8,9 @@ public class ExternalPlayer
     public string? Conn_map { get; set; }
     public string? Conn_fail { get; set; }
     public string? Suspend { get; set; }
-    public required string Fc { get; set; }
+    public required string Fc { get; set; } // Friend code, stored string format as sent by WFC (e.g. "1234-5678-9012")
     public string? Ev { get; set; } // VR 
-    public string? Eb { get; set; }
+    public string? Eb { get; set; } // BR
     public List<Mii>? Mii { get; set; }
     public string? Openhost { get; set; }
 

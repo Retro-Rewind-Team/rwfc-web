@@ -3,43 +3,38 @@ using RetroRewindWebsite.Services.Domain;
 
 namespace RetroRewindWebsite.Services.Background;
 
-public class LeaderboardBackgroundService : BackgroundService, ILeaderboardBackgroundService
+public class LeaderboardBackgroundService : PollingBackgroundService, ILeaderboardBackgroundService
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly ILogger<LeaderboardBackgroundService> _logger;
-    private readonly SemaphoreSlim _semaphore = new(1, 1);
     private DateTime? _lastMaintenanceDate;
 
     private const int RefreshIntervalMinutes = 1;
     private const int MaintenanceHourUtc = 11;
-    private const int SemaphoreTimeoutSeconds = 30;
 
     public LeaderboardBackgroundService(
         IServiceScopeFactory serviceScopeFactory,
         ILogger<LeaderboardBackgroundService> logger)
+        : base(serviceScopeFactory, logger)
     {
-        _serviceScopeFactory = serviceScopeFactory;
-        _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Leaderboard background service started");
+        Logger.LogInformation("Leaderboard background service started");
 
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                await PerformRefreshAsync(stoppingToken);
+                await PerformAsync(stoppingToken);
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation("Leaderboard background service is stopping");
+                Logger.LogInformation("Leaderboard background service is stopping");
                 break;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in leaderboard background service");
+                Logger.LogError(ex, "Error in leaderboard background service");
             }
 
             try
@@ -52,73 +47,45 @@ public class LeaderboardBackgroundService : BackgroundService, ILeaderboardBackg
             }
         }
 
-        _logger.LogInformation("Leaderboard background service stopped");
+        Logger.LogInformation("Leaderboard background service stopped");
     }
 
-    public async Task ForceRefreshAsync()
+    protected override async Task ExecuteOnceAsync(IServiceProvider services, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Force refresh requested");
-        await PerformRefreshAsync(CancellationToken.None);
-    }
+        Logger.LogDebug("Starting scheduled leaderboard refresh");
 
-    private async Task PerformRefreshAsync(CancellationToken cancellationToken)
-    {
-        if (!await _semaphore.WaitAsync(TimeSpan.FromSeconds(SemaphoreTimeoutSeconds), cancellationToken))
+        var syncService = services.GetRequiredService<ILeaderboardSyncService>();
+        await syncService.RefreshFromApiAsync();
+        await syncService.RefreshRankingsAsync();
+
+        var now = DateTime.UtcNow;
+        if (now.Hour == MaintenanceHourUtc && now.Minute < RefreshIntervalMinutes
+            && _lastMaintenanceDate?.Date != now.Date)
         {
-            _logger.LogWarning("Previous refresh operation is still running, skipping this cycle");
-            return;
-        }
+            Logger.LogInformation("Performing daily maintenance tasks for {Date:yyyy-MM-dd}", now.Date);
 
-        try
-        {
-            _logger.LogDebug("Starting scheduled leaderboard refresh");
-
-            using var scope = _serviceScopeFactory.CreateScope();
-            var syncService = scope.ServiceProvider.GetRequiredService<ILeaderboardSyncService>();
-
-            await syncService.RefreshFromApiAsync();
-            await syncService.RefreshRankingsAsync();
-
-            var now = DateTime.UtcNow;
-            if (now.Hour == MaintenanceHourUtc && now.Minute < RefreshIntervalMinutes
-                && _lastMaintenanceDate?.Date != now.Date)
+            _ = Task.Run(async () =>
             {
-                _logger.LogInformation("Performing daily maintenance tasks for {Date:yyyy-MM-dd}", now.Date);
-
-                _ = Task.Run(async () =>
+                try
                 {
-                    try
-                    {
-                        await PerformMaintenanceTasksAsync();
-                        _lastMaintenanceDate = now;
-                        _logger.LogInformation("Daily maintenance tasks completed");
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Maintenance failed");
-                    }
-                }, cancellationToken);
-            }
+                    await PerformMaintenanceTasksAsync();
+                    _lastMaintenanceDate = now;
+                    Logger.LogInformation("Daily maintenance tasks completed");
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Maintenance failed");
+                }
+            }, cancellationToken);
+        }
 
-            _logger.LogDebug("Scheduled leaderboard refresh completed successfully");
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        Logger.LogDebug("Scheduled leaderboard refresh completed successfully");
     }
 
     private async Task PerformMaintenanceTasksAsync()
     {
-        using var scope = _serviceScopeFactory.CreateScope();
+        using var scope = ServiceScopeFactory.CreateScope();
         var maintenanceService = scope.ServiceProvider.GetRequiredService<IMaintenanceService>();
         await maintenanceService.UpdateAllPlayerVRGainsAsync();
-    }
-
-    public override void Dispose()
-    {
-        _semaphore?.Dispose();
-        base.Dispose();
-        GC.SuppressFinalize(this);
     }
 }

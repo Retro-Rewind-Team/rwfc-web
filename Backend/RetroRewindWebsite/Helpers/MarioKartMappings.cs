@@ -166,4 +166,10 @@ public static class MarioKartMappings
             _ => $"Unknown Drift Category ({driftCategoryId})"
         };
     }
+
+    /// <summary>
+    /// Returns a combined "Character + Vehicle" display name for a character/vehicle pair.
+    /// </summary>
+    public static string GetComboName(short characterId, short vehicleId)
+        => $"{GetCharacterName(characterId)} + {GetVehicleName(vehicleId)}";
 }

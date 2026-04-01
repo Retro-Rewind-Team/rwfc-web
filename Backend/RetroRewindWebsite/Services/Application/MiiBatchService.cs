@@ -6,6 +6,8 @@ namespace RetroRewindWebsite.Services.Application;
 public class MiiBatchService : IMiiBatchService
 {
     private readonly IPlayerRepository _playerRepository;
+    private readonly IPlayerMiiRepository _playerMiiRepository;
+    private readonly ILegacyPlayerRepository _legacyPlayerRepository;
     private readonly IMiiService _miiService;
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger<MiiBatchService> _logger;
@@ -15,11 +17,15 @@ public class MiiBatchService : IMiiBatchService
 
     public MiiBatchService(
         IPlayerRepository playerRepository,
+        IPlayerMiiRepository playerMiiRepository,
+        ILegacyPlayerRepository legacyPlayerRepository,
         IMiiService miiService,
         IServiceScopeFactory serviceScopeFactory,
         ILogger<MiiBatchService> logger)
     {
         _playerRepository = playerRepository;
+        _playerMiiRepository = playerMiiRepository;
+        _legacyPlayerRepository = legacyPlayerRepository;
         _miiService = miiService;
         _serviceScopeFactory = serviceScopeFactory;
         _logger = logger;
@@ -36,7 +42,7 @@ public class MiiBatchService : IMiiBatchService
         }
 
         if (IsMiiImageCached(player))
-            return player.MiiImageBase64;
+            return player.MiiCache!.MiiImageBase64;
 
         try
         {
@@ -58,7 +64,9 @@ public class MiiBatchService : IMiiBatchService
     {
         var result = new Dictionary<string, string?>();
         var players = await _playerRepository.GetPlayersByFriendCodesAsync(friendCodes);
+        // Build a lookup keyed by FC so we can resolve each requested code in O(1)
         var playerLookup = players.ToDictionary(p => p.Fc, p => p);
+        // Collect live-fetch tasks separately so they can run concurrently via Task.WhenAll
         var tasks = new List<Task<(string fc, string? mii)>>();
 
         foreach (var fc in friendCodes.Distinct())
@@ -70,15 +78,17 @@ public class MiiBatchService : IMiiBatchService
                 continue;
             }
 
-            if (!string.IsNullOrEmpty(player.MiiImageBase64))
+            if (IsMiiImageCached(player))
             {
-                result[fc] = player.MiiImageBase64;
+                // Cache hit = return immediately without a network call
+                result[fc] = player.MiiCache!.MiiImageBase64;
                 continue;
             }
 
             tasks.Add(FetchAndStoreMiiAsync(player));
         }
 
+        // Await all in-flight fetches concurrently rather than sequentially
         foreach (var (fc, mii) in await Task.WhenAll(tasks))
             result[fc] = mii;
 
@@ -88,7 +98,7 @@ public class MiiBatchService : IMiiBatchService
     public async Task<Dictionary<string, string?>> GetLegacyPlayerMiisBatchAsync(List<string> friendCodes)
     {
         var result = new Dictionary<string, string?>();
-        var legacyPlayers = await _playerRepository.GetLegacyPlayersByFriendCodesAsync(friendCodes);
+        var legacyPlayers = await _legacyPlayerRepository.GetLegacyPlayersByFriendCodesAsync(friendCodes);
         var playerLookup = legacyPlayers.ToDictionary(p => p.Fc, p => p);
         var tasks = new List<Task<(string fc, string? mii)>>();
 
@@ -125,9 +135,8 @@ public class MiiBatchService : IMiiBatchService
     /// <returns>A value indicating whether the player's Mii image is cached and has not expired. Returns <see langword="true"/>
     /// if the image is cached and valid; otherwise, <see langword="false"/>.</returns>
     private static bool IsMiiImageCached(Models.Entities.Player.PlayerEntity player) =>
-        !string.IsNullOrEmpty(player.MiiImageBase64) &&
-        player.MiiImageFetchedAt.HasValue &&
-        player.MiiImageFetchedAt.Value > DateTime.UtcNow.AddDays(-MiiImageCacheDays);
+        player.MiiCache != null &&
+        player.MiiCache.MiiImageFetchedAt > DateTime.UtcNow.AddDays(-MiiImageCacheDays);
 
     /// <summary>
     /// Queues an asynchronous operation to store a Mii image for the specified player.
@@ -144,8 +153,8 @@ public class MiiBatchService : IMiiBatchService
             try
             {
                 using var scope = _serviceScopeFactory.CreateScope();
-                var playerRepository = scope.ServiceProvider.GetRequiredService<IPlayerRepository>();
-                await playerRepository.UpdatePlayerMiiImageAsync(pid, miiImage);
+                var playerMiiRepository = scope.ServiceProvider.GetRequiredService<IPlayerMiiRepository>();
+                await playerMiiRepository.UpdatePlayerMiiImageAsync(pid, miiImage);
                 _logger.LogDebug("Stored Mii image in database for {FriendCode}", fc);
             }
             catch (Exception ex)

@@ -16,6 +16,6 @@ public class Group
 public class Race
 {
     public int Num { get; set; }
-    public int Course { get; set; }
-    public int Cc { get; set; }
+    public int Course { get; set; } // Course ID, same as RaceResultEntity.CourseId and TrackEntity.CourseId
+    public int Cc { get; set; } // Engine class, same as RaceResultEntity.EngineClassId
 }

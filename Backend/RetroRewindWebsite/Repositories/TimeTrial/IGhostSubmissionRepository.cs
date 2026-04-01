@@ -42,7 +42,7 @@ public interface IGhostSubmissionRepository
     /// <param name="ttProfileId">The unique identifier of the time trial profile to filter results. If null, submissions from all profiles are
     /// included.</param>
     /// <param name="trackId">The unique identifier of the track to filter results. If null, submissions from all tracks are included.</param>
-    /// <param name="cc">The engine class to filter results, specified in cubic centimeters (cc). If null, submissions from all engine
+    /// <param name="cc">The engine class to filter results. If null, submissions from all engine
     /// classes are included.</param>
     /// <param name="glitch">Indicates whether to filter results by glitch category. If null, both glitch and non-glitch submissions are
     /// included.</param>
@@ -98,7 +98,7 @@ public interface IGhostSubmissionRepository
     /// class, glitch allowance, shroomless status, vehicle ID range, and result count.
     /// </summary>
     /// <param name="trackId">The unique identifier of the track for which to retrieve top ghost times.</param>
-    /// <param name="cc">The engine class to filter results by, specified in cubic centimeters (cc).</param>
+    /// <param name="cc">The engine class to filter results by, which is either 150 or 200.</param>
     /// <param name="glitchAllowed">A value indicating whether glitch runs are allowed in the results. Set to <see langword="true"/> to include
     /// glitch runs; otherwise, <see langword="false"/>.</param>
     /// <param name="shroomless">An optional value indicating whether to filter for shroomless runs. If <see langword="true"/>, only shroomless
@@ -152,7 +152,7 @@ public interface IGhostSubmissionRepository
     /// <remarks>If multiple submissions match the criteria, the one with the lowest completion time is
     /// returned. This method does not guarantee thread safety for concurrent calls.</remarks>
     /// <param name="trackId">The unique identifier of the track for which to retrieve the world record.</param>
-    /// <param name="cc">The engine class, in cubic centimeters, used for the record attempt. Values are 150 or 200.</param>
+    /// <param name="cc">The engine class used for the record attempt. Values are 150 or 200.</param>
     /// <param name="glitchAllowed">A value indicating whether glitch techniques are permitted in the record search. Set to <see langword="true"/>
     /// to include glitch runs; otherwise, <see langword="false"/>.</param>
     /// <param name="shroomless">A value indicating whether the record must be achieved without using mushrooms. If <see langword="true"/>, only
@@ -173,10 +173,21 @@ public interface IGhostSubmissionRepository
         short? maxVehicleId = null);
 
     /// <summary>
+    /// Returns the current world record for every track in a single query, keyed by track ID.
+    /// Tracks with no qualifying submission are absent from the dictionary.
+    /// </summary>
+    Task<Dictionary<int, GhostSubmissionEntity>> GetAllWorldRecordsAsync(
+        short cc,
+        bool glitchAllowed,
+        bool? shroomless = null,
+        short? minVehicleId = null,
+        short? maxVehicleId = null);
+
+    /// <summary>
     /// Retrieves the history of world record ghost submissions for a specified track and configuration.
     /// </summary>
     /// <param name="trackId">The unique identifier of the track for which to retrieve world record history.</param>
-    /// <param name="cc">The engine class of the track, specified in cubic centimeters (cc).</param>
+    /// <param name="cc">The engine class of the submission, which is either 150 or 200.</param>
     /// <param name="glitchAllowed">A value indicating whether glitch techniques are permitted in the record history.</param>
     /// <param name="shroomless">A value indicating whether shroomless runs should be included. If null, both types are considered.</param>
     /// <param name="minVehicleId">The minimum vehicle identifier to filter submissions. If null, no lower bound is applied.</param>

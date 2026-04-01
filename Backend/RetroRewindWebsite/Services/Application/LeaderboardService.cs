@@ -8,13 +8,16 @@ namespace RetroRewindWebsite.Services.Application;
 public class LeaderboardService : ILeaderboardService
 {
     private readonly IPlayerRepository _playerRepository;
+    private readonly ILegacyPlayerRepository _legacyPlayerRepository;
     private readonly ILogger<LeaderboardService> _logger;
 
     public LeaderboardService(
         IPlayerRepository playerRepository,
+        ILegacyPlayerRepository legacyPlayerRepository,
         ILogger<LeaderboardService> logger)
     {
         _playerRepository = playerRepository;
+        _legacyPlayerRepository = legacyPlayerRepository;
         _logger = logger;
     }
 
@@ -78,11 +81,11 @@ public class LeaderboardService : ILeaderboardService
     }
 
     public async Task<bool> HasLegacySnapshotAsync() =>
-        await _playerRepository.HasLegacySnapshotAsync();
+        await _legacyPlayerRepository.HasLegacySnapshotAsync();
 
     public async Task<LeaderboardResponseDto> GetLegacyLeaderboardAsync(LeaderboardRequest request)
     {
-        var pagedResult = await _playerRepository.GetLegacyLeaderboardPageAsync(
+        var pagedResult = await _legacyPlayerRepository.GetLegacyLeaderboardPageAsync(
             request.Page,
             request.PageSize,
             request.Search,
@@ -92,8 +95,8 @@ public class LeaderboardService : ILeaderboardService
         var snapshotDate = pagedResult.Items.FirstOrDefault()?.SnapshotDate ?? DateTime.UtcNow;
         var playerDtos = pagedResult.Items.Select(PlayerMapper.FromLegacy).ToList();
 
-        var totalPlayers = await _playerRepository.GetLegacyPlayersCountAsync();
-        var suspiciousPlayers = await _playerRepository.GetLegacySuspiciousPlayersCountAsync();
+        var totalPlayers = await _legacyPlayerRepository.GetLegacyPlayersCountAsync();
+        var suspiciousPlayers = await _legacyPlayerRepository.GetLegacySuspiciousPlayersCountAsync();
 
         return new LeaderboardResponseDto(
             Players: playerDtos,

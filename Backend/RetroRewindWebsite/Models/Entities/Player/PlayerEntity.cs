@@ -8,16 +8,11 @@ public class PlayerEntity
 {
     [Key]
     public int Id { get; set; }
-
     public required string Pid { get; set; }
     public required string Name { get; set; }
-    public required string Fc { get; set; }
-    public int Ev { get; set; }
+    public required string Fc { get; set; } // Friend code, stored string format as sent by WFC (e.g. "1234-5678-9012")
+    public int Ev { get; set; } // VR as sent by WFC, can be 0 if missing/invalid
     public required string MiiData { get; set; }
-
-    // TODO: Extract to separate PlayerMiiCache table
-    public string? MiiImageBase64 { get; set; }
-    public DateTime? MiiImageFetchedAt { get; set; }
 
     public DateTime LastSeen { get; set; }
     public int Rank { get; set; }
@@ -29,11 +24,11 @@ public class PlayerEntity
 
     public DateTime LastUpdated { get; set; }
 
-    // TODO: Extract to separate PlayerModerationEntity table
     public bool IsSuspicious { get; set; }
     public int SuspiciousVRJumps { get; set; }
     public string FlagReason { get; set; } = string.Empty;
     public string UnflagReason { get; set; } = string.Empty;
 
+    public virtual PlayerMiiCacheEntity? MiiCache { get; set; }
     public virtual ICollection<VRHistoryEntity> VRHistory { get; set; } = [];
 }

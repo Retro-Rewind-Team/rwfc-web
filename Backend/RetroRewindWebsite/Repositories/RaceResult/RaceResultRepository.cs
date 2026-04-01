@@ -66,5 +66,4 @@ public class RaceResultRepository : IRaceResultRepository
             .OrderBy(r => r.RaceNumber)
             .ThenBy(r => r.FinishPos)
             .ToListAsync();
-
 }

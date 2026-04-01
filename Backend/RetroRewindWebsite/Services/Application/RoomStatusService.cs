@@ -2,7 +2,6 @@ using RetroRewindWebsite.Mappers;
 using RetroRewindWebsite.Models.DTOs.Common;
 using RetroRewindWebsite.Models.DTOs.Room;
 using RetroRewindWebsite.Models.Entities.Room;
-using RetroRewindWebsite.Models.External;
 using RetroRewindWebsite.Repositories.Room;
 using RetroRewindWebsite.Repositories.TimeTrial;
 using RetroRewindWebsite.Services.External;
@@ -41,7 +40,7 @@ public class RoomStatusService : IRoomStatusService
             return Task.FromResult<RoomStatusResponseDto?>(null);
         }
 
-        return Task.FromResult<RoomStatusResponseDto?>(ToResponseDto(latest.Rooms, latest.DbId, latest.Timestamp));
+        return Task.FromResult<RoomStatusResponseDto?>(RoomMapper.ToResponseDto(latest.Rooms, latest.DbId, latest.Timestamp));
     }
 
     public async Task<RoomStatusStatsDto> GetStatsAsync()
@@ -85,7 +84,7 @@ public class RoomStatusService : IRoomStatusService
             return null;
         }
 
-        return EntityToResponseDto(entity);
+        return RoomMapper.ToResponseDto(entity);
     }
 
     public async Task<RoomStatusResponseDto?> GetNearestStatusAsync(DateTime timestamp)
@@ -94,7 +93,7 @@ public class RoomStatusService : IRoomStatusService
         var repository = scope.ServiceProvider.GetRequiredService<IRoomSnapshotRepository>();
 
         var entity = await repository.GetNearestAsync(timestamp);
-        return entity == null ? null : EntityToResponseDto(entity);
+        return entity == null ? null : RoomMapper.ToResponseDto(entity);
     }
 
     public async Task<PagedResult<RoomSnapshotDto>> GetSnapshotHistoryAsync(int page, int pageSize)
@@ -103,7 +102,7 @@ public class RoomStatusService : IRoomStatusService
         var repository = scope.ServiceProvider.GetRequiredService<IRoomSnapshotRepository>();
 
         var paged = await repository.GetPagedAsync(page, pageSize);
-        return paged.Map(MapSnapshotToDto);
+        return paged.Map(RoomMapper.ToSnapshotDto);
     }
 
     public async Task<List<RoomSnapshotDto>> GetSnapshotsByDateRangeAsync(DateTime from, DateTime to)
@@ -112,7 +111,7 @@ public class RoomStatusService : IRoomStatusService
         var repository = scope.ServiceProvider.GetRequiredService<IRoomSnapshotRepository>();
 
         var snapshots = await repository.GetByDateRangeAsync(from, to);
-        return [.. snapshots.Select(MapSnapshotToDto)];
+        return [.. snapshots.Select(RoomMapper.ToSnapshotDto)];
     }
 
     public async Task<int> GetMinIdAsync()
@@ -151,7 +150,7 @@ public class RoomStatusService : IRoomStatusService
             var groups = await retroWFCApiClient.GetActiveGroupsAsync();
             var timestamp = DateTime.UtcNow;
 
-            // Build track name lookup once — reused for both mapping and persistence
+            // Build track name lookup once, reused for both mapping and persistence
             var allTracks = await trackRepository.GetAllTracksAsync();
             var trackNames = allTracks
                 .GroupBy(t => t.CourseId)
@@ -180,14 +179,7 @@ public class RoomStatusService : IRoomStatusService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error refreshing room data");
-
-            // Keep live cache entry with empty rooms so the endpoint doesn't return null
-            UpdateLiveCache(new RoomStatusSnapshot
-            {
-                DbId = 0,
-                Timestamp = DateTime.UtcNow,
-                Rooms = []
-            });
+            // Live cache is not updated on failure, callers continue to see last-known-good data
         }
         finally
         {
@@ -233,43 +225,6 @@ public class RoomStatusService : IRoomStatusService
         while (_liveCache.Count > LiveCacheSize)
             _liveCache.TryDequeue(out _);
     }
-
-    private static RoomStatusResponseDto EntityToResponseDto(RoomSnapshotEntity entity) =>
-        new(
-            Rooms: entity.Rooms,
-            Timestamp: entity.Timestamp,
-            Id: entity.Id,
-            MinimumId: 0, // populated by controller from GetMinIdAsync/GetMaxIdAsync
-            MaximumId: 0
-        );
-
-    private static RoomStatusResponseDto ToResponseDto(List<RoomDto> rooms, int id, DateTime timestamp) =>
-        new(
-            Rooms: rooms,
-            Timestamp: timestamp,
-            Id: id,
-            MinimumId: 0,
-            MaximumId: 0
-        );
-
-    private static RoomSnapshotDto MapSnapshotToDto(RoomSnapshotEntity entity) =>
-        new(
-            Id: entity.Id,
-            Timestamp: entity.Timestamp,
-            TotalPlayers: entity.TotalPlayers,
-            TotalRooms: entity.TotalRooms,
-            PublicRooms: entity.PublicRooms,
-            PrivateRooms: entity.PrivateRooms,
-            Rooms: [.. entity.Rooms.Select(r => new RoomSnapshotRoomDto(
-                RoomId: r.Id,
-                Type: r.Type,
-                Rk: r.Rk,
-                PlayerCount: r.Players.Count,
-                CourseId: r.Race?.Course,
-                TrackName: r.Race?.TrackName,
-                TrackId: null
-            ))]
-        );
 
     private class RoomStatusSnapshot
     {

@@ -72,6 +72,7 @@ public class RetroWFCApiClient : IRetroWFCApiClient
                 return [];
             }
 
+            // The API returns race numbers as string keys; convert to int for typed consumption
             var resultsDict = new Dictionary<int, List<RaceResult>>();
             foreach (var kvp in raceResponse.Results)
             {

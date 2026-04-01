@@ -72,17 +72,7 @@ public class GhostFileService : IGhostFileService
 
     // ===== PRIVATE PARSING METHODS =====
 
-    /// <summary>
-    /// Parses the provided byte array representing a ghost file and returns the result of the parsing operation.
-    /// </summary>
-    /// <remarks>If the input is invalid or an error occurs during parsing, the result will indicate failure
-    /// and include a descriptive error message. The returned result contains parsed metadata such as course ID, finish
-    /// time, vehicle and character IDs, controller type, drift information, lap splits, Mii name, lap count, and date
-    /// set.</remarks>
-    /// <param name="bytes">The byte array containing the ghost file data to be parsed. Must not be null and must contain at least the
-    /// minimum required number of bytes.</param>
-    /// <returns>A GhostFileParseResult indicating either a successful parse with extracted ghost file information or a failure
-    /// with an error message.</returns>
+    // Synchronous core parser, operates on an in-memory byte array so it can be called from the async wrapper above
     private GhostFileParseResult ParseGhostFileBytes(byte[] bytes)
     {
         try
@@ -212,7 +202,7 @@ public class GhostFileService : IGhostFileService
             {
                 _logger.LogWarning("Invalid date in ghost file: {Year}-{Month}-{Day}, using current date",
                     year, month, day);
-                return DateOnly.FromDateTime(DateTime.Now);
+                return DateOnly.FromDateTime(DateTime.UtcNow);
             }
 
             return new DateOnly(year, month, day);
@@ -221,7 +211,7 @@ public class GhostFileService : IGhostFileService
         {
             _logger.LogWarning(ex, "Failed to parse date {Year}-{Month}-{Day}, using current date",
                 year, month, day);
-            return DateOnly.FromDateTime(DateTime.Now);
+            return DateOnly.FromDateTime(DateTime.UtcNow);
         }
     }
 

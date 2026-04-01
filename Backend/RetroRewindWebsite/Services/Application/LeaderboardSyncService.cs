@@ -9,6 +9,7 @@ namespace RetroRewindWebsite.Services.Application;
 public class LeaderboardSyncService : ILeaderboardSyncService
 {
     private readonly IPlayerRepository _playerRepository;
+    private readonly IPlayerMiiRepository _playerMiiRepository;
     private readonly IVRHistoryRepository _vrHistoryRepository;
     private readonly IRetroWFCApiClient _apiClient;
     private readonly IPlayerValidationService _validationService;
@@ -17,17 +18,20 @@ public class LeaderboardSyncService : ILeaderboardSyncService
     private static readonly HashSet<string> AllowedRoomTypes =
     [
         "vs_10", "vs_11", "vs_12", "vs_13",
-        "vs_14", "vs_15", "vs_20", "vs_21"
+        "vs_14", "vs_15", "vs_20", "vs_21",
+        "vs_22", "vs_751", "vs_-1", "vs"
     ];
 
     public LeaderboardSyncService(
         IPlayerRepository playerRepository,
+        IPlayerMiiRepository playerMiiRepository,
         IVRHistoryRepository vrHistoryRepository,
         IRetroWFCApiClient apiClient,
         IPlayerValidationService validationService,
         ILogger<LeaderboardSyncService> logger)
     {
         _playerRepository = playerRepository;
+        _playerMiiRepository = playerMiiRepository;
         _vrHistoryRepository = vrHistoryRepository;
         _apiClient = apiClient;
         _validationService = validationService;
@@ -74,9 +78,12 @@ public class LeaderboardSyncService : ILeaderboardSyncService
                 else
                 {
                     var previousVR = existingPlayer.Ev;
-                    UpdateExistingPlayer(existingPlayer, apiPlayer);
+                    var miiDataChanged = UpdateExistingPlayer(existingPlayer, apiPlayer);
                     await _playerRepository.UpdateAsync(existingPlayer);
                     updatedCount++;
+
+                    if (miiDataChanged)
+                        await _playerMiiRepository.InvalidatePlayerMiiCacheAsync(existingPlayer.Pid);
 
                     if (existingPlayer.Ev != previousVR)
                         await TrackVRHistoryAsync(existingPlayer, previousVR);
@@ -117,7 +124,8 @@ public class LeaderboardSyncService : ILeaderboardSyncService
     /// also updates the timestamps for last seen and last updated.</remarks>
     /// <param name="existingPlayer">The player entity to update. Must not be null.</param>
     /// <param name="apiPlayer">The external player data used to update the existing player. Must not be null.</param>
-    private void UpdateExistingPlayer(PlayerEntity existingPlayer, ExternalPlayer apiPlayer)
+    // Returns true if the player's Mii data changed (so the caller can invalidate the cache row).
+    private bool UpdateExistingPlayer(PlayerEntity existingPlayer, ExternalPlayer apiPlayer)
     {
         var previousVR = existingPlayer.Ev;
 
@@ -140,12 +148,12 @@ public class LeaderboardSyncService : ILeaderboardSyncService
             }
         }
 
+        var miiDataChanged = false;
         var firstMii = apiPlayer.Mii?.FirstOrDefault();
         if (firstMii?.Data != null && existingPlayer.MiiData != firstMii.Data)
         {
             existingPlayer.MiiData = firstMii.Data;
-            existingPlayer.MiiImageBase64 = null;
-            existingPlayer.MiiImageFetchedAt = null;
+            miiDataChanged = true;
 
             _logger.LogDebug("Mii data changed for {Name} ({FriendCode}), cached image invalidated",
                 existingPlayer.Name, existingPlayer.Fc);
@@ -153,6 +161,8 @@ public class LeaderboardSyncService : ILeaderboardSyncService
 
         existingPlayer.LastSeen = DateTime.UtcNow;
         existingPlayer.LastUpdated = DateTime.UtcNow;
+
+        return miiDataChanged;
     }
 
     /// <summary>
@@ -177,13 +187,8 @@ public class LeaderboardSyncService : ILeaderboardSyncService
                 TotalVR = player.Ev
             });
 
-            // TODO: Replace with single multi-period query
-            player.VRGainLast24Hours = await _vrHistoryRepository
-                .CalculateVRGainAsync(player.Pid, TimeSpan.FromDays(1));
-            player.VRGainLastWeek = await _vrHistoryRepository
-                .CalculateVRGainAsync(player.Pid, TimeSpan.FromDays(7));
-            player.VRGainLastMonth = await _vrHistoryRepository
-                .CalculateVRGainAsync(player.Pid, TimeSpan.FromDays(30));
+            (player.VRGainLast24Hours, player.VRGainLastWeek, player.VRGainLastMonth) =
+                await _vrHistoryRepository.CalculateAllVRGainsAsync(player.Pid);
 
             _logger.LogDebug("Tracked VR change for {Name} ({Pid}): {OldVR} -> {NewVR}",
                 player.Name, player.Pid, previousVR, player.Ev);

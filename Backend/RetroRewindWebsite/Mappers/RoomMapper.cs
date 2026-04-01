@@ -1,11 +1,19 @@
 using RetroRewindWebsite.Models.DTOs.Player;
 using RetroRewindWebsite.Models.DTOs.Room;
+using RetroRewindWebsite.Models.Entities.Room;
 using RetroRewindWebsite.Models.External;
 
 namespace RetroRewindWebsite.Mappers;
 
+/// <summary>
+/// Maps WFC API room data and persisted snapshot entities to their DTO forms.
+/// </summary>
 public static class RoomMapper
 {
+    /// <summary>
+    /// Maps a raw RWFC API <see cref="Group"/> to <see cref="RoomDto"/>, resolving the current
+    /// course ID to a display name via <paramref name="trackNames"/>.
+    /// </summary>
     public static RoomDto ToDto(Group group, Dictionary<short, string> trackNames)
     {
         var players = group.Players.Values.Select(ToPlayerDto).ToList();
@@ -34,6 +42,58 @@ public static class RoomMapper
         );
     }
 
+    /// <summary>
+    /// Maps a persisted room snapshot entity to the response DTO served by history endpoints.
+    /// Note: <c>MinimumId</c> and <c>MaximumId</c> are left at 0, callers populate them
+    /// from separate min/max queries when needed.
+    /// </summary>
+    public static RoomStatusResponseDto ToResponseDto(RoomSnapshotEntity entity) =>
+        new(
+            Rooms: entity.Rooms,
+            Timestamp: entity.Timestamp,
+            Id: entity.Id,
+            MinimumId: 0,
+            MaximumId: 0
+        );
+
+    /// <summary>
+    /// Maps a live-cache entry (room list + metadata) to the response DTO served by the
+    /// current-status endpoint.
+    /// </summary>
+    public static RoomStatusResponseDto ToResponseDto(List<RoomDto> rooms, int id, DateTime timestamp) =>
+        new(
+            Rooms: rooms,
+            Timestamp: timestamp,
+            Id: id,
+            MinimumId: 0,
+            MaximumId: 0
+        );
+
+    /// <summary>
+    /// Maps a room snapshot entity to the summary DTO used by the history list endpoint.
+    /// </summary>
+    public static RoomSnapshotDto ToSnapshotDto(RoomSnapshotEntity entity) =>
+        new(
+            Id: entity.Id,
+            Timestamp: entity.Timestamp,
+            TotalPlayers: entity.TotalPlayers,
+            TotalRooms: entity.TotalRooms,
+            PublicRooms: entity.PublicRooms,
+            PrivateRooms: entity.PrivateRooms,
+            Rooms: [.. entity.Rooms.Select(r => new RoomSnapshotRoomDto(
+                RoomId: r.Id,
+                Type: r.Type,
+                Rk: r.Rk,
+                PlayerCount: r.Players.Count,
+                CourseId: r.Race?.Course,
+                TrackName: r.Race?.TrackName,
+                TrackId: null
+            ))]
+        );
+
+    /// <summary>
+    /// Maps an external WFC player to the room player DTO, normalising empty VR/BR strings to null.
+    /// </summary>
     private static RoomPlayerDto ToPlayerDto(ExternalPlayer player)
     {
         List<string> connectionMap = string.IsNullOrEmpty(player.Conn_map)

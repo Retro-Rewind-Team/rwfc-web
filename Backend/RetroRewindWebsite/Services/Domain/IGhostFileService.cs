@@ -21,7 +21,7 @@ public interface IGhostFileService
     /// <param name="fileStream">The stream containing the ghost file data to be saved. Must be readable and positioned at the start of the file
     /// content.</param>
     /// <param name="trackId">The identifier of the track to which the ghost file will be linked.</param>
-    /// <param name="cc">The course class value for the track. Specifies the difficulty or category of the track.</param>
+    /// <param name="cc">The cc value for the track. Specifies the speed.</param>
     /// <param name="playerDisplayName">The display name of the player associated with the ghost file. Cannot be null or empty.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the unique identifier of the saved
     /// ghost file.</returns>

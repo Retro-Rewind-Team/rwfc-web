@@ -92,7 +92,7 @@ public static class GhostSubmissionMapper
 
     /// <summary>
     /// Maps a page of flap leaderboard results with Olympic-style ranks (1,1,3).
-    /// Rankings based on FastestLapMs (MIN of lap splits) — ties are draws.
+    /// Rankings based on FastestLapMs (MIN of lap splits), ties are draws.
     /// Since the SQL already sorted by fastest lap, we compare adjacent fastest laps.
     /// </summary>
     public static List<GhostSubmissionDetailDto> ToFlapLeaderboardDtos(

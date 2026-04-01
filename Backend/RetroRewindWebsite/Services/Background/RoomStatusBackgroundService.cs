@@ -2,39 +2,33 @@ using RetroRewindWebsite.Services.Application;
 
 namespace RetroRewindWebsite.Services.Background;
 
-public class RoomStatusBackgroundService : BackgroundService, IRoomStatusBackgroundService
+public class RoomStatusBackgroundService : PollingBackgroundService, IRoomStatusBackgroundService
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly ILogger<RoomStatusBackgroundService> _logger;
-    private readonly SemaphoreSlim _semaphore = new(1, 1);
-
     private const int RefreshIntervalSeconds = 60;
-    private const int SemaphoreTimeoutSeconds = 30;
 
     public RoomStatusBackgroundService(
         IServiceScopeFactory serviceScopeFactory,
         ILogger<RoomStatusBackgroundService> logger)
+        : base(serviceScopeFactory, logger)
     {
-        _serviceScopeFactory = serviceScopeFactory;
-        _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Room status background service started");
+        Logger.LogInformation("Room status background service started");
 
         try
         {
-            await PerformRefreshAsync(stoppingToken);
+            await PerformAsync(stoppingToken);
         }
         catch (OperationCanceledException)
         {
-            _logger.LogInformation("Room status background service stopped during initial fetch");
+            Logger.LogInformation("Room status background service stopped during initial fetch");
             return;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during initial room status fetch");
+            Logger.LogError(ex, "Error during initial room status fetch");
         }
 
         while (!stoppingToken.IsCancellationRequested)
@@ -42,56 +36,27 @@ public class RoomStatusBackgroundService : BackgroundService, IRoomStatusBackgro
             try
             {
                 await Task.Delay(TimeSpan.FromSeconds(RefreshIntervalSeconds), stoppingToken);
-                await PerformRefreshAsync(stoppingToken);
+                await PerformAsync(stoppingToken);
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation("Room status background service is stopping");
+                Logger.LogInformation("Room status background service is stopping");
                 break;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in room status background service");
+                Logger.LogError(ex, "Error in room status background service");
             }
         }
 
-        _logger.LogInformation("Room status background service stopped");
+        Logger.LogInformation("Room status background service stopped");
     }
 
-    public async Task ForceRefreshAsync()
+    protected override async Task ExecuteOnceAsync(IServiceProvider services, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Force refresh requested");
-        await PerformRefreshAsync(CancellationToken.None);
-    }
-
-    private async Task PerformRefreshAsync(CancellationToken cancellationToken)
-    {
-        if (!await _semaphore.WaitAsync(TimeSpan.FromSeconds(SemaphoreTimeoutSeconds), cancellationToken))
-        {
-            _logger.LogWarning("Previous room status refresh is still running, skipping this cycle");
-            return;
-        }
-
-        try
-        {
-            _logger.LogDebug("Starting scheduled room status refresh");
-
-            using var scope = _serviceScopeFactory.CreateScope();
-            var roomStatusService = scope.ServiceProvider.GetRequiredService<IRoomStatusService>();
-            await roomStatusService.RefreshRoomDataAsync();
-
-            _logger.LogDebug("Scheduled room status refresh completed successfully");
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
-    }
-
-    public override void Dispose()
-    {
-        _semaphore?.Dispose();
-        base.Dispose();
-        GC.SuppressFinalize(this);
+        Logger.LogDebug("Starting scheduled room status refresh");
+        var roomStatusService = services.GetRequiredService<IRoomStatusService>();
+        await roomStatusService.RefreshRoomDataAsync();
+        Logger.LogDebug("Scheduled room status refresh completed successfully");
     }
 }

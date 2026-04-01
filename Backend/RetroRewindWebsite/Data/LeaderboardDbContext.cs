@@ -15,6 +15,7 @@ public class LeaderboardDbContext : DbContext
     // ===== DB SETS =====
 
     public DbSet<PlayerEntity> Players { get; set; }
+    public DbSet<PlayerMiiCacheEntity> PlayerMiiCaches { get; set; }
     public DbSet<VRHistoryEntity> VRHistories { get; set; }
     public DbSet<LegacyPlayerEntity> LegacyPlayers { get; set; }
     public DbSet<TrackEntity> Tracks { get; set; }
@@ -29,6 +30,7 @@ public class LeaderboardDbContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         ConfigurePlayerEntity(modelBuilder);
+        ConfigurePlayerMiiCacheEntity(modelBuilder);
         ConfigureLegacyPlayerEntity(modelBuilder);
         ConfigureVRHistoryEntity(modelBuilder);
         ConfigureTrackEntity(modelBuilder);
@@ -53,8 +55,6 @@ public class LeaderboardDbContext : DbContext
 
             // Composite indexes for common queries
             entity.HasIndex(e => new { e.IsSuspicious, e.Ev, e.LastSeen });
-            entity.HasIndex(e => new { e.MiiImageFetchedAt, e.MiiData })
-                .HasFilter("\"MiiData\" IS NOT NULL AND \"MiiData\" != ''");
 
             // VR gain indexes
             entity.HasIndex(e => e.VRGainLast24Hours);
@@ -65,6 +65,21 @@ public class LeaderboardDbContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.Fc).HasMaxLength(20);
             entity.Property(e => e.Pid).HasMaxLength(50);
+        });
+    }
+
+    // ===== PLAYER MII CACHE CONFIGURATION =====
+
+    private static void ConfigurePlayerMiiCacheEntity(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<PlayerMiiCacheEntity>(entity =>
+        {
+            entity.HasOne(m => m.Player)
+                  .WithOne(p => p.MiiCache)
+                  .HasForeignKey<PlayerMiiCacheEntity>(m => m.PlayerId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.MiiImageFetchedAt);
         });
     }
 
@@ -220,7 +235,7 @@ public class LeaderboardDbContext : DbContext
             // Index for time-based queries (history endpoint, date range)
             entity.HasIndex(e => e.Timestamp);
 
-            // JSON column — array of RoomSnapshotEntry
+            // JSON column, array of RoomSnapshotEntry
             entity.Property(e => e.Rooms)
                   .HasColumnType("jsonb")
                   .IsRequired();

@@ -12,6 +12,7 @@ public interface IPlayerValidationService
     /// <param name="vr">The VR value associated with the new player. Must be a non-negative integer representing the player's VR rating.</param>
     /// <returns>true if the new player is considered suspicious; otherwise, false.</returns>
     bool IsSuspiciousNewPlayer(int vr);
+
     /// <summary>
     /// Determines whether a change in VR rating is considered suspicious based on the provided values.
     /// </summary>
@@ -22,6 +23,7 @@ public interface IPlayerValidationService
     /// <param name="currentVR">The current VR rating before the change is applied. Used to assess the context of the change.</param>
     /// <returns>true if the VR change is considered suspicious; otherwise, false.</returns>
     bool IsSuspiciousVRJump(int vrChange, int currentVR);
+
     /// <summary>
     /// Evaluates the player's status to determine if a suspicious activity update is required based on the provided
     /// previous VR value.

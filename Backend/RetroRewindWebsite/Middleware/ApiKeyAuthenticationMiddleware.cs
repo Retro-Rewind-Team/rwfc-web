@@ -2,6 +2,11 @@ using Microsoft.Extensions.Primitives;
 
 namespace RetroRewindWebsite.Middleware;
 
+/// <summary>
+/// Guards all <c>/api/moderation/*</c> routes with Bearer token authentication.
+/// The expected secret is read from the <c>WfcSecret</c> configuration key, falling back to the
+/// <c>WFC_SECRET</c> environment variable. All other routes are passed through unconditionally.
+/// </summary>
 public class ApiKeyAuthenticationMiddleware
 {
     private readonly RequestDelegate _next;

@@ -1,5 +1,6 @@
 using RetroRewindWebsite.Mappers;
 using RetroRewindWebsite.Models.DTOs.Player;
+using RetroRewindWebsite.Models.Entities.Player;
 using RetroRewindWebsite.Repositories.Player;
 
 namespace RetroRewindWebsite.Services.Application;
@@ -7,15 +8,18 @@ namespace RetroRewindWebsite.Services.Application;
 public class PlayerService : IPlayerService
 {
     private readonly IPlayerRepository _playerRepository;
+    private readonly ILegacyPlayerRepository _legacyPlayerRepository;
     private readonly IVRHistoryRepository _vrHistoryRepository;
     private readonly ILogger<PlayerService> _logger;
 
     public PlayerService(
         IPlayerRepository playerRepository,
+        ILegacyPlayerRepository legacyPlayerRepository,
         IVRHistoryRepository vrHistoryRepository,
         ILogger<PlayerService> logger)
     {
         _playerRepository = playerRepository;
+        _legacyPlayerRepository = legacyPlayerRepository;
         _vrHistoryRepository = vrHistoryRepository;
         _logger = logger;
     }
@@ -33,7 +37,7 @@ public class PlayerService : IPlayerService
             return null;
 
         var toDate = DateTime.UtcNow;
-        List<Models.Entities.Player.VRHistoryEntity> history;
+        List<VRHistoryEntity> history;
         DateTime fromDate;
 
         if (days.HasValue)
@@ -43,15 +47,18 @@ public class PlayerService : IPlayerService
         }
         else
         {
+            // No window requested, fetch the full history (count=int.MaxValue) and derive fromDate from the earliest entry
             history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, int.MaxValue);
             fromDate = history.Count > 0 ? history.Min(h => h.Date) : toDate;
         }
 
         var historyDtos = history
-            .Select(h => new VRHistoryDto(h.Date, h.VRChange, h.TotalVR))
+            .Select(PlayerMapper.ToVRHistoryDto)
             .OrderBy(h => h.Date)
             .ToList();
 
+        // Each history entry stores the VR *after* the change, so the VR *before* the first entry
+        // is TotalVR - VRChange (i.e. what the player had before that race session).
         var startingVR = historyDtos.Count > 0
             ? historyDtos.First().TotalVR - historyDtos.First().VRChange
             : player.Ev;
@@ -61,6 +68,8 @@ public class PlayerService : IPlayerService
 
         if (historyDtos.Count > 0)
         {
+            // Prepend a zero-change anchor point one second before the first real entry so the
+            // frontend chart starts from the correct baseline VR rather than jumping from zero.
             var initialEntry = new VRHistoryDto(
                 Date: historyDtos.First().Date.AddSeconds(-1),
                 VRChange: 0,
@@ -89,13 +98,13 @@ public class PlayerService : IPlayerService
         var history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, count);
 
         return [.. history
-            .Select(h => new VRHistoryDto(h.Date, h.VRChange, h.TotalVR))
+            .Select(PlayerMapper.ToVRHistoryDto)
             .OrderBy(h => h.Date)];
     }
 
     public async Task<PlayerDto?> GetLegacyPlayerAsync(string friendCode)
     {
-        var legacyPlayer = await _playerRepository.GetLegacyPlayerByFriendCodeAsync(friendCode);
+        var legacyPlayer = await _legacyPlayerRepository.GetLegacyPlayerByFriendCodeAsync(friendCode);
         return legacyPlayer != null ? PlayerMapper.FromLegacy(legacyPlayer) : null;
     }
 }

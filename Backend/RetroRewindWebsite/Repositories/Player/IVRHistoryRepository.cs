@@ -32,4 +32,10 @@ public interface IVRHistoryRepository : IRepository<VRHistoryEntity>
     /// <returns>A task that represents the asynchronous operation. The task result contains the calculated VR gain as an
     /// integer.</returns>
     Task<int> CalculateVRGainAsync(string playerId, TimeSpan timeSpan);
+
+    /// <summary>
+    /// Calculates VR gains for the 24-hour, 7-day, and 30-day periods in a single database
+    /// query, avoiding the N×3 round-trips of calling <see cref="CalculateVRGainAsync"/> separately.
+    /// </summary>
+    Task<(int Gain24h, int Gain7d, int Gain30d)> CalculateAllVRGainsAsync(string playerId);
 }

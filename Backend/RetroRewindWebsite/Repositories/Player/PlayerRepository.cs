@@ -5,7 +5,7 @@ using RetroRewindWebsite.Models.Entities.Player;
 
 namespace RetroRewindWebsite.Repositories.Player;
 
-public class PlayerRepository : IPlayerRepository
+public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacyPlayerRepository
 {
     private readonly LeaderboardDbContext _context;
     private readonly ILogger<PlayerRepository> _logger;
@@ -26,6 +26,7 @@ public class PlayerRepository : IPlayerRepository
     public async Task<PlayerEntity?> GetByPidAsync(string pid) =>
         await _context.Players
             .AsNoTracking()
+            .Include(p => p.MiiCache)
             .FirstOrDefaultAsync(p => p.Pid == pid);
 
     public async Task<PlayerEntity?> GetByFcAsync(string fc)
@@ -33,6 +34,7 @@ public class PlayerRepository : IPlayerRepository
         var normalizedFc = fc.Replace("-", "");
         return await _context.Players
             .AsNoTracking()
+            .Include(p => p.MiiCache)
             .FirstOrDefaultAsync(p => p.Fc.Replace("-", "") == normalizedFc);
     }
 
@@ -47,6 +49,7 @@ public class PlayerRepository : IPlayerRepository
 
         return await _context.Players
             .AsNoTracking()
+            .Include(p => p.MiiCache)
             .Where(p => normalizedCodes.Contains(p.Fc.Replace("-", "")))
             .ToListAsync();
     }
@@ -231,21 +234,58 @@ public class PlayerRepository : IPlayerRepository
     public async Task<List<PlayerEntity>> GetPlayersNeedingMiiImagesAsync(int count) =>
         await _context.Players
             .AsNoTracking()
+            .Include(p => p.MiiCache)
             .Where(p =>
                 !string.IsNullOrEmpty(p.MiiData) &&
-                (p.MiiImageBase64 == null ||
-                 p.MiiImageFetchedAt == null ||
-                 p.MiiImageFetchedAt < DateTime.UtcNow.AddDays(-7)))
-            .OrderBy(p => p.MiiImageFetchedAt ?? DateTime.MinValue)
+                (p.MiiCache == null ||
+                 p.MiiCache.MiiImageFetchedAt < DateTime.UtcNow.AddDays(-7)))
+            .OrderBy(p => p.MiiCache == null ? DateTime.MinValue : p.MiiCache.MiiImageFetchedAt)
             .Take(count)
             .ToListAsync();
 
-    public async Task UpdatePlayerMiiImageAsync(string pid, string miiImageBase64) =>
-        await _context.Players
+    public async Task UpdatePlayerMiiImageAsync(string pid, string miiImageBase64)
+    {
+        var player = await _context.Players
+            .Include(p => p.MiiCache)
+            .FirstOrDefaultAsync(p => p.Pid == pid);
+
+        if (player == null)
+            return;
+
+        var now = DateTime.UtcNow;
+
+        if (player.MiiCache == null)
+        {
+            player.MiiCache = new Models.Entities.Player.PlayerMiiCacheEntity
+            {
+                PlayerId = player.Id,
+                MiiImageBase64 = miiImageBase64,
+                MiiImageFetchedAt = now
+            };
+        }
+        else
+        {
+            player.MiiCache.MiiImageBase64 = miiImageBase64;
+            player.MiiCache.MiiImageFetchedAt = now;
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task InvalidatePlayerMiiCacheAsync(string pid)
+    {
+        var player = await _context.Players
             .Where(p => p.Pid == pid)
-            .ExecuteUpdateAsync(p => p
-                .SetProperty(x => x.MiiImageBase64, miiImageBase64)
-                .SetProperty(x => x.MiiImageFetchedAt, DateTime.UtcNow));
+            .Select(p => new { p.Id })
+            .FirstOrDefaultAsync();
+
+        if (player == null)
+            return;
+
+        await _context.PlayerMiiCaches
+            .Where(m => m.PlayerId == player.Id)
+            .ExecuteDeleteAsync();
+    }
 
     // ===== LEGACY OPERATIONS =====
 

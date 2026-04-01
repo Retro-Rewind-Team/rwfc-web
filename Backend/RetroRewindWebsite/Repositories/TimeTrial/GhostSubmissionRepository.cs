@@ -600,15 +600,45 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
             .FirstOrDefaultAsync();
     }
 
+    public async Task<Dictionary<int, GhostSubmissionEntity>> GetAllWorldRecordsAsync(
+        short cc,
+        bool glitchAllowed,
+        bool? shroomless = null,
+        short? minVehicleId = null,
+        short? maxVehicleId = null)
+    {
+        // Single query for all tracks: fetch ordered submissions, group in memory.
+        var all = await BuildCategoryQuery(cc, glitchAllowed, shroomless, minVehicleId, maxVehicleId)
+            .OrderBy(g => g.FinishTimeMs)
+            .ToListAsync();
+
+        return all
+            .GroupBy(g => g.TrackId)
+            .ToDictionary(grp => grp.Key, grp => grp.First());
+    }
+
     // ===== PRIVATE HELPERS =====
 
     /// <summary>
-    /// Base filtered query for regular leaderboard/WR queries.
-    /// Always excludes flap runs — those are only returned by GetFlapLeaderboardAsync.
+    /// Base filtered query for regular leaderboard/WR queries, scoped to a single track.
+    /// Always excludes flap runs - those are only returned by GetFlapLeaderboardAsync.
     /// glitchAllowed=true returns all submissions, false returns only non-glitch.
     /// </summary>
     private IQueryable<GhostSubmissionEntity> BuildLeaderboardQuery(
         int trackId,
+        short cc,
+        bool glitchAllowed,
+        bool? shroomless,
+        short? minVehicleId,
+        short? maxVehicleId)
+        => BuildCategoryQuery(cc, glitchAllowed, shroomless, minVehicleId, maxVehicleId)
+            .Where(g => g.TrackId == trackId);
+
+    /// <summary>
+    /// Category filter query without a track constraint, used by both
+    /// <see cref="BuildLeaderboardQuery"/> and <see cref="GetAllWorldRecordsAsync"/>.
+    /// </summary>
+    private IQueryable<GhostSubmissionEntity> BuildCategoryQuery(
         short cc,
         bool glitchAllowed,
         bool? shroomless,
@@ -619,7 +649,7 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
             .AsNoTracking()
             .Include(g => g.Track)
             .Include(g => g.TTProfile)
-            .Where(g => g.TrackId == trackId && g.CC == cc && !g.IsFlap);
+            .Where(g => g.CC == cc && !g.IsFlap);
 
         if (!glitchAllowed)
             query = query.Where(g => !g.Glitch);

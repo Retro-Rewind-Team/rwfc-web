@@ -4,6 +4,9 @@ using RetroRewindWebsite.Services.Application;
 
 namespace RetroRewindWebsite.Controllers;
 
+/// <summary>
+/// Exposes per-player and global race statistics derived from RWFC room race-result data.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class RaceStatsController : ControllerBase
@@ -22,6 +25,9 @@ public class RaceStatsController : ControllerBase
     }
 
     [HttpGet("player/{pid}")]
+    [ProducesResponseType<PlayerRaceStatsDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PlayerRaceStatsDto>> GetPlayerRaceStats(
         string pid,
         [FromQuery] int? days = null,
@@ -49,6 +55,9 @@ public class RaceStatsController : ControllerBase
     }
 
     [HttpGet("player/{pid}/full")]
+    [ProducesResponseType<PlayerStatsDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PlayerStatsDto>> GetPlayerFullStats(string pid)
     {
         try
@@ -68,6 +77,8 @@ public class RaceStatsController : ControllerBase
     }
 
     [HttpGet("global")]
+    [ProducesResponseType<GlobalRaceStatsDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<GlobalRaceStatsDto>> GetGlobalRaceStats(
         [FromQuery] int? days = null)
     {

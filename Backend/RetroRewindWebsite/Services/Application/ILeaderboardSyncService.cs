@@ -11,8 +11,7 @@ public interface ILeaderboardSyncService
     /// <summary>
     /// Asynchronously refreshes the rankings data to ensure it reflects the latest available information.
     /// </summary>
-    /// <remarks>Call this method to update the rankings when new data is available. The operation may take
-    /// time depending on the data source and network conditions.</remarks>
+    /// <remarks>Call this method to update the rankings when new data is available.</remarks>
     /// <returns>A task that represents the asynchronous refresh operation.</returns>
     Task RefreshRankingsAsync();
 }

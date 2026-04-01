@@ -9,9 +9,9 @@ public class LegacyPlayerEntity
     [Key]
     public int Id { get; set; }
 
-    public required string Pid { get; set; }
+    public required string Pid { get; set; } // Player ID, same as PlayerEntity.Pid, used for joining with PlayerEntity
     public required string Name { get; set; }
-    public required string Fc { get; set; }
+    public required string Fc { get; set; } // Friend code, stored string format as sent by WFC (e.g. "1234-5678-9012")
     public int Ev { get; set; }
     public int Rank { get; set; }
     public bool IsSuspicious { get; set; }

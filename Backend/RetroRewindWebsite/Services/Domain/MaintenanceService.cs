@@ -39,19 +39,13 @@ public class MaintenanceService : IMaintenanceService
 
                 _logger.LogDebug("Processing batch starting at {Skip}, {Count} players", skip, playerPids.Count);
 
-                // TODO: Replace with a single query that calculates all three gains at once
-                // Currently makes N×3 database calls per batch which is inefficient
                 var vrGainsBatch = new Dictionary<string, (int gain24h, int gain7d, int gain30d)>();
 
                 foreach (var pid in playerPids)
                 {
                     try
                     {
-                        var gain24h = await _vrHistoryRepository.CalculateVRGainAsync(pid, TimeSpan.FromDays(1));
-                        var gain7d = await _vrHistoryRepository.CalculateVRGainAsync(pid, TimeSpan.FromDays(7));
-                        var gain30d = await _vrHistoryRepository.CalculateVRGainAsync(pid, TimeSpan.FromDays(30));
-
-                        vrGainsBatch[pid] = (gain24h, gain7d, gain30d);
+                        vrGainsBatch[pid] = await _vrHistoryRepository.CalculateAllVRGainsAsync(pid);
                     }
                     catch (Exception ex)
                     {

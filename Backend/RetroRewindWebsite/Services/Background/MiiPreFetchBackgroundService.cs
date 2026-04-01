@@ -67,10 +67,10 @@ public class MiiPreFetchBackgroundService : BackgroundService, IMiiPreFetchBackg
     public async Task PreFetchMiiImagesAsync(CancellationToken cancellationToken = default)
     {
         using var scope = _serviceProvider.CreateScope();
-        var playerRepository = scope.ServiceProvider.GetRequiredService<IPlayerRepository>();
+        var playerMiiRepository = scope.ServiceProvider.GetRequiredService<IPlayerMiiRepository>();
         var miiService = scope.ServiceProvider.GetRequiredService<IMiiService>();
 
-        var players = await playerRepository.GetPlayersNeedingMiiImagesAsync(BatchSize);
+        var players = await playerMiiRepository.GetPlayersNeedingMiiImagesAsync(BatchSize);
 
         if (players.Count == 0)
         {
@@ -100,7 +100,7 @@ public class MiiPreFetchBackgroundService : BackgroundService, IMiiPreFetchBackg
 
                 if (miiImage != null)
                 {
-                    await playerRepository.UpdatePlayerMiiImageAsync(player.Pid, miiImage);
+                    await playerMiiRepository.UpdatePlayerMiiImageAsync(player.Pid, miiImage);
                     successCount++;
                 }
                 else

@@ -2,39 +2,33 @@ using RetroRewindWebsite.Services.Application;
 
 namespace RetroRewindWebsite.Services.Background;
 
-public class RaceResultBackgroundService : BackgroundService, IRaceResultBackgroundService
+public class RaceResultBackgroundService : PollingBackgroundService, IRaceResultBackgroundService
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly ILogger<RaceResultBackgroundService> _logger;
-    private readonly SemaphoreSlim _semaphore = new(1, 1);
-
     private const int RefreshIntervalSeconds = 60;
-    private const int SemaphoreTimeoutSeconds = 30;
 
     public RaceResultBackgroundService(
         IServiceScopeFactory serviceScopeFactory,
         ILogger<RaceResultBackgroundService> logger)
+        : base(serviceScopeFactory, logger)
     {
-        _serviceScopeFactory = serviceScopeFactory;
-        _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Race results background service started");
+        Logger.LogInformation("Race results background service started");
 
         try
         {
-            await PerformCollectionAsync(stoppingToken);
+            await PerformAsync(stoppingToken);
         }
         catch (OperationCanceledException)
         {
-            _logger.LogInformation("Race results background service stopped during initial collection");
+            Logger.LogInformation("Race results background service stopped during initial collection");
             return;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during initial race results collection");
+            Logger.LogError(ex, "Error during initial race results collection");
         }
 
         while (!stoppingToken.IsCancellationRequested)
@@ -42,56 +36,33 @@ public class RaceResultBackgroundService : BackgroundService, IRaceResultBackgro
             try
             {
                 await Task.Delay(TimeSpan.FromSeconds(RefreshIntervalSeconds), stoppingToken);
-                await PerformCollectionAsync(stoppingToken);
+                await PerformAsync(stoppingToken);
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation("Race results background service is stopping");
+                Logger.LogInformation("Race results background service is stopping");
                 break;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in race results background service");
+                Logger.LogError(ex, "Error in race results background service");
             }
         }
 
-        _logger.LogInformation("Race results background service stopped");
+        Logger.LogInformation("Race results background service stopped");
     }
 
-    public async Task ForceRefreshAsync()
+    protected override async Task ExecuteOnceAsync(IServiceProvider services, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Force collection requested");
-        await PerformCollectionAsync(CancellationToken.None);
+        Logger.LogDebug("Starting scheduled race results collection");
+        var raceResultService = services.GetRequiredService<IRaceResultService>();
+        await raceResultService.CollectRaceResultsAsync();
+        Logger.LogDebug("Scheduled race results collection completed successfully");
     }
 
-    private async Task PerformCollectionAsync(CancellationToken cancellationToken)
+    public override async Task ForceRefreshAsync()
     {
-        if (!await _semaphore.WaitAsync(TimeSpan.FromSeconds(SemaphoreTimeoutSeconds), cancellationToken))
-        {
-            _logger.LogWarning("Previous race results collection is still running, skipping this cycle");
-            return;
-        }
-
-        try
-        {
-            _logger.LogDebug("Starting scheduled race results collection");
-
-            using var scope = _serviceScopeFactory.CreateScope();
-            var raceResultService = scope.ServiceProvider.GetRequiredService<IRaceResultService>();
-            await raceResultService.CollectRaceResultsAsync();
-
-            _logger.LogDebug("Scheduled race results collection completed successfully");
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
-    }
-
-    public override void Dispose()
-    {
-        _semaphore?.Dispose();
-        base.Dispose();
-        GC.SuppressFinalize(this);
+        Logger.LogInformation("Force collection requested");
+        await PerformAsync(CancellationToken.None);
     }
 }
