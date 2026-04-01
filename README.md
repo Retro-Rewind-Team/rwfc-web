@@ -1,6 +1,6 @@
 # Retro Rewind Website
 
-A full-stack web application for Retro Rewind. Provides competitive VR leaderboards, time trial rankings with ghost file management, a live RWFC room browser, and per-player race statistics.
+A full-stack web application for Retro Rewind. Provides a competitive VR leaderboard, time trial rankings with ghost file management, a live RWFC room browser, and per-player race statistics.
 
 This README is aimed at developers setting up the project locally for development and collaboration.
 
@@ -24,7 +24,7 @@ This README is aimed at developers setting up the project locally for developmen
 | Layer | Stack |
 |---|---|
 | Frontend | Solid.js, TypeScript, Tailwind CSS v4, Vite |
-| Backend | ASP.NET Core .NET 11, EF Core, PostgreSQL |
+| Backend | ASP.NET Core .NET 10, EF Core, PostgreSQL |
 | API docs | Scalar (available in development at `/scalar`) |
 
 The frontend and backend run as separate processes. In development the frontend calls the backend directly via the `VITE_API_URL` environment variable.
@@ -33,7 +33,7 @@ The frontend and backend run as separate processes. In development the frontend 
 
 ## Prerequisites
 
-- [.NET 11 SDK](https://dotnet.microsoft.com/download)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [Node.js](https://nodejs.org/) (v20 or later recommended)
 - [PostgreSQL](https://www.postgresql.org/download/) (v15 or later)
 - [pgAdmin](https://www.pgadmin.org/) (optional but recommended, GUI for managing the local database)
