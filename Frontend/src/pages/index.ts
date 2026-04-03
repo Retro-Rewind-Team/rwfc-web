@@ -11,7 +11,6 @@ export { PrivacyPage } from "./Privacy";
 export { TeamPage } from "./Team";
 export { NotFoundPage } from "./NotFound";
 export { ToolsPage } from "./Tools";
-export { RankCalculatorPage } from "./Tools";
 export { RatingEditorPage } from "./Tools";
 export { FontPatcherPage } from "./Tools";
 export { RaceStatsPage } from "./RaceStats";

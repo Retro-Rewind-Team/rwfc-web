@@ -23,6 +23,7 @@ export default function ThemeToggle() {
         <div class="relative">
             {/* Toggle Button */}
             <button
+                type="button"
                 onClick={() => setIsOpen(!isOpen())}
                 class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
                 title="Toggle theme"
@@ -36,6 +37,7 @@ export default function ThemeToggle() {
                     <div class="py-1">
                         {themes.map((themeOption) => (
                             <button
+                                type="button"
                                 onClick={() => {
                                     setTheme(themeOption.value);
                                     setIsOpen(false);
@@ -62,6 +64,7 @@ export default function ThemeToggle() {
             {/* Click outside to close */}
             <Show when={isOpen()}>
                 <button
+                    type="button"
                     class="fixed inset-0 z-40 bg-transparent border-none cursor-default"
                     onClick={() => setIsOpen(false)}
                     onKeyDown={(e) => e.key === "Escape" && setIsOpen(false)}

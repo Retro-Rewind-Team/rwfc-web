@@ -1,5 +1,9 @@
 import { createSignal } from "solid-js";
 
+/**
+ * Provides clipboard write with a timed floating confirmation shown at the
+ * mouse click position.
+ */
 export function useClipboard() {
     const [copiedText, setCopiedText] = createSignal<string>("");
     const [copiedPosition, setCopiedPosition] = createSignal<{

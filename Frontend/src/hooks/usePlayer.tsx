@@ -1,17 +1,22 @@
 import { useQuery } from "@tanstack/solid-query";
 import { api } from "../services/api";
 import { createMemo } from "solid-js";
+import { queryKeys } from "../constants/queryKeys";
 
+/**
+ * Fetches the current and legacy leaderboard profiles for a given friend code.
+ * Legacy data is only requested once the current player query succeeds.
+ */
 export function usePlayer(friendCode: string) {
     const playerQuery = useQuery(() => ({
-        queryKey: ["player", friendCode],
+        queryKey: queryKeys.player(friendCode),
         queryFn: () => api.getPlayer(friendCode),
         refetchInterval: 60000,
     }));
 
     // Query for legacy player data
     const legacyPlayerQuery = useQuery(() => ({
-        queryKey: ["legacyPlayer", friendCode],
+        queryKey: queryKeys.legacyPlayer(friendCode),
         queryFn: () => api.getLegacyPlayer(friendCode),
         retry: false, // Don't retry on failure
         refetchInterval: false, // Legacy data never changes

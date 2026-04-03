@@ -1,24 +1,24 @@
 import { createEffect, createMemo, createSignal } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { timeTrialApi } from "../services/api/timeTrial";
-import { ShroomlessFilter, VehicleFilter } from "../types/timeTrial";
+import { GhostSubmission, ShroomlessFilter, VehicleFilter } from "../types/timeTrial";
+import { ghostFilename, triggerBlobDownload } from "../utils/downloadHelpers";
+import { queryKeys } from "../constants/queryKeys";
+import { usePagination } from "./usePagination";
 
+/**
+ * Manages filter state, pagination, and data fetching for a time trial player
+ * profile page (submissions table + WR history).
+ */
 export function useTTPlayer(ttProfileId: number) {
-    // Filters
-    const [selectedCC, setSelectedCC] = createSignal<150 | 200 | undefined>(
-        undefined,
-    );
-    const [glitchFilter, setGlitchFilter] = createSignal<boolean | undefined>(
-        undefined,
-    );
-    const [shroomlessFilter, setShroomlessFilter] =
-    createSignal<ShroomlessFilter>("all");
+    const { currentPage, setCurrentPage, pageSize, handlePageSizeChange } =
+        usePagination(10);
+
+    const [selectedCC, setSelectedCC] = createSignal<150 | 200 | undefined>(undefined);
+    const [glitchFilter, setGlitchFilter] = createSignal<boolean | undefined>(undefined);
+    const [shroomlessFilter, setShroomlessFilter] = createSignal<ShroomlessFilter>("all");
     const [vehicleFilter, setVehicleFilter] = createSignal<VehicleFilter>("all");
     const [searchQuery, setSearchQuery] = createSignal("");
-
-    // Pagination
-    const [currentPage, setCurrentPage] = createSignal(1);
-    const [pageSize, setPageSize] = createSignal(10);
 
     // Reset to page 1 when any filter changes
     createEffect(() => {
@@ -31,23 +31,14 @@ export function useTTPlayer(ttProfileId: number) {
 
     // Fetch player profile
     const profileQuery = useQuery(() => ({
-        queryKey: ["tt-profile", ttProfileId],
+        queryKey: queryKeys.ttProfile(ttProfileId),
         queryFn: () => timeTrialApi.getProfile(ttProfileId),
         retry: 1,
     }));
 
     // Fetch submissions with all filters and pagination server-side
     const submissionsQuery = useQuery(() => ({
-        queryKey: [
-            "tt-profile-submissions",
-            ttProfileId,
-            currentPage(),
-            pageSize(),
-            selectedCC(),
-            glitchFilter(),
-            shroomlessFilter(),
-            vehicleFilter(),
-        ],
+        queryKey: queryKeys.ttProfileSubmissions(ttProfileId, currentPage(), pageSize(), selectedCC(), glitchFilter(), shroomlessFilter(), vehicleFilter()),
         queryFn: () =>
             timeTrialApi.getProfileSubmissions(
                 ttProfileId,
@@ -63,7 +54,7 @@ export function useTTPlayer(ttProfileId: number) {
 
     // Fetch player stats - always unfiltered
     const statsQuery = useQuery(() => ({
-        queryKey: ["tt-profile-stats", ttProfileId],
+        queryKey: queryKeys.ttProfileStats(ttProfileId),
         queryFn: () => timeTrialApi.getPlayerStats(ttProfileId),
     }));
 
@@ -85,8 +76,8 @@ export function useTTPlayer(ttProfileId: number) {
     const isPlayerNotFound = createMemo(
         () =>
             profileQuery.isError &&
-      profileQuery.error instanceof Error &&
-      profileQuery.error.message.includes("404"),
+            profileQuery.error instanceof Error &&
+            profileQuery.error.message.includes("404"),
     );
 
     const totalPages = createMemo(() => submissionsQuery.data?.totalPages ?? 1);
@@ -95,47 +86,16 @@ export function useTTPlayer(ttProfileId: number) {
         () => submissionsQuery.data?.totalSubmissions ?? 0,
     );
 
-    const handleSearchInput = (value: string) => {
-        setSearchQuery(value);
-    };
+    const handleSearchInput = (value: string) => setSearchQuery(value);
+    const handleCCChange = (cc: 150 | 200 | undefined) => setSelectedCC(cc);
+    const handleGlitchFilterChange = (glitch: boolean | undefined) => setGlitchFilter(glitch);
+    const handleShroomlessFilterChange = (filter: ShroomlessFilter) => setShroomlessFilter(filter);
+    const handleVehicleFilterChange = (filter: VehicleFilter) => setVehicleFilter(filter);
 
-    const handleCCChange = (cc: 150 | 200 | undefined) => {
-        setSelectedCC(cc as 150 | 200 | undefined);
-    };
-
-    const handleGlitchFilterChange = (glitch: boolean | undefined) => {
-        setGlitchFilter(glitch);
-    };
-
-    const handleShroomlessFilterChange = (filter: ShroomlessFilter) => {
-        setShroomlessFilter(filter);
-    };
-
-    const handleVehicleFilterChange = (filter: VehicleFilter) => {
-        setVehicleFilter(filter);
-    };
-
-    const handlePageSizeChange = (size: number) => {
-        setPageSize(size);
-        setCurrentPage(1);
-    };
-
-    const handleDownloadGhost = async (submissionId: number) => {
+    const handleDownloadGhost = async (submission: GhostSubmission) => {
         try {
-            const blob = await timeTrialApi.downloadGhost(submissionId);
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            const submission = submissionsQuery.data?.submissions.find(
-                (s) => s.id === submissionId,
-            );
-            a.download = submission
-                ? `${submission.finishTimeDisplay.replace(":", "m").replace(".", "s")}.rkg`
-                : "ghost.rkg";
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+            const blob = await timeTrialApi.downloadGhost(submission.id);
+            triggerBlobDownload(blob, ghostFilename(submission.finishTimeDisplay));
         } catch (error) {
             console.error("Failed to download ghost:", error);
         }
@@ -148,38 +108,39 @@ export function useTTPlayer(ttProfileId: number) {
     };
 
     return {
-    // State
-        selectedCC,
-        glitchFilter,
-        shroomlessFilter,
-        vehicleFilter,
-        searchQuery,
-        currentPage,
-        pageSize,
-
-        // Computed
-        filteredSubmissions,
-        worldRecordsHeld,
-        isPlayerNotFound,
-        totalPages,
-        totalSubmissions,
-
-        // Queries
-        profileQuery,
-        submissionsQuery,
-        statsQuery,
-
-        // Handlers
-        handleSearchInput,
-        handleCCChange,
-        handleGlitchFilterChange,
-        handleShroomlessFilterChange,
-        handleVehicleFilterChange,
-        handlePageSizeChange,
-        handleDownloadGhost,
-        refreshAll,
-
-        // Setters
-        setCurrentPage,
+        filters: {
+            selectedCC,
+            glitchFilter,
+            shroomlessFilter,
+            vehicleFilter,
+            searchQuery,
+        },
+        pagination: {
+            currentPage,
+            pageSize,
+            setCurrentPage,
+            handlePageSizeChange,
+        },
+        computed: {
+            filteredSubmissions,
+            worldRecordsHeld,
+            isPlayerNotFound,
+            totalPages,
+            totalSubmissions,
+        },
+        queries: {
+            profileQuery,
+            submissionsQuery,
+            statsQuery,
+        },
+        handlers: {
+            handleSearchInput,
+            handleCCChange,
+            handleGlitchFilterChange,
+            handleShroomlessFilterChange,
+            handleVehicleFilterChange,
+            handleDownloadGhost,
+            refreshAll,
+        },
     };
 }

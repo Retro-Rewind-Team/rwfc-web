@@ -36,6 +36,7 @@ export default function RoomCard(props: RoomCardProps) {
         <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
             {/* Room Header */}
             <button
+                type="button"
                 onClick={() => setIsExpanded(!isExpanded())}
                 class="w-full p-5 text-left bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
             >

@@ -12,9 +12,16 @@ interface UseMiiLoaderReturn {
   isLoading: (friendCode: string) => boolean;
 }
 
+/** Module-level cache shared across all `useMiiLoader` instances. Value is a base64 image, null (no Mii), or "loading". */
 const globalMiiCache: MiiCache = {};
+/** In-flight load promises keyed by friend code, preventing duplicate API calls. */
 const loadingPromises = new Map<string, Promise<void>>();
 
+/**
+ * Provides Mii image loading with a module-level cache shared across all
+ * hook instances. Individual and batch loading are deduplicated so each friend
+ * code is fetched at most once per page lifecycle.
+ */
 export function useMiiLoader(): UseMiiLoaderReturn {
     const [, setForceUpdate] = createSignal(0);
 
@@ -98,6 +105,7 @@ export function useMiiLoader(): UseMiiLoaderReturn {
     };
 }
 
+/** Reactive wrapper around `useMiiLoader` for a single friend code, polling the cache every 200 ms for updates. */
 export function useMiiImage(friendCode: string): {
   miiImage: () => string | null | undefined;
   isLoading: () => boolean;
@@ -134,6 +142,10 @@ export function useMiiImage(friendCode: string): {
     };
 }
 
+/**
+ * Returns a callback ref that fires `callback` once when the element first
+ * enters the viewport, then stops observing it.
+ */
 export function useIntersectionObserver(
     callback: () => void,
     options: IntersectionObserverInit = {},

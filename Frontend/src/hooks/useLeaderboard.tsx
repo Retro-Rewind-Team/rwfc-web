@@ -2,30 +2,28 @@ import { createEffect, createMemo, createSignal } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { leaderboardApi } from "../services/api/leaderboard";
 import { LeaderboardRequest, Player } from "../types";
+import { queryKeys } from "../constants/queryKeys";
 import { useMiiLoader } from "./useMiiLoader";
+import { usePagination } from "./usePagination";
+import { useDebouncedSearch } from "./useDebouncedSearch";
 
+/**
+ * Manages search, sort, pagination, time-period selection, and Mii loading
+ * for the main VR leaderboard.
+ */
 export function useLeaderboard() {
-    // State for filters and pagination
-    const [currentPage, setCurrentPage] = createSignal(1);
-    const [pageSize, setPageSize] = createSignal(50);
-    const [search, setSearch] = createSignal("");
+    const { currentPage, setCurrentPage, pageSize, handlePageSizeChange } =
+        usePagination(50);
+    const { searchQuery, search, handleSearchInput } = useDebouncedSearch();
+
     const [sortBy, setSortBy] = createSignal("rank");
     const [ascending, setAscending] = createSignal(true);
-    const [searchQuery, setSearchQuery] = createSignal("");
     const [timePeriod, setTimePeriod] = createSignal("24");
 
     const miiLoader = useMiiLoader();
 
-    // Debounced search
-    let searchTimeout: ReturnType<typeof setTimeout>;
-    const handleSearchInput = (value: string) => {
-        setSearchQuery(value);
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            setSearch(value);
-            setCurrentPage(1);
-        }, 300);
-    };
+    // Reset to page 1 when the debounced search value changes
+    createEffect(() => { search(); setCurrentPage(1); });
 
     // Create the request object
     const leaderboardRequest = createMemo(
@@ -41,13 +39,13 @@ export function useLeaderboard() {
 
     // Queries
     const statsQuery = useQuery(() => ({
-        queryKey: ["stats"],
+        queryKey: queryKeys.stats,
         queryFn: () => leaderboardApi.getStats(),
         refetchInterval: 60000,
     }));
 
     const leaderboardQuery = useQuery(() => ({
-        queryKey: ["leaderboard", leaderboardRequest()],
+        queryKey: queryKeys.leaderboard(leaderboardRequest()),
         queryFn: () => leaderboardApi.getLeaderboard(leaderboardRequest()),
         refetchInterval: 60000,
     }));
@@ -98,11 +96,6 @@ export function useLeaderboard() {
             setSortBy(newSortField);
         }
 
-        setCurrentPage(1);
-    };
-
-    const handlePageSizeChange = (size: number) => {
-        setPageSize(size);
         setCurrentPage(1);
     };
 

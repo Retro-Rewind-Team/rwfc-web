@@ -40,3 +40,28 @@ export async function apiRequest<T>(
         );
     }
 }
+
+export async function apiBlobRequest(
+    endpoint: string,
+    options: RequestInit = {},
+): Promise<Blob> {
+    const url = `${API_BASE_URL}${endpoint}`;
+
+    try {
+        const response = await fetch(url, options);
+
+        if (!response.ok) {
+            throw new ApiError(
+                response.status,
+                `HTTP ${response.status}: ${response.statusText}`,
+            );
+        }
+
+        return await response.blob();
+    } catch (error) {
+        if (error instanceof ApiError) throw error;
+        throw new Error(
+            `Network error: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
+    }
+}

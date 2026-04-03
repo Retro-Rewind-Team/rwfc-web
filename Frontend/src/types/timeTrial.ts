@@ -33,8 +33,8 @@ export interface GhostSubmission {
   vehicleId: number;
   characterId: number;
   controllerType: number;
-  driftType: number;
-  driftCategory: number;
+  driftType: number;     // 0 = Manual, 1 = Hybrid
+  driftCategory: number; // 0 = Inside, 1 = Outside
   shroomless: boolean;
   glitch: boolean;
   isFlap: boolean;

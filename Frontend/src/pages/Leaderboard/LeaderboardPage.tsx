@@ -1,15 +1,8 @@
 import { createSignal, Show } from "solid-js";
-import {
-    ChevronLeft,
-    ChevronRight,
-    RefreshCw,
-    Search,
-    Star,
-    Trophy,
-} from "lucide-solid";
+import { RefreshCw, Search, Star, Trophy } from "lucide-solid";
 import { useLeaderboard } from "../../hooks";
 import { useLegacyLeaderboard } from "../../hooks/useLegacyLeaderboard";
-import { AlertBox, LoadingSpinner } from "../../components/common";
+import { AlertBox, InlinePagination, LoadingSpinner } from "../../components/common";
 import { LeaderboardTable } from "../../components/ui";
 
 function isVRMultiplierActive(): boolean {
@@ -98,6 +91,7 @@ export default function LeaderboardPage() {
                         <Show when={legacyLeaderboard.isAvailable()}>
                             <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1 flex border border-gray-200 dark:border-gray-600">
                                 <button
+                                    type="button"
                                     onClick={() => setShowLegacy(false)}
                                     class={`px-4 py-2 rounded-md font-medium transition-all text-sm ${
                                         !showLegacy()
@@ -108,6 +102,7 @@ export default function LeaderboardPage() {
                   Current
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={() => setShowLegacy(true)}
                                     class={`inline-flex items-center gap-1.5 px-4 py-2 rounded-md font-medium transition-all text-sm ${
                                         showLegacy()
@@ -122,6 +117,7 @@ export default function LeaderboardPage() {
                         </Show>
 
                         <button
+                            type="button"
                             onClick={activeLeaderboard().refreshLeaderboard}
                             class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-5 rounded-lg transition-colors inline-flex items-center justify-center gap-2 text-sm"
                         >
@@ -230,6 +226,7 @@ export default function LeaderboardPage() {
                 "Something went wrong on our end"}
                         </p>
                         <button
+                            type="button"
                             onClick={() => activeLeaderboard().leaderboardQuery.refetch()}
                             class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
                         >
@@ -277,96 +274,15 @@ export default function LeaderboardPage() {
                     </Show>
 
                     {/* Pagination */}
-                    <Show
-                        when={activeLeaderboard().leaderboardQuery.data!.totalPages > 1}
-                    >
-                        <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 dark:border-gray-600 gap-2 sm:gap-0">
-                            <div class="flex items-center justify-center sm:justify-start gap-2">
-                                <button
-                                    onClick={() =>
-                                        activeLeaderboard().setCurrentPage(
-                                            Math.max(1, activeLeaderboard().currentPage() - 1),
-                                        )
-                                    }
-                                    disabled={activeLeaderboard().currentPage() === 1}
-                                    class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    <ChevronLeft size={16} />
-                  Previous
-                                </button>
-                                <span class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 font-medium whitespace-nowrap">
-                  Page
-                                    <input
-                                        type="number"
-                                        min={1}
-                                        max={activeLeaderboard().leaderboardQuery.data!.totalPages}
-                                        value={activeLeaderboard().currentPage()}
-                                        onKeyDown={(e) => {
-                                            if (e.key === "Enter") {
-                                                const val = parseInt(
-                                                    (e.target as HTMLInputElement).value,
-                                                );
-                                                const total =
-                          activeLeaderboard().leaderboardQuery.data!.totalPages;
-                                                if (!isNaN(val) && val >= 1 && val <= total) {
-                                                    activeLeaderboard().setCurrentPage(val);
-                                                } else {
-                                                    (e.target as HTMLInputElement).value = String(
-                                                        activeLeaderboard().currentPage(),
-                                                    );
-                                                }
-                                            }
-                                        }}
-                                        onBlur={(e) => {
-                                            const val = parseInt(e.target.value);
-                                            const total =
-                        activeLeaderboard().leaderboardQuery.data!.totalPages;
-                                            if (!isNaN(val) && val >= 1 && val <= total) {
-                                                activeLeaderboard().setCurrentPage(val);
-                                            } else {
-                                                e.target.value = String(
-                                                    activeLeaderboard().currentPage(),
-                                                );
-                                            }
-                                        }}
-                                        class="w-16 px-2 py-1 text-center border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                    />
-                  of {activeLeaderboard().leaderboardQuery.data!.totalPages}
-                                </span>
-                                <button
-                                    onClick={() =>
-                                        activeLeaderboard().setCurrentPage(
-                                            Math.min(
-                        activeLeaderboard().leaderboardQuery.data!.totalPages,
-                        activeLeaderboard().currentPage() + 1,
-                                            ),
-                                        )
-                                    }
-                                    disabled={
-                                        activeLeaderboard().currentPage() ===
-                    activeLeaderboard().leaderboardQuery.data!.totalPages
-                                    }
-                                    class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                >
-                  Next
-                                    <ChevronRight size={16} />
-                                </button>
-                            </div>
-                            <div class="text-sm text-gray-600 dark:text-gray-400 font-medium text-center sm:text-right">
-                Showing{" "}
-                                {(activeLeaderboard().currentPage() - 1) *
-                  activeLeaderboard().pageSize() +
-                  1}
-                –
-                                {Math.min(
-                                    activeLeaderboard().currentPage() *
-                    activeLeaderboard().pageSize(),
-                  activeLeaderboard().leaderboardQuery.data!.totalCount,
-                                )}{" "}
-                of {activeLeaderboard().leaderboardQuery.data!.totalCount}{" "}
-                racers
-                            </div>
-                        </div>
+                    <Show when={activeLeaderboard().leaderboardQuery.data!.totalPages > 1}>
+                        <InlinePagination
+                            currentPage={activeLeaderboard().currentPage()}
+                            totalPages={activeLeaderboard().leaderboardQuery.data!.totalPages}
+                            pageSize={activeLeaderboard().pageSize()}
+                            totalItems={activeLeaderboard().leaderboardQuery.data!.totalCount}
+                            onPageChange={activeLeaderboard().setCurrentPage}
+                            itemLabel="racers"
+                        />
                     </Show>
                 </div>
             </Show>

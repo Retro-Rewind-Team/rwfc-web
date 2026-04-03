@@ -85,6 +85,7 @@ export default function RaceStatsPage() {
                     <For each={DAY_OPTIONS}>
                         {(opt) => (
                             <button
+                                type="button"
                                 onClick={() => handleDaysChange(opt.value)}
                                 class={`px-3 py-1 rounded text-sm font-medium transition-colors ${
                                     days() === opt.value
@@ -200,6 +201,7 @@ export default function RaceStatsPage() {
                             <div class="flex items-center gap-2">
                                 <div class="flex rounded overflow-hidden border border-gray-200 dark:border-gray-600 text-xs">
                                     <button
+                                        type="button"
                                         onClick={() => setTrackSort("plays")}
                                         class={`px-3 py-1.5 font-medium transition-colors ${
                                             trackSort() === "plays"
@@ -210,6 +212,7 @@ export default function RaceStatsPage() {
                     By plays
                                     </button>
                                     <button
+                                        type="button"
                                         onClick={() => setTrackSort("name")}
                                         class={`px-3 py-1.5 font-medium transition-colors ${
                                             trackSort() === "name"

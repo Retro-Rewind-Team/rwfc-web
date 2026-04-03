@@ -1,63 +1,10 @@
-// Rank Calculator Types
-export interface RksysLicense {
-  index: number;
-  name: string;
-  profileId: number;
-  friendCode: string;
-  vrPoints: number;
-  vsWins: number;
-  vsLosses: number;
-  firsts: number;
-  distance: number;
-  distance1st: number;
-}
-
-export interface RankScore {
-  score: number;
-  rank: number;
-  rankLabel: string;
-  M: number;
-  winPct: number;
-  vrNorm: number;
-  firstsNorm: number;
-  distNorm: number;
-  dist1stNorm: number;
-  totalVs: number;
-  meetsRaceReq: boolean;
-}
-
-export interface NeededStats {
-  threshold: number | null;
-  M_req: number;
-  byStat: {
-    VR: StatRequirement;
-    WinPct: StatRequirement;
-    Firsts: StatRequirement;
-    Distance: StatRequirement;
-    Dist1st: StatRequirement;
-  } | null;
-}
-
-export interface StatRequirement {
-  neededNorm: number;
-  neededRaw: number;
-  unit: string;
-  feasibility: "ok" | "warn" | "bad";
-  extraWins?: string;
-}
-
-export interface StatContribution {
-  points: number;
-  share: number;
-}
-
 // Rating Editor Types
 export interface RatingEntry {
   index: number;
   profileId: number;
   vr: number;
-  br: number;
-  flags: number;
+  br: number;    // Battle Rating
+  flags: number; // Bitfield containing entry metadata flags
 }
 
 export interface RatingFile {
@@ -69,9 +16,9 @@ export interface RatingFile {
 
 // Font Patcher Types
 export interface U8Node {
-  type: number;
-  nameOffset: number;
-  dataOffset: number;
+  type: number;       // 0 = file, 1 = directory
+  nameOffset: number; // Byte offset into the string table
+  dataOffset: number; // Byte offset of node data within the archive
   size: number;
   index: number;
 }

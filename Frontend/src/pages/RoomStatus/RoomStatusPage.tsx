@@ -14,20 +14,10 @@ import {
 
 export default function RoomStatusPage() {
     const {
-        isLatest,
-        canGoForward,
-        canGoBackward,
-        statsQuery,
-        roomStatusQuery,
-        getAllFriendCodes,
-        goForward,
-        goBackward,
-        goToLatest,
-        goToOldest,
-        getRoomUptime,
-        jumpByMinutes,
-        goToDateTime,
-        currentDateTimeLocal,
+        state: { isLatest, canGoForward, canGoBackward, currentDateTimeLocal },
+        queries: { statsQuery, roomStatusQuery },
+        nav: { goForward, goBackward, goToLatest, goToOldest, jumpByMinutes, goToDateTime },
+        utils: { getAllFriendCodes, getRoomUptime },
     } = useRoomStatus();
 
     const miiLoader = useMiiLoader();
@@ -131,6 +121,7 @@ export default function RoomStatusPage() {
                             <div class="flex items-center gap-2">
                                 {/* Jump to oldest */}
                                 <button
+                                    type="button"
                                     onClick={goToOldest}
                                     disabled={!canGoBackward()}
                                     class="p-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-all hover:scale-110 disabled:hover:scale-100 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
@@ -141,6 +132,7 @@ export default function RoomStatusPage() {
 
                                 {/* Previous */}
                                 <button
+                                    type="button"
                                     onClick={goBackward}
                                     disabled={!canGoBackward()}
                                     class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg font-semibold transition-all hover:scale-105 disabled:hover:scale-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md"
@@ -151,6 +143,7 @@ export default function RoomStatusPage() {
 
                                 {/* Next */}
                                 <button
+                                    type="button"
                                     onClick={goForward}
                                     disabled={!canGoForward()}
                                     class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg font-semibold transition-all hover:scale-105 disabled:hover:scale-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md"
@@ -161,6 +154,7 @@ export default function RoomStatusPage() {
 
                                 {/* Jump to latest */}
                                 <button
+                                    type="button"
                                     onClick={goToLatest}
                                     disabled={isLatest()}
                                     class="p-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-all hover:scale-110 disabled:hover:scale-100 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
@@ -193,6 +187,7 @@ export default function RoomStatusPage() {
                             {/* Quick jump buttons */}
                             {([-60, -1] as const).map((mins) => (
                                 <button
+                                    type="button"
                                     onClick={() => handleJump(mins)}
                                     disabled={isJumping() || !canGoBackward()}
                                     class="px-3 py-2 text-xs font-bold bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm border border-gray-200 dark:border-gray-600"
@@ -220,6 +215,7 @@ export default function RoomStatusPage() {
                             {/* Quick jump buttons */}
                             {([1, 60] as const).map((mins) => (
                                 <button
+                                    type="button"
                                     onClick={() => handleJump(mins)}
                                     disabled={isJumping() || !canGoForward()}
                                     class="px-3 py-2 text-xs font-bold bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm border border-gray-200 dark:border-gray-600"
@@ -256,6 +252,7 @@ export default function RoomStatusPage() {
                             {roomStatusQuery.error?.message || "Something went wrong"}
                         </p>
                         <button
+                            type="button"
                             onClick={() => roomStatusQuery.refetch()}
                             class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-10 rounded-lg transition-colors"
                         >

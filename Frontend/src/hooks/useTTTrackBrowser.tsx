@@ -2,21 +2,23 @@ import { createMemo, createSignal } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { timeTrialApi } from "../services/api/timeTrial";
 import { ShroomlessFilter, VehicleFilter } from "../types/timeTrial";
+import { queryKeys } from "../constants/queryKeys";
 
+/**
+ * Manages filter state and data fetching for the time trial track browser.
+ * Track list and world records are fetched once and filtered locally.
+ */
 export function useTTTrackBrowser() {
-    const [selectedCategory, setSelectedCategory] = createSignal<
-    "retro" | "custom"
-  >("retro");
+    const [selectedCategory, setSelectedCategory] = createSignal<"retro" | "custom">("retro");
     const [selectedCC, setSelectedCC] = createSignal<150 | 200>(150);
     const [glitchAllowed, setGlitchAllowed] = createSignal<boolean>(true);
-    const [shroomlessFilter, setShroomlessFilter] =
-    createSignal<ShroomlessFilter>("all");
+    const [shroomlessFilter, setShroomlessFilter] = createSignal<ShroomlessFilter>("all");
     const [vehicleFilter, setVehicleFilter] = createSignal<VehicleFilter>("all");
     const [searchQuery, setSearchQuery] = createSignal("");
 
     // Fetch all tracks - static, cached for 1 hour
     const tracksQuery = useQuery(() => ({
-        queryKey: ["tt-tracks"],
+        queryKey: queryKeys.ttTracks,
         queryFn: () => timeTrialApi.getAllTracks(),
         staleTime: 1000 * 60 * 60,
     }));
@@ -24,13 +26,7 @@ export function useTTTrackBrowser() {
     // Fetch world records for the current category combination
     // All filter dimensions are part of the query key so cache entries are per-category
     const worldRecordsQuery = useQuery(() => ({
-        queryKey: [
-            "tt-world-records-all",
-            selectedCC(),
-            glitchAllowed(),
-            shroomlessFilter(),
-            vehicleFilter(),
-        ],
+        queryKey: queryKeys.ttWorldRecordsAll(selectedCC(), glitchAllowed(), shroomlessFilter(), vehicleFilter()),
         queryFn: () =>
             timeTrialApi.getAllWorldRecords(
                 selectedCC(),
@@ -55,43 +51,20 @@ export function useTTTrackBrowser() {
             .sort((a, b) => a.sortOrder - b.sortOrder);
     });
 
-    // Look up the active WR for a given track from the already-fetched world records
-    const getWorldRecordForTrack = (trackId: number) => {
-        return createMemo(() => {
-            const records = worldRecordsQuery.data ?? [];
-            return (
-                records.find((r) => r.trackId === trackId)?.activeWorldRecord ?? null
-            );
-        });
-    };
-
-    const handleSearchInput = (value: string) => {
-        setSearchQuery(value);
-    };
+    const handleSearchInput = (value: string) => setSearchQuery(value);
 
     const handleCategoryChange = (category: "retro" | "custom") => {
         setSelectedCategory(category);
         setSearchQuery("");
     };
 
-    const handleCCChange = (cc: 150 | 200) => {
-        setSelectedCC(cc);
-    };
-
-    const handleGlitchAllowedChange = (allowed: boolean) => {
-        setGlitchAllowed(allowed);
-    };
-
-    const handleShroomlessFilterChange = (filter: ShroomlessFilter) => {
-        setShroomlessFilter(filter);
-    };
-
-    const handleVehicleFilterChange = (filter: VehicleFilter) => {
-        setVehicleFilter(filter);
-    };
+    const handleCCChange = (cc: 150 | 200) => setSelectedCC(cc);
+    const handleGlitchAllowedChange = (allowed: boolean) => setGlitchAllowed(allowed);
+    const handleShroomlessFilterChange = (filter: ShroomlessFilter) => setShroomlessFilter(filter);
+    const handleVehicleFilterChange = (filter: VehicleFilter) => setVehicleFilter(filter);
 
     return {
-    // State
+        // State
         selectedCategory,
         selectedCC,
         glitchAllowed,
@@ -105,9 +78,6 @@ export function useTTTrackBrowser() {
         // Queries
         tracksQuery,
         worldRecordsQuery,
-
-        // Helpers
-        getWorldRecordForTrack,
 
         // Handlers
         handleSearchInput,

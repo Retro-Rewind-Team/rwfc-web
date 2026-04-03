@@ -3,10 +3,10 @@ export interface RoomPlayer {
   name: string;
   friendCode: string;
   vr: number | null;
-  br: number | null;
+  br: number | null; 
   isOpenHost: boolean;
   isSuspended: boolean;
-  connectionMap: string[];
+  connectionMap: string[]; 
   mii: {
     data: string;
     name: string;
@@ -14,9 +14,9 @@ export interface RoomPlayer {
 }
 
 export interface Race {
-  num: number;
+  num: number; 
   course: number;
-  cc: number;
+  cc: number; 
   trackName: string | null;
 }
 

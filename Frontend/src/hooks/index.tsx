@@ -1,7 +1,14 @@
 export { useLeaderboard } from "./useLeaderboard";
+export { useLegacyLeaderboard } from "./useLegacyLeaderboard";
 export { usePlayer } from "./usePlayer";
-export { useDebounce } from "./useDebounce";
+export { useDebouncedSearch } from "./useDebouncedSearch";
+export { usePagination } from "./usePagination";
 export { useVRHistory } from "./useVRHistory";
 export { useMiiLoader } from "./useMiiLoader";
 export { useRoomStatus } from "./useRoom";
 export { useClipboard } from "./useClipboard";
+export { useTTPlayer } from "./useTTPlayer";
+export { useTTTrackBrowser } from "./useTTTrackBrowser";
+export { useTTTrackDetail } from "./useTTTrackDetail";
+export { usePlayerRaceStats } from "./usePlayerRaceStats";
+export { useGlobalRaceStats } from "./useGlobalRaceStats";

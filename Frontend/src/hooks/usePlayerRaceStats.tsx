@@ -1,16 +1,23 @@
 import { createEffect, createSignal } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { raceStatsApi } from "../services/api/raceStats";
+import { queryKeys } from "../constants/queryKeys";
+import { usePagination } from "./usePagination";
 
 const PAGE_SIZE = 20;
 
+/**
+ * Fetches race statistics for a single player with optional time window and
+ * track filters, plus client-side pagination of the recent races list.
+ */
 export function usePlayerRaceStats(pid: string | undefined) {
+    const { currentPage, setCurrentPage } = usePagination(PAGE_SIZE);
+
     const [days, setDays] = createSignal<number | undefined>(undefined);
     const [courseId, setCourseId] = createSignal<number | undefined>(undefined);
     const [activeTrackName, setActiveTrackName] = createSignal<
     string | undefined
   >(undefined);
-    const [currentPage, setCurrentPage] = createSignal(1);
 
     // Reset to page 1 when filters change
     createEffect(() => {
@@ -20,7 +27,7 @@ export function usePlayerRaceStats(pid: string | undefined) {
     });
 
     const raceStatsQuery = useQuery(() => ({
-        queryKey: ["player-race-stats", pid, days(), courseId(), currentPage()],
+        queryKey: queryKeys.playerRaceStats(pid, days(), courseId(), currentPage()),
         queryFn: () =>
             raceStatsApi.getPlayerRaceStats(pid!, {
                 days: days(),

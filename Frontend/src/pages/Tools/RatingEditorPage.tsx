@@ -16,6 +16,7 @@ import {
     validateRatingFile,
 } from "../../utils/fileValidator";
 import { Download } from "lucide-solid/icons/index";
+import { triggerBlobDownload } from "../../utils/downloadHelpers";
 import TriangleAlert from "lucide-solid/icons/triangle-alert";
 
 export default function RatingEditorPage() {
@@ -207,16 +208,7 @@ export default function RatingEditorPage() {
         if (!file) return;
 
         const buffer = buildRatingFile(file);
-        const blob = new Blob([buffer], { type: "application/octet-stream" });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName() || "RRRating.pul";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        triggerBlobDownload(new Blob([buffer], { type: "application/octet-stream" }), fileName() || "RRRating.pul");
     };
 
     const isEntryActive = (entry: RatingEntry) => {
@@ -275,6 +267,7 @@ export default function RatingEditorPage() {
 
                     <Show when={ratingFile()}>
                         <button
+                            type="button"
                             onClick={downloadFile}
                             class="ml-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors inline-flex items-center gap-2"
                         >
@@ -446,6 +439,7 @@ export default function RatingEditorPage() {
                                 </div>
                                 <div class="flex gap-2">
                                     <button
+                                        type="button"
                                         onClick={toggleAllRows}
                                         class="px-3 py-1.5 text-sm font-medium rounded-lg
                                             bg-gray-200 dark:bg-gray-700
@@ -457,6 +451,7 @@ export default function RatingEditorPage() {
                                             : "Select All"}
                                     </button>
                                     <button
+                                        type="button"
                                         onClick={clearSelectedRows}
                                         disabled={selectedRows().size === 0}
                                         class="px-3 py-1.5 text-sm font-medium rounded-lg

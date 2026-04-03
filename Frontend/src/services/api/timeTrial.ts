@@ -1,4 +1,4 @@
-import { apiRequest } from "./client";
+import { apiBlobRequest, apiRequest } from "./client";
 import {
     GhostSubmission,
     PagedSubmissions,
@@ -167,13 +167,7 @@ export const timeTrialApi = {
     // ===== GHOST DOWNLOAD =====
 
     async downloadGhost(id: number): Promise<Blob> {
-        const response = await fetch(
-            `${import.meta.env.VITE_API_URL || "/api"}/timetrial/ghost/${id}/download`,
-        );
-        if (!response.ok) {
-            throw new Error(`Failed to download ghost: ${response.statusText}`);
-        }
-        return response.blob();
+        return apiBlobRequest(`/timetrial/ghost/${id}/download`);
     },
 
     // ===== PROFILES =====

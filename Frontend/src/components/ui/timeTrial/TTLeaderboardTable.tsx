@@ -1,14 +1,14 @@
 import { A } from "@solidjs/router";
 import { createSignal, For, Show } from "solid-js";
-import { GhostSubmission } from "../../types/timeTrial";
+import { ChevronDown, Download } from "lucide-solid";
+import { GhostSubmission } from "../../../types/timeTrial";
 import {
     getCharacterName,
     getControllerName,
-    getDriftCategoryName,
-    getDriftTypeName,
     getVehicleName,
-} from "../../utils/marioKartMappings";
-import { CountryFlag } from "../common";
+} from "../../../constants/marioKartMappings";
+import { formatDate, getDriftInfo } from "../../../utils/formatter";
+import { CountryFlag } from "../../common";
 
 interface TTLeaderboardTableProps {
   submissions: GhostSubmission[];
@@ -37,14 +37,6 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
         return submission.lapSplitsMs.some((lap) => lap === props.fastestLapMs);
     };
 
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, "0");
-        const month = (date.getMonth() + 1).toString().padStart(2, "0");
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-    };
-
     const getValidLaps = (submission: GhostSubmission) => {
         const validLaps: { time: string; timeMs: number; index: number }[] = [];
         for (
@@ -61,12 +53,6 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
             }
         }
         return validLaps;
-    };
-
-    const getDriftInfo = (submission: GhostSubmission) => {
-        const driftType = getDriftTypeName(submission.driftType);
-        const driftCategory = getDriftCategoryName(submission.driftCategory);
-        return `${driftType} ${driftCategory.replace(" Drift", "")}`;
     };
 
     const getRankDisplay = (rank: number | null) => {
@@ -243,7 +229,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                 {getVehicleName(submission.vehicleId)}
                                             </div>
                                             <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                {getDriftInfo(submission)}
+                                                {getDriftInfo(submission.driftType, submission.driftCategory)}
                                             </div>
                                         </td>
 
@@ -263,42 +249,23 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                         <td class="px-2 sm:px-6 py-4 whitespace-nowrap text-right">
                                             <div class="flex items-center justify-end gap-1 sm:gap-2">
                                                 <button
+                                                    type="button"
                                                     onClick={() => toggleRow(submission.id)}
                                                     class="inline-flex items-center p-2 sm:px-3 sm:py-1.5 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                                                     aria-label="Toggle details"
                                                 >
-                                                    <svg
-                                                        class={`w-4 h-4 transition-transform ${isExpanded() ? "rotate-180" : ""}`}
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M19 9l-7 7-7-7"
-                                                        />
-                                                    </svg>
+                                                    <ChevronDown
+                                                        size={16}
+                                                        class={`transition-transform ${isExpanded() ? "rotate-180" : ""}`}
+                                                    />
                                                 </button>
                                                 <button
+                                                    type="button"
                                                     onClick={() => props.onDownloadGhost(submission)}
                                                     class="inline-flex items-center p-2 sm:px-3 sm:py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
                                                     aria-label="Download ghost"
                                                 >
-                                                    <svg
-                                                        class="w-4 h-4 sm:mr-1"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                                                        />
-                                                    </svg>
+                                                    <Download size={16} class="sm:mr-1" />
                                                     <span class="hidden sm:inline">Ghost</span>
                                                 </button>
                                             </div>
@@ -438,7 +405,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                     Drift:
                                                                     </span>
                                                                     <span class="font-medium text-gray-900 dark:text-white">
-                                                                        {getDriftInfo(submission)}
+                                                                        {getDriftInfo(submission.driftType, submission.driftCategory)}
                                                                     </span>
                                                                 </div>
                                                                 <div class="xl:hidden flex justify-between">

@@ -1,25 +1,15 @@
 import { A, useParams } from "@solidjs/router";
 import { createMemo, Show } from "solid-js";
-import {
-    ChevronLeft,
-    ChevronRight,
-    TriangleAlert,
-    Trophy,
-    Zap,
-} from "lucide-solid";
+import { ChevronLeft, TriangleAlert, Trophy, Zap } from "lucide-solid";
 import { useTTTrackDetail } from "../../hooks/useTTTrackDetail";
-import { AlertBox, LoadingSpinner } from "../../components/common";
-import {
-    TTFilters,
-    TTLeaderboardTable,
-    TTWRHistory,
-} from "../../components/ui";
+import { AlertBox, InlinePagination, LoadingSpinner } from "../../components/common";
+import { TTFilters, TTLeaderboardTable, TTWRHistory } from "../../components/ui";
 import { LeaderboardMode } from "../../types/timeTrial";
 
 function parseRouteCC(ccParam: string): {
-  cc: 150 | 200;
-  glitchAllowed: boolean;
-  mode: LeaderboardMode;
+    cc: 150 | 200;
+    glitchAllowed: boolean;
+    mode: LeaderboardMode;
 } {
     const isFlap = ccParam.startsWith("flap-");
     const withoutFlap = isFlap ? ccParam.slice("flap-".length) : ccParam;
@@ -40,7 +30,12 @@ export default function TTTrackDetailPage() {
     const mode = createMemo((): LeaderboardMode => parsed().mode);
     const trackId = createMemo(() => Number(params.trackId));
 
-    const ttTrack = useTTTrackDetail(trackId, selectedCC, glitchAllowed, mode);
+    const { filters, pagination, computed, queries, handlers } = useTTTrackDetail(
+        trackId,
+        selectedCC,
+        glitchAllowed,
+        mode,
+    );
 
     const categoryLabel = () => {
         const parts: string[] = [];
@@ -73,12 +68,12 @@ export default function TTTrackDetailPage() {
                     class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                 >
                     <ChevronLeft size={16} />
-          Back to Track Browser
+                    Back to Track Browser
                 </A>
             </div>
 
             {/* Loading */}
-            <Show when={ttTrack.trackQuery.isLoading}>
+            <Show when={queries.trackQuery.isLoading}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-12 flex flex-col items-center gap-4">
                     <LoadingSpinner />
                     <p class="text-gray-600 dark:text-gray-400">Loading track...</p>
@@ -86,27 +81,28 @@ export default function TTTrackDetailPage() {
             </Show>
 
             {/* Error */}
-            <Show when={ttTrack.trackQuery.isError}>
+            <Show when={queries.trackQuery.isError}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-red-200 dark:border-red-800 p-8">
                     <div class="text-center space-y-4">
                         <div class="flex justify-center text-red-400">
                             <TriangleAlert size={48} />
                         </div>
                         <h2 class="text-2xl font-bold text-red-900 dark:text-red-100">
-              Failed to load track
+                            Failed to load track
                         </h2>
                         <button
-                            onClick={() => ttTrack.trackQuery.refetch()}
+                            type="button"
+                            onClick={() => queries.trackQuery.refetch()}
                             class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
                         >
-              Try Again
+                            Try Again
                         </button>
                     </div>
                 </div>
             </Show>
 
             {/* Track Detail */}
-            <Show when={ttTrack.trackQuery.data}>
+            <Show when={queries.trackQuery.data}>
                 {(track) => (
                     <div class="space-y-6">
                         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -138,35 +134,29 @@ export default function TTTrackDetailPage() {
                                     currentCC={selectedCC()}
                                     currentGlitchAllowed={glitchAllowed()}
                                     currentMode={mode()}
-                                    shroomlessFilter={ttTrack.shroomlessFilter()}
-                                    vehicleFilter={ttTrack.vehicleFilter()}
-                                    driftFilter={ttTrack.driftFilter()}
-                                    driftCategoryFilter={ttTrack.driftCategoryFilter()}
-                                    pageSize={ttTrack.pageSize()}
-                                    onShroomlessFilterChange={
-                                        ttTrack.handleShroomlessFilterChange
-                                    }
-                                    onVehicleFilterChange={ttTrack.handleVehicleFilterChange}
-                                    onDriftFilterChange={ttTrack.handleDriftFilterChange}
-                                    onDriftCategoryFilterChange={
-                                        ttTrack.handleDriftCategoryFilterChange
-                                    }
-                                    onPageSizeChange={ttTrack.handlePageSizeChange}
+                                    shroomlessFilter={filters.shroomlessFilter()}
+                                    vehicleFilter={filters.vehicleFilter()}
+                                    driftFilter={filters.driftFilter()}
+                                    driftCategoryFilter={filters.driftCategoryFilter()}
+                                    pageSize={pagination.pageSize()}
+                                    onShroomlessFilterChange={handlers.handleShroomlessFilterChange}
+                                    onVehicleFilterChange={handlers.handleVehicleFilterChange}
+                                    onDriftFilterChange={handlers.handleDriftFilterChange}
+                                    onDriftCategoryFilterChange={handlers.handleDriftCategoryFilterChange}
+                                    onPageSizeChange={pagination.handlePageSizeChange}
                                 />
                             </div>
 
                             {/* Leaderboard Loading */}
-                            <Show when={ttTrack.leaderboardQuery.isLoading}>
+                            <Show when={queries.leaderboardQuery.isLoading}>
                                 <div class="p-12 flex flex-col items-center gap-4">
                                     <LoadingSpinner />
-                                    <p class="text-gray-600 dark:text-gray-400">
-                    Loading times...
-                                    </p>
+                                    <p class="text-gray-600 dark:text-gray-400">Loading times...</p>
                                 </div>
                             </Show>
 
                             {/* Leaderboard Error */}
-                            <Show when={ttTrack.leaderboardQuery.isError}>
+                            <Show when={queries.leaderboardQuery.isError}>
                                 <div class="p-6">
                                     <AlertBox type="error">Failed to load leaderboard</AlertBox>
                                 </div>
@@ -175,12 +165,12 @@ export default function TTTrackDetailPage() {
                             {/* Leaderboard Table */}
                             <Show
                                 when={
-                                    ttTrack.leaderboardQuery.data &&
-                  !ttTrack.leaderboardQuery.isLoading
+                                    queries.leaderboardQuery.data &&
+                                    !queries.leaderboardQuery.isLoading
                                 }
                             >
                                 <Show
-                                    when={ttTrack.filteredSubmissions().length > 0}
+                                    when={computed.filteredSubmissions().length > 0}
                                     fallback={
                                         <div class="p-12 text-center">
                                             <div class="flex justify-center mb-4 text-gray-300 dark:text-gray-600">
@@ -191,7 +181,7 @@ export default function TTTrackDetailPage() {
                                                 )}
                                             </div>
                                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                        No Times Found
+                                                No Times Found
                                             </h3>
                                             <p class="text-gray-600 dark:text-gray-400">
                                                 {mode() === "flap"
@@ -202,111 +192,37 @@ export default function TTTrackDetailPage() {
                                     }
                                 >
                                     <TTLeaderboardTable
-                                        submissions={ttTrack.filteredSubmissions()}
+                                        submissions={computed.filteredSubmissions()}
                                         fastestLapMs={
                                             mode() === "regular"
-                                                ? (ttTrack.flapQuery.data?.fastestLapMs ?? null)
-                                                : (ttTrack.leaderboardQuery.data?.fastestLapMs ?? null)
+                                                ? (queries.flapQuery.data?.fastestLapMs ?? null)
+                                                : (queries.leaderboardQuery.data?.fastestLapMs ?? null)
                                         }
                                         trackLaps={track().laps}
                                         isFlap={mode() === "flap"}
-                                        onDownloadGhost={ttTrack.handleDownloadGhost}
+                                        onDownloadGhost={handlers.handleDownloadGhost}
                                     />
                                 </Show>
 
                                 {/* Pagination */}
-                                <Show
-                                    when={(ttTrack.leaderboardQuery.data?.totalPages ?? 1) > 1}
-                                >
-                                    <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 dark:border-gray-600 gap-2 sm:gap-0">
-                                        <div class="flex items-center justify-center sm:justify-start gap-2">
-                                            <button
-                                                onClick={() =>
-                                                    ttTrack.setCurrentPage(
-                                                        Math.max(1, ttTrack.currentPage() - 1),
-                                                    )
-                                                }
-                                                disabled={ttTrack.currentPage() === 1}
-                                                class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                            >
-                                                <ChevronLeft size={16} />
-                        Previous
-                                            </button>
-                                            <span class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 font-medium whitespace-nowrap">
-                        Page
-                                                <input
-                                                    type="number"
-                                                    min={1}
-                                                    max={ttTrack.leaderboardQuery.data!.totalPages}
-                                                    value={ttTrack.currentPage()}
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === "Enter") {
-                                                            const val = parseInt(
-                                                                (e.target as HTMLInputElement).value,
-                                                            );
-                                                            const total =
-                                ttTrack.leaderboardQuery.data!.totalPages;
-                                                            if (!isNaN(val) && val >= 1 && val <= total) {
-                                                                ttTrack.setCurrentPage(val);
-                                                            } else {
-                                                                (e.target as HTMLInputElement).value = String(
-                                                                    ttTrack.currentPage(),
-                                                                );
-                                                            }
-                                                        }
-                                                    }}
-                                                    onBlur={(e) => {
-                                                        const val = parseInt(e.target.value);
-                                                        const total =
-                              ttTrack.leaderboardQuery.data!.totalPages;
-                                                        if (!isNaN(val) && val >= 1 && val <= total) {
-                                                            ttTrack.setCurrentPage(val);
-                                                        } else {
-                                                            e.target.value = String(ttTrack.currentPage());
-                                                        }
-                                                    }}
-                                                    class="w-16 px-2 py-1 text-center border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                                />
-                        of {ttTrack.leaderboardQuery.data!.totalPages}
-                                            </span>
-                                            <button
-                                                onClick={() =>
-                                                    ttTrack.setCurrentPage(
-                                                        Math.min(
-                              ttTrack.leaderboardQuery.data!.totalPages,
-                              ttTrack.currentPage() + 1,
-                                                        ),
-                                                    )
-                                                }
-                                                disabled={
-                                                    ttTrack.currentPage() ===
-                          ttTrack.leaderboardQuery.data!.totalPages
-                                                }
-                                                class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                            >
-                        Next
-                                                <ChevronRight size={16} />
-                                            </button>
-                                        </div>
-                                        <div class="text-sm text-gray-600 dark:text-gray-400 font-medium text-center sm:text-right">
-                      Showing{" "}
-                                            {(ttTrack.currentPage() - 1) * ttTrack.pageSize() + 1}–
-                                            {Math.min(
-                                                ttTrack.currentPage() * ttTrack.pageSize(),
-                        ttTrack.leaderboardQuery.data!.totalSubmissions,
-                                            )}{" "}
-                      of {ttTrack.leaderboardQuery.data!.totalSubmissions} times
-                                        </div>
-                                    </div>
+                                <Show when={(queries.leaderboardQuery.data?.totalPages ?? 1) > 1}>
+                                    <InlinePagination
+                                        currentPage={pagination.currentPage()}
+                                        totalPages={queries.leaderboardQuery.data!.totalPages}
+                                        pageSize={pagination.pageSize()}
+                                        totalItems={queries.leaderboardQuery.data!.totalSubmissions}
+                                        onPageChange={pagination.setCurrentPage}
+                                        itemLabel="times"
+                                    />
                                 </Show>
                             </Show>
                         </div>
 
                         <TTWRHistory
-                            history={ttTrack.filteredWRHistory()}
-                            isLoading={ttTrack.activeWrHistoryQuery().isLoading}
-                            isError={ttTrack.activeWrHistoryQuery().isError}
-                            onDownloadGhost={ttTrack.handleDownloadGhost}
+                            history={computed.filteredWRHistory()}
+                            isLoading={queries.activeWrHistoryQuery().isLoading}
+                            isError={queries.activeWrHistoryQuery().isError}
+                            onDownloadGhost={handlers.handleDownloadGhost}
                             title={wrHistoryTitle()}
                             subtitle={wrHistorySubtitle()}
                             isFlap={mode() === "flap"}

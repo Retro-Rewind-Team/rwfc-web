@@ -2,6 +2,7 @@ import { createEffect, createSignal } from "solid-js";
 import { leaderboardApi } from "../services/api/leaderboard";
 import { VRHistoryEntry } from "../types";
 
+/** Aggregate statistics derived from a player's fetched VR history window. */
 export interface VRHistoryStats {
   totalChange: number;
   startingVR: number;
@@ -11,6 +12,7 @@ export interface VRHistoryStats {
   changesCount: number;
 }
 
+/** A `VRHistoryEntry` enriched with a pre-formatted date string for display. */
 export interface ProcessedVRHistory extends VRHistoryEntry {
   formattedDate: string;
 }
@@ -92,6 +94,10 @@ function aggregateByDay(history: ProcessedVRHistory[]): ProcessedVRHistory[] {
     return finalData;
 }
 
+/**
+ * Fetches and processes a player's VR change history. For periods longer than
+ * 24 h, data is aggregated to one point per day (highest VR of the day).
+ */
 export function useVRHistory(friendCode: string, initialDays = 30) {
     const [historyData, setHistoryData] = createSignal<ProcessedVRHistory[]>([]);
     const [stats, setStats] = createSignal<VRHistoryStats | null>(null);

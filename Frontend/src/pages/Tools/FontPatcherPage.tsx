@@ -11,6 +11,7 @@ import {
     validateFileName,
     validateFontSzs,
 } from "../../utils/fileValidator";
+import { triggerBlobDownload } from "../../utils/downloadHelpers";
 import { AlertBox } from "../../components/common";
 
 const getLogClass = (line: string) => {
@@ -36,16 +37,19 @@ export default function FontPatcherPage() {
     const addLog = (message: string) => setLog((prev) => [...prev, message]);
     const clearLog = () => setLog([]);
 
-    const handleFontFileUpload = async (event: Event) => {
-        const input = event.target as HTMLInputElement;
-        const file = input.files?.[0];
-        if (!file) return;
+    type ValidateFn = (buffer: ArrayBuffer) => { valid: boolean; error?: string; warnings?: string[] };
 
+    const loadAndValidateFile = async (
+        file: File,
+        extensions: string[],
+        validate: ValidateFn,
+        onSuccess: (file: File) => void,
+        successMessage: string,
+    ) => {
         clearLog();
         setValidationWarnings([]);
-        setFontFile(null);
 
-        const nameValidation = validateFileName(file.name, ["szs"]);
+        const nameValidation = validateFileName(file.name, extensions);
         if (!nameValidation.valid) {
             addLog(`[ERROR] ${nameValidation.error}`);
             return;
@@ -55,7 +59,7 @@ export default function FontPatcherPage() {
 
         try {
             const buffer = await file.arrayBuffer();
-            const validation = validateFontSzs(buffer);
+            const validation = validate(buffer);
 
             if (!validation.valid) {
                 addLog(`[ERROR] Validation failed: ${validation.error}`);
@@ -67,10 +71,8 @@ export default function FontPatcherPage() {
                 setValidationWarnings(validation.warnings);
             }
 
-            setFontFile(file);
-            addLog(
-                `[OK] Loaded Font.szs: ${file.name} (${file.size.toLocaleString()} bytes)`,
-            );
+            onSuccess(file);
+            addLog(`${successMessage}: ${file.name} (${file.size.toLocaleString()} bytes)`);
         } catch (error) {
             addLog(
                 `[ERROR] Error reading file: ${error instanceof Error ? error.message : String(error)}`,
@@ -78,46 +80,16 @@ export default function FontPatcherPage() {
         }
     };
 
-    const handleBrfntFileUpload = async (event: Event) => {
-        const input = event.target as HTMLInputElement;
-        const file = input.files?.[0];
+    const handleFontFileUpload = async (event: Event) => {
+        const file = (event.target as HTMLInputElement).files?.[0];
         if (!file) return;
+        await loadAndValidateFile(file, ["szs"], validateFontSzs, setFontFile, "[OK] Loaded Font.szs");
+    };
 
-        clearLog();
-        setValidationWarnings([]);
-        setBrfntFile(null);
-
-        const nameValidation = validateFileName(file.name, ["brfnt"]);
-        if (!nameValidation.valid) {
-            addLog(`[ERROR] ${nameValidation.error}`);
-            return;
-        }
-
-        addLog(`[INFO] Validating ${file.name}...`);
-
-        try {
-            const buffer = await file.arrayBuffer();
-            const validation = validateBrfnt(buffer);
-
-            if (!validation.valid) {
-                addLog(`[ERROR] Validation failed: ${validation.error}`);
-                return;
-            }
-
-            if (validation.warnings && validation.warnings.length > 0) {
-                validation.warnings.forEach((w) => addLog(`[WARN] ${w}`));
-                setValidationWarnings(validation.warnings);
-            }
-
-            setBrfntFile(file);
-            addLog(
-                `[OK] Loaded replacement .brfnt: ${file.name} (${file.size.toLocaleString()} bytes)`,
-            );
-        } catch (error) {
-            addLog(
-                `[ERROR] Error reading file: ${error instanceof Error ? error.message : String(error)}`,
-            );
-        }
+    const handleBrfntFileUpload = async (event: Event) => {
+        const file = (event.target as HTMLInputElement).files?.[0];
+        if (!file) return;
+        await loadAndValidateFile(file, ["brfnt"], validateBrfnt, setBrfntFile, "[OK] Loaded replacement .brfnt");
     };
 
     const handleDrop = async (event: DragEvent, type: "font" | "brfnt") => {
@@ -127,73 +99,10 @@ export default function FontPatcherPage() {
         const file = event.dataTransfer?.files?.[0];
         if (!file) return;
 
-        clearLog();
-        setValidationWarnings([]);
-
         if (type === "font") {
-            const nameValidation = validateFileName(file.name, ["szs"]);
-            if (!nameValidation.valid) {
-                addLog(`[ERROR] ${nameValidation.error}`);
-                return;
-            }
-
-            addLog(`[INFO] Validating ${file.name}...`);
-
-            try {
-                const buffer = await file.arrayBuffer();
-                const validation = validateFontSzs(buffer);
-
-                if (!validation.valid) {
-                    addLog(`[ERROR] Validation failed: ${validation.error}`);
-                    return;
-                }
-
-                if (validation.warnings && validation.warnings.length > 0) {
-                    validation.warnings.forEach((w) => addLog(`[WARN] ${w}`));
-                    setValidationWarnings(validation.warnings);
-                }
-
-                setFontFile(file);
-                addLog(
-                    `[OK] Dropped Font.szs: ${file.name} (${file.size.toLocaleString()} bytes)`,
-                );
-            } catch (error) {
-                addLog(
-                    `[ERROR] Error reading file: ${error instanceof Error ? error.message : String(error)}`,
-                );
-            }
+            await loadAndValidateFile(file, ["szs"], validateFontSzs, setFontFile, "[OK] Dropped Font.szs");
         } else {
-            const nameValidation = validateFileName(file.name, ["brfnt"]);
-            if (!nameValidation.valid) {
-                addLog(`[ERROR] ${nameValidation.error}`);
-                return;
-            }
-
-            addLog(`[INFO] Validating ${file.name}...`);
-
-            try {
-                const buffer = await file.arrayBuffer();
-                const validation = validateBrfnt(buffer);
-
-                if (!validation.valid) {
-                    addLog(`[ERROR] Validation failed: ${validation.error}`);
-                    return;
-                }
-
-                if (validation.warnings && validation.warnings.length > 0) {
-                    validation.warnings.forEach((w) => addLog(`[WARN] ${w}`));
-                    setValidationWarnings(validation.warnings);
-                }
-
-                setBrfntFile(file);
-                addLog(
-                    `[OK] Dropped replacement .brfnt: ${file.name} (${file.size.toLocaleString()} bytes)`,
-                );
-            } catch (error) {
-                addLog(
-                    `[ERROR] Error reading file: ${error instanceof Error ? error.message : String(error)}`,
-                );
-            }
+            await loadAndValidateFile(file, ["brfnt"], validateBrfnt, setBrfntFile, "[OK] Dropped replacement .brfnt");
         }
     };
 
@@ -252,7 +161,7 @@ export default function FontPatcherPage() {
             const outName = `${baseName}_tt_ext_patched.szs`;
 
             addLog("[SAVE] Triggering download...");
-            downloadFile(newSZS, outName);
+            triggerBlobDownload(new Blob([newSZS.buffer as ArrayBuffer], { type: "application/octet-stream" }), outName);
             addLog(`[DONE] Done! Downloaded: ${outName}`);
         } catch (error) {
             addLog(
@@ -262,20 +171,6 @@ export default function FontPatcherPage() {
         } finally {
             setProcessing(false);
         }
-    };
-
-    const downloadFile = (data: Uint8Array, fileName: string) => {
-        const blob = new Blob([new Uint8Array(data)], {
-            type: "application/octet-stream",
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
     };
 
     return (
@@ -438,6 +333,7 @@ export default function FontPatcherPage() {
             {/* Patch Button */}
             <div class="flex justify-center">
                 <button
+                    type="button"
                     onClick={processFontPatch}
                     disabled={!fontFile() || !brfntFile() || processing()}
                     class="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"

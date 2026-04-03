@@ -1,5 +1,5 @@
 import { For } from "solid-js";
-import { teamData } from "../../utils/teamData";
+import { teamData } from "../../constants/teamData";
 import { SECTION_COLORS } from "../../utils/constants";
 import { useClipboard } from "../../hooks/useClipboard";
 import { TeamMemberCard } from "../../components/ui";

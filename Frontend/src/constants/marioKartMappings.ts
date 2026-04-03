@@ -102,22 +102,27 @@ const driftCategories: Record<number, string> = {
     1: "Inside Drift",
 };
 
+/** Returns the character name for a decimal character ID, or a fallback string. */
 export function getCharacterName(id: number): string {
     return characters[id] || `Unknown Character (${id})`;
 }
 
+/** Returns the vehicle name for a decimal vehicle ID, or a fallback string. */
 export function getVehicleName(id: number): string {
     return vehicles[id] || `Unknown Vehicle (${id})`;
 }
 
+/** Returns the controller name for a decimal controller type ID, or a fallback string. */
 export function getControllerName(id: number): string {
     return controllers[id] || `Unknown Controller (${id})`;
 }
 
+/** Returns the drift type name (Manual/Hybrid) for a drift type ID. */
 export function getDriftTypeName(id: number): string {
     return driftTypes[id] || `Unknown Drift Type (${id})`;
 }
 
+/** Returns the drift category name (Inside/Outside Drift) for a drift category ID. */
 export function getDriftCategoryName(id: number): string {
     return driftCategories[id] || `Unknown Drift Category (${id})`;
 }

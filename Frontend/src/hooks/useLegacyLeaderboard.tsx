@@ -2,35 +2,34 @@ import { createEffect, createMemo, createSignal } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { legacyLeaderboardApi } from "../services/api/leaderboard";
 import { LeaderboardRequest } from "../types";
+import { queryKeys } from "../constants/queryKeys";
 import { useMiiLoader } from "./useMiiLoader";
+import { usePagination } from "./usePagination";
+import { useDebouncedSearch } from "./useDebouncedSearch";
 
+/**
+ * Mirrors `useLeaderboard` for the pre-cap legacy leaderboard snapshot.
+ * Returns the same shape so both hooks can be used interchangeably.
+ */
 export function useLegacyLeaderboard() {
-    const [currentPage, setCurrentPage] = createSignal(1);
-    const [pageSize, setPageSize] = createSignal(50);
-    const [search, setSearch] = createSignal("");
+    const { currentPage, setCurrentPage, pageSize, handlePageSizeChange } =
+        usePagination(50);
+    const { searchQuery, search, handleSearchInput } = useDebouncedSearch();
+
     const [sortBy, setSortBy] = createSignal("rank");
     const [ascending, setAscending] = createSignal(true);
-    const [searchQuery, setSearchQuery] = createSignal("");
 
     const miiLoader = useMiiLoader();
 
     // Check if legacy is available
     const availabilityQuery = useQuery(() => ({
-        queryKey: ["legacyAvailable"],
+        queryKey: queryKeys.legacyAvailable,
         queryFn: () => legacyLeaderboardApi.isAvailable(),
         staleTime: 5 * 60 * 1000,
     }));
 
-    // Debounced search
-    let searchTimeout: ReturnType<typeof setTimeout>;
-    const handleSearchInput = (value: string) => {
-        setSearchQuery(value);
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            setSearch(value);
-            setCurrentPage(1);
-        }, 300);
-    };
+    // Reset to page 1 when the debounced search value changes
+    createEffect(() => { search(); setCurrentPage(1); });
 
     const leaderboardRequest = createMemo(
         (): LeaderboardRequest => ({
@@ -43,7 +42,7 @@ export function useLegacyLeaderboard() {
     );
 
     const leaderboardQuery = useQuery(() => ({
-        queryKey: ["legacyLeaderboard", leaderboardRequest()],
+        queryKey: queryKeys.legacyLeaderboard(leaderboardRequest()),
         queryFn: () => legacyLeaderboardApi.getLeaderboard(leaderboardRequest()),
         enabled: availabilityQuery.data === true,
     }));
@@ -65,11 +64,6 @@ export function useLegacyLeaderboard() {
             setSortBy(field);
             setAscending(field === "rank");
         }
-        setCurrentPage(1);
-    };
-
-    const handlePageSizeChange = (size: number) => {
-        setPageSize(size);
         setCurrentPage(1);
     };
 

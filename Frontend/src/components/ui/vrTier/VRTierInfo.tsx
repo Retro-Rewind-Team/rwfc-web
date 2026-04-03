@@ -5,7 +5,7 @@ import {
     getTierProgress,
     getVRNeededForNextTier,
     getVRTierInfo,
-} from "../../utils/vrTierHelpers";
+} from "../../../utils/vrTierHelpers";
 import { Star } from "lucide-solid/icons/index";
 
 interface VRTierInfoProps {

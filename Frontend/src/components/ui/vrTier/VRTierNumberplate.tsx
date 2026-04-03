@@ -5,9 +5,9 @@ import {
     isTopThreeRank,
     tierHasGlow,
     tierHasIcon,
-} from "../../utils/vrTierHelpers";
-import { VR_TIER_STYLES } from "../../utils/vrTiers";
-import { VR_TIER_SIZES, type VRTierSize } from "../../utils/constants";
+} from "../../../utils/vrTierHelpers";
+import { VR_TIER_STYLES } from "../../../utils/vrTiers";
+import { VR_TIER_SIZES, type VRTierSize } from "../../../utils/constants";
 
 interface VRTierNumberPlateProps {
   rank: number;

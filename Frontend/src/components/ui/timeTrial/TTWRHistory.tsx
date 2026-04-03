@@ -1,13 +1,12 @@
 import { For, Show } from "solid-js";
-import { GhostSubmission } from "../../types/timeTrial";
+import { GhostSubmission } from "../../../types/timeTrial";
 import {
     getCharacterName,
     getControllerName,
-    getDriftCategoryName,
-    getDriftTypeName,
     getVehicleName,
-} from "../../utils/marioKartMappings";
-import { CountryFlag, LoadingSpinner } from "../common";
+} from "../../../constants/marioKartMappings";
+import { formatDate, getDriftInfo } from "../../../utils/formatter";
+import { CountryFlag, LoadingSpinner } from "../../common";
 import { Download, TrendingDown, Trophy, Zap } from "lucide-solid";
 
 interface TTWRHistoryProps {
@@ -42,20 +41,6 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
             return `-${seconds}.${ms.toString().padStart(3, "0")}s`;
         }
         return `-${ms}ms`;
-    };
-
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, "0");
-        const month = (date.getMonth() + 1).toString().padStart(2, "0");
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-    };
-
-    const getDriftInfo = (submission: GhostSubmission) => {
-        const driftType = getDriftTypeName(submission.driftType);
-        const driftCategory = getDriftCategoryName(submission.driftCategory);
-        return `${driftType} ${driftCategory.replace(" Drift", "")}`;
     };
 
     return (
@@ -265,7 +250,7 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                             </div>
                                                             <div class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                                                                 {getVehicleName(record.vehicleId)} •{" "}
-                                                                {getDriftInfo(record)}
+                                                                {getDriftInfo(record.driftType, record.driftCategory)}
                                                             </div>
                                                             <div class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                                                                 {getControllerName(record.controllerType)}
@@ -280,6 +265,7 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                             {formatDate(record.dateSet)}
                                                         </div>
                                                         <button
+                                                            type="button"
                                                             onClick={() => props.onDownloadGhost(record)}
                                                             class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors w-full sm:w-auto"
                                                         >

@@ -1,6 +1,6 @@
 import { apiRequest } from "./client";
+import { batchMiis } from "./miiHelpers";
 import {
-    BatchMiiResponse,
     LeaderboardRequest,
     LeaderboardResponse,
     LeaderboardStats,
@@ -73,41 +73,8 @@ export const leaderboardApi = {
         }
     },
 
-    async getPlayerMiisBatch(friendCodes: string[]): Promise<BatchMiiResponse> {
-        if (friendCodes.length === 0) {
-            return { miis: {} };
-        }
-
-        const chunks = [];
-        for (let i = 0; i < friendCodes.length; i += 25) {
-            chunks.push(friendCodes.slice(i, i + 25));
-        }
-
-        const allMiis: Record<string, string> = {};
-
-        for (const chunk of chunks) {
-            try {
-                const response = await apiRequest<BatchMiiResponse>(
-                    "/leaderboard/miis/batch",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ friendCodes: chunk }),
-                    },
-                );
-
-                Object.assign(allMiis, response.miis);
-            } catch (error) {
-                console.warn(
-                    `Failed to load Mii batch for ${chunk.length} players:`,
-                    error,
-                );
-            }
-        }
-
-        return { miis: allMiis };
+    async getPlayerMiisBatch(friendCodes: string[]) {
+        return batchMiis("/leaderboard/miis/batch", friendCodes);
     },
 
     async getDiscordMemberCount(): Promise<number> {
@@ -180,40 +147,7 @@ export const legacyLeaderboardApi = {
         );
     },
 
-    async getPlayerMiisBatch(friendCodes: string[]): Promise<BatchMiiResponse> {
-        if (friendCodes.length === 0) {
-            return { miis: {} };
-        }
-
-        const chunks = [];
-        for (let i = 0; i < friendCodes.length; i += 25) {
-            chunks.push(friendCodes.slice(i, i + 25));
-        }
-
-        const allMiis: Record<string, string> = {};
-
-        for (const chunk of chunks) {
-            try {
-                const response = await apiRequest<BatchMiiResponse>(
-                    "/leaderboard/legacy/miis/batch",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ friendCodes: chunk }),
-                    },
-                );
-
-                Object.assign(allMiis, response.miis);
-            } catch (error) {
-                console.warn(
-                    `Failed to load legacy Mii batch for ${chunk.length} players:`,
-                    error,
-                );
-            }
-        }
-
-        return { miis: allMiis };
+    async getPlayerMiisBatch(friendCodes: string[]) {
+        return batchMiis("/leaderboard/legacy/miis/batch", friendCodes);
     },
 };

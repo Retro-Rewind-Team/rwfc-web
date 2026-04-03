@@ -1,4 +1,4 @@
-import { Heart } from "lucide-solid";
+import { Heart, Users } from "lucide-solid";
 import { Show } from "solid-js";
 import type { TeamMember } from "../../types/team";
 
@@ -44,13 +44,14 @@ export default function TeamMemberCard(props: TeamMemberCardProps) {
 
                 {/* Discord */}
                 <button
+                    type="button"
                     onClick={(e) =>
                         props.onCopy(props.member.discord, "Discord username", e)
                     }
                     class="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-300 font-mono bg-gray-50 dark:bg-gray-700/50 py-2 px-3 rounded-md border border-gray-200 dark:border-gray-600 mb-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500 w-full transition-colors"
                     title="Click to copy Discord username"
                 >
-                    {/* Discord SVG - intentionally kept, brand icon */}
+                    {/* Discord SVG  */}
                     <svg
                         class="w-4 h-4 flex-shrink-0"
                         fill="currentColor"
@@ -64,23 +65,12 @@ export default function TeamMemberCard(props: TeamMemberCardProps) {
                 {/* Friend Code */}
                 <Show when={props.member.fc}>
                     <button
+                        type="button"
                         onClick={(e) => props.onCopy(props.member.fc!, "friend code", e)}
                         class="flex items-center justify-center gap-2 text-xs text-cyan-700 dark:text-cyan-300 mb-4 font-mono bg-cyan-50 dark:bg-cyan-900/20 py-2 px-3 rounded-md border border-cyan-200 dark:border-cyan-800 cursor-pointer hover:bg-cyan-100 dark:hover:bg-cyan-900/30 hover:border-cyan-300 dark:hover:border-cyan-700 w-full transition-colors"
                         title="Click to copy friend code"
                     >
-                        <svg
-                            class="w-3.5 h-3.5 flex-shrink-0"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                            />
-                        </svg>
+                        <Users size={14} class="flex-shrink-0" />
                         <span class="text-xs font-semibold">FC: {props.member.fc}</span>
                     </button>
                 </Show>

@@ -99,6 +99,7 @@ export default function PlayerDetailPage() {
                         </p>
                         <div class="pt-4">
                             <button
+                                type="button"
                                 onClick={() => playerQuery.refetch()}
                                 class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
                             >

@@ -1,6 +1,8 @@
 import { createMemo, Show } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
+import { leaderboardApi } from "../../services/api/leaderboard";
 import { timeTrialApi } from "../../services/api/timeTrial";
+import { queryKeys } from "../../constants/queryKeys";
 import { AlertBox } from "../../components/common";
 import { TutorialCard } from "../../components/ui/";
 import {
@@ -10,27 +12,6 @@ import {
     List,
     Wrench,
 } from "lucide-solid/icons/index";
-
-async function getRRVersion() {
-    const text = await fetch(
-        "https://rwfc.net/updates/RetroRewind/RetroRewindVersion.txt",
-    ).then((r) => r.text());
-
-    const lines = text.trim().split("\n").filter(Boolean);
-    const latest = lines[lines.length - 1].split(" ");
-    const previous = lines[lines.length - 2]?.split(" ")[0] ?? null;
-
-    const updateUrl = latest[1].replace(
-        "http://update.rwfc.net:8000/RetroRewind",
-        "https://rwfc.net/updates/RetroRewind",
-    );
-
-    return {
-        version: latest[0],
-        updateUrl,
-        previousVersion: previous,
-    };
-}
 
 const resourceCards = [
     {
@@ -67,14 +48,14 @@ const resourceCards = [
 
 export default function DownloadsPage() {
     const tracksQuery = useQuery(() => ({
-        queryKey: ["tt-tracks"],
+        queryKey: queryKeys.ttTracks,
         queryFn: () => timeTrialApi.getAllTracks(),
         staleTime: 1000 * 60 * 60,
     }));
 
     const versionQuery = useQuery(() => ({
-        queryKey: ["rr-version"],
-        queryFn: getRRVersion,
+        queryKey: queryKeys.rrVersion,
+        queryFn: leaderboardApi.getRRVersion,
         staleTime: 1000 * 60 * 60,
     }));
 

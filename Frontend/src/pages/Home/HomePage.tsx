@@ -12,6 +12,7 @@ import {
 } from "lucide-solid";
 import { leaderboardApi } from "../../services/api/leaderboard";
 import { timeTrialApi } from "../../services/api/timeTrial";
+import { queryKeys } from "../../constants/queryKeys";
 import { StatCard } from "../../components/common";
 import { A } from "@solidjs/router";
 
@@ -71,19 +72,19 @@ const aboutCards = [
 
 export default function HomePage() {
     const statsQuery = useQuery(() => ({
-        queryKey: ["stats"],
+        queryKey: queryKeys.stats,
         queryFn: () => leaderboardApi.getStats(),
         refetchInterval: 300000,
     }));
 
     const discordQuery = useQuery(() => ({
-        queryKey: ["discord-members"],
+        queryKey: queryKeys.discordMembers,
         queryFn: () => leaderboardApi.getDiscordMemberCount(),
         refetchInterval: 300000,
     }));
 
     const tracksQuery = useQuery(() => ({
-        queryKey: ["tt-tracks"],
+        queryKey: queryKeys.ttTracks,
         queryFn: () => timeTrialApi.getAllTracks(),
         staleTime: 1000 * 60 * 60,
     }));

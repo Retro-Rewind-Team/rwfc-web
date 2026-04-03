@@ -72,6 +72,10 @@ function md5Bytes(bytes: Uint8Array): Uint8Array {
     return out;
 }
 
+/**
+ * Derives the 12-digit Nintendo Wi-Fi Connection friend code from a profile ID
+ * using the same MD5-based checksum algorithm the Wii uses internally.
+ */
 export function pidToFriendCode(pid: number): string {
     pid = pid >>> 0;
     const buf = new Uint8Array(8);
@@ -92,6 +96,7 @@ export function pidToFriendCode(pid: number): string {
     return `${s.slice(0, 4)}-${s.slice(4, 8)}-${s.slice(8, 12)}`;
 }
 
+/** Formats a 12-digit friend code string as XXXX-XXXX-XXXX. */
 export function formatFriendCode(digits: string): string {
     if (digits.length !== 12) return digits;
     return `${digits.slice(0, 4)}-${digits.slice(4, 8)}-${digits.slice(8, 12)}`;

@@ -1,7 +1,12 @@
 import { createMemo, createSignal } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { roomStatusApi } from "../services/api";
+import { queryKeys } from "../constants/queryKeys";
 
+/**
+ * Manages room status browsing: live polling, historical snapshot navigation
+ * (forward/backward/jump), datetime seeking, and friend code collection.
+ */
 export function useRoomStatus() {
     // undefined = live (latest), number = specific DB snapshot ID
     const [currentId, setCurrentId] = createSignal<number | undefined>(undefined);
@@ -10,13 +15,13 @@ export function useRoomStatus() {
     const [isJumping, setIsJumping] = createSignal(false);
 
     const statsQuery = useQuery(() => ({
-        queryKey: ["roomStatus", "stats"],
+        queryKey: queryKeys.roomStats,
         queryFn: () => roomStatusApi.getStats(),
         refetchInterval: 60000,
     }));
 
     const roomStatusQuery = useQuery(() => ({
-        queryKey: ["roomStatus", currentId()],
+        queryKey: queryKeys.room(currentId()),
         queryFn: async () => {
             const id = currentId();
             const data =
@@ -152,24 +157,32 @@ export function useRoomStatus() {
     };
 
     return {
-        currentId,
-        isLatest,
-        isJumping,
-        canGoForward,
-        canGoBackward,
-        statsQuery,
-        roomStatusQuery,
-        getAllFriendCodes,
-        goForward,
-        goBackward,
-        goToLatest,
-        goToOldest,
-        jumpByMinutes,
-        goToDateTime,
-        currentDateTimeLocal,
-        getRoomUptime,
-        forceRefresh,
-        minId,
-        maxId,
+        state: {
+            currentId,
+            isLatest,
+            isJumping,
+            canGoForward,
+            canGoBackward,
+            minId,
+            maxId,
+            currentDateTimeLocal,
+        },
+        queries: {
+            statsQuery,
+            roomStatusQuery,
+        },
+        nav: {
+            goForward,
+            goBackward,
+            goToLatest,
+            goToOldest,
+            jumpByMinutes,
+            goToDateTime,
+        },
+        utils: {
+            getAllFriendCodes,
+            getRoomUptime,
+            forceRefresh,
+        },
     };
 }

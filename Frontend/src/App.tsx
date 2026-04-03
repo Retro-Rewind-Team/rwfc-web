@@ -11,7 +11,6 @@ import {
     NotFoundPage,
     PrivacyPage,
     RaceStatsPage,
-    // RankCalculatorPage,
     RatingEditorPage,
     RoomStatusPage,
     RulesPage,
@@ -91,7 +90,6 @@ function App() {
 
                     {/* Tools Pages */}
                     <Route path="/tools" component={ToolsPage} />
-                    {/* <Route path="tools/rank-calculator" component={RankCalculatorPage} /> */}
                     <Route path="tools/font-patcher" component={FontPatcherPage} />
                     <Route path="tools/rating-editor" component={RatingEditorPage} />
 

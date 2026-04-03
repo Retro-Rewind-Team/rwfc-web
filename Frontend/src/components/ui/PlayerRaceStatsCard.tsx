@@ -57,6 +57,7 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                     <For each={DAY_OPTIONS}>
                         {(opt) => (
                             <button
+                                type="button"
                                 onClick={() => handleDaysChange(opt.value)}
                                 class={`px-3 py-1 rounded text-sm font-medium transition-colors ${
                                     days() === opt.value
@@ -78,6 +79,7 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
             Filtered by track:
                     </span>
                     <button
+                        type="button"
                         onClick={() => handleCourseIdChange(undefined)}
                         class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors"
                     >
@@ -239,6 +241,7 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                         <Show when={stats().totalPages > 1}>
                             <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                                 <button
+                                    type="button"
                                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                                     disabled={currentPage() === 1}
                                     class="inline-flex items-center gap-1 px-3 py-1 rounded text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
@@ -250,6 +253,7 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                   Page {currentPage()} of {stats().totalPages}
                                 </span>
                                 <button
+                                    type="button"
                                     onClick={() =>
                                         setCurrentPage((p) => Math.min(stats().totalPages, p + 1))
                                     }

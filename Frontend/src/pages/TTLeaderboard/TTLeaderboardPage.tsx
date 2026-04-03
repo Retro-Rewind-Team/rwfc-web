@@ -1,4 +1,4 @@
-import { For, Show } from "solid-js";
+import { createMemo, For, Show } from "solid-js";
 import { A } from "@solidjs/router";
 import { Search, TriangleAlert } from "lucide-solid";
 import { useTTTrackBrowser } from "../../hooks/useTTTrackBrowser";
@@ -7,27 +7,12 @@ import { TTBrowserFilters } from "../../components/ui";
 import {
     getCharacterName,
     getControllerName,
-    getDriftCategoryName,
-    getDriftTypeName,
     getVehicleName,
-} from "../../utils/marioKartMappings";
+} from "../../constants/marioKartMappings";
+import { formatDate, getDriftInfo } from "../../utils/formatter";
 
 export default function TTLeaderboardPage() {
     const browser = useTTTrackBrowser();
-
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, "0");
-        const month = (date.getMonth() + 1).toString().padStart(2, "0");
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-    };
-
-    const getDriftInfo = (driftType: number, driftCategory: number) => {
-        const type = getDriftTypeName(driftType);
-        const category = getDriftCategoryName(driftCategory);
-        return `${type} ${category.replace(" Drift", "")}`;
-    };
 
     const getTrackRoute = (trackId: number) => {
         const cc = browser.selectedCC();
@@ -40,18 +25,15 @@ export default function TTLeaderboardPage() {
     const headerColor = () =>
         !browser.glitchAllowed() ? "bg-green-600" : "bg-blue-600";
 
-    const tableHeaderColor = () =>
-        !browser.glitchAllowed() ? "bg-green-600" : "bg-blue-600";
-
     return (
         <div class="space-y-8">
             {/* Page Title */}
             <div class="pb-6 border-b border-gray-200 dark:border-gray-700">
                 <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-          Time Trial Leaderboards
+                    Time Trial Leaderboards
                 </h1>
                 <p class="text-lg text-gray-600 dark:text-gray-400">
-          Browse world records for all Retro Rewind tracks
+                    Browse world records for all Retro Rewind tracks
                 </p>
             </div>
 
@@ -102,13 +84,14 @@ export default function TTLeaderboardPage() {
                                 : "Failed to load world records"}
                         </h3>
                         <button
+                            type="button"
                             onClick={() => {
                                 if (browser.tracksQuery.isError) browser.tracksQuery.refetch();
                                 else browser.worldRecordsQuery.refetch();
                             }}
                             class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
                         >
-              Try Again
+                            Try Again
                         </button>
                     </div>
                 </div>
@@ -118,9 +101,9 @@ export default function TTLeaderboardPage() {
             <Show
                 when={
                     browser.tracksQuery.data &&
-          browser.worldRecordsQuery.data &&
-          !browser.tracksQuery.isLoading &&
-          !browser.worldRecordsQuery.isLoading
+                    browser.worldRecordsQuery.data &&
+                    !browser.tracksQuery.isLoading &&
+                    !browser.worldRecordsQuery.isLoading
                 }
             >
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -137,12 +120,12 @@ export default function TTLeaderboardPage() {
                             {!browser.glitchAllowed()
                                 ? "Non-Glitch/Shortcut"
                                 : "Unrestricted"}{" "}
-              •{" "}
+                            •{" "}
                             {browser.vehicleFilter() !== "all"
                                 ? browser.vehicleFilter().charAt(0).toUpperCase() +
-                  browser.vehicleFilter().slice(1)
+                                  browser.vehicleFilter().slice(1)
                                 : "All Vehicles"}{" "}
-              •{" "}
+                            •{" "}
                             {browser.shroomlessFilter() === "only"
                                 ? "Shroomless"
                                 : browser.shroomlessFilter() === "exclude"
@@ -159,20 +142,20 @@ export default function TTLeaderboardPage() {
                                     <Search size={48} />
                                 </div>
                                 <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                  No tracks found
+                                    No tracks found
                                 </h3>
                                 <p class="text-gray-600 dark:text-gray-400">
-                  Try adjusting your search
+                                    Try adjusting your search
                                 </p>
                             </div>
                         }
                     >
                         <div class="overflow-x-auto">
                             <table class="w-full">
-                                <thead class={`text-white ${tableHeaderColor()}`}>
+                                <thead class={`text-white ${headerColor()}`}>
                                     <tr>
                                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                      Track
+                                            Track
                                         </th>
                                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                                             <span class="hidden sm:inline">World Record</span>
@@ -183,23 +166,32 @@ export default function TTLeaderboardPage() {
                                             <span class="sm:hidden">Holder</span>
                                         </th>
                                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden md:table-cell">
-                      Character
+                                            Character
                                         </th>
                                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden lg:table-cell">
-                      Vehicle
+                                            Vehicle
                                         </th>
                                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">
-                      Controller
+                                            Controller
                                         </th>
                                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">
-                      Date Set
+                                            Date Set
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                     <For each={browser.filteredTracks()}>
                                         {(track) => {
-                                            const wr = browser.getWorldRecordForTrack(track.id);
+                                            // createMemo is used here so each row independently tracks
+                                            // worldRecordsQuery.data and updates when it changes
+                                            const wr = createMemo(() => {
+                                                const records = browser.worldRecordsQuery.data ?? [];
+                                                return (
+                                                    records.find((r) => r.trackId === track.id)
+                                                        ?.activeWorldRecord ?? null
+                                                );
+                                            });
+
                                             return (
                                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                                     <td class="px-3 sm:px-6 py-4">
@@ -211,7 +203,7 @@ export default function TTLeaderboardPage() {
                                                                 {track.name}
                                                                 <Show when={track.supportsGlitch}>
                                                                     <span class="ml-2 text-purple-600 dark:text-purple-400 text-sm">
-                                    ⚡
+                                                                        ⚡
                                                                     </span>
                                                                 </Show>
                                                             </div>
@@ -225,9 +217,7 @@ export default function TTLeaderboardPage() {
                                                             when={wr()}
                                                             fallback={
                                                                 <span class="text-xs sm:text-sm text-gray-400 dark:text-gray-500 italic">
-                                                                    <span class="hidden sm:inline">
-                                    No record yet
-                                                                    </span>
+                                                                    <span class="hidden sm:inline">No record yet</span>
                                                                     <span class="sm:hidden">-</span>
                                                                 </span>
                                                             }
@@ -274,10 +264,7 @@ export default function TTLeaderboardPage() {
                                                                 {getVehicleName(wr()!.vehicleId)}
                                                             </div>
                                                             <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                                {getDriftInfo(
-                                  wr()!.driftType,
-                                  wr()!.driftCategory,
-                                                                )}
+                                                                {getDriftInfo(wr()!.driftType, wr()!.driftCategory)}
                                                             </div>
                                                         </Show>
                                                     </td>

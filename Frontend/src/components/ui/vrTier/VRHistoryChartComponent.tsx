@@ -1,5 +1,5 @@
 import { createSignal, For, Show } from "solid-js";
-import { ProcessedVRHistory, useVRHistory } from "../../hooks/useVRHistory";
+import { ProcessedVRHistory, useVRHistory } from "../../../hooks/useVRHistory";
 import TriangleAlert from "lucide-solid/icons/triangle-alert";
 import ChartBarBig from "lucide-solid/icons/chart-bar-big";
 import { Info } from "lucide-solid/icons/index";
@@ -236,6 +236,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                     >
                         {(period) => (
                             <button
+                                type="button"
                                 onClick={() => changePeriod(period.days)}
                                 class={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
                                     selectedDays() === period.days
@@ -276,6 +277,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                             {error()}
                         </p>
                         <button
+                            type="button"
                             onClick={refresh}
                             class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
                         >
