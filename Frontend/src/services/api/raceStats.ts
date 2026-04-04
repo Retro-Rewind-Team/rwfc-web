@@ -1,9 +1,5 @@
 import { apiRequest } from "./client";
-import {
-    GlobalRaceStats,
-    PlayerRaceStats,
-    PlayerRaceStatsParams,
-} from "../../types/raceStats";
+import { GlobalRaceStats, PlayerRaceStats, PlayerRaceStatsParams } from "../../types/raceStats";
 
 export const raceStatsApi = {
     async getPlayerRaceStats(
@@ -11,19 +7,15 @@ export const raceStatsApi = {
         params: PlayerRaceStatsParams = {},
     ): Promise<PlayerRaceStats> {
         const searchParams = new URLSearchParams();
-        if (params.days !== undefined)
-            searchParams.append("days", params.days.toString());
+        if (params.days !== undefined) searchParams.append("days", params.days.toString());
         if (params.courseId !== undefined)
             searchParams.append("courseId", params.courseId.toString());
-        if (params.page !== undefined)
-            searchParams.append("page", params.page.toString());
+        if (params.page !== undefined) searchParams.append("page", params.page.toString());
         if (params.pageSize !== undefined)
             searchParams.append("pageSize", params.pageSize.toString());
 
         const query = searchParams.toString();
-        return apiRequest<PlayerRaceStats>(
-            `/racestats/player/${pid}${query ? `?${query}` : ""}`,
-        );
+        return apiRequest<PlayerRaceStats>(`/racestats/player/${pid}${query ? `?${query}` : ""}`);
     },
 
     async getGlobalRaceStats(days?: number): Promise<GlobalRaceStats> {

@@ -12,8 +12,7 @@ import { useDebouncedSearch } from "./useDebouncedSearch";
  * Returns the same shape so both hooks can be used interchangeably.
  */
 export function useLegacyLeaderboard() {
-    const { currentPage, setCurrentPage, pageSize, handlePageSizeChange } =
-        usePagination(50);
+    const { currentPage, setCurrentPage, pageSize, handlePageSizeChange } = usePagination(50);
     const { searchQuery, search, handleSearchInput } = useDebouncedSearch();
 
     const [sortBy, setSortBy] = createSignal("rank");
@@ -29,7 +28,10 @@ export function useLegacyLeaderboard() {
     }));
 
     // Reset to page 1 when the debounced search value changes
-    createEffect(() => { search(); setCurrentPage(1); });
+    createEffect(() => {
+        search();
+        setCurrentPage(1);
+    });
 
     const leaderboardRequest = createMemo(
         (): LeaderboardRequest => ({

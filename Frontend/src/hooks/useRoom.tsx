@@ -25,9 +25,9 @@ export function useRoomStatus() {
         queryFn: async () => {
             const id = currentId();
             const data =
-        id === undefined
-            ? await roomStatusApi.getLatestRoomStatus()
-            : await roomStatusApi.getRoomStatusById(id);
+                id === undefined
+                    ? await roomStatusApi.getLatestRoomStatus()
+                    : await roomStatusApi.getRoomStatusById(id);
             setMinId(data.minimumId);
             setMaxId(data.maximumId);
             return data;

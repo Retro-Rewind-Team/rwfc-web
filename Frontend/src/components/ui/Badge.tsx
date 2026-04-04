@@ -7,18 +7,23 @@ import TranslatorLeadBadge from "./badges/TranslatorLeadBadge";
 import MedalBadge from "./badges/MedalBadge";
 
 interface BadgeProps {
-  variant: BadgeType;
-  size?: "sm" | "md" | "lg";
-  showLabel?: boolean;
+    variant: BadgeType;
+    size?: "sm" | "md" | "lg";
+    showLabel?: boolean;
 }
 
 function BadgeSVG(props: { variant: BadgeType }) {
     switch (props.variant) {
-    case "WhWzDev": return <WhWzDevBadge />;
-    case "RrDev": return <RrDevBadge />;
-    case "Translator": return <TranslatorBadge />;
-    case "TranslatorLead": return <TranslatorLeadBadge />;
-    default: return <MedalBadge variant={props.variant} />;
+        case "WhWzDev":
+            return <WhWzDevBadge />;
+        case "RrDev":
+            return <RrDevBadge />;
+        case "Translator":
+            return <TranslatorBadge />;
+        case "TranslatorLead":
+            return <TranslatorLeadBadge />;
+        default:
+            return <MedalBadge variant={props.variant} />;
     }
 }
 
@@ -30,18 +35,17 @@ export default function Badge(props: BadgeProps) {
 
     const isMobile = () => {
         if (typeof window === "undefined") return false;
-        return (
-            window.innerWidth < 768 ||
-      "ontouchstart" in window ||
-      navigator.maxTouchPoints > 0
-        );
+        return window.innerWidth < 768 || "ontouchstart" in window || navigator.maxTouchPoints > 0;
     };
 
     const sizeClass = () => {
         switch (size()) {
-        case "sm": return "w-7 h-7";
-        case "md": return "w-9 h-9";
-        case "lg": return "w-12 h-12";
+            case "sm":
+                return "w-7 h-7";
+            case "md":
+                return "w-9 h-9";
+            case "lg":
+                return "w-12 h-12";
         }
     };
 
@@ -52,8 +56,12 @@ export default function Badge(props: BadgeProps) {
         }
     };
 
-    const handleMouseEnter = () => { if (!isMobile()) setShowTooltip(true); };
-    const handleMouseLeave = () => { if (!isMobile()) setShowTooltip(false); };
+    const handleMouseEnter = () => {
+        if (!isMobile()) setShowTooltip(true);
+    };
+    const handleMouseLeave = () => {
+        if (!isMobile()) setShowTooltip(false);
+    };
 
     return (
         <div class="relative inline-flex items-center gap-2 group">

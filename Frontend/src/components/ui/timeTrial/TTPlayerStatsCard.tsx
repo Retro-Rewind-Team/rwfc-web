@@ -1,11 +1,11 @@
 import { JSX, Show } from "solid-js";
 
 interface TTPlayerStatsCardProps {
-  value: number | string;
-  label: string;
-  icon?: JSX.Element;
-  colorScheme?: "blue" | "green" | "purple" | "amber";
-  subtitle?: string;
+    value: number | string;
+    label: string;
+    icon?: JSX.Element;
+    colorScheme?: "blue" | "green" | "purple" | "amber";
+    subtitle?: string;
 }
 
 const colorClasses = {
@@ -39,22 +39,16 @@ export default function TTPlayerStatsCard(props: TTPlayerStatsCardProps) {
             class={`bg-white dark:bg-gray-800 rounded-lg border-2 ${colors().border} p-6 text-center`}
         >
             <Show when={props.icon}>
-                <div class={`flex justify-center mb-3 ${colors().icon}`}>
-                    {props.icon}
-                </div>
+                <div class={`flex justify-center mb-3 ${colors().icon}`}>{props.icon}</div>
             </Show>
             <div class={`text-4xl font-black ${colors().text} mb-2`}>
-                {typeof props.value === "number"
-                    ? props.value.toLocaleString()
-                    : props.value}
+                {typeof props.value === "number" ? props.value.toLocaleString() : props.value}
             </div>
             <div class="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
                 {props.label}
             </div>
             <Show when={props.subtitle}>
-                <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                    {props.subtitle}
-                </div>
+                <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">{props.subtitle}</div>
             </Show>
         </div>
     );

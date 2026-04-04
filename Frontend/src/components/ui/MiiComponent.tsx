@@ -2,13 +2,13 @@ import { onMount, Show } from "solid-js";
 import { useIntersectionObserver, useMiiImage } from "../../hooks/useMiiLoader";
 
 interface MiiComponentProps {
-  miiImageBase64?: string;
-  playerName: string;
-  friendCode: string;
-  size?: "sm" | "md" | "lg";
-  className?: string;
-  showFallback?: boolean;
-  lazy?: boolean;
+    miiImageBase64?: string;
+    playerName: string;
+    friendCode: string;
+    size?: "sm" | "md" | "lg";
+    className?: string;
+    showFallback?: boolean;
+    lazy?: boolean;
 }
 
 export default function MiiComponent(props: Readonly<MiiComponentProps>) {
@@ -28,10 +28,10 @@ export default function MiiComponent(props: Readonly<MiiComponentProps>) {
     const { miiImage, isLoading, loadMii } = shouldLoadProgressively()
         ? useMiiImage(props.friendCode)
         : {
-            miiImage: () => props.miiImageBase64,
-            isLoading: () => false,
-            loadMii: () => {},
-        };
+              miiImage: () => props.miiImageBase64,
+              isLoading: () => false,
+              loadMii: () => {},
+          };
 
     const observeElement = useIntersectionObserver(() => {
         if (shouldLoadProgressively() && !miiImage() && !isLoading()) {
@@ -97,9 +97,7 @@ export default function MiiComponent(props: Readonly<MiiComponentProps>) {
         <div
             class={`w-full h-full bg-gradient-to-br ${getGradientColors()} flex items-center justify-center`}
         >
-            <span class="text-white font-bold select-none drop-shadow-sm">
-                {getInitials()}
-            </span>
+            <span class="text-white font-bold select-none drop-shadow-sm">{getInitials()}</span>
         </div>
     );
 
@@ -107,7 +105,7 @@ export default function MiiComponent(props: Readonly<MiiComponentProps>) {
 
     return (
         <div
-            ref={containerRef}
+            ref={(el) => (containerRef = el)}
             class={`relative inline-flex items-center justify-center ${sizeClasses[size()]} rounded-full overflow-hidden shadow-sm ${props.className || ""}`}
         >
             <Show

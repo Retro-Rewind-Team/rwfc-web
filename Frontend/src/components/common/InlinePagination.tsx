@@ -65,7 +65,9 @@ export default function InlinePagination(props: InlinePaginationProps) {
 
                 <button
                     type="button"
-                    onClick={() => props.onPageChange(Math.min(props.totalPages, props.currentPage + 1))}
+                    onClick={() =>
+                        props.onPageChange(Math.min(props.totalPages, props.currentPage + 1))
+                    }
                     disabled={props.currentPage === props.totalPages}
                     class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >

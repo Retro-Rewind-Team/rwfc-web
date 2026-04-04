@@ -9,10 +9,10 @@ import {
 import { Star } from "lucide-solid/icons/index";
 
 interface VRTierInfoProps {
-  vr: number;
-  isSuspicious?: boolean;
-  showProgress?: boolean;
-  className?: string;
+    vr: number;
+    isSuspicious?: boolean;
+    showProgress?: boolean;
+    className?: string;
 }
 
 export default function VRTierInfo(props: Readonly<VRTierInfoProps>) {
@@ -28,32 +28,32 @@ export default function VRTierInfo(props: Readonly<VRTierInfoProps>) {
         if (!next) return "bg-gradient-to-r from-amber-400 to-yellow-500";
 
         switch (next.tier) {
-        case "god":
-            return "bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500";
-        case "transcendent":
-            return "bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-500";
-        case "mythic":
-            return "bg-gradient-to-r from-violet-400 via-purple-500 to-fuchsia-500";
-        case "celestial":
-            return "bg-gradient-to-r from-sky-400 via-indigo-500 to-violet-500";
-        case "master":
-            return "bg-gradient-to-r from-purple-500 via-blue-500 to-green-500";
-        case "legend":
-            return "bg-gradient-to-r from-amber-400 to-yellow-500";
-        case "elite":
-            return "bg-gradient-to-r from-purple-400 to-pink-500";
-        case "veteran":
-            return "bg-gradient-to-r from-indigo-500 to-cyan-500";
-        case "challenger":
-            return "bg-gradient-to-r from-emerald-500 to-teal-500";
-        case "rising":
-            return "bg-gradient-to-r from-lime-400 to-green-500";
-        case "beginner":
-            return "bg-gradient-to-r from-gray-400 to-gray-600";
-        case "suspicious":
-            return "bg-gradient-to-r from-red-500 to-red-700";
-        default:
-            return "bg-gradient-to-r from-blue-500 to-purple-600";
+            case "god":
+                return "bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500";
+            case "transcendent":
+                return "bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-500";
+            case "mythic":
+                return "bg-gradient-to-r from-violet-400 via-purple-500 to-fuchsia-500";
+            case "celestial":
+                return "bg-gradient-to-r from-sky-400 via-indigo-500 to-violet-500";
+            case "master":
+                return "bg-gradient-to-r from-purple-500 via-blue-500 to-green-500";
+            case "legend":
+                return "bg-gradient-to-r from-amber-400 to-yellow-500";
+            case "elite":
+                return "bg-gradient-to-r from-purple-400 to-pink-500";
+            case "veteran":
+                return "bg-gradient-to-r from-indigo-500 to-cyan-500";
+            case "challenger":
+                return "bg-gradient-to-r from-emerald-500 to-teal-500";
+            case "rising":
+                return "bg-gradient-to-r from-lime-400 to-green-500";
+            case "beginner":
+                return "bg-gradient-to-r from-gray-400 to-gray-600";
+            case "suspicious":
+                return "bg-gradient-to-r from-red-500 to-red-700";
+            default:
+                return "bg-gradient-to-r from-blue-500 to-purple-600";
         }
     };
 
@@ -86,7 +86,7 @@ export default function VRTierInfo(props: Readonly<VRTierInfoProps>) {
                     {/* Next Tier Info */}
                     <div class="flex justify-between items-center text-sm">
                         <span class="text-gray-600 dark:text-gray-400">
-              Progress to {nextTier()!.label}
+                            Progress to {nextTier()!.label}
                         </span>
                         <span class="font-medium text-gray-900 dark:text-white">
                             {vrNeeded().toLocaleString()} VR needed
@@ -99,9 +99,7 @@ export default function VRTierInfo(props: Readonly<VRTierInfoProps>) {
             <Show when={!nextTier() && !props.isSuspicious}>
                 <div class="flex items-center space-x-2 text-sm text-purple-600 dark:text-purple-400">
                     <Star size={16} />
-                    <span class="font-medium">
-            Maximum tier reached - VR cap achieved!
-                    </span>
+                    <span class="font-medium">Maximum tier reached - VR cap achieved!</span>
                 </div>
             </Show>
 

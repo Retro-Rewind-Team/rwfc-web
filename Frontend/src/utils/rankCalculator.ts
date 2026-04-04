@@ -1,9 +1,4 @@
-import type {
-    NeededStats,
-    RankScore,
-    RksysLicense,
-    StatContribution,
-} from "../types/tools";
+import type { NeededStats, RankScore, RksysLicense, StatContribution } from "../types/tools";
 
 // Ranking model constants (from Retro Rewind implementation)
 const W_VR = 0.6;
@@ -22,17 +17,17 @@ const AH = {
 const AL = { VR: 5.0, RWIN: 50.0, FIRSTS: 0.0, DIST: 0.0, DIST1ST: 0.0 };
 
 const M1 =
-  W_VR * AH.VR +
-  W_RWIN * AH.RWIN +
-  W_FIRSTS * AH.FIRSTS +
-  W_DIST * AH.DIST +
-  W_DIST1ST * AH.DIST1ST;
+    W_VR * AH.VR +
+    W_RWIN * AH.RWIN +
+    W_FIRSTS * AH.FIRSTS +
+    W_DIST * AH.DIST +
+    W_DIST1ST * AH.DIST1ST;
 const M2 =
-  W_VR * AL.VR +
-  W_RWIN * AL.RWIN +
-  W_FIRSTS * AL.FIRSTS +
-  W_DIST * AL.DIST +
-  W_DIST1ST * AL.DIST1ST;
+    W_VR * AL.VR +
+    W_RWIN * AL.RWIN +
+    W_FIRSTS * AL.FIRSTS +
+    W_DIST * AL.DIST +
+    W_DIST1ST * AL.DIST1ST;
 
 const ALPHA = 90.0 / (M1 - M2);
 const BETA = 100.0 - ALPHA * M1;
@@ -84,15 +79,14 @@ export function computeScore(license: RksysLicense): RankScore {
 
     const firstsNorm = firsts >= 2500.0 ? 100.0 : (100.0 * firsts) / 2500.0;
     const distNorm = distance >= 50000.0 ? 100.0 : (100.0 * distance) / 50000.0;
-    const dist1stNorm =
-    distance1st >= 10000.0 ? 100.0 : (100.0 * distance1st) / 10000.0;
+    const dist1stNorm = distance1st >= 10000.0 ? 100.0 : (100.0 * distance1st) / 10000.0;
 
     const M =
-    W_VR * vrNorm +
-    W_RWIN * winPct +
-    W_FIRSTS * firstsNorm +
-    W_DIST * distNorm +
-    W_DIST1ST * dist1stNorm;
+        W_VR * vrNorm +
+        W_RWIN * winPct +
+        W_FIRSTS * firstsNorm +
+        W_DIST * distNorm +
+        W_DIST1ST * dist1stNorm;
     let score = clamp(ALPHA * M + BETA, 0, 100);
 
     const meetsRaceReq = totalVs >= MIN_VS_MATCHES;
@@ -230,11 +224,8 @@ export function calculateNeededStats(license: RksysLicense): NeededStats {
     };
 }
 
-export function computeContributions(
-    license: RksysLicense,
-): Record<string, StatContribution> {
-    const { score, vrNorm, winPct, firstsNorm, distNorm, dist1stNorm } =
-    computeScore(license);
+export function computeContributions(license: RksysLicense): Record<string, StatContribution> {
+    const { score, vrNorm, winPct, firstsNorm, distNorm, dist1stNorm } = computeScore(license);
 
     const parts: Record<StatKey, { w: number; norm: number }> = {
         VR: { w: W_VR, norm: vrNorm },

@@ -3,9 +3,9 @@ import Badge from "./Badge";
 import { getPlayerBadges } from "../../constants/badgeData";
 
 interface PlayerBadgesProps {
-  friendCode: string;
-  size?: "sm" | "md" | "lg";
-  showLabels?: boolean;
+    friendCode: string;
+    size?: "sm" | "md" | "lg";
+    showLabels?: boolean;
 }
 
 export default function PlayerBadges(props: PlayerBadgesProps) {
@@ -17,11 +17,7 @@ export default function PlayerBadges(props: PlayerBadgesProps) {
             <div class="inline-flex items-center gap-1.5 flex-wrap">
                 <For each={badges()}>
                     {(badge) => (
-                        <Badge
-                            variant={badge}
-                            size={props.size}
-                            showLabel={props.showLabels}
-                        />
+                        <Badge variant={badge} size={props.size} showLabel={props.showLabels} />
                     )}
                 </For>
             </div>

@@ -1,17 +1,17 @@
 export type BadgeType =
-  | "WhWzDev"
-  | "RrDev"
-  | "Translator"
-  | "TranslatorLead"
-  | "Firestarter_GoldWinner"
-  | "Firestarter_SilverWinner"
-  | "Firestarter_BronzeWinner"
-  | "SummitShowdown_GoldWinner"
-  | "SummitShowdown_SilverWinner"
-  | "SummitShowdown_BronzeWinner"
-  | "Leafstruck_GoldWinner"
-  | "Leafstruck_SilverWinner"
-  | "Leafstruck_BronzeWinner";
+    | "WhWzDev"
+    | "RrDev"
+    | "Translator"
+    | "TranslatorLead"
+    | "Firestarter_GoldWinner"
+    | "Firestarter_SilverWinner"
+    | "Firestarter_BronzeWinner"
+    | "SummitShowdown_GoldWinner"
+    | "SummitShowdown_SilverWinner"
+    | "SummitShowdown_BronzeWinner"
+    | "Leafstruck_GoldWinner"
+    | "Leafstruck_SilverWinner"
+    | "Leafstruck_BronzeWinner";
 
 export const badgesData: Record<string, BadgeType[]> = {
     "4343-3434-3434": [
@@ -76,61 +76,60 @@ export const badgesData: Record<string, BadgeType[]> = {
     "3006-4772-3801": ["Translator"],
 };
 
-export const badgeInfo: Record<BadgeType, { label: string; tooltip: string }> =
-  {
-      WhWzDev: {
-          label: "WW Dev",
-          tooltip: "WheelWizard Developer",
-      },
-      RrDev: {
-          label: "RR Dev",
-          tooltip: "Retro Rewind Developer",
-      },
-      Translator: {
-          label: "Translator",
-          tooltip: "Community Translator",
-      },
-      TranslatorLead: {
-          label: "Lead Trans",
-          tooltip: "Translation Team Leader",
-      },
-      Firestarter_GoldWinner: {
-          label: "Firestarter",
-          tooltip: "Firestarter Tournament - Gold Winner",
-      },
-      Firestarter_SilverWinner: {
-          label: "Firestarter",
-          tooltip: "Firestarter Tournament - Silver Winner",
-      },
-      Firestarter_BronzeWinner: {
-          label: "Firestarter",
-          tooltip: "Firestarter Tournament - Bronze Winner",
-      },
-      SummitShowdown_GoldWinner: {
-          label: "Summit",
-          tooltip: "Summit Showdown Tournament - Gold Winner",
-      },
-      SummitShowdown_SilverWinner: {
-          label: "Summit",
-          tooltip: "Summit Showdown Tournament - Silver Winner",
-      },
-      SummitShowdown_BronzeWinner: {
-          label: "Summit",
-          tooltip: "Summit Showdown Tournament - Bronze Winner",
-      },
-      Leafstruck_GoldWinner: {
-          label: "Leafstruck",
-          tooltip: "Leafstruck Tournament - Gold Winner",
-      },
-      Leafstruck_SilverWinner: {
-          label: "Leafstruck",
-          tooltip: "Leafstruck Tournament - Silver Winner",
-      },
-      Leafstruck_BronzeWinner: {
-          label: "Leafstruck",
-          tooltip: "Leafstruck Tournament - Bronze Winner",
-      },
-  };
+export const badgeInfo: Record<BadgeType, { label: string; tooltip: string }> = {
+    WhWzDev: {
+        label: "WW Dev",
+        tooltip: "WheelWizard Developer",
+    },
+    RrDev: {
+        label: "RR Dev",
+        tooltip: "Retro Rewind Developer",
+    },
+    Translator: {
+        label: "Translator",
+        tooltip: "Community Translator",
+    },
+    TranslatorLead: {
+        label: "Lead Trans",
+        tooltip: "Translation Team Leader",
+    },
+    Firestarter_GoldWinner: {
+        label: "Firestarter",
+        tooltip: "Firestarter Tournament - Gold Winner",
+    },
+    Firestarter_SilverWinner: {
+        label: "Firestarter",
+        tooltip: "Firestarter Tournament - Silver Winner",
+    },
+    Firestarter_BronzeWinner: {
+        label: "Firestarter",
+        tooltip: "Firestarter Tournament - Bronze Winner",
+    },
+    SummitShowdown_GoldWinner: {
+        label: "Summit",
+        tooltip: "Summit Showdown Tournament - Gold Winner",
+    },
+    SummitShowdown_SilverWinner: {
+        label: "Summit",
+        tooltip: "Summit Showdown Tournament - Silver Winner",
+    },
+    SummitShowdown_BronzeWinner: {
+        label: "Summit",
+        tooltip: "Summit Showdown Tournament - Bronze Winner",
+    },
+    Leafstruck_GoldWinner: {
+        label: "Leafstruck",
+        tooltip: "Leafstruck Tournament - Gold Winner",
+    },
+    Leafstruck_SilverWinner: {
+        label: "Leafstruck",
+        tooltip: "Leafstruck Tournament - Silver Winner",
+    },
+    Leafstruck_BronzeWinner: {
+        label: "Leafstruck",
+        tooltip: "Leafstruck Tournament - Bronze Winner",
+    },
+};
 
 export function getPlayerBadges(friendCode: string): BadgeType[] {
     return badgesData[friendCode] || [];

@@ -2,10 +2,10 @@ import { JSX, Show } from "solid-js";
 import { CircleCheck, CircleX, Info, TriangleAlert } from "lucide-solid";
 
 interface AlertBoxProps {
-  type: "info" | "warning" | "success" | "error";
-  icon?: JSX.Element;
-  title?: string;
-  children: JSX.Element;
+    type: "info" | "warning" | "success" | "error";
+    icon?: JSX.Element;
+    title?: string;
+    children: JSX.Element;
 }
 
 const defaultIcons = {

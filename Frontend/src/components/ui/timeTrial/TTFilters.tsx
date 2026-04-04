@@ -49,7 +49,12 @@ export default function TTFilters(props: TTFiltersProps) {
                 </label>
                 <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
                     <A
-                        href={buildRoute(props.trackId, 150, props.currentGlitchAllowed, props.currentMode)}
+                        href={buildRoute(
+                            props.trackId,
+                            150,
+                            props.currentGlitchAllowed,
+                            props.currentMode,
+                        )}
                         class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
                             props.currentCC === 150
                                 ? "bg-green-600 text-white shadow-sm"
@@ -59,7 +64,12 @@ export default function TTFilters(props: TTFiltersProps) {
                         150cc
                     </A>
                     <A
-                        href={buildRoute(props.trackId, 200, props.currentGlitchAllowed, props.currentMode)}
+                        href={buildRoute(
+                            props.trackId,
+                            200,
+                            props.currentGlitchAllowed,
+                            props.currentMode,
+                        )}
                         class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
                             props.currentCC === 200
                                 ? "bg-sky-600 text-white shadow-sm"
@@ -79,7 +89,12 @@ export default function TTFilters(props: TTFiltersProps) {
                     </label>
                     <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
                         <A
-                            href={buildRoute(props.trackId, props.currentCC, true, props.currentMode)}
+                            href={buildRoute(
+                                props.trackId,
+                                props.currentCC,
+                                true,
+                                props.currentMode,
+                            )}
                             class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
                                 props.currentGlitchAllowed
                                     ? "bg-blue-600 text-white shadow-sm"
@@ -89,7 +104,12 @@ export default function TTFilters(props: TTFiltersProps) {
                             Unrestricted
                         </A>
                         <A
-                            href={buildRoute(props.trackId, props.currentCC, false, props.currentMode)}
+                            href={buildRoute(
+                                props.trackId,
+                                props.currentCC,
+                                false,
+                                props.currentMode,
+                            )}
                             class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
                                 !props.currentGlitchAllowed
                                     ? "bg-green-600 text-white shadow-sm"
@@ -109,7 +129,12 @@ export default function TTFilters(props: TTFiltersProps) {
                 </label>
                 <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
                     <A
-                        href={buildRoute(props.trackId, props.currentCC, props.currentGlitchAllowed, "regular")}
+                        href={buildRoute(
+                            props.trackId,
+                            props.currentCC,
+                            props.currentGlitchAllowed,
+                            "regular",
+                        )}
                         class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
                             props.currentMode === "regular"
                                 ? "bg-blue-600 text-white shadow-sm"
@@ -119,7 +144,12 @@ export default function TTFilters(props: TTFiltersProps) {
                         Regular
                     </A>
                     <A
-                        href={buildRoute(props.trackId, props.currentCC, props.currentGlitchAllowed, "flap")}
+                        href={buildRoute(
+                            props.trackId,
+                            props.currentCC,
+                            props.currentGlitchAllowed,
+                            "flap",
+                        )}
                         class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
                             props.currentMode === "flap"
                                 ? "bg-orange-500 text-white shadow-sm"

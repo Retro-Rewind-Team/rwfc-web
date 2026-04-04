@@ -26,9 +26,9 @@ export function usePlayer(friendCode: string) {
     const isPlayerNotFound = () => {
         return (
             playerQuery.isError &&
-      playerQuery.error instanceof Error &&
-      (playerQuery.error.message.includes("404") ||
-        playerQuery.error.message.includes("not found"))
+            playerQuery.error instanceof Error &&
+            (playerQuery.error.message.includes("404") ||
+                playerQuery.error.message.includes("not found"))
         );
     };
 

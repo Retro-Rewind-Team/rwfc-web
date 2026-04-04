@@ -68,8 +68,8 @@ export const VR_TIER_SIZES = {
 export type VRTierSize = keyof typeof VR_TIER_SIZES;
 
 export const SECTION_COLORS: Record<
-  string,
-  { color: string; accent: string; shadowColor: string }
+    string,
+    { color: string; accent: string; shadowColor: string }
 > = {
     "Project Leader": {
         color: "text-red-600 dark:text-red-400",

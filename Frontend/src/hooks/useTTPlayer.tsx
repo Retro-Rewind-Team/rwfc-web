@@ -11,8 +11,7 @@ import { usePagination } from "./usePagination";
  * profile page (submissions table + WR history).
  */
 export function useTTPlayer(ttProfileId: number) {
-    const { currentPage, setCurrentPage, pageSize, handlePageSizeChange } =
-        usePagination(10);
+    const { currentPage, setCurrentPage, pageSize, handlePageSizeChange } = usePagination(10);
 
     const [selectedCC, setSelectedCC] = createSignal<150 | 200 | undefined>(undefined);
     const [glitchFilter, setGlitchFilter] = createSignal<boolean | undefined>(undefined);
@@ -38,7 +37,15 @@ export function useTTPlayer(ttProfileId: number) {
 
     // Fetch submissions with all filters and pagination server-side
     const submissionsQuery = useQuery(() => ({
-        queryKey: queryKeys.ttProfileSubmissions(ttProfileId, currentPage(), pageSize(), selectedCC(), glitchFilter(), shroomlessFilter(), vehicleFilter()),
+        queryKey: queryKeys.ttProfileSubmissions(
+            ttProfileId,
+            currentPage(),
+            pageSize(),
+            selectedCC(),
+            glitchFilter(),
+            shroomlessFilter(),
+            vehicleFilter(),
+        ),
         queryFn: () =>
             timeTrialApi.getProfileSubmissions(
                 ttProfileId,
@@ -64,14 +71,10 @@ export function useTTPlayer(ttProfileId: number) {
         const submissions = submissionsQuery.data?.submissions ?? [];
         const search = searchQuery().toLowerCase();
         if (!search) return submissions;
-        return submissions.filter((sub) =>
-            sub.trackName.toLowerCase().includes(search),
-        );
+        return submissions.filter((sub) => sub.trackName.toLowerCase().includes(search));
     });
 
-    const worldRecordsHeld = createMemo(
-        () => profileQuery.data?.currentWorldRecords ?? 0,
-    );
+    const worldRecordsHeld = createMemo(() => profileQuery.data?.currentWorldRecords ?? 0);
 
     const isPlayerNotFound = createMemo(
         () =>
@@ -82,9 +85,7 @@ export function useTTPlayer(ttProfileId: number) {
 
     const totalPages = createMemo(() => submissionsQuery.data?.totalPages ?? 1);
 
-    const totalSubmissions = createMemo(
-        () => submissionsQuery.data?.totalSubmissions ?? 0,
-    );
+    const totalSubmissions = createMemo(() => submissionsQuery.data?.totalSubmissions ?? 0);
 
     const handleSearchInput = (value: string) => setSearchQuery(value);
     const handleCCChange = (cc: 150 | 200 | undefined) => setSelectedCC(cc);

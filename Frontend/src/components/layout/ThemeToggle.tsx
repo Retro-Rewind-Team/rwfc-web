@@ -51,9 +51,7 @@ export default function ThemeToggle() {
                                 <span>{themeOption.icon}</span>
                                 <span>{themeOption.label}</span>
                                 {theme() === themeOption.value && (
-                                    <span class="ml-auto text-blue-600 dark:text-blue-400">
-                    ✓
-                                    </span>
+                                    <span class="ml-auto text-blue-600 dark:text-blue-400">✓</span>
                                 )}
                             </button>
                         ))}

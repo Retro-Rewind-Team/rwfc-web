@@ -22,7 +22,7 @@ const featureCards = [
         iconColor: "text-blue-500 dark:text-blue-400",
         title: "VR Leaderboard",
         description:
-      "Track rankings and see who's dominating the Retro WFC servers with up to 1,000,000 VR.",
+            "Track rankings and see who's dominating the Retro WFC servers with up to 1,000,000 VR.",
         href: "/vr",
         label: "View Rankings",
     },
@@ -30,8 +30,7 @@ const featureCards = [
         icon: () => <Timer size={32} />,
         iconColor: "text-green-500 dark:text-green-400",
         title: "TT Leaderboard",
-        description:
-      "Compare the fastest times across all 208 retro tracks and 88 custom tracks.",
+        description: "Compare the fastest times across all 208 retro tracks and 88 custom tracks.",
         href: "/tt",
         label: "View Times",
     },
@@ -40,7 +39,7 @@ const featureCards = [
         iconColor: "text-purple-500 dark:text-purple-400",
         title: "Room Browser",
         description:
-      "Find and join active rooms with various game modes including 200cc, TTs Online, and Item Rain/Storm across all Retro WFC packs.",
+            "Find and join active rooms with various game modes including 200cc, TTs Online, and Item Rain/Storm across all Retro WFC packs.",
         href: "/rooms",
         label: "Browse Rooms",
     },
@@ -49,7 +48,7 @@ const featureCards = [
         iconColor: "text-orange-500 dark:text-orange-400",
         title: "Downloads",
         description:
-      "Access the latest Retro Rewind releases, tools, and resources to get started on Retro WFC.",
+            "Access the latest Retro Rewind releases, tools, and resources to get started on Retro WFC.",
         href: "/downloads",
         label: "View Downloads",
     },
@@ -98,13 +97,13 @@ export default function HomePage() {
                 <div class="max-w-4xl mx-auto text-center">
                     <div class="mb-8">
                         <h1 class="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4">
-              Welcome to Retro Rewind
+                            Welcome to Retro Rewind
                         </h1>
                         <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Experience every retro track from Super Mario Kart to Mario Kart
-              7, plus tracks from Mario Kart 8, Tour, Arcade GP and Mario Kart
-              World. Track your progress, compete for the fastest times, and
-              connect with the community on Retro WFC servers.
+                            Experience every retro track from Super Mario Kart to Mario Kart 7, plus
+                            tracks from Mario Kart 8, Tour, Arcade GP and Mario Kart World. Track
+                            your progress, compete for the fastest times, and connect with the
+                            community on Retro WFC servers.
                         </p>
                     </div>
 
@@ -134,7 +133,7 @@ export default function HomePage() {
             <section class="py-8">
                 <div class="text-center mb-8">
                     <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Explore Features & Tools
+                        Explore Features & Tools
                     </h2>
                 </div>
 
@@ -164,7 +163,7 @@ export default function HomePage() {
             <section class="py-8">
                 <div class="max-w-5xl mx-auto">
                     <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
-            About Retro Rewind
+                        About Retro Rewind
                     </h2>
 
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -192,12 +191,12 @@ export default function HomePage() {
                             </div>
                             <div class="flex-1">
                                 <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  Powered by Retro WFC
+                                    Powered by Retro WFC
                                 </h3>
                                 <p class="text-gray-700 dark:text-gray-300">
-                  Connect to dedicated Retro WFC servers for stable online
-                  racing with players worldwide. No patching required, just
-                  install and race.
+                                    Connect to dedicated Retro WFC servers for stable online racing
+                                    with players worldwide. No patching required, just install and
+                                    race.
                                 </p>
                             </div>
                         </div>

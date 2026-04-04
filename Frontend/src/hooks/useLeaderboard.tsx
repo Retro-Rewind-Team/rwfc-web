@@ -12,8 +12,7 @@ import { useDebouncedSearch } from "./useDebouncedSearch";
  * for the main VR leaderboard.
  */
 export function useLeaderboard() {
-    const { currentPage, setCurrentPage, pageSize, handlePageSizeChange } =
-        usePagination(50);
+    const { currentPage, setCurrentPage, pageSize, handlePageSizeChange } = usePagination(50);
     const { searchQuery, search, handleSearchInput } = useDebouncedSearch();
 
     const [sortBy, setSortBy] = createSignal("rank");
@@ -23,7 +22,10 @@ export function useLeaderboard() {
     const miiLoader = useMiiLoader();
 
     // Reset to page 1 when the debounced search value changes
-    createEffect(() => { search(); setCurrentPage(1); });
+    createEffect(() => {
+        search();
+        setCurrentPage(1);
+    });
 
     // Create the request object
     const leaderboardRequest = createMemo(
@@ -79,11 +81,7 @@ export function useLeaderboard() {
 
         // Update sort field if currently sorting by VR gain
         const currentSort = sortBy();
-        if (
-            currentSort === "vrgain24" ||
-      currentSort === "vrgain7" ||
-      currentSort === "vrgain30"
-        ) {
+        if (currentSort === "vrgain24" || currentSort === "vrgain7" || currentSort === "vrgain30") {
             // Map the period to the correct VR gain field
             let newSortField;
             if (period === "24") {
@@ -101,12 +99,12 @@ export function useLeaderboard() {
 
     const getVRGain = (player: Player) => {
         switch (timePeriod()) {
-        case "week":
-            return player.vrStats.lastWeek;
-        case "month":
-            return player.vrStats.lastMonth;
-        default:
-            return player.vrStats.last24Hours;
+            case "week":
+                return player.vrStats.lastWeek;
+            case "month":
+                return player.vrStats.lastMonth;
+            default:
+                return player.vrStats.last24Hours;
         }
     };
 
@@ -116,7 +114,7 @@ export function useLeaderboard() {
     };
 
     return {
-    // State
+        // State
         currentPage,
         pageSize,
         search,

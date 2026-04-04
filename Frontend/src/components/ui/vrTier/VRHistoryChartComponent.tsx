@@ -5,36 +5,24 @@ import ChartBarBig from "lucide-solid/icons/chart-bar-big";
 import { Info } from "lucide-solid/icons/index";
 
 interface VRHistoryChartProps {
-  readonly friendCode: string;
-  readonly initialDays?: number;
+    readonly friendCode: string;
+    readonly initialDays?: number;
 }
 
 export default function VRHistoryChart(props: VRHistoryChartProps) {
-    const {
-        historyData,
-        stats,
-        selectedDays,
-        isLoading,
-        error,
-        changePeriod,
-        refresh,
-    } = useVRHistory(props.friendCode, props.initialDays);
+    const { historyData, stats, selectedDays, isLoading, error, changePeriod, refresh } =
+        useVRHistory(props.friendCode, props.initialDays);
 
-    const [hoveredPoint, setHoveredPoint] =
-    createSignal<ProcessedVRHistory | null>(null);
+    const [hoveredPoint, setHoveredPoint] = createSignal<ProcessedVRHistory | null>(null);
     const [hoveredPosition, setHoveredPosition] = createSignal<{
-    x: number;
-    y: number;
-  } | null>(null);
+        x: number;
+        y: number;
+    } | null>(null);
 
     // Detect mobile
     const isMobile = () => {
         if (typeof window === "undefined") return false;
-        return (
-            window.innerWidth < 768 ||
-      "ontouchstart" in window ||
-      navigator.maxTouchPoints > 0
-        );
+        return window.innerWidth < 768 || "ontouchstart" in window || navigator.maxTouchPoints > 0;
     };
 
     // Chart dimensions
@@ -94,9 +82,9 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
 
         // Calculate Y position based on VR
         const y =
-      padding.top +
-      innerHeight -
-      ((point.totalVR - scales.minVR) / scales.vrRange) * innerHeight;
+            padding.top +
+            innerHeight -
+            ((point.totalVR - scales.minVR) / scales.vrRange) * innerHeight;
 
         return { x, y };
     };
@@ -201,7 +189,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
     };
 
     const handleMouseLeave = () => {
-    // On mobile, don't clear on mouse leave since we use tap
+        // On mobile, don't clear on mouse leave since we use tap
         if (!isMobile()) {
             setHoveredPoint(null);
             setHoveredPosition(null);
@@ -209,7 +197,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
     };
 
     const handleTapOutside = () => {
-    // Clear tooltip when tapping outside on mobile
+        // Clear tooltip when tapping outside on mobile
         if (isMobile()) {
             setHoveredPoint(null);
             setHoveredPosition(null);
@@ -221,7 +209,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
             {/* Header */}
             <div class="flex flex-col space-y-4 mb-6">
                 <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-          VR History
+                    VR History
                 </h2>
 
                 {/* Period Selection */}
@@ -256,9 +244,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                 <div class="h-96 flex items-center justify-center">
                     <div class="text-center">
                         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                        <p class="text-gray-600 dark:text-gray-400">
-              Loading VR history...
-                        </p>
+                        <p class="text-gray-600 dark:text-gray-400">Loading VR history...</p>
                     </div>
                 </div>
             </Show>
@@ -271,17 +257,15 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                             <TriangleAlert size={48} />
                         </div>
                         <p class="text-red-600 dark:text-red-400 font-medium mb-2">
-              Failed to load VR history
+                            Failed to load VR history
                         </p>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                            {error()}
-                        </p>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-4">{error()}</p>
                         <button
                             type="button"
                             onClick={refresh}
                             class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
                         >
-              Try Again
+                            Try Again
                         </button>
                     </div>
                 </div>
@@ -295,34 +279,32 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                             <ChartBarBig size={48} />
                         </div>
                         <p class="text-gray-600 dark:text-gray-400 font-medium mb-2">
-              No VR history available
+                            No VR history available
                         </p>
                         <p class="text-gray-500 dark:text-gray-500 text-sm">
-              No VR changes found for the selected period
+                            No VR changes found for the selected period
                         </p>
                     </div>
                 </div>
             </Show>
 
             {/* Chart */}
-            <Show
-                when={!isLoading() && !error() && historyData().length > 0 && stats()}
-            >
+            <Show when={!isLoading() && !error() && historyData().length > 0 && stats()}>
                 {/* Stats Summary */}
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
                     <div class="bg-white dark:bg-gray-800 rounded-lg p-3 md:p-4 text-center border border-gray-200 dark:border-gray-700">
                         <div
                             class={`text-lg md:text-2xl font-bold mb-1 ${
-                stats()!.totalChange >= 0
-                    ? "text-emerald-600 dark:text-emerald-400"
-                    : "text-red-600 dark:text-red-400"
+                                stats()!.totalChange >= 0
+                                    ? "text-emerald-600 dark:text-emerald-400"
+                                    : "text-red-600 dark:text-red-400"
                             }`}
                         >
                             {stats()!.totalChange >= 0 ? "+" : ""}
                             {stats()!.totalChange.toLocaleString()}
                         </div>
                         <div class="text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
-              Total Change
+                            Total Change
                         </div>
                     </div>
 
@@ -331,7 +313,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                             {stats()!.highestVR.toLocaleString()}
                         </div>
                         <div class="text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
-              Peak VR
+                            Peak VR
                         </div>
                     </div>
 
@@ -340,7 +322,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                             {stats()!.lowestVR.toLocaleString()}
                         </div>
                         <div class="text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
-              Lowest VR
+                            Lowest VR
                         </div>
                     </div>
 
@@ -349,7 +331,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                             {stats()!.changesCount}
                         </div>
                         <div class="text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
-              Data Points
+                            Data Points
                         </div>
                     </div>
                 </div>
@@ -368,26 +350,14 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                     >
                         <defs>
                             {/* Gradient for line */}
-                            <linearGradient
-                                id="lineGradient"
-                                x1="0%"
-                                y1="0%"
-                                x2="100%"
-                                y2="0%"
-                            >
+                            <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                                 <stop offset="0%" stop-color="#3B82F6" />
                                 <stop offset="50%" stop-color="#8B5CF6" />
                                 <stop offset="100%" stop-color="#EC4899" />
                             </linearGradient>
 
                             {/* Gradient for area */}
-                            <linearGradient
-                                id="areaGradient"
-                                x1="0%"
-                                y1="0%"
-                                x2="0%"
-                                y2="100%"
-                            >
+                            <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                                 <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.3" />
                                 <stop offset="100%" stop-color="#EC4899" stop-opacity="0.05" />
                             </linearGradient>
@@ -580,16 +550,16 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
 
                                     // Determine X position (left or right of cursor)
                                     let tooltipX =
-                    pos.x > CHART_WIDTH / 2
-                        ? pos.x - tooltipWidth - 10
-                        : pos.x + 10;
+                                        pos.x > CHART_WIDTH / 2
+                                            ? pos.x - tooltipWidth - 10
+                                            : pos.x + 10;
 
                                     // Keep tooltip within chart bounds horizontally
                                     if (tooltipX < padding.left) {
                                         tooltipX = padding.left;
                                     } else if (
                                         tooltipX + tooltipWidth >
-                    CHART_WIDTH - padding.right
+                                        CHART_WIDTH - padding.right
                                     ) {
                                         tooltipX = CHART_WIDTH - padding.right - tooltipWidth;
                                     }
@@ -603,10 +573,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                                     }
 
                                     // Keep tooltip within chart bounds vertically
-                                    if (
-                                        tooltipY + tooltipHeight >
-                    CHART_HEIGHT - padding.bottom
-                                    ) {
+                                    if (tooltipY + tooltipHeight > CHART_HEIGHT - padding.bottom) {
                                         tooltipY = CHART_HEIGHT - padding.bottom - tooltipHeight;
                                     }
 

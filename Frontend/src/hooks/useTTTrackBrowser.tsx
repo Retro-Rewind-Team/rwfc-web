@@ -26,7 +26,12 @@ export function useTTTrackBrowser() {
     // Fetch world records for the current category combination
     // All filter dimensions are part of the query key so cache entries are per-category
     const worldRecordsQuery = useQuery(() => ({
-        queryKey: queryKeys.ttWorldRecordsAll(selectedCC(), glitchAllowed(), shroomlessFilter(), vehicleFilter()),
+        queryKey: queryKeys.ttWorldRecordsAll(
+            selectedCC(),
+            glitchAllowed(),
+            shroomlessFilter(),
+            vehicleFilter(),
+        ),
         queryFn: () =>
             timeTrialApi.getAllWorldRecords(
                 selectedCC(),
@@ -45,9 +50,7 @@ export function useTTTrackBrowser() {
 
         return tracks
             .filter((track) => track.category === category)
-            .filter(
-                (track) => search === "" || track.name.toLowerCase().includes(search),
-            )
+            .filter((track) => search === "" || track.name.toLowerCase().includes(search))
             .sort((a, b) => a.sortOrder - b.sortOrder);
     });
 

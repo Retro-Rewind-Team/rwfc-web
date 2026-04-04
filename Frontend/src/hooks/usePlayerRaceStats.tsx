@@ -15,9 +15,7 @@ export function usePlayerRaceStats(pid: string | undefined) {
 
     const [days, setDays] = createSignal<number | undefined>(undefined);
     const [courseId, setCourseId] = createSignal<number | undefined>(undefined);
-    const [activeTrackName, setActiveTrackName] = createSignal<
-    string | undefined
-  >(undefined);
+    const [activeTrackName, setActiveTrackName] = createSignal<string | undefined>(undefined);
 
     // Reset to page 1 when filters change
     createEffect(() => {

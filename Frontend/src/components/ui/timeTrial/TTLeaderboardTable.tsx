@@ -11,11 +11,11 @@ import { formatDate, getDriftInfo } from "../../../utils/formatter";
 import { CountryFlag } from "../../common";
 
 interface TTLeaderboardTableProps {
-  submissions: GhostSubmission[];
-  fastestLapMs: number | null;
-  trackLaps: number;
-  isFlap: boolean;
-  onDownloadGhost: (submission: GhostSubmission) => void;
+    submissions: GhostSubmission[];
+    fastestLapMs: number | null;
+    trackLaps: number;
+    isFlap: boolean;
+    onDownloadGhost: (submission: GhostSubmission) => void;
 }
 
 export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
@@ -39,11 +39,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
 
     const getValidLaps = (submission: GhostSubmission) => {
         const validLaps: { time: string; timeMs: number; index: number }[] = [];
-        for (
-            let i = 0;
-            i < Math.min(props.trackLaps, submission.lapSplitsMs.length);
-            i++
-        ) {
+        for (let i = 0; i < Math.min(props.trackLaps, submission.lapSplitsMs.length); i++) {
             if (submission.lapSplitsMs[i] > 0) {
                 validLaps.push({
                     time: submission.lapSplitsDisplay[i],
@@ -77,10 +73,10 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                 <thead class={`${headerColor()} text-white`}>
                     <tr>
                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-              Rank
+                            Rank
                         </th>
                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-              Player
+                            Player
                         </th>
                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                             {props.isFlap ? "Fastest Lap" : "Time"}
@@ -89,19 +85,19 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                             {props.isFlap ? "Finish Time" : "Fastest Lap"}
                         </th>
                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden lg:table-cell">
-              Character
+                            Character
                         </th>
                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden lg:table-cell">
-              Vehicle
+                            Vehicle
                         </th>
                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">
-              Controller
+                            Controller
                         </th>
                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">
-              Date
+                            Date
                         </th>
                         <th class="px-2 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
-              Actions
+                            Actions
                         </th>
                     </tr>
                 </thead>
@@ -162,12 +158,12 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                 <div class="flex gap-1">
                                                     <Show when={submission.shroomless}>
                                                         <span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                              🍄
+                                                            🍄
                                                         </span>
                                                     </Show>
                                                     <Show when={submission.glitch}>
                                                         <span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                              ⚡
+                                                            ⚡
                                                         </span>
                                                     </Show>
                                                 </div>
@@ -175,12 +171,12 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                 <div class="md:hidden">
                                                     <Show when={props.isFlap}>
                                                         <span class="font-mono text-xs font-medium text-gray-600 dark:text-gray-400">
-                              Finish: {submission.finishTimeDisplay}
+                                                            Finish: {submission.finishTimeDisplay}
                                                         </span>
                                                     </Show>
                                                     <Show when={!props.isFlap}>
                                                         <span class="font-mono text-xs font-medium text-gray-600 dark:text-gray-400">
-                              FL: {submission.fastestLapDisplay}
+                                                            FL: {submission.fastestLapDisplay}
                                                         </span>
                                                     </Show>
                                                 </div>
@@ -203,7 +199,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                     </span>
                                                     <Show when={holdsFLAP}>
                                                         <span class="text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">
-                              FLAP
+                                                            FLAP
                                                         </span>
                                                     </Show>
                                                 </div>
@@ -229,7 +225,10 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                 {getVehicleName(submission.vehicleId)}
                                             </div>
                                             <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                {getDriftInfo(submission.driftType, submission.driftCategory)}
+                                                {getDriftInfo(
+                                                    submission.driftType,
+                                                    submission.driftCategory,
+                                                )}
                                             </div>
                                         </td>
 
@@ -261,7 +260,9 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    onClick={() => props.onDownloadGhost(submission)}
+                                                    onClick={() =>
+                                                        props.onDownloadGhost(submission)
+                                                    }
                                                     class="inline-flex items-center p-2 sm:px-3 sm:py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
                                                     aria-label="Download ghost"
                                                 >
@@ -278,7 +279,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                             <td colspan="9" class="px-3 sm:px-6 py-4">
                                                 <div class="max-w-2xl">
                                                     <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
-                            Lap Times
+                                                        Lap Times
                                                     </div>
                                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                         <div class="space-y-2">
@@ -287,18 +288,22 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                                     // In flap mode: green = overall best flap, blue = best in this run
                                                                     // In regular mode: just blue = best in this run, no green FLAP highlight
                                                                     const isOverallFlap =
-                                    props.isFlap &&
-                                    props.fastestLapMs !== null &&
-                                    lap.timeMs === props.fastestLapMs;
+                                                                        props.isFlap &&
+                                                                        props.fastestLapMs !==
+                                                                            null &&
+                                                                        lap.timeMs ===
+                                                                            props.fastestLapMs;
                                                                     const isFastestInRun =
-                                    lap.timeMs ===
-                                    Math.min(
-                                        ...validLaps().map((l) => l.timeMs),
-                                    );
+                                                                        lap.timeMs ===
+                                                                        Math.min(
+                                                                            ...validLaps().map(
+                                                                                (l) => l.timeMs,
+                                                                            ),
+                                                                        );
                                                                     return (
                                                                         <div class="flex items-center justify-between">
                                                                             <span class="text-sm text-gray-600 dark:text-gray-400">
-                                        Lap {lap.index + 1}
+                                                                                Lap {lap.index + 1}
                                                                             </span>
                                                                             <div class="flex items-center gap-2">
                                                                                 <span
@@ -306,24 +311,29 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                                                         isOverallFlap
                                                                                             ? "text-green-600 dark:text-green-400 font-black"
                                                                                             : isFastestInRun
-                                                                                                ? "text-blue-600 dark:text-blue-400 font-bold"
-                                                                                                : "text-gray-700 dark:text-gray-300 font-medium"
+                                                                                              ? "text-blue-600 dark:text-blue-400 font-bold"
+                                                                                              : "text-gray-700 dark:text-gray-300 font-medium"
                                                                                     }`}
                                                                                 >
                                                                                     {lap.time}
                                                                                 </span>
-                                                                                <Show when={isOverallFlap}>
+                                                                                <Show
+                                                                                    when={
+                                                                                        isOverallFlap
+                                                                                    }
+                                                                                >
                                                                                     <span class="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wide">
-                                            FLAP
+                                                                                        FLAP
                                                                                     </span>
                                                                                 </Show>
                                                                                 <Show
                                                                                     when={
-                                                                                        !isOverallFlap && isFastestInRun
+                                                                                        !isOverallFlap &&
+                                                                                        isFastestInRun
                                                                                     }
                                                                                 >
                                                                                     <span class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-1.5 py-0.5 rounded font-semibold">
-                                            Best
+                                                                                        Best
                                                                                     </span>
                                                                                 </Show>
                                                                             </div>
@@ -336,7 +346,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                             <div class="space-y-1 text-sm">
                                                                 <div class="flex justify-between">
                                                                     <span class="text-gray-600 dark:text-gray-400">
-                                    Total Laps:
+                                                                        Total Laps:
                                                                     </span>
                                                                     <span class="font-medium text-gray-900 dark:text-white">
                                                                         {validLaps().length}
@@ -344,41 +354,57 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                                 </div>
                                                                 <div class="flex justify-between">
                                                                     <span class="text-gray-600 dark:text-gray-400">
-                                    Average Lap:
+                                                                        Average Lap:
                                                                     </span>
                                                                     <span class="font-mono font-medium text-gray-900 dark:text-white">
                                                                         {validLaps().length > 0
                                                                             ? (() => {
-                                                                                const avg =
-                                            validLaps().reduce(
-                                                (sum, lap) => sum + lap.timeMs,
-                                                0,
-                                            ) / validLaps().length;
-                                                                                const mins = Math.floor(avg / 60000);
-                                                                                const secs = (
-                                                                                    (avg % 60000) /
-                                            1000
-                                                                                ).toFixed(3);
-                                                                                return `${mins}:${secs.padStart(6, "0")}`;
-                                                                            })()
+                                                                                  const avg =
+                                                                                      validLaps().reduce(
+                                                                                          (
+                                                                                              sum,
+                                                                                              lap,
+                                                                                          ) =>
+                                                                                              sum +
+                                                                                              lap.timeMs,
+                                                                                          0,
+                                                                                      ) /
+                                                                                      validLaps()
+                                                                                          .length;
+                                                                                  const mins =
+                                                                                      Math.floor(
+                                                                                          avg /
+                                                                                              60000,
+                                                                                      );
+                                                                                  const secs = (
+                                                                                      (avg %
+                                                                                          60000) /
+                                                                                      1000
+                                                                                  ).toFixed(3);
+                                                                                  return `${mins}:${secs.padStart(6, "0")}`;
+                                                                              })()
                                                                             : "N/A"}
                                                                     </span>
                                                                 </div>
                                                                 <div class="flex justify-between">
                                                                     <span class="text-gray-600 dark:text-gray-400">
-                                    Fastest Lap:
+                                                                        Fastest Lap:
                                                                     </span>
                                                                     <span class="font-mono font-medium text-green-600 dark:text-green-400">
-                                                                        {submission.fastestLapDisplay}
+                                                                        {
+                                                                            submission.fastestLapDisplay
+                                                                        }
                                                                     </span>
                                                                 </div>
                                                                 <Show when={props.isFlap}>
                                                                     <div class="flex justify-between">
                                                                         <span class="text-gray-600 dark:text-gray-400">
-                                      Finish Time:
+                                                                            Finish Time:
                                                                         </span>
                                                                         <span class="font-mono font-medium text-gray-900 dark:text-white">
-                                                                            {submission.finishTimeDisplay}
+                                                                            {
+                                                                                submission.finishTimeDisplay
+                                                                            }
                                                                         </span>
                                                                     </div>
                                                                 </Show>
@@ -386,31 +412,38 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                             <div class="lg:hidden pt-2 mt-2 border-t border-gray-200 dark:border-gray-600 space-y-1 text-sm">
                                                                 <div class="flex justify-between">
                                                                     <span class="text-gray-600 dark:text-gray-400">
-                                    Character:
+                                                                        Character:
                                                                     </span>
                                                                     <span class="font-medium text-gray-900 dark:text-white">
-                                                                        {getCharacterName(submission.characterId)}
+                                                                        {getCharacterName(
+                                                                            submission.characterId,
+                                                                        )}
                                                                     </span>
                                                                 </div>
                                                                 <div class="flex justify-between">
                                                                     <span class="text-gray-600 dark:text-gray-400">
-                                    Vehicle:
+                                                                        Vehicle:
                                                                     </span>
                                                                     <span class="font-medium text-gray-900 dark:text-white">
-                                                                        {getVehicleName(submission.vehicleId)}
+                                                                        {getVehicleName(
+                                                                            submission.vehicleId,
+                                                                        )}
                                                                     </span>
                                                                 </div>
                                                                 <div class="flex justify-between">
                                                                     <span class="text-gray-600 dark:text-gray-400">
-                                    Drift:
+                                                                        Drift:
                                                                     </span>
                                                                     <span class="font-medium text-gray-900 dark:text-white">
-                                                                        {getDriftInfo(submission.driftType, submission.driftCategory)}
+                                                                        {getDriftInfo(
+                                                                            submission.driftType,
+                                                                            submission.driftCategory,
+                                                                        )}
                                                                     </span>
                                                                 </div>
                                                                 <div class="xl:hidden flex justify-between">
                                                                     <span class="text-gray-600 dark:text-gray-400">
-                                    Controller:
+                                                                        Controller:
                                                                     </span>
                                                                     <span class="font-medium text-gray-900 dark:text-white">
                                                                         {getControllerName(
@@ -420,10 +453,12 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                                 </div>
                                                                 <div class="xl:hidden flex justify-between">
                                                                     <span class="text-gray-600 dark:text-gray-400">
-                                    Date Set:
+                                                                        Date Set:
                                                                     </span>
                                                                     <span class="font-medium text-gray-900 dark:text-white">
-                                                                        {formatDate(submission.dateSet)}
+                                                                        {formatDate(
+                                                                            submission.dateSet,
+                                                                        )}
                                                                     </span>
                                                                 </div>
                                                             </div>

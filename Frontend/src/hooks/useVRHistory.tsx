@@ -4,17 +4,17 @@ import { VRHistoryEntry } from "../types";
 
 /** Aggregate statistics derived from a player's fetched VR history window. */
 export interface VRHistoryStats {
-  totalChange: number;
-  startingVR: number;
-  endingVR: number;
-  highestVR: number;
-  lowestVR: number;
-  changesCount: number;
+    totalChange: number;
+    startingVR: number;
+    endingVR: number;
+    highestVR: number;
+    lowestVR: number;
+    changesCount: number;
 }
 
 /** A `VRHistoryEntry` enriched with a pre-formatted date string for display. */
 export interface ProcessedVRHistory extends VRHistoryEntry {
-  formattedDate: string;
+    formattedDate: string;
 }
 
 // Aggregate history by day, keeping only the highest VR per day
@@ -36,8 +36,8 @@ function aggregateByDay(history: ProcessedVRHistory[]): ProcessedVRHistory[] {
         const entryDate = new Date(entry.date);
         return (
             entryDate.getFullYear() === firstDate.getFullYear() &&
-      entryDate.getMonth() === firstDate.getMonth() &&
-      entryDate.getDate() === firstDate.getDate()
+            entryDate.getMonth() === firstDate.getMonth() &&
+            entryDate.getDate() === firstDate.getDate()
         );
     });
 
@@ -49,9 +49,9 @@ function aggregateByDay(history: ProcessedVRHistory[]): ProcessedVRHistory[] {
     // Get the day of the initial entry to exclude other entries from that same day
     const initialDayKey = initialEntry
         ? (() => {
-            const date = new Date(initialEntry.date);
-            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-        })()
+              const date = new Date(initialEntry.date);
+              return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+          })()
         : null;
 
     // Aggregate by day, but skip entries from the same day as initial entry
@@ -103,9 +103,7 @@ export function useVRHistory(friendCode: string, initialDays = 30) {
     const [stats, setStats] = createSignal<VRHistoryStats | null>(null);
     const [isLoading, setIsLoading] = createSignal(false);
     const [error, setError] = createSignal<string | null>(null);
-    const [selectedDays, setSelectedDays] = createSignal<number | null>(
-        initialDays,
-    );
+    const [selectedDays, setSelectedDays] = createSignal<number | null>(initialDays);
 
     const fetchHistory = async (days: number | null) => {
         if (!friendCode) return;
@@ -123,17 +121,15 @@ export function useVRHistory(friendCode: string, initialDays = 30) {
             }
 
             // Process all data
-            let processedData: ProcessedVRHistory[] = response.history.map(
-                (entry) => ({
-                    ...entry,
-                    formattedDate: new Date(entry.date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "2-digit",
-                    }),
+            let processedData: ProcessedVRHistory[] = response.history.map((entry) => ({
+                ...entry,
+                formattedDate: new Date(entry.date).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
                 }),
-            );
+            }));
 
             // For non-24h periods, aggregate by day (keep highest VR per day)
             if (days !== 1) {
@@ -155,9 +151,7 @@ export function useVRHistory(friendCode: string, initialDays = 30) {
             });
         } catch (err) {
             console.error("Error fetching VR history:", err);
-            setError(
-                err instanceof Error ? err.message : "Failed to fetch VR history",
-            );
+            setError(err instanceof Error ? err.message : "Failed to fetch VR history");
         } finally {
             setIsLoading(false);
         }
@@ -179,7 +173,7 @@ export function useVRHistory(friendCode: string, initialDays = 30) {
     });
 
     return {
-    // Data
+        // Data
         historyData,
         stats,
         selectedDays,

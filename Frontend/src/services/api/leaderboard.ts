@@ -11,9 +11,7 @@ import {
 } from "../../types";
 
 export const leaderboardApi = {
-    async getLeaderboard(
-        params: LeaderboardRequest = {},
-    ): Promise<LeaderboardResponse> {
+    async getLeaderboard(params: LeaderboardRequest = {}): Promise<LeaderboardResponse> {
         const searchParams = new URLSearchParams();
         Object.entries(params).forEach(([key, value]) => {
             if (value !== undefined && value !== null) {
@@ -45,16 +43,13 @@ export const leaderboardApi = {
         days: number | null = 30,
     ): Promise<VRHistoryResponse> {
         const url =
-      days === null
-          ? `/leaderboard/player/${friendCode}/history`
-          : `/leaderboard/player/${friendCode}/history?days=${days}`;
+            days === null
+                ? `/leaderboard/player/${friendCode}/history`
+                : `/leaderboard/player/${friendCode}/history?days=${days}`;
         return apiRequest<VRHistoryResponse>(url);
     },
 
-    async getPlayerRecentHistory(
-        friendCode: string,
-        count = 50,
-    ): Promise<VRHistoryEntry[]> {
+    async getPlayerRecentHistory(friendCode: string, count = 50): Promise<VRHistoryEntry[]> {
         return apiRequest<VRHistoryEntry[]>(
             `/leaderboard/player/${friendCode}/history/recent?count=${count}`,
         );
@@ -62,9 +57,7 @@ export const leaderboardApi = {
 
     async getPlayerMii(friendCode: string): Promise<MiiResponse | null> {
         try {
-            return await apiRequest<MiiResponse>(
-                `/leaderboard/player/${friendCode}/mii`,
-            );
+            return await apiRequest<MiiResponse>(`/leaderboard/player/${friendCode}/mii`);
         } catch (error) {
             if (error instanceof Error && error.message.includes("404")) {
                 return null;
@@ -132,9 +125,7 @@ export const legacyLeaderboardApi = {
         return apiRequest<boolean>("/leaderboard/legacy/available");
     },
 
-    async getLeaderboard(
-        params: LeaderboardRequest = {},
-    ): Promise<LeaderboardResponse> {
+    async getLeaderboard(params: LeaderboardRequest = {}): Promise<LeaderboardResponse> {
         const searchParams = new URLSearchParams();
         Object.entries(params).forEach(([key, value]) => {
             if (value !== undefined && value !== null) {
@@ -142,9 +133,7 @@ export const legacyLeaderboardApi = {
             }
         });
 
-        return apiRequest<LeaderboardResponse>(
-            `/leaderboard/legacy?${searchParams}`,
-        );
+        return apiRequest<LeaderboardResponse>(`/leaderboard/legacy?${searchParams}`);
     },
 
     async getPlayerMiisBatch(friendCodes: string[]) {

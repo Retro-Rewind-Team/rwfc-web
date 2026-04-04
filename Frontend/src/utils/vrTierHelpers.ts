@@ -9,25 +9,18 @@ import {
 import { VRTierInfo } from "../types";
 
 /** Returns the VR tier info for a given VR value, or the suspicious tier if flagged. */
-export function getVRTierInfo(
-    vr: number,
-    isSuspicious: boolean = false,
-): VRTierInfo {
+export function getVRTierInfo(vr: number, isSuspicious: boolean = false): VRTierInfo {
     if (isSuspicious) return SUSPICIOUS_TIER;
 
     for (const tier of VR_TIERS) {
-        if (vr >= tier.minVR && (tier.maxVR === null || vr <= tier.maxVR))
-            return tier;
+        if (vr >= tier.minVR && (tier.maxVR === null || vr <= tier.maxVR)) return tier;
     }
 
     return VR_TIERS[VR_TIERS.length - 1];
 }
 
 /** Returns the next higher VR tier above `currentVR`, or null if already at the top. */
-export function getNextVRTier(
-    currentVR: number,
-    isSuspicious: boolean = false,
-): VRTierInfo | null {
+export function getNextVRTier(currentVR: number, isSuspicious: boolean = false): VRTierInfo | null {
     if (isSuspicious) return null;
 
     let nextTier: VRTierInfo | null = null;
@@ -47,19 +40,13 @@ export function getNextVRTier(
 }
 
 /** Returns the number of VR points needed to reach the next tier (0 if already at max). */
-export function getVRNeededForNextTier(
-    currentVR: number,
-    isSuspicious: boolean = false,
-): number {
+export function getVRNeededForNextTier(currentVR: number, isSuspicious: boolean = false): number {
     const nextTier = getNextVRTier(currentVR, isSuspicious);
     return nextTier ? nextTier.minVR - currentVR : 0;
 }
 
 /** Returns a 0–1 progress fraction within the current tier towards the next. */
-export function getTierProgress(
-    vr: number,
-    isSuspicious: boolean = false,
-): number {
+export function getTierProgress(vr: number, isSuspicious: boolean = false): number {
     if (isSuspicious) return 0;
 
     const currentTier = getVRTierInfo(vr, isSuspicious);
@@ -109,13 +96,13 @@ export function isTopThreeRank(rank: number): boolean {
 /** Returns the gold/silver/bronze trophy emoji for ranks 1–3, or null for all others. */
 export function getTrophyIcon(rank: number): string | null {
     switch (rank) {
-    case TROPHY_RANKS.FIRST:
-        return "🥇";
-    case TROPHY_RANKS.SECOND:
-        return "🥈";
-    case TROPHY_RANKS.THIRD:
-        return "🥉";
-    default:
-        return null;
+        case TROPHY_RANKS.FIRST:
+            return "🥇";
+        case TROPHY_RANKS.SECOND:
+            return "🥈";
+        case TROPHY_RANKS.THIRD:
+            return "🥉";
+        default:
+            return null;
     }
 }

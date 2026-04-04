@@ -22,8 +22,7 @@ export default function TTLeaderboardPage() {
             : `/timetrial/no-glitch-${cc}cc/${trackId}`;
     };
 
-    const headerColor = () =>
-        !browser.glitchAllowed() ? "bg-green-600" : "bg-blue-600";
+    const headerColor = () => (!browser.glitchAllowed() ? "bg-green-600" : "bg-blue-600");
 
     return (
         <div class="space-y-8">
@@ -54,11 +53,7 @@ export default function TTLeaderboardPage() {
             />
 
             {/* Loading */}
-            <Show
-                when={
-                    browser.tracksQuery.isLoading || browser.worldRecordsQuery.isLoading
-                }
-            >
+            <Show when={browser.tracksQuery.isLoading || browser.worldRecordsQuery.isLoading}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-12 flex flex-col items-center gap-4">
                     <LoadingSpinner />
                     <p class="text-gray-600 dark:text-gray-400">
@@ -70,9 +65,7 @@ export default function TTLeaderboardPage() {
             </Show>
 
             {/* Error */}
-            <Show
-                when={browser.tracksQuery.isError || browser.worldRecordsQuery.isError}
-            >
+            <Show when={browser.tracksQuery.isError || browser.worldRecordsQuery.isError}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-red-200 dark:border-red-800 p-8">
                     <div class="text-center space-y-4">
                         <div class="flex justify-center text-red-400">
@@ -117,10 +110,7 @@ export default function TTLeaderboardPage() {
                             {browser.filteredTracks().length} track
                             {browser.filteredTracks().length !== 1 ? "s" : ""} •{" "}
                             {browser.selectedCC()}cc •{" "}
-                            {!browser.glitchAllowed()
-                                ? "Non-Glitch/Shortcut"
-                                : "Unrestricted"}{" "}
-                            •{" "}
+                            {!browser.glitchAllowed() ? "Non-Glitch/Shortcut" : "Unrestricted"} •{" "}
                             {browser.vehicleFilter() !== "all"
                                 ? browser.vehicleFilter().charAt(0).toUpperCase() +
                                   browser.vehicleFilter().slice(1)
@@ -129,8 +119,8 @@ export default function TTLeaderboardPage() {
                             {browser.shroomlessFilter() === "only"
                                 ? "Shroomless"
                                 : browser.shroomlessFilter() === "exclude"
-                                    ? "No Shroomless"
-                                    : "All Categories"}
+                                  ? "No Shroomless"
+                                  : "All Categories"}
                         </p>
                     </div>
 
@@ -185,7 +175,8 @@ export default function TTLeaderboardPage() {
                                             // createMemo is used here so each row independently tracks
                                             // worldRecordsQuery.data and updates when it changes
                                             const wr = createMemo(() => {
-                                                const records = browser.worldRecordsQuery.data ?? [];
+                                                const records =
+                                                    browser.worldRecordsQuery.data ?? [];
                                                 return (
                                                     records.find((r) => r.trackId === track.id)
                                                         ?.activeWorldRecord ?? null
@@ -208,7 +199,8 @@ export default function TTLeaderboardPage() {
                                                                 </Show>
                                                             </div>
                                                             <div class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                                                                {track.laps} lap{track.laps !== 1 ? "s" : ""}
+                                                                {track.laps} lap
+                                                                {track.laps !== 1 ? "s" : ""}
                                                             </div>
                                                         </A>
                                                     </td>
@@ -217,7 +209,9 @@ export default function TTLeaderboardPage() {
                                                             when={wr()}
                                                             fallback={
                                                                 <span class="text-xs sm:text-sm text-gray-400 dark:text-gray-500 italic">
-                                                                    <span class="hidden sm:inline">No record yet</span>
+                                                                    <span class="hidden sm:inline">
+                                                                        No record yet
+                                                                    </span>
                                                                     <span class="sm:hidden">-</span>
                                                                 </span>
                                                             }
@@ -243,8 +237,12 @@ export default function TTLeaderboardPage() {
                                                                         </div>
                                                                     </div>
                                                                     <CountryFlag
-                                                                        countryAlpha2={wr()!.countryAlpha2}
-                                                                        countryName={wr()!.countryName}
+                                                                        countryAlpha2={
+                                                                            wr()!.countryAlpha2
+                                                                        }
+                                                                        countryName={
+                                                                            wr()!.countryName
+                                                                        }
                                                                         size="sm"
                                                                     />
                                                                 </div>
@@ -254,7 +252,9 @@ export default function TTLeaderboardPage() {
                                                     <td class="px-3 sm:px-6 py-4 hidden md:table-cell">
                                                         <Show when={wr()}>
                                                             <div class="text-sm text-gray-900 dark:text-white">
-                                                                {getCharacterName(wr()!.characterId)}
+                                                                {getCharacterName(
+                                                                    wr()!.characterId,
+                                                                )}
                                                             </div>
                                                         </Show>
                                                     </td>
@@ -264,19 +264,26 @@ export default function TTLeaderboardPage() {
                                                                 {getVehicleName(wr()!.vehicleId)}
                                                             </div>
                                                             <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                                {getDriftInfo(wr()!.driftType, wr()!.driftCategory)}
+                                                                {getDriftInfo(
+                                                                    wr()!.driftType,
+                                                                    wr()!.driftCategory,
+                                                                )}
                                                             </div>
                                                         </Show>
                                                     </td>
                                                     <td class="px-3 sm:px-6 py-4 hidden xl:table-cell">
                                                         <Show when={wr()}>
                                                             <div class="text-sm text-gray-900 dark:text-white">
-                                                                {getControllerName(wr()!.controllerType)}
+                                                                {getControllerName(
+                                                                    wr()!.controllerType,
+                                                                )}
                                                             </div>
                                                         </Show>
                                                     </td>
                                                     <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden xl:table-cell">
-                                                        <Show when={wr()}>{formatDate(wr()!.dateSet)}</Show>
+                                                        <Show when={wr()}>
+                                                            {formatDate(wr()!.dateSet)}
+                                                        </Show>
                                                     </td>
                                                 </tr>
                                             );

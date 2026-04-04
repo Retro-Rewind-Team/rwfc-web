@@ -9,10 +9,29 @@ export default function TranslatorBadge() {
                 </linearGradient>
             </defs>
 
-            <circle cx="8" cy="8" r="7.5" fill="url(#trans-grad)" stroke="#4C1D95" stroke-width="0.4" />
-            <circle cx="8" cy="8" r="7.1" fill="none" stroke="rgba(196, 181, 253, 0.3)" stroke-width="0.3" />
+            <circle
+                cx="8"
+                cy="8"
+                r="7.5"
+                fill="url(#trans-grad)"
+                stroke="#4C1D95"
+                stroke-width="0.4"
+            />
+            <circle
+                cx="8"
+                cy="8"
+                r="7.1"
+                fill="none"
+                stroke="rgba(196, 181, 253, 0.3)"
+                stroke-width="0.3"
+            />
             <circle cx="8" cy="8" r="6" fill="#5B21B6" stroke="#4C1D95" stroke-width="0.3" />
-            <path d="M 3 3 Q 8 5, 13 3" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="0.5" />
+            <path
+                d="M 3 3 Q 8 5, 13 3"
+                fill="none"
+                stroke="rgba(255,255,255,0.2)"
+                stroke-width="0.5"
+            />
 
             <g stroke="#DDD6FE" stroke-width="1" fill="none" class="drop-shadow-md">
                 <circle cx="8" cy="8" r="3.5" />

@@ -4,8 +4,8 @@ import { RoomPlayer } from "../../types";
 import { MiiComponent } from "../ui";
 
 interface PlayerCardProps {
-  player: RoomPlayer;
-  showOpenHost: boolean;
+    player: RoomPlayer;
+    showOpenHost: boolean;
 }
 
 export default function PlayerCard(props: PlayerCardProps) {
@@ -45,15 +45,13 @@ export default function PlayerCard(props: PlayerCardProps) {
                         {props.player.friendCode}
                     </code>
                     <div class="flex items-center flex-wrap gap-1.5">
-                        <Show
-                            when={props.player.vr !== null && props.player.vr !== undefined}
-                        >
+                        <Show when={props.player.vr !== null && props.player.vr !== undefined}>
                             <span class="text-xs bg-blue-100 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-md font-semibold">
-                VR {props.player.vr}
+                                VR {props.player.vr}
                             </span>
                         </Show>
                         <span class="text-xs bg-cyan-100 dark:bg-cyan-900/40 border border-cyan-200 dark:border-cyan-800 text-cyan-700 dark:text-cyan-300 px-2 py-0.5 rounded-md font-semibold">
-              BR {props.player.br ?? "??"}
+                            BR {props.player.br ?? "??"}
                         </span>
                         <Show when={props.showOpenHost}>
                             <span

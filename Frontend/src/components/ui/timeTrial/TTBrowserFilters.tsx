@@ -23,12 +23,14 @@ type GlitchOption = "unrestricted" | "no-glitch";
 
 export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
     const ccValue = (): CCOption => String(props.selectedCC) as CCOption;
-    const glitchValue = (): GlitchOption => props.glitchAllowed ? "unrestricted" : "no-glitch";
+    const glitchValue = (): GlitchOption => (props.glitchAllowed ? "unrestricted" : "no-glitch");
 
     return (
         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* Header */}
-            <div class={`px-4 sm:px-6 py-4 ${!props.glitchAllowed ? "bg-gradient-to-r from-green-600 to-emerald-600" : "bg-blue-600"}`}>
+            <div
+                class={`px-4 sm:px-6 py-4 ${!props.glitchAllowed ? "bg-gradient-to-r from-green-600 to-emerald-600" : "bg-blue-600"}`}
+            >
                 <div class="flex items-center gap-3">
                     <div>
                         <h2 class="text-xl sm:text-2xl font-bold text-white">Browse Tracks</h2>
@@ -43,8 +45,8 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                             {props.shroomlessFilter === "only"
                                 ? "Shroomless"
                                 : props.shroomlessFilter === "exclude"
-                                    ? "No Shroomless"
-                                    : "All Categories"}
+                                  ? "No Shroomless"
+                                  : "All Categories"}
                         </p>
                     </div>
                 </div>
@@ -93,7 +95,11 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                             onChange={(v) => props.onGlitchAllowedChange(v === "unrestricted")}
                             options={[
                                 { value: "unrestricted", label: "Unrestricted" },
-                                { value: "no-glitch", label: "No Glitch", activeClass: "bg-green-600" },
+                                {
+                                    value: "no-glitch",
+                                    label: "No Glitch",
+                                    activeClass: "bg-green-600",
+                                },
                             ]}
                         />
                     </div>

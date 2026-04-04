@@ -1,11 +1,11 @@
 import { JSX, Show } from "solid-js";
 
 interface StatCardProps {
-  value: string | number;
-  label: string;
-  colorScheme: "emerald" | "blue" | "purple" | "cyan" | "orange";
-  icon?: JSX.Element;
-  subtitle?: string;
+    value: string | number;
+    label: string;
+    colorScheme: "emerald" | "blue" | "purple" | "cyan" | "orange";
+    icon?: JSX.Element;
+    subtitle?: string;
 }
 
 const colorClasses = {
@@ -57,9 +57,7 @@ export default function StatCard(props: StatCardProps) {
                 <div class={`mb-3 ${colors.icon}`}>{props.icon}</div>
             </Show>
             <div class={`text-4xl font-bold ${colors.text} mb-1`}>
-                {typeof props.value === "number"
-                    ? props.value.toLocaleString()
-                    : props.value}
+                {typeof props.value === "number" ? props.value.toLocaleString() : props.value}
             </div>
             <div class={`text-sm font-semibold ${colors.label}`}>{props.label}</div>
             <Show when={props.subtitle}>

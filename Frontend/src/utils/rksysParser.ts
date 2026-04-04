@@ -15,9 +15,9 @@ const DWC_PROFILE_ID_OFF = 0x1c;
 const OFF_VS_WINS = 0x98;
 const OFF_VS_LOSSES = 0x9c;
 const OFF_VR = 0xb0;
-const OFF_FIRSTS = 0xdc;   // Total 1st-place finishes
-const OFF_DIST = 0xc4;     // Total distance raced (km, float32)
-const OFF_DIST1ST = 0xe0;  // Distance raced while in 1st place (km, float32)
+const OFF_FIRSTS = 0xdc; // Total 1st-place finishes
+const OFF_DIST = 0xc4; // Total distance raced (km, float32)
+const OFF_DIST1ST = 0xe0; // Distance raced while in 1st place (km, float32)
 
 /** Reads the UTF-16BE Mii name from a license block. Returns "-" if empty. */
 function readMiiName(dv: DataView, licBase: number): string {
@@ -39,10 +39,7 @@ export function parseRksysFile(buffer: ArrayBuffer): RksysLicense[] {
     for (let i = 0; i < LICENSE_OFFSETS.length; i++) {
         const licBase = LICENSE_OFFSETS[i];
         const name = readMiiName(dv, licBase);
-        const profileId = dv.getUint32(
-            licBase + DWC_OFFSET + DWC_PROFILE_ID_OFF,
-            false,
-        );
+        const profileId = dv.getUint32(licBase + DWC_OFFSET + DWC_PROFILE_ID_OFF, false);
         const friendCode = pidToFriendCode(profileId);
 
         const vrPoints = dv.getUint16(licBase + OFF_VR, false);
