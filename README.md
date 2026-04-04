@@ -144,11 +144,13 @@ The dev server runs on `http://localhost:3000`.
 ### Useful frontend commands
 
 ```bash
-npm run dev          # Start dev server
-npm run build        # Type-check + build for production
-npm run lint         # Run ESLint
-npm run lint:fix     # Run ESLint with auto-fix
-npm run type-check   # TypeScript check without emitting files
+npm run dev            # Start dev server
+npm run build          # Type-check + build for production
+npm run lint           # Run ESLint
+npm run lint:fix       # Run ESLint with auto-fix
+npm run format         # Format all source files with Prettier
+npm run format:check   # Check formatting without modifying files (CI-safe)
+npm run type-check     # TypeScript check without emitting files
 ```
 
 ---

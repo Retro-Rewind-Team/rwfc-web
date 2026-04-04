@@ -70,7 +70,11 @@ export default function TTPlayerFilters(props: TTPlayerFiltersProps) {
                         size="sm"
                         options={[
                             { value: "all", label: "All" },
-                            { value: "non-glitch", label: "Non-Glitch", activeClass: "bg-green-600" },
+                            {
+                                value: "non-glitch",
+                                label: "Non-Glitch",
+                                activeClass: "bg-green-600",
+                            },
                             { value: "glitch", label: "Glitch", activeClass: "bg-purple-600" },
                         ]}
                     />

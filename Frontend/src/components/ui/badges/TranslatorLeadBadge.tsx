@@ -9,10 +9,29 @@ export default function TranslatorLeadBadge() {
                 </linearGradient>
             </defs>
 
-            <circle cx="8" cy="8" r="7.5" fill="url(#lead-grad)" stroke="#831843" stroke-width="0.4" />
-            <circle cx="8" cy="8" r="7.1" fill="none" stroke="rgba(251, 207, 232, 0.3)" stroke-width="0.3" />
+            <circle
+                cx="8"
+                cy="8"
+                r="7.5"
+                fill="url(#lead-grad)"
+                stroke="#831843"
+                stroke-width="0.4"
+            />
+            <circle
+                cx="8"
+                cy="8"
+                r="7.1"
+                fill="none"
+                stroke="rgba(251, 207, 232, 0.3)"
+                stroke-width="0.3"
+            />
             <circle cx="8" cy="8" r="6" fill="#9F1239" stroke="#831843" stroke-width="0.3" />
-            <path d="M 3 3 Q 8 5, 13 3" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="0.5" />
+            <path
+                d="M 3 3 Q 8 5, 13 3"
+                fill="none"
+                stroke="rgba(255,255,255,0.2)"
+                stroke-width="0.5"
+            />
 
             <path
                 d="M8 3.5L8.6 5.2L10.3 5.2L9 6.2L9.6 7.9L8 6.9L6.4 7.9L7 6.2L5.7 5.2L7.4 5.2Z"

@@ -35,14 +35,11 @@ export async function batchMiis(
                 const missingFcs = chunk.filter((fc) => !response.miis[fc]);
                 if (missingFcs.length > 0) {
                     try {
-                        const fallback = await apiRequest<BatchMiiResponse>(
-                            fallbackEndpoint,
-                            {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ friendCodes: missingFcs }),
-                            },
-                        );
+                        const fallback = await apiRequest<BatchMiiResponse>(fallbackEndpoint, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ friendCodes: missingFcs }),
+                        });
                         Object.assign(allMiis, fallback.miis);
                     } catch (e) {
                         console.warn("Fallback Mii fetch failed:", e);

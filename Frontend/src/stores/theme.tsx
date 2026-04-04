@@ -1,38 +1,27 @@
-import {
-    createContext,
-    createEffect,
-    createSignal,
-    JSX,
-    onMount,
-    useContext,
-} from "solid-js";
+import { createContext, createEffect, createSignal, JSX, onMount, useContext } from "solid-js";
 
 export type Theme = "light" | "dark" | "system";
 
 const [theme, setTheme] = createSignal<Theme>("system");
-const [resolvedTheme, setResolvedTheme] = createSignal<"light" | "dark">(
-    "dark",
-);
+const [resolvedTheme, setResolvedTheme] = createSignal<"light" | "dark">("dark");
 
 // Theme context
 const ThemeContext = createContext<{
-  theme: () => Theme;
-  resolvedTheme: () => "light" | "dark";
-  setTheme: (theme: Theme) => void;
-  toggleTheme: () => void;
-      }>({
-          theme,
-          resolvedTheme,
-          setTheme,
-          toggleTheme: () => {},
-      });
+    theme: () => Theme;
+    resolvedTheme: () => "light" | "dark";
+    setTheme: (theme: Theme) => void;
+    toggleTheme: () => void;
+}>({
+    theme,
+    resolvedTheme,
+    setTheme,
+    toggleTheme: () => {},
+});
 
 export function ThemeProvider(props: Readonly<{ children: JSX.Element }>) {
     const getSystemTheme = (): "light" | "dark" => {
         if (typeof window !== "undefined" && window.matchMedia) {
-            return window.matchMedia("(prefers-color-scheme: dark)").matches
-                ? "dark"
-                : "light";
+            return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
         }
         return "dark";
     };
@@ -58,12 +47,9 @@ export function ThemeProvider(props: Readonly<{ children: JSX.Element }>) {
 
         root.style.setProperty("--theme", themeToApply);
 
-        const metaThemeColor = document.querySelector("meta[name=\"theme-color\"]");
+        const metaThemeColor = document.querySelector('meta[name="theme-color"]');
         if (metaThemeColor) {
-            metaThemeColor.setAttribute(
-                "content",
-                themeToApply === "dark" ? "#0f172a" : "#ffffff",
-            );
+            metaThemeColor.setAttribute("content", themeToApply === "dark" ? "#0f172a" : "#ffffff");
         }
     };
 
@@ -158,11 +144,7 @@ export function ThemeProvider(props: Readonly<{ children: JSX.Element }>) {
         toggleTheme,
     };
 
-    return (
-        <ThemeContext.Provider value={contextValue}>
-            {props.children}
-        </ThemeContext.Provider>
-    );
+    return <ThemeContext.Provider value={contextValue}>{props.children}</ThemeContext.Provider>;
 }
 
 export function useTheme() {

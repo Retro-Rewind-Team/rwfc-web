@@ -49,14 +49,8 @@ function App() {
                     {/* VR Leaderboard Routes */}
                     <Route path="/vr" component={LeaderboardPage} />
                     <Route path="/leaderboard" component={LeaderboardPage} />
-                    <Route
-                        path="/vr/player/:friendCode"
-                        component={LeaderboardPlayerDetailPage}
-                    />
-                    <Route
-                        path="/player/:friendCode"
-                        component={LeaderboardPlayerDetailPage}
-                    />
+                    <Route path="/vr/player/:friendCode" component={LeaderboardPlayerDetailPage} />
+                    <Route path="/player/:friendCode" component={LeaderboardPlayerDetailPage} />
 
                     {/* Time Trial Routes */}
                     <Route path="/tt-leaderboard" component={TTLeaderboardPage} />
@@ -68,14 +62,8 @@ function App() {
                     <Route path="/tt/:cc/:trackId" component={TTTrackDetailPage} />
 
                     {/* TT Player Profile */}
-                    <Route
-                        path="/tt/player/:ttProfileId"
-                        component={TTPlayerProfilePage}
-                    />
-                    <Route
-                        path="/timetrial/player/:ttProfileId"
-                        component={TTPlayerProfilePage}
-                    />
+                    <Route path="/tt/player/:ttProfileId" component={TTPlayerProfilePage} />
+                    <Route path="/timetrial/player/:ttProfileId" component={TTPlayerProfilePage} />
 
                     {/* Room Browser Routes */}
                     <Route path="/room-browser" component={RoomStatusPage} />

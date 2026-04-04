@@ -1,6 +1,4 @@
-export const getCountryFlag = (
-    alpha2Code: string | null | undefined,
-): string => {
+export const getCountryFlag = (alpha2Code: string | null | undefined): string => {
     if (!alpha2Code || alpha2Code.length !== 2) return "🌐";
 
     // Convert alpha-2 code to flag emoji
@@ -13,9 +11,7 @@ export const getCountryFlag = (
     return String.fromCodePoint(...codePoints);
 };
 
-export const getCountryName = (
-    alpha2Code: string | null | undefined,
-): string => {
+export const getCountryName = (alpha2Code: string | null | undefined): string => {
     if (!alpha2Code) return "Unknown";
 
     // Fallback mapping for some common countries

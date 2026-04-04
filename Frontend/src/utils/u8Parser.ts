@@ -13,8 +13,7 @@ export function parseU8(u8: Uint8Array): U8Archive {
     function readNode(idx: number): U8Node {
         const off = rootOffset + idx * 12;
         const type = u8[off];
-        const nameOffset =
-      ((u8[off + 1] << 16) | (u8[off + 2] << 8) | u8[off + 3]) >>> 0;
+        const nameOffset = ((u8[off + 1] << 16) | (u8[off + 2] << 8) | u8[off + 3]) >>> 0;
         const dataOff = dv.getUint32(off + 4, false);
         const size = dv.getUint32(off + 8, false);
         return { type, nameOffset, dataOffset: dataOff, size, index: idx };
@@ -31,47 +30,45 @@ export function parseU8(u8: Uint8Array): U8Archive {
     const paths: string[] = new Array(nodeCount);
     paths[0] = "";
 
-  interface StackEntry {
-    index: number;
-    firstChild: number;
-    endIndex: number;
-  }
+    interface StackEntry {
+        index: number;
+        firstChild: number;
+        endIndex: number;
+    }
 
-  const stack: StackEntry[] = [
-      { index: 0, firstChild: 1, endIndex: nodeCount },
-  ];
+    const stack: StackEntry[] = [{ index: 0, firstChild: 1, endIndex: nodeCount }];
 
-  for (let idx = 1; idx < nodeCount; idx++) {
-      const node = nodes[idx];
+    for (let idx = 1; idx < nodeCount; idx++) {
+        const node = nodes[idx];
 
-      while (stack.length) {
-          const top = stack[stack.length - 1];
-          if (top.firstChild <= idx && idx < top.endIndex) break;
-          stack.pop();
-      }
-      const parentIndex = stack.length ? stack[stack.length - 1].index : 0;
+        while (stack.length) {
+            const top = stack[stack.length - 1];
+            if (top.firstChild <= idx && idx < top.endIndex) break;
+            stack.pop();
+        }
+        const parentIndex = stack.length ? stack[stack.length - 1].index : 0;
 
-      const nameStart = stringBase + node.nameOffset;
-      let p = nameStart;
-      const bytes: number[] = [];
-      while (p < u8.length && u8[p] !== 0x00) {
-          bytes.push(u8[p++]);
-      }
-      const name = String.fromCharCode(...bytes);
-      const parentPath = paths[parentIndex];
-      const fullPath = parentPath ? parentPath + "/" + name : name;
-      paths[idx] = fullPath;
+        const nameStart = stringBase + node.nameOffset;
+        let p = nameStart;
+        const bytes: number[] = [];
+        while (p < u8.length && u8[p] !== 0x00) {
+            bytes.push(u8[p++]);
+        }
+        const name = String.fromCharCode(...bytes);
+        const parentPath = paths[parentIndex];
+        const fullPath = parentPath ? parentPath + "/" + name : name;
+        paths[idx] = fullPath;
 
-      if (node.type === 1) {
-          stack.push({
-              index: idx,
-              firstChild: node.dataOffset,
-              endIndex: node.size,
-          });
-      }
-  }
+        if (node.type === 1) {
+            stack.push({
+                index: idx,
+                firstChild: node.dataOffset,
+                endIndex: node.size,
+            });
+        }
+    }
 
-  return { nodes, paths, rootOffset, headerSize, dataOffset };
+    return { nodes, paths, rootOffset, headerSize, dataOffset };
 }
 
 export function replaceBrfntInU8(
@@ -82,11 +79,7 @@ export function replaceBrfntInU8(
     const { nodes, paths, rootOffset, dataOffset } = parseU8(u8);
 
     const header = new Uint8Array(u8.subarray(0, dataOffset));
-    const headerView = new DataView(
-        header.buffer,
-        header.byteOffset,
-        header.byteLength,
-    );
+    const headerView = new DataView(header.buffer, header.byteOffset, header.byteLength);
 
     const dataBytes: number[] = [];
 

@@ -3,11 +3,7 @@ import { Show } from "solid-js";
 import { Car, ChevronLeft, Flag, TriangleAlert, UserX } from "lucide-solid";
 import { useTTPlayer } from "../../hooks/useTTPlayer";
 import { CountryFlag, InlinePagination, LoadingSpinner } from "../../components/common";
-import {
-    TTPlayerFilters,
-    TTPlayerStatsCard,
-    TTPlayerSubmissionsTable,
-} from "../../components/ui";
+import { TTPlayerFilters, TTPlayerStatsCard, TTPlayerSubmissionsTable } from "../../components/ui";
 
 export default function TTPlayerProfilePage() {
     const params = useParams();
@@ -43,11 +39,15 @@ export default function TTPlayerProfilePage() {
                         <div class="flex justify-center text-gray-300 dark:text-gray-600">
                             <UserX size={56} />
                         </div>
-                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Player Not Found</h2>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                            Player Not Found
+                        </h2>
                         <p class="text-gray-600 dark:text-gray-400">
                             No Time Trial profile found for this player.
                         </p>
-                        <p class="text-sm text-gray-500">This player hasn't submitted any times yet.</p>
+                        <p class="text-sm text-gray-500">
+                            This player hasn't submitted any times yet.
+                        </p>
                         <div class="pt-4">
                             <A
                                 href="/timetrial"
@@ -61,7 +61,11 @@ export default function TTPlayerProfilePage() {
             </Show>
 
             {/* Error */}
-            <Show when={ttPlayer.queries.profileQuery.isError && !ttPlayer.computed.isPlayerNotFound()}>
+            <Show
+                when={
+                    ttPlayer.queries.profileQuery.isError && !ttPlayer.computed.isPlayerNotFound()
+                }
+            >
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-red-200 dark:border-red-800 p-8">
                     <div class="text-center space-y-4">
                         <div class="flex justify-center text-red-400">
@@ -147,7 +151,9 @@ export default function TTPlayerProfilePage() {
                             onCCChange={ttPlayer.handlers.handleCCChange}
                             onGlitchFilterChange={ttPlayer.handlers.handleGlitchFilterChange}
                             onVehicleFilterChange={ttPlayer.handlers.handleVehicleFilterChange}
-                            onShroomlessFilterChange={ttPlayer.handlers.handleShroomlessFilterChange}
+                            onShroomlessFilterChange={
+                                ttPlayer.handlers.handleShroomlessFilterChange
+                            }
                             onSearchInput={ttPlayer.handlers.handleSearchInput}
                             onPageSizeChange={ttPlayer.pagination.handlePageSizeChange}
                         />
@@ -165,7 +171,9 @@ export default function TTPlayerProfilePage() {
                             <Show when={ttPlayer.queries.submissionsQuery.isLoading}>
                                 <div class="p-12 flex flex-col items-center gap-4">
                                     <LoadingSpinner />
-                                    <p class="text-gray-600 dark:text-gray-400">Loading submissions...</p>
+                                    <p class="text-gray-600 dark:text-gray-400">
+                                        Loading submissions...
+                                    </p>
                                 </div>
                             </Show>
 

@@ -7,13 +7,13 @@ import { ArrowDown, ArrowUp } from "lucide-solid/icons/index";
 import TriangleAlert from "lucide-solid/icons/triangle-alert";
 
 interface LeaderboardTableProps {
-  players: Player[];
-  showLegacy: boolean;
-  sortBy: string;
-  ascending: boolean;
-  timePeriod: string;
-  onSort: (field: string) => void;
-  getVRGain: (player: Player) => number;
+    players: Player[];
+    showLegacy: boolean;
+    sortBy: string;
+    ascending: boolean;
+    timePeriod: string;
+    onSort: (field: string) => void;
+    getVRGain: (player: Player) => number;
 }
 
 export default function LeaderboardTable(props: LeaderboardTableProps) {
@@ -33,11 +33,7 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
         <div class="overflow-x-auto">
             <table class="w-full table-fixed">
                 <thead
-                    class={
-                        props.showLegacy
-                            ? "bg-amber-600 text-white"
-                            : "bg-blue-600 text-white"
-                    }
+                    class={props.showLegacy ? "bg-amber-600 text-white" : "bg-blue-600 text-white"}
                 >
                     <tr>
                         <th
@@ -76,7 +72,7 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                             </div>
                         </th>
                         <th class="px-6 py-4 text-center hidden md:table-cell font-bold">
-              Friend Code
+                            Friend Code
                         </th>
 
                         <Show when={!props.showLegacy}>
@@ -102,7 +98,7 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                             >
                                 <div class="flex items-center justify-center space-x-2">
                                     <span class="font-bold">
-                    VR Change ({getTimePeriodLabel()})
+                                        VR Change ({getTimePeriodLabel()})
                                     </span>
                                     <Show when={props.sortBy === getVRGainSortField()}>
                                         {props.ascending ? (
@@ -121,8 +117,8 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                         {(player) => {
                             const vrGain = !props.showLegacy ? props.getVRGain(player) : 0;
                             const isOnline =
-                !props.showLegacy &&
-                formatLastSeen(player.lastSeen) === "Now Online";
+                                !props.showLegacy &&
+                                formatLastSeen(player.lastSeen) === "Now Online";
 
                             return (
                                 <tr
@@ -170,7 +166,7 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                                                     <Show when={player.isSuspicious}>
                                                         <span class="inline-flex items-center gap-1 text-xs bg-red-200 dark:bg-red-800 text-red-600 dark:text-red-400 px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap">
                                                             <TriangleAlert size={12} />
-                              Suspicious
+                                                            Suspicious
                                                         </span>
                                                     </Show>
 

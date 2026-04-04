@@ -1,11 +1,6 @@
 import { apiBlobRequest, apiRequest } from "./client";
 import { batchMiis } from "./miiHelpers";
-import {
-    PagedResult,
-    RoomSnapshot,
-    RoomStatusResponse,
-    RoomStatusStats,
-} from "../../types";
+import { PagedResult, RoomSnapshot, RoomStatusResponse, RoomStatusStats } from "../../types";
 
 export const roomStatusApi = {
     async getLatestRoomStatus(): Promise<RoomStatusResponse> {
@@ -26,10 +21,7 @@ export const roomStatusApi = {
         return apiRequest<RoomStatusStats>("/roomstatus/stats");
     },
 
-    async getSnapshotHistory(
-        page: number,
-        pageSize: number,
-    ): Promise<PagedResult<RoomSnapshot>> {
+    async getSnapshotHistory(page: number, pageSize: number): Promise<PagedResult<RoomSnapshot>> {
         return apiRequest<PagedResult<RoomSnapshot>>(
             `/roomstatus/history?page=${page}&pageSize=${pageSize}`,
         );
@@ -46,11 +38,7 @@ export const roomStatusApi = {
     },
 
     async getMiisBatch(friendCodes: string[]) {
-        return batchMiis(
-            "/roomstatus/miis/batch",
-            friendCodes,
-            "/leaderboard/miis/batch",
-        );
+        return batchMiis("/roomstatus/miis/batch", friendCodes, "/leaderboard/miis/batch");
     },
 
     async forceRefresh(): Promise<void> {

@@ -1,10 +1,10 @@
 import { ExternalLink, Play } from "lucide-solid";
 
 interface TutorialCardProps {
-  title: string;
-  description: string;
-  thumbnailUrl: string;
-  videoUrl: string;
+    title: string;
+    description: string;
+    thumbnailUrl: string;
+    videoUrl: string;
 }
 
 export default function TutorialCard(props: TutorialCardProps) {
@@ -30,19 +30,15 @@ export default function TutorialCard(props: TutorialCardProps) {
                 </div>
             </a>
             <div class="p-4">
-                <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                    {props.title}
-                </h3>
-                <p class="text-gray-600 dark:text-gray-400 text-sm mb-3">
-                    {props.description}
-                </p>
+                <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">{props.title}</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-sm mb-3">{props.description}</p>
                 <a
                     href={props.videoUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     class="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
                 >
-          Watch Tutorial
+                    Watch Tutorial
                     <ExternalLink size={14} />
                 </a>
             </div>

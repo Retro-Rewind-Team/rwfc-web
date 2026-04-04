@@ -2,14 +2,14 @@ import { createEffect, createSignal, onCleanup } from "solid-js";
 import { leaderboardApi } from "../services/api/leaderboard";
 
 interface MiiCache {
-  [friendCode: string]: string | null | "loading";
+    [friendCode: string]: string | null | "loading";
 }
 
 interface UseMiiLoaderReturn {
-  getMiiImage: (friendCode: string) => string | null | undefined;
-  loadMii: (friendCode: string) => Promise<void>;
-  loadMiisBatch: (friendCodes: string[]) => Promise<void>;
-  isLoading: (friendCode: string) => boolean;
+    getMiiImage: (friendCode: string) => string | null | undefined;
+    loadMii: (friendCode: string) => Promise<void>;
+    loadMiisBatch: (friendCodes: string[]) => Promise<void>;
+    isLoading: (friendCode: string) => boolean;
 }
 
 /** Module-level cache shared across all `useMiiLoader` instances. Value is a base64 image, null (no Mii), or "loading". */
@@ -81,8 +81,7 @@ export function useMiiLoader(): UseMiiLoaderReturn {
         forceUpdate();
 
         try {
-            const response =
-        await leaderboardApi.getPlayerMiisBatch(uncachedFriendCodes);
+            const response = await leaderboardApi.getPlayerMiisBatch(uncachedFriendCodes);
 
             uncachedFriendCodes.forEach((fc) => {
                 globalMiiCache[fc] = response.miis[fc] || null;
@@ -107,9 +106,9 @@ export function useMiiLoader(): UseMiiLoaderReturn {
 
 /** Reactive wrapper around `useMiiLoader` for a single friend code, polling the cache every 200 ms for updates. */
 export function useMiiImage(friendCode: string): {
-  miiImage: () => string | null | undefined;
-  isLoading: () => boolean;
-  loadMii: () => void;
+    miiImage: () => string | null | undefined;
+    isLoading: () => boolean;
+    loadMii: () => void;
 } {
     const miiLoader = useMiiLoader();
     const [miiImage, setMiiImage] = createSignal<string | null | undefined>(

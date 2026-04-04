@@ -1,7 +1,7 @@
 export interface ValidationResult {
-  valid: boolean;
-  error?: string;
-  warnings?: string[];
+    valid: boolean;
+    error?: string;
+    warnings?: string[];
 }
 
 export function validateFontSzs(buffer: ArrayBuffer): ValidationResult {
@@ -105,8 +105,7 @@ export function validateRatingFile(buffer: ArrayBuffer): ValidationResult {
     if (buffer.byteLength < 8) {
         return {
             valid: false,
-            error:
-        "File too small to be a valid RRRating.pul (needs at least 8 bytes)",
+            error: "File too small to be a valid RRRating.pul (needs at least 8 bytes)",
         };
     }
 
@@ -128,9 +127,7 @@ export function validateRatingFile(buffer: ArrayBuffer): ValidationResult {
     // Check version
     const version = view.getUint16(4, false);
     if (version !== 1) {
-        warnings.push(
-            `Unexpected version: ${version} (expected 1). File may not parse correctly.`,
-        );
+        warnings.push(`Unexpected version: ${version} (expected 1). File may not parse correctly.`);
     }
 
     // Check entry count
@@ -207,10 +204,7 @@ export function getFileExtension(filename: string): string {
     return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : "";
 }
 
-export function validateFileName(
-    filename: string,
-    expectedExtensions: string[],
-): ValidationResult {
+export function validateFileName(filename: string, expectedExtensions: string[]): ValidationResult {
     const ext = getFileExtension(filename);
 
     if (!expectedExtensions.includes(ext)) {

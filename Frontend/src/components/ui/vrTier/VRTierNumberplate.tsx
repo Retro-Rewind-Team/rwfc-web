@@ -10,11 +10,11 @@ import { VR_TIER_STYLES } from "../../../utils/vrTiers";
 import { VR_TIER_SIZES, type VRTierSize } from "../../../utils/constants";
 
 interface VRTierNumberPlateProps {
-  rank: number;
-  vr: number;
-  isSuspicious?: boolean;
-  size?: VRTierSize;
-  className?: string;
+    rank: number;
+    vr: number;
+    isSuspicious?: boolean;
+    size?: VRTierSize;
+    className?: string;
 }
 
 export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
@@ -26,14 +26,14 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
 
     const getSpecialTopThreeGradient = (rank: number) => {
         switch (rank) {
-        case 1:
-            return "from-yellow-400 via-yellow-500 to-amber-500"; // Gold
-        case 2:
-            return "from-gray-300 via-gray-400 to-gray-500"; // Silver
-        case 3:
-            return "from-orange-400 via-orange-500 to-amber-600"; // Bronze
-        default:
-            return tier().gradient;
+            case 1:
+                return "from-yellow-400 via-yellow-500 to-amber-500"; // Gold
+            case 2:
+                return "from-gray-300 via-gray-400 to-gray-500"; // Silver
+            case 3:
+                return "from-orange-400 via-orange-500 to-amber-600"; // Bronze
+            default:
+                return tier().gradient;
         }
     };
 
@@ -49,11 +49,7 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
 
         if (isTopThree()) {
             gradient = getSpecialTopThreeGradient(props.rank);
-        } else if (
-            ["master", "celestial", "mythic", "transcendent", "god"].includes(
-                tier().tier,
-            )
-        ) {
+        } else if (["master", "celestial", "mythic", "transcendent", "god"].includes(tier().tier)) {
             gradient = getMaximumTierGradient();
         }
 
@@ -69,16 +65,16 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
     const borderColor = () => {
         if (isTopThree()) {
             switch (props.rank) {
-            case 1:
-                return "border-yellow-200";
-            case 2:
-                return "border-gray-200";
-            case 3:
-                return "border-orange-200";
+                case 1:
+                    return "border-yellow-200";
+                case 2:
+                    return "border-gray-200";
+                case 3:
+                    return "border-orange-200";
             }
         }
         return VR_TIER_STYLES.BORDER_COLORS[
-      tier().tier as keyof typeof VR_TIER_STYLES.BORDER_COLORS
+            tier().tier as keyof typeof VR_TIER_STYLES.BORDER_COLORS
         ];
     };
 
@@ -118,7 +114,7 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
                 {/* Enhanced Rank Number */}
                 <span class={getTextStyling()}>
                     <Show when={props.isSuspicious} fallback={`#${props.rank}`}>
-            ?
+                        ?
                     </Show>
                 </span>
 
@@ -139,9 +135,9 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
                 <Show
                     when={
                         isTopThree() ||
-            ["master", "celestial", "mythic", "transcendent", "god"].includes(
-                tier().tier,
-            )
+                        ["master", "celestial", "mythic", "transcendent", "god"].includes(
+                            tier().tier,
+                        )
                     }
                 >
                     <div class="absolute inset-0 rounded-lg bg-gradient-to-tr from-transparent via-white/15 to-transparent pointer-events-none"></div>

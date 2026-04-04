@@ -1,20 +1,10 @@
-import {
-    createEffect,
-    createMemo,
-    createResource,
-    createSignal,
-    For,
-    Show,
-} from "solid-js";
+import { createEffect, createMemo, createResource, createSignal, For, Show } from "solid-js";
 import { buildRatingFile, parseRatingFile } from "../../utils/ratingParser";
 import { pidToFriendCode } from "../../utils/friendCodeUtils";
 import type { RatingEntry, RatingFile } from "../../types/tools";
 import { AlertBox } from "../../components/common";
 import { leaderboardApi } from "../../services/api/leaderboard";
-import {
-    validateFileName,
-    validateRatingFile,
-} from "../../utils/fileValidator";
+import { validateFileName, validateRatingFile } from "../../utils/fileValidator";
 import { Download } from "lucide-solid/icons/index";
 import { triggerBlobDownload } from "../../utils/downloadHelpers";
 import TriangleAlert from "lucide-solid/icons/triangle-alert";
@@ -23,12 +13,8 @@ export default function RatingEditorPage() {
     const [ratingFile, setRatingFile] = createSignal<RatingFile | null>(null);
     const [fileName, setFileName] = createSignal<string>("");
     const [selectedRows, setSelectedRows] = createSignal<Set<number>>(new Set());
-    const [validationWarnings, setValidationWarnings] = createSignal<string[]>(
-        [],
-    );
-    const [validationError, setValidationError] = createSignal<string | null>(
-        null,
-    );
+    const [validationWarnings, setValidationWarnings] = createSignal<string[]>([]);
+    const [validationError, setValidationError] = createSignal<string | null>(null);
 
     // Store original FCs when file is loaded
     const [originalFCs, setOriginalFCs] = createSignal<Set<string>>(new Set());
@@ -45,7 +31,7 @@ export default function RatingEditorPage() {
                 if (!map.has(fc)) {
                     map.set(fc, []);
                 }
-        map.get(fc)!.push(idx);
+                map.get(fc)!.push(idx);
             }
         });
         return map;
@@ -118,9 +104,7 @@ export default function RatingEditorPage() {
             setOriginalFCs(fcs);
             setTakenFCs(new Set<string>());
         } catch (error) {
-            setValidationError(
-                error instanceof Error ? error.message : "Failed to parse file",
-            );
+            setValidationError(error instanceof Error ? error.message : "Failed to parse file");
             console.error("File parsing error:", error);
         }
     };
@@ -208,7 +192,10 @@ export default function RatingEditorPage() {
         if (!file) return;
 
         const buffer = buildRatingFile(file);
-        triggerBlobDownload(new Blob([buffer], { type: "application/octet-stream" }), fileName() || "RRRating.pul");
+        triggerBlobDownload(
+            new Blob([buffer], { type: "application/octet-stream" }),
+            fileName() || "RRRating.pul",
+        );
     };
 
     const isEntryActive = (entry: RatingEntry) => {
@@ -235,11 +222,9 @@ export default function RatingEditorPage() {
         <div class="max-w-7xl mx-auto space-y-6">
             {/* Header */}
             <div class="text-center py-6">
-                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-          Rating Editor
-                </h1>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Rating Editor</h1>
                 <p class="text-gray-600 dark:text-gray-400">
-          Edit RRRating.pul server rating files
+                    Edit RRRating.pul server rating files
                 </p>
             </div>
 
@@ -248,7 +233,7 @@ export default function RatingEditorPage() {
                 <div class="flex items-center justify-between mb-4">
                     <label class="flex-1">
                         <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-              Upload RRRating.pul file
+                            Upload RRRating.pul file
                         </span>
                         <input
                             type="file"
@@ -272,7 +257,7 @@ export default function RatingEditorPage() {
                             class="ml-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors inline-flex items-center gap-2"
                         >
                             <Download size={16} />
-              Download
+                            Download
                         </button>
                     </Show>
                 </div>
@@ -282,7 +267,7 @@ export default function RatingEditorPage() {
                         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                             <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
                                 <div class="text-gray-500 dark:text-gray-400 text-xs mb-1">
-                  Magic
+                                    Magic
                                 </div>
                                 <div class="font-mono text-gray-900 dark:text-white">
                                     {file().magic}
@@ -290,7 +275,7 @@ export default function RatingEditorPage() {
                             </div>
                             <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
                                 <div class="text-gray-500 dark:text-gray-400 text-xs mb-1">
-                  Version
+                                    Version
                                 </div>
                                 <div class="font-mono text-gray-900 dark:text-white">
                                     {file().version}
@@ -298,7 +283,7 @@ export default function RatingEditorPage() {
                             </div>
                             <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
                                 <div class="text-gray-500 dark:text-gray-400 text-xs mb-1">
-                  Total Entries
+                                    Total Entries
                                 </div>
                                 <div class="font-mono text-gray-900 dark:text-white">
                                     {file().count}
@@ -306,7 +291,7 @@ export default function RatingEditorPage() {
                             </div>
                             <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
                                 <div class="text-gray-500 dark:text-gray-400 text-xs mb-1">
-                  Active Entries
+                                    Active Entries
                                 </div>
                                 <div class="font-mono text-gray-900 dark:text-white">
                                     {getActiveCount()}
@@ -316,7 +301,7 @@ export default function RatingEditorPage() {
                                 class={`rounded-lg p-3 ${getDuplicateFCCount() > 0 ? "bg-yellow-50 dark:bg-yellow-900/20" : "bg-gray-50 dark:bg-gray-900"}`}
                             >
                                 <div class="text-gray-500 dark:text-gray-400 text-xs mb-1">
-                  Duplicate FCs
+                                    Duplicate FCs
                                 </div>
                                 <div
                                     class={`font-mono ${getDuplicateFCCount() > 0 ? "text-yellow-700 dark:text-yellow-400" : "text-gray-900 dark:text-white"}`}
@@ -334,7 +319,7 @@ export default function RatingEditorPage() {
                 <AlertBox type="error" title="Validation Error">
                     <p class="text-gray-700 dark:text-gray-300">{validationError()}</p>
                     <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-            Please ensure you're uploading a valid RRRating.pul file.
+                        Please ensure you're uploading a valid RRRating.pul file.
                     </p>
                 </AlertBox>
             </Show>
@@ -348,9 +333,8 @@ export default function RatingEditorPage() {
                         ))}
                     </ul>
                     <p class="text-sm text-gray-600 dark:text-gray-400 mt-3">
-            The file passed validation but has some unusual characteristics. You
-            can proceed with editing, but verify the file if something seems
-            wrong.
+                        The file passed validation but has some unusual characteristics. You can
+                        proceed with editing, but verify the file if something seems wrong.
                     </p>
                 </AlertBox>
             </Show>
@@ -359,18 +343,16 @@ export default function RatingEditorPage() {
                 <AlertBox type="info" title="How to use">
                     <ol class="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
                         <li>
-              Upload your{" "}
+                            Upload your{" "}
                             <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">
-                RRRating.pul
+                                RRRating.pul
                             </code>{" "}
-              file
+                            file
                         </li>
                         <li>The file will be automatically validated before loading</li>
                         <li>Click on any cell to edit it directly</li>
                         <li>Toggle "Active" checkbox to enable/disable entries</li>
-                        <li>
-              The "RWFC Name" column shows the player name from the leaderboard
-                        </li>
+                        <li>The "RWFC Name" column shows the player name from the leaderboard</li>
                         <li>Select rows and click "Clear Selected" to reset entries</li>
                         <li>Download the modified file when done</li>
                     </ol>
@@ -380,13 +362,13 @@ export default function RatingEditorPage() {
                             <li>
                                 <strong>Dolphin:</strong>{" "}
                                 <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">
-                  Dolphin Emulator\Wii\shared2\Pulsar\RetroRewind6\RRRating.pul
+                                    Dolphin Emulator\Wii\shared2\Pulsar\RetroRewind6\RRRating.pul
                                 </code>
                             </li>
                             <li>
                                 <strong>Wii:</strong>{" "}
                                 <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">
-                  SD Card\RetroRewind6\RRRating.pul
+                                    SD Card\RetroRewind6\RRRating.pul
                                 </code>
                             </li>
                         </ul>
@@ -401,20 +383,17 @@ export default function RatingEditorPage() {
                             <AlertBox type="warning" title="Duplicate Friend Codes Detected">
                                 <p class="text-gray-700 dark:text-gray-300">
                                     {getDuplicateFCCount()} entries have duplicate Friend Codes
-                  within this file. Duplicate entries are highlighted in yellow
-                  in the table below.
+                                    within this file. Duplicate entries are highlighted in yellow in
+                                    the table below.
                                 </p>
                             </AlertBox>
                         </Show>
 
                         <Show when={takenFCs().size > 0}>
-                            <AlertBox
-                                type="warning"
-                                title="Friend Codes Already on Leaderboard"
-                            >
+                            <AlertBox type="warning" title="Friend Codes Already on Leaderboard">
                                 <p class="text-gray-700 dark:text-gray-300 mb-2">
-                  The following Friend Codes are already registered on the RWFC
-                  leaderboard and were not in the original file:
+                                    The following Friend Codes are already registered on the RWFC
+                                    leaderboard and were not in the original file:
                                 </p>
                                 <div class="flex flex-wrap gap-2 font-mono text-sm">
                                     {Array.from(takenFCs()).map((fc) => (
@@ -459,7 +438,7 @@ export default function RatingEditorPage() {
                                             text-white
                                             disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                    Clear Selected
+                                        Clear Selected
                                     </button>
                                 </div>
                             </div>
@@ -470,31 +449,31 @@ export default function RatingEditorPage() {
                                     <thead class="bg-gray-50 dark:bg-gray-900 sticky top-0 z-10">
                                         <tr class="border-b border-gray-200 dark:border-gray-700">
                                             <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300 w-12">
-                        #
+                                                #
                                             </th>
                                             <th class="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300 w-12">
-                        Sel
+                                                Sel
                                             </th>
                                             <th class="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300 w-20">
-                        Active
+                                                Active
                                             </th>
                                             <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
-                        Profile ID
+                                                Profile ID
                                             </th>
                                             <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
-                        Friend Code
+                                                Friend Code
                                             </th>
                                             <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
-                        RWFC Name
+                                                RWFC Name
                                             </th>
                                             <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
-                        VR
+                                                VR
                                             </th>
                                             <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
-                        BR
+                                                BR
                                             </th>
                                             <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
-                        Flags
+                                                Flags
                                             </th>
                                         </tr>
                                     </thead>
@@ -511,10 +490,12 @@ export default function RatingEditorPage() {
 
                                                 // Fetch player name from leaderboard
                                                 const [playerData] = createResource(
-                                                    () => (entry.profileId > 0 ? friendCode() : null),
+                                                    () =>
+                                                        entry.profileId > 0 ? friendCode() : null,
                                                     async (fc) => {
                                                         try {
-                                                            const player = await leaderboardApi.getPlayer(fc);
+                                                            const player =
+                                                                await leaderboardApi.getPlayer(fc);
                                                             // Mark as taken if not in original file
                                                             if (!originalFCs().has(fc)) {
                                                                 addTakenFC(fc);
@@ -528,17 +509,17 @@ export default function RatingEditorPage() {
 
                                                 // Local editing state for each field
                                                 const [editingProfileId, setEditingProfileId] =
-                          createSignal<string>(entry.profileId.toString());
-                                                const [editingVR, setEditingVR] = createSignal<string>(
-                                                    entry.vr.toFixed(2),
-                                                );
-                                                const [editingBR, setEditingBR] = createSignal<string>(
-                                                    entry.br.toFixed(2),
-                                                );
+                                                    createSignal<string>(
+                                                        entry.profileId.toString(),
+                                                    );
+                                                const [editingVR, setEditingVR] =
+                                                    createSignal<string>(entry.vr.toFixed(2));
+                                                const [editingBR, setEditingBR] =
+                                                    createSignal<string>(entry.br.toFixed(2));
                                                 const [editingFlags, setEditingFlags] =
-                          createSignal<string>(
-                              `0x${(entry.flags >>> 0).toString(16).padStart(8, "0")}`,
-                          );
+                                                    createSignal<string>(
+                                                        `0x${(entry.flags >>> 0).toString(16).padStart(8, "0")}`,
+                                                    );
 
                                                 // Update local state when entry changes externally
                                                 createEffect(() => {
@@ -602,7 +583,9 @@ export default function RatingEditorPage() {
                                                             <input
                                                                 type="checkbox"
                                                                 checked={isSelected()}
-                                                                onChange={() => toggleRowSelection(idx())}
+                                                                onChange={() =>
+                                                                    toggleRowSelection(idx())
+                                                                }
                                                                 class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                                                             />
                                                         </td>
@@ -620,7 +603,9 @@ export default function RatingEditorPage() {
                                                                 type="text"
                                                                 value={editingProfileId()}
                                                                 onInput={(e) =>
-                                                                    setEditingProfileId(e.currentTarget.value)
+                                                                    setEditingProfileId(
+                                                                        e.currentTarget.value,
+                                                                    )
                                                                 }
                                                                 onBlur={commitProfileId}
                                                                 onKeyDown={(e) => {
@@ -652,10 +637,15 @@ export default function RatingEditorPage() {
                                                         <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
                                                             <Show when={playerData.loading}>
                                                                 <span class="text-gray-400 dark:text-gray-500 text-xs">
-                                  Loading...
+                                                                    Loading...
                                                                 </span>
                                                             </Show>
-                                                            <Show when={!playerData.loading && playerData()}>
+                                                            <Show
+                                                                when={
+                                                                    !playerData.loading &&
+                                                                    playerData()
+                                                                }
+                                                            >
                                                                 <span
                                                                     class={
                                                                         takenFCs().has(friendCode())
@@ -664,7 +654,11 @@ export default function RatingEditorPage() {
                                                                     }
                                                                 >
                                                                     {playerData()}
-                                                                    <Show when={takenFCs().has(friendCode())}>
+                                                                    <Show
+                                                                        when={takenFCs().has(
+                                                                            friendCode(),
+                                                                        )}
+                                                                    >
                                                                         <TriangleAlert
                                                                             size={12}
                                                                             class="inline ml-1 text-yellow-600 dark:text-yellow-400"
@@ -675,12 +669,12 @@ export default function RatingEditorPage() {
                                                             <Show
                                                                 when={
                                                                     !playerData.loading &&
-                                  !playerData() &&
-                                  entry.profileId > 0
+                                                                    !playerData() &&
+                                                                    entry.profileId > 0
                                                                 }
                                                             >
                                                                 <span class="text-gray-400 dark:text-gray-500 text-xs italic">
-                                  Not found
+                                                                    Not found
                                                                 </span>
                                                             </Show>
                                                         </td>
@@ -689,7 +683,9 @@ export default function RatingEditorPage() {
                                                                 type="text"
                                                                 value={editingVR()}
                                                                 onInput={(e) =>
-                                                                    setEditingVR(e.currentTarget.value)
+                                                                    setEditingVR(
+                                                                        e.currentTarget.value,
+                                                                    )
                                                                 }
                                                                 onBlur={commitVR}
                                                                 onKeyDown={(e) => {
@@ -701,7 +697,7 @@ export default function RatingEditorPage() {
                                                                 class="w-full px-2 py-1 text-sm font-mono rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                                             />
                                                             <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                ×100: {Math.round(entry.vr * 100)}
+                                                                ×100: {Math.round(entry.vr * 100)}
                                                             </div>
                                                         </td>
                                                         <td class="px-4 py-2">
@@ -709,7 +705,9 @@ export default function RatingEditorPage() {
                                                                 type="text"
                                                                 value={editingBR()}
                                                                 onInput={(e) =>
-                                                                    setEditingBR(e.currentTarget.value)
+                                                                    setEditingBR(
+                                                                        e.currentTarget.value,
+                                                                    )
                                                                 }
                                                                 onBlur={commitBR}
                                                                 onKeyDown={(e) => {
@@ -721,7 +719,7 @@ export default function RatingEditorPage() {
                                                                 class="w-full px-2 py-1 text-sm font-mono rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                                             />
                                                             <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                ×100: {Math.round(entry.br * 100)}
+                                                                ×100: {Math.round(entry.br * 100)}
                                                             </div>
                                                         </td>
                                                         <td class="px-4 py-2">
@@ -729,7 +727,9 @@ export default function RatingEditorPage() {
                                                                 type="text"
                                                                 value={editingFlags()}
                                                                 onInput={(e) =>
-                                                                    setEditingFlags(e.currentTarget.value)
+                                                                    setEditingFlags(
+                                                                        e.currentTarget.value,
+                                                                    )
                                                                 }
                                                                 onBlur={commitFlags}
                                                                 onKeyDown={(e) => {
@@ -759,31 +759,31 @@ export default function RatingEditorPage() {
                     <ul class="list-disc list-inside space-y-1 text-sm">
                         <li>
                             <strong>Profile ID:</strong> Must be &gt; 0 for an active entry
-              (0–1,000,000,000)
+                            (0–1,000,000,000)
                         </li>
                         <li>
-                            <strong>RWFC Name:</strong> Automatically fetched from the
-              leaderboard for verification
+                            <strong>RWFC Name:</strong> Automatically fetched from the leaderboard
+                            for verification
                         </li>
                         <li>
-                            <strong>VR/BR:</strong> Float values (0.01–10000.00); ×100 shows
-              integer representation
+                            <strong>VR/BR:</strong> Float values (0.01–10000.00); ×100 shows integer
+                            representation
                         </li>
                         <li>
-                            <strong>Flags:</strong> Bit 0 (0x1) = hasData; toggle "Active" to
-              manage automatically
+                            <strong>Flags:</strong> Bit 0 (0x1) = hasData; toggle "Active" to manage
+                            automatically
                         </li>
                         <li>
-                            <strong>Active:</strong> Entry is active if Profile ID &gt; 0 AND
-              flags bit 0 is set
+                            <strong>Active:</strong> Entry is active if Profile ID &gt; 0 AND flags
+                            bit 0 is set
                         </li>
                         <li>
-                            <strong>Warnings:</strong> Yellow highlights indicate duplicate
-              FCs or FCs already on the leaderboard
+                            <strong>Warnings:</strong> Yellow highlights indicate duplicate FCs or
+                            FCs already on the leaderboard
                         </li>
                         <li>
-                            <strong>File Validation:</strong> Files are automatically
-              validated on upload to prevent corruption
+                            <strong>File Validation:</strong> Files are automatically validated on
+                            upload to prevent corruption
                         </li>
                     </ul>
                 </AlertBox>

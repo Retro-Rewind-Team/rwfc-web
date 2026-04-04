@@ -1,20 +1,20 @@
 import { Show } from "solid-js";
 
 interface CountryFlagProps {
-  countryAlpha2: string | null | undefined;
-  countryName?: string | null;
-  size?: "sm" | "md" | "lg";
+    countryAlpha2: string | null | undefined;
+    countryName?: string | null;
+    size?: "sm" | "md" | "lg";
 }
 
 export default function CountryFlag(props: CountryFlagProps) {
     const sizeClasses = () => {
         switch (props.size) {
-        case "sm":
-            return "w-4 h-3";
-        case "lg":
-            return "w-8 h-6";
-        default:
-            return "w-6 h-4";
+            case "sm":
+                return "w-4 h-3";
+            case "lg":
+                return "w-8 h-6";
+            default:
+                return "w-6 h-4";
         }
     };
 

@@ -14,9 +14,7 @@ function parseRouteCC(ccParam: string): {
     const isFlap = ccParam.startsWith("flap-");
     const withoutFlap = isFlap ? ccParam.slice("flap-".length) : ccParam;
     const isNoGlitch = withoutFlap.startsWith("no-glitch-");
-    const withoutGlitch = isNoGlitch
-        ? withoutFlap.slice("no-glitch-".length)
-        : withoutFlap;
+    const withoutGlitch = isNoGlitch ? withoutFlap.slice("no-glitch-".length) : withoutFlap;
     const cc = withoutGlitch === "200cc" ? 200 : 150;
     return { cc, glitchAllowed: !isNoGlitch, mode: isFlap ? "flap" : "regular" };
 }
@@ -142,7 +140,9 @@ export default function TTTrackDetailPage() {
                                     onShroomlessFilterChange={handlers.handleShroomlessFilterChange}
                                     onVehicleFilterChange={handlers.handleVehicleFilterChange}
                                     onDriftFilterChange={handlers.handleDriftFilterChange}
-                                    onDriftCategoryFilterChange={handlers.handleDriftCategoryFilterChange}
+                                    onDriftCategoryFilterChange={
+                                        handlers.handleDriftCategoryFilterChange
+                                    }
                                     onPageSizeChange={pagination.handlePageSizeChange}
                                 />
                             </div>
@@ -196,7 +196,8 @@ export default function TTTrackDetailPage() {
                                         fastestLapMs={
                                             mode() === "regular"
                                                 ? (queries.flapQuery.data?.fastestLapMs ?? null)
-                                                : (queries.leaderboardQuery.data?.fastestLapMs ?? null)
+                                                : (queries.leaderboardQuery.data?.fastestLapMs ??
+                                                  null)
                                         }
                                         trackLaps={track().laps}
                                         isFlap={mode() === "flap"}

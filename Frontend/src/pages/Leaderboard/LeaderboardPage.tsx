@@ -33,34 +33,29 @@ export default function LeaderboardPage() {
     const currentLeaderboard = useLeaderboard();
     const legacyLeaderboard = useLegacyLeaderboard();
 
-    const activeLeaderboard = () =>
-        showLegacy() ? legacyLeaderboard : currentLeaderboard;
+    const activeLeaderboard = () => (showLegacy() ? legacyLeaderboard : currentLeaderboard);
 
     return (
         <div class="space-y-8">
             {/* Page Title */}
             <div class="pb-6 border-b border-gray-200 dark:border-gray-700">
                 <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-          RWFC VR Leaderboard
+                    RWFC VR Leaderboard
                 </h1>
                 <p class="text-lg text-gray-600 dark:text-gray-400">
-          Track the best racers competing on RWFC servers worldwide
+                    Track the best racers competing on RWFC servers worldwide
                 </p>
             </div>
 
             {/* VR Multiplier Info */}
             <Show when={showVRMultipliers()}>
-                <AlertBox
-                    type="info"
-                    icon={<Star size={20} />}
-                    title="VR Multipliers Active"
-                >
+                <AlertBox type="info" icon={<Star size={20} />} title="VR Multipliers Active">
                     <p class="text-sm mb-2">
-            Earn bonus VR during special events and competitive matches!
+                        Earn bonus VR during special events and competitive matches!
                     </p>
                     <ul class="text-sm space-y-1 ml-4">
                         <li>
-              • <span class="font-medium">2x VR</span> during special events:
+                            • <span class="font-medium">2x VR</span> during special events:
                         </li>
                         <li class="ml-4">- St. Patrick's Day: Mar 13 – Mar 17</li>
                         <li class="ml-4">- MKWii Birthday: Apr 10 – Apr 14</li>
@@ -69,12 +64,12 @@ export default function LeaderboardPage() {
                         <li class="ml-4">- Halloween: Oct 25 – Oct 31</li>
                         <li class="ml-4">- Christmas/New Year: Dec 23 – Jan 3</li>
                         <li>
-              • <span class="font-medium">Up to 1.83x VR</span> in Battle
-              Elimination with 6+ players
+                            • <span class="font-medium">Up to 1.83x VR</span> in Battle Elimination
+                            with 6+ players
                         </li>
                         <li>
-              • <span class="font-medium">Up to 2.83x VR</span> when both
-              multipliers combine!
+                            • <span class="font-medium">Up to 2.83x VR</span> when both multipliers
+                            combine!
                         </li>
                     </ul>
                 </AlertBox>
@@ -84,7 +79,7 @@ export default function LeaderboardPage() {
             <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-            Search & Filter
+                        Search & Filter
                     </h2>
 
                     <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
@@ -99,7 +94,7 @@ export default function LeaderboardPage() {
                                             : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                                     }`}
                                 >
-                  Current
+                                    Current
                                 </button>
                                 <button
                                     type="button"
@@ -111,7 +106,7 @@ export default function LeaderboardPage() {
                                     }`}
                                 >
                                     <Trophy size={14} />
-                  Legacy
+                                    Legacy
                                 </button>
                             </div>
                         </Show>
@@ -122,7 +117,7 @@ export default function LeaderboardPage() {
                             class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-5 rounded-lg transition-colors inline-flex items-center justify-center gap-2 text-sm"
                         >
                             <RefreshCw size={14} />
-              Refresh
+                            Refresh
                         </button>
                     </div>
                 </div>
@@ -139,7 +134,7 @@ export default function LeaderboardPage() {
                 {/* Search */}
                 <div class="mb-5">
                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            Search Players
+                        Search Players
                     </label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -149,9 +144,7 @@ export default function LeaderboardPage() {
                             type="text"
                             placeholder="Search by name or friend code..."
                             value={activeLeaderboard().searchQuery()}
-                            onInput={(e) =>
-                                activeLeaderboard().handleSearchInput(e.target.value)
-                            }
+                            onInput={(e) => activeLeaderboard().handleSearchInput(e.target.value)}
                             class="w-full pl-10 pr-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400"
                         />
                     </div>
@@ -165,7 +158,7 @@ export default function LeaderboardPage() {
                                 for="time-period-select"
                                 class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
                             >
-                VR Change Period
+                                VR Change Period
                             </label>
                             <select
                                 id="time-period-select"
@@ -186,15 +179,13 @@ export default function LeaderboardPage() {
                             for="page-size-select"
                             class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
                         >
-              Results Per Page
+                            Results Per Page
                         </label>
                         <select
                             id="page-size-select"
                             value={activeLeaderboard().pageSize()}
                             onChange={(e) =>
-                                activeLeaderboard().handlePageSizeChange(
-                                    parseInt(e.target.value),
-                                )
+                                activeLeaderboard().handlePageSizeChange(parseInt(e.target.value))
                             }
                             class="w-full px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         >
@@ -210,9 +201,7 @@ export default function LeaderboardPage() {
             <Show when={activeLeaderboard().leaderboardQuery.isLoading}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-12 flex flex-col items-center gap-4">
                     <LoadingSpinner />
-                    <p class="text-gray-600 dark:text-gray-400">
-            Loading the fastest racers...
-                    </p>
+                    <p class="text-gray-600 dark:text-gray-400">Loading the fastest racers...</p>
                 </div>
             </Show>
 
@@ -223,14 +212,14 @@ export default function LeaderboardPage() {
                         <div class="font-bold mb-2">Couldn't load the leaderboard</div>
                         <p class="mb-4 text-sm">
                             {activeLeaderboard().leaderboardQuery.error?.message ||
-                "Something went wrong on our end"}
+                                "Something went wrong on our end"}
                         </p>
                         <button
                             type="button"
                             onClick={() => activeLeaderboard().leaderboardQuery.refetch()}
                             class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
                         >
-              Try Again
+                            Try Again
                         </button>
                     </div>
                 </AlertBox>
@@ -240,7 +229,7 @@ export default function LeaderboardPage() {
             <Show
                 when={
                     activeLeaderboard().leaderboardQuery.data &&
-          !activeLeaderboard().leaderboardQuery.isLoading
+                    !activeLeaderboard().leaderboardQuery.isLoading
                 }
             >
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -255,20 +244,16 @@ export default function LeaderboardPage() {
                     />
 
                     {/* Empty */}
-                    <Show
-                        when={
-              activeLeaderboard().leaderboardQuery.data!.players.length === 0
-                        }
-                    >
+                    <Show when={activeLeaderboard().leaderboardQuery.data!.players.length === 0}>
                         <div class="text-center py-16">
                             <div class="flex justify-center mb-4 text-gray-300 dark:text-gray-600">
                                 <Search size={48} />
                             </div>
                             <div class="text-gray-500 dark:text-gray-400 text-xl font-medium mb-2">
-                No racers found
+                                No racers found
                             </div>
                             <p class="text-gray-400 dark:text-gray-500">
-                Try adjusting your search or filters
+                                Try adjusting your search or filters
                             </p>
                         </div>
                     </Show>

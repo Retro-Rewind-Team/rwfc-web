@@ -69,9 +69,7 @@ export const timeTrialApi = {
         params.append("cc", cc.toString());
         params.append("page", page.toString());
         params.append("pageSize", pageSize.toString());
-        return apiRequest<TrackLeaderboard>(
-            `/timetrial/leaderboard/flap?${params}`,
-        );
+        return apiRequest<TrackLeaderboard>(`/timetrial/leaderboard/flap?${params}`);
     },
 
     async getTopTimes(
@@ -86,9 +84,7 @@ export const timeTrialApi = {
         params.append("trackId", trackId.toString());
         params.append("cc", cc.toString());
         params.append("count", count.toString());
-        return apiRequest<GhostSubmission[]>(
-            `/timetrial/leaderboard/top?${params}`,
-        );
+        return apiRequest<GhostSubmission[]>(`/timetrial/leaderboard/top?${params}`);
     },
 
     // ===== WORLD RECORDS =====
@@ -114,9 +110,7 @@ export const timeTrialApi = {
     ): Promise<TrackWorldRecords[]> {
         const params = buildCategoryParams(glitchAllowed, shroomless, vehicle);
         params.append("cc", cc.toString());
-        return apiRequest<TrackWorldRecords[]>(
-            `/timetrial/worldrecords/all?${params}`,
-        );
+        return apiRequest<TrackWorldRecords[]>(`/timetrial/worldrecords/all?${params}`);
     },
 
     async getWorldRecordHistory(
@@ -129,9 +123,7 @@ export const timeTrialApi = {
         const params = buildCategoryParams(glitchAllowed, shroomless, vehicle);
         params.append("trackId", trackId.toString());
         params.append("cc", cc.toString());
-        return apiRequest<GhostSubmission[]>(
-            `/timetrial/worldrecord/history?${params}`,
-        );
+        return apiRequest<GhostSubmission[]>(`/timetrial/worldrecord/history?${params}`);
     },
 
     async getFlapWorldRecordHistory(
@@ -144,9 +136,7 @@ export const timeTrialApi = {
         const params = buildCategoryParams(glitchAllowed, shroomless, vehicle);
         params.append("trackId", trackId.toString());
         params.append("cc", cc.toString());
-        return apiRequest<GhostSubmission[]>(
-            `/timetrial/worldrecord/history/flap?${params}`,
-        );
+        return apiRequest<GhostSubmission[]>(`/timetrial/worldrecord/history/flap?${params}`);
     },
 
     // ===== FLAP =====

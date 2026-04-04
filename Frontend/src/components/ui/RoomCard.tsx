@@ -15,10 +15,10 @@ import { Room } from "../../types";
 import PlayerCard from "./PlayerCard";
 
 interface RoomCardProps {
-  room: Room;
-  getRoomUptime: (created: string) => string;
-  isLatest: boolean;
-  tick: number;
+    room: Room;
+    getRoomUptime: (created: string) => string;
+    isLatest: boolean;
+    tick: number;
 }
 
 export default function RoomCard(props: RoomCardProps) {
@@ -57,11 +57,7 @@ export default function RoomCard(props: RoomCardProps) {
                                         : "bg-red-500/90 text-white"
                                 }`}
                             >
-                                {props.room.isPublic ? (
-                                    <LockOpen size={12} />
-                                ) : (
-                                    <Lock size={12} />
-                                )}
+                                {props.room.isPublic ? <LockOpen size={12} /> : <Lock size={12} />}
                                 <span>{props.room.isPublic ? "Public" : "Private"}</span>
                             </div>
 
@@ -71,8 +67,8 @@ export default function RoomCard(props: RoomCardProps) {
                                     isVoting()
                                         ? "bg-purple-500/90 text-white"
                                         : isJoinable()
-                                            ? "bg-emerald-500/90 text-white"
-                                            : "bg-gray-500/90 text-white"
+                                          ? "bg-emerald-500/90 text-white"
+                                          : "bg-gray-500/90 text-white"
                                 }`}
                             >
                                 {isVoting() ? (
@@ -86,10 +82,10 @@ export default function RoomCard(props: RoomCardProps) {
                                     {isVoting()
                                         ? "Voting"
                                         : isJoinable()
-                                            ? "Joinable"
-                                            : playerCount() >= 12
-                                                ? "Full"
-                                                : "Not Joinable"}
+                                          ? "Joinable"
+                                          : playerCount() >= 12
+                                            ? "Full"
+                                            : "Not Joinable"}
                                 </span>
                             </div>
 
@@ -143,10 +139,7 @@ export default function RoomCard(props: RoomCardProps) {
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                         <For each={props.room.players}>
                             {(player) => (
-                                <PlayerCard
-                                    player={player}
-                                    showOpenHost={props.room.isPublic}
-                                />
+                                <PlayerCard player={player} showOpenHost={props.room.isPublic} />
                             )}
                         </For>
                     </div>

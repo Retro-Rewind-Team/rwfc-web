@@ -36,15 +36,12 @@ export function useTTTrackDetail(
     glitchAllowed: () => boolean,
     mode: () => LeaderboardMode,
 ) {
-    const { currentPage, setCurrentPage, pageSize, handlePageSizeChange } =
-        usePagination(10);
+    const { currentPage, setCurrentPage, pageSize, handlePageSizeChange } = usePagination(10);
 
-    const [shroomlessFilter, setShroomlessFilter] =
-        createSignal<ShroomlessFilter>("all");
+    const [shroomlessFilter, setShroomlessFilter] = createSignal<ShroomlessFilter>("all");
     const [vehicleFilter, setVehicleFilter] = createSignal<VehicleFilter>("all");
     const [driftFilter, setDriftFilter] = createSignal<DriftFilter>("all");
-    const [driftCategoryFilter, setDriftCategoryFilter] =
-        createSignal<DriftCategoryFilter>("all");
+    const [driftCategoryFilter, setDriftCategoryFilter] = createSignal<DriftCategoryFilter>("all");
 
     // Reset page when any server-side filter, CC, glitch, or mode changes
     createEffect(() => {
@@ -72,32 +69,47 @@ export function useTTTrackDetail(
 
     // Fetch leaderboard - switches between regular and flap based on mode
     const leaderboardQuery = useQuery(() => ({
-        queryKey: queryKeys.ttLeaderboard(trackId(), cc(), glitchAllowed(), mode(), shroomlessFilter(), vehicleFilter(), currentPage(), pageSize()),
+        queryKey: queryKeys.ttLeaderboard(
+            trackId(),
+            cc(),
+            glitchAllowed(),
+            mode(),
+            shroomlessFilter(),
+            vehicleFilter(),
+            currentPage(),
+            pageSize(),
+        ),
         queryFn: () =>
             mode() === "flap"
                 ? timeTrialApi.getFlapLeaderboard(
-                    trackId(),
-                    cc(),
-                    glitchAllowed(),
-                    shroomlessFilter(),
-                    vehicleFilter(),
-                    currentPage(),
-                    pageSize(),
-                )
+                      trackId(),
+                      cc(),
+                      glitchAllowed(),
+                      shroomlessFilter(),
+                      vehicleFilter(),
+                      currentPage(),
+                      pageSize(),
+                  )
                 : timeTrialApi.getLeaderboard(
-                    trackId(),
-                    cc(),
-                    glitchAllowed(),
-                    shroomlessFilter(),
-                    vehicleFilter(),
-                    currentPage(),
-                    pageSize(),
-                ),
+                      trackId(),
+                      cc(),
+                      glitchAllowed(),
+                      shroomlessFilter(),
+                      vehicleFilter(),
+                      currentPage(),
+                      pageSize(),
+                  ),
     }));
 
     // FLAP stat - only in regular mode
     const flapQuery = useQuery(() => ({
-        queryKey: queryKeys.ttFlap(trackId(), cc(), glitchAllowed(), shroomlessFilter(), vehicleFilter()),
+        queryKey: queryKeys.ttFlap(
+            trackId(),
+            cc(),
+            glitchAllowed(),
+            shroomlessFilter(),
+            vehicleFilter(),
+        ),
         queryFn: () =>
             timeTrialApi.getFastestLap(
                 trackId(),
@@ -111,7 +123,13 @@ export function useTTTrackDetail(
 
     // Regular WR history - only in regular mode
     const wrHistoryQuery = useQuery(() => ({
-        queryKey: queryKeys.ttWrHistory(trackId(), cc(), glitchAllowed(), shroomlessFilter(), vehicleFilter()),
+        queryKey: queryKeys.ttWrHistory(
+            trackId(),
+            cc(),
+            glitchAllowed(),
+            shroomlessFilter(),
+            vehicleFilter(),
+        ),
         queryFn: () =>
             timeTrialApi.getWorldRecordHistory(
                 trackId(),
@@ -125,7 +143,13 @@ export function useTTTrackDetail(
 
     // Flap WR history - only in flap mode
     const flapWrHistoryQuery = useQuery(() => ({
-        queryKey: queryKeys.ttFlapWrHistory(trackId(), cc(), glitchAllowed(), shroomlessFilter(), vehicleFilter()),
+        queryKey: queryKeys.ttFlapWrHistory(
+            trackId(),
+            cc(),
+            glitchAllowed(),
+            shroomlessFilter(),
+            vehicleFilter(),
+        ),
         queryFn: () =>
             timeTrialApi.getFlapWorldRecordHistory(
                 trackId(),
@@ -149,24 +173,18 @@ export function useTTTrackDetail(
     // Active WR history - whichever mode is current
     const filteredWRHistory = () => {
         const history =
-            mode() === "flap"
-                ? (flapWrHistoryQuery.data ?? [])
-                : (wrHistoryQuery.data ?? []);
+            mode() === "flap" ? (flapWrHistoryQuery.data ?? []) : (wrHistoryQuery.data ?? []);
         const drift = driftFilter();
         const driftCat = driftCategoryFilter();
         return history.filter((s) => matchesDriftFilters(s, drift, driftCat));
     };
 
     // Active WR history query state - for loading/error display
-    const activeWrHistoryQuery = () =>
-        mode() === "flap" ? flapWrHistoryQuery : wrHistoryQuery;
+    const activeWrHistoryQuery = () => (mode() === "flap" ? flapWrHistoryQuery : wrHistoryQuery);
 
-    const handleShroomlessFilterChange = (filter: ShroomlessFilter) =>
-        setShroomlessFilter(filter);
-    const handleVehicleFilterChange = (filter: VehicleFilter) =>
-        setVehicleFilter(filter);
-    const handleDriftFilterChange = (filter: DriftFilter) =>
-        setDriftFilter(filter);
+    const handleShroomlessFilterChange = (filter: ShroomlessFilter) => setShroomlessFilter(filter);
+    const handleVehicleFilterChange = (filter: VehicleFilter) => setVehicleFilter(filter);
+    const handleDriftFilterChange = (filter: DriftFilter) => setDriftFilter(filter);
     const handleDriftCategoryFilterChange = (filter: DriftCategoryFilter) =>
         setDriftCategoryFilter(filter);
 

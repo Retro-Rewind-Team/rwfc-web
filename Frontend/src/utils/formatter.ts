@@ -1,7 +1,4 @@
-import {
-    getDriftCategoryName,
-    getDriftTypeName,
-} from "../constants/marioKartMappings";
+import { getDriftCategoryName, getDriftTypeName } from "../constants/marioKartMappings";
 
 /** Formats an ISO date string as DD/MM/YYYY. */
 export function formatDate(dateString: string): string {
