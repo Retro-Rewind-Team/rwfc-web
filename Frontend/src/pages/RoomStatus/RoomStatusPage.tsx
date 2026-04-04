@@ -1,4 +1,4 @@
-import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
+import { createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
 import { useRoomStatus } from "../../hooks/useRoom";
 import { useMiiLoader } from "../../hooks/useMiiLoader";
 import { RoomCard } from "../../components/ui";
@@ -9,7 +9,9 @@ import {
     ChevronsLeft,
     Inbox,
     Info,
+    Search,
     ServerCrash,
+    X,
 } from "lucide-solid/icons/index";
 
 export default function RoomStatusPage() {
@@ -23,6 +25,19 @@ export default function RoomStatusPage() {
     const miiLoader = useMiiLoader();
     const [tick, setTick] = createSignal(0);
     const [isJumping, setIsJumping] = createSignal(false);
+    const [highlightFc, setHighlightFc] = createSignal("");
+
+    const activeFc = createMemo(() => {
+        const fc = highlightFc().trim();
+        return /^\d{4}-\d{4}-\d{4}$/.test(fc) ? fc : undefined;
+    });
+
+    const visibleRooms = createMemo(() => {
+        const rooms = roomStatusQuery.data?.rooms ?? [];
+        const fc = activeFc();
+        if (!fc) return rooms;
+        return rooms.filter((r) => r.players.some((p) => p.friendCode === fc));
+    });
 
     // Live uptime ticker
     createEffect(() => {
@@ -32,10 +47,10 @@ export default function RoomStatusPage() {
         onCleanup(() => clearInterval(interval));
     });
 
-    // Auto-refresh when viewing latest
+    // Auto-refresh when viewing latest, paused while a FC is highlighted
     createEffect(() => {
         let refreshInterval: ReturnType<typeof setInterval> | undefined;
-        if (isLatest()) {
+        if (isLatest() && !activeFc()) {
             refreshInterval = setInterval(() => {
                 roomStatusQuery.refetch();
             }, 10000);
@@ -116,7 +131,7 @@ export default function RoomStatusPage() {
             <Show when={roomStatusQuery.data}>
                 <div class="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-md p-4 sm:p-6">
                     <div class="flex flex-col gap-4">
-                        {/* Top row: step buttons + LIVE badge */}
+                        {/* Top row: step buttons + LIVE badge + highlight FC */}
                         <div class="flex items-center justify-between gap-3 flex-wrap">
                             <div class="flex items-center gap-2">
                                 {/* Jump to oldest */}
@@ -173,13 +188,47 @@ export default function RoomStatusPage() {
                                 </Show>
                             </div>
 
-                            {/* Historical data indicator */}
-                            <Show when={!isLatest()}>
-                                <div class="text-xs text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/30 px-3 py-1.5 rounded-full border border-amber-200 dark:border-amber-800">
-                                    <Info size={14} />
-                                    Historical data
+                            {/* Right side: highlight FC input + status indicators */}
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <div class="relative">
+                                    <Search
+                                        size={13}
+                                        class="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={highlightFc()}
+                                        onInput={(e) => setHighlightFc(e.currentTarget.value)}
+                                        placeholder="Highlight FC"
+                                        maxlength={14}
+                                        spellcheck={false}
+                                        class="pl-8 pr-7 py-2 text-sm font-mono w-40 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-lg text-gray-800 dark:text-gray-100 focus:outline-none focus:border-amber-500 dark:focus:border-amber-400 transition-colors shadow-sm"
+                                    />
+                                    <Show when={highlightFc()}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setHighlightFc("")}
+                                            class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                                            title="Clear"
+                                        >
+                                            <X size={13} />
+                                        </button>
+                                    </Show>
                                 </div>
-                            </Show>
+
+                                <Show when={isLatest() && activeFc()}>
+                                    <span class="text-xs text-amber-600 dark:text-amber-400 font-semibold whitespace-nowrap">
+                                        Auto-refresh paused
+                                    </span>
+                                </Show>
+
+                                <Show when={!isLatest()}>
+                                    <div class="text-xs text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/30 px-3 py-1.5 rounded-full border border-amber-200 dark:border-amber-800">
+                                        <Info size={14} />
+                                        Historical data
+                                    </div>
+                                </Show>
+                            </div>
                         </div>
 
                         {/* Bottom row: time jump controls */}
@@ -267,7 +316,8 @@ export default function RoomStatusPage() {
                 when={
                     roomStatusQuery.data &&
                     !roomStatusQuery.isLoading &&
-                    roomStatusQuery.data.rooms.length === 0
+                    roomStatusQuery.data.rooms.length === 0 &&
+                    !activeFc()
                 }
             >
                 <div class="bg-white dark:bg-gray-800 border-2 border-amber-200 dark:border-amber-800 rounded-xl p-12">
@@ -288,22 +338,49 @@ export default function RoomStatusPage() {
                 </div>
             </Show>
 
-            {/* Rooms List */}
+            {/* FC Not Found State */}
             <Show
                 when={
                     roomStatusQuery.data &&
                     !roomStatusQuery.isLoading &&
-                    roomStatusQuery.data.rooms.length > 0
+                    activeFc() &&
+                    visibleRooms().length === 0
+                }
+            >
+                <div class="bg-white dark:bg-gray-800 border-2 border-amber-200 dark:border-amber-800 rounded-xl p-12">
+                    <div class="text-center">
+                        <div class="flex justify-center mb-6 text-amber-300 dark:text-amber-600">
+                            <Search size={48} />
+                        </div>
+                        <div class="text-gray-900 dark:text-white text-2xl font-bold mb-3">
+                            Player not found
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            No room contains{" "}
+                            <code class="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded">
+                                {activeFc()}
+                            </code>{" "}
+                            in this snapshot.
+                        </p>
+                    </div>
+                </div>
+            </Show>
+
+            {/* Rooms List */}
+            <Show
+                when={
+                    roomStatusQuery.data && !roomStatusQuery.isLoading && visibleRooms().length > 0
                 }
             >
                 <div class="space-y-6">
-                    <For each={roomStatusQuery.data!.rooms}>
+                    <For each={visibleRooms()}>
                         {(room) => (
                             <RoomCard
                                 room={room}
                                 getRoomUptime={getRoomUptime}
                                 isLatest={isLatest()}
                                 tick={tick()}
+                                highlightFc={activeFc()}
                             />
                         )}
                     </For>

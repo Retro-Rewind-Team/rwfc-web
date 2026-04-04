@@ -19,6 +19,7 @@ interface RoomCardProps {
     getRoomUptime: (created: string) => string;
     isLatest: boolean;
     tick: number;
+    highlightFc?: string;
 }
 
 export default function RoomCard(props: RoomCardProps) {
@@ -45,6 +46,7 @@ export default function RoomCard(props: RoomCardProps) {
                         <Show when={props.room.roomType}>
                             <h3 class="text-white text-2xl sm:text-3xl font-extrabold truncate mb-3">
                                 {props.room.roomType}
+                                <span class="font-mono"> — Room {props.room.id}</span>
                             </h3>
                         </Show>
 
@@ -139,7 +141,11 @@ export default function RoomCard(props: RoomCardProps) {
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                         <For each={props.room.players}>
                             {(player) => (
-                                <PlayerCard player={player} showOpenHost={props.room.isPublic} />
+                                <PlayerCard
+                                    player={player}
+                                    showOpenHost={props.room.isPublic}
+                                    highlightFc={props.highlightFc}
+                                />
                             )}
                         </For>
                     </div>

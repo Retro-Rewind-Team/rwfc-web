@@ -6,13 +6,21 @@ import { MiiComponent } from "../ui";
 interface PlayerCardProps {
     player: RoomPlayer;
     showOpenHost: boolean;
+    highlightFc?: string;
 }
 
 export default function PlayerCard(props: PlayerCardProps) {
+    const isHighlighted = () =>
+        !!props.highlightFc && props.player.friendCode === props.highlightFc;
+
     return (
         <a
             href={`/player/${props.player.friendCode}`}
-            class="block bg-white dark:bg-gray-800 rounded-xl p-3.5 border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600 transition-colors hover:shadow-md"
+            class={`block rounded-xl p-3.5 border-2 transition-colors hover:shadow-md ${
+                isHighlighted()
+                    ? "bg-amber-50 dark:bg-amber-950/30 border-amber-400 dark:border-amber-500 ring-2 ring-amber-300 dark:ring-amber-600"
+                    : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600"
+            }`}
         >
             <div class="flex items-center gap-3">
                 {/* Mii */}
