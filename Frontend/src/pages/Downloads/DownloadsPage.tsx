@@ -12,10 +12,10 @@ const resourceCards = [
         icon: () => <List size={28} />,
         iconColor: "text-blue-500 dark:text-blue-400",
         title: "Track List",
-        description: (retro: number | null, custom: number | null) =>
-            `View all ${retro ?? "..."} retro tracks, 40 Battle Arenas and ${custom ?? "..."} custom tracks included in v6.6.1`,
-        href: "/home",
-        label: "Browse Tracks",
+        description: (retro: number | null, custom: number | null, version: string | null) =>
+            `View all ${retro ?? "..."} retro tracks, 40 Battle Arenas and ${custom ?? "..."} custom tracks included in v${version ?? "..."}`,
+        href: "https://docs.google.com/spreadsheets/d/1FelOidNHL1bqSaKeycZux1eQcDyrosONFC_qWVTYoog/edit?usp=sharing",
+        label: "View Spreadsheet",
         external: false,
     },
     {
@@ -218,7 +218,11 @@ export default function DownloadsPage() {
                             {card.title}
                         </h3>
                         <p class="text-gray-600 dark:text-gray-400 mb-4 text-sm">
-                            {card.description(retroTrackCount(), customTrackCount())}
+                            {card.description(
+                                retroTrackCount(),
+                                customTrackCount(),
+                                v()?.version ?? null,
+                            )}
                         </p>
                         <a
                             href={card.href}
