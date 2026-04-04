@@ -42,6 +42,10 @@ public class RoomStatusController : ControllerBase
             if (response == null)
                 return NotFound("No room data available yet. The system may still be initializing.");
 
+            var minId = await _roomStatusService.GetMinIdAsync();
+            var maxId = await _roomStatusService.GetMaxIdAsync();
+            response = response with { MinimumId = minId, MaximumId = maxId };
+
             Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
             Response.Headers.Pragma = "no-cache";
             Response.Headers.Expires = "0";
