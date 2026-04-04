@@ -26,6 +26,12 @@ public class VRHistoryRepository : IVRHistoryRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task AddRangeAsync(IEnumerable<VRHistoryEntity> entries)
+    {
+        await _context.VRHistories.AddRangeAsync(entries);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task UpdateAsync(VRHistoryEntity vrHistory)
     {
         _context.VRHistories.Update(vrHistory);

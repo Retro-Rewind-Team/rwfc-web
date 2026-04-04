@@ -57,29 +57,30 @@ public class RoomSnapshotRepository : IRoomSnapshotRepository
 
     public async Task<RoomSnapshotEntity?> GetNearestAsync(DateTime timestamp)
     {
-        return await _context.RoomSnapshots
+        // Two index-friendly queries (no full-table sort) instead of one computed-expression scan
+        var before = await _context.RoomSnapshots
             .AsNoTracking()
-            .OrderBy(s => s.Timestamp > timestamp
-                ? s.Timestamp - timestamp
-                : timestamp - s.Timestamp)
+            .Where(s => s.Timestamp <= timestamp)
+            .OrderByDescending(s => s.Timestamp)
             .FirstOrDefaultAsync();
+
+        var after = await _context.RoomSnapshots
+            .AsNoTracking()
+            .Where(s => s.Timestamp > timestamp)
+            .OrderBy(s => s.Timestamp)
+            .FirstOrDefaultAsync();
+
+        if (before == null) return after;
+        if (after == null) return before;
+
+        return (timestamp - before.Timestamp) <= (after.Timestamp - timestamp) ? before : after;
     }
 
-    public async Task<int> GetMinIdAsync()
-    {
-        if (!await _context.RoomSnapshots.AnyAsync())
-            return 0;
+    public async Task<int> GetMinIdAsync() =>
+        await _context.RoomSnapshots.MinAsync(s => (int?)s.Id) ?? 0;
 
-        return await _context.RoomSnapshots.MinAsync(s => s.Id);
-    }
-
-    public async Task<int> GetMaxIdAsync()
-    {
-        if (!await _context.RoomSnapshots.AnyAsync())
-            return 0;
-
-        return await _context.RoomSnapshots.MaxAsync(s => s.Id);
-    }
+    public async Task<int> GetMaxIdAsync() =>
+        await _context.RoomSnapshots.MaxAsync(s => (int?)s.Id) ?? 0;
 
     public async Task<int> GetPeakPlayerCountAsync(DateTime? since = null)
     {
@@ -88,9 +89,6 @@ public class RoomSnapshotRepository : IRoomSnapshotRepository
         if (since.HasValue)
             query = query.Where(s => s.Timestamp >= since.Value);
 
-        if (!await query.AnyAsync())
-            return 0;
-
-        return await query.MaxAsync(s => s.TotalPlayers);
+        return await query.MaxAsync(s => (int?)s.TotalPlayers) ?? 0;
     }
 }

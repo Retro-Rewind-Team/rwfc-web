@@ -1,4 +1,3 @@
-using RetroRewindWebsite.Models.DTOs.Room;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -10,12 +9,12 @@ public class RoomSnapshotEntity
     [Key]
     public int Id { get; set; }
 
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; set; }
 
     public int TotalPlayers { get; set; }
     public int TotalRooms { get; set; }
     public int PublicRooms { get; set; }
     public int PrivateRooms { get; set; }
 
-    public List<RoomDto> Rooms { get; set; } = [];
+    public List<RoomData> Rooms { get; set; } = [];
 }

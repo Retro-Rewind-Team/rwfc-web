@@ -47,8 +47,9 @@ public class PlayerService : IPlayerService
         }
         else
         {
-            // No window requested, fetch the full history (count=int.MaxValue) and derive fromDate from the earliest entry
-            history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, int.MaxValue);
+            // No window requested: fetch up to the last 1000 entries and derive fromDate from the earliest
+            const int maxHistoryEntries = 1000;
+            history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, maxHistoryEntries);
             fromDate = history.Count > 0 ? history.Min(h => h.Date) : toDate;
         }
 

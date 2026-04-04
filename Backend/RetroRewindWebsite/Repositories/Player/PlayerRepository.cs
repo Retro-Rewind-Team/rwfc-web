@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using NpgsqlTypes;
 using RetroRewindWebsite.Data;
 using RetroRewindWebsite.Models.DTOs.Common;
 using RetroRewindWebsite.Models.Entities.Player;
@@ -29,28 +31,21 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
             .Include(p => p.MiiCache)
             .FirstOrDefaultAsync(p => p.Pid == pid);
 
-    public async Task<PlayerEntity?> GetByFcAsync(string fc)
-    {
-        var normalizedFc = fc.Replace("-", "");
-        return await _context.Players
+    public async Task<PlayerEntity?> GetByFcAsync(string fc) =>
+        await _context.Players
             .AsNoTracking()
             .Include(p => p.MiiCache)
-            .FirstOrDefaultAsync(p => p.Fc.Replace("-", "") == normalizedFc);
-    }
+            .FirstOrDefaultAsync(p => p.Fc == fc);
 
     public async Task<List<PlayerEntity>> GetPlayersByFriendCodesAsync(List<string> friendCodes)
     {
         if (friendCodes == null || friendCodes.Count == 0)
             return [];
 
-        var normalizedCodes = friendCodes
-            .Select(fc => fc.Replace("-", ""))
-            .ToList();
-
         return await _context.Players
             .AsNoTracking()
             .Include(p => p.MiiCache)
-            .Where(p => normalizedCodes.Contains(p.Fc.Replace("-", "")))
+            .Where(p => friendCodes.Contains(p.Fc))
             .ToListAsync();
     }
 
@@ -173,6 +168,18 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
 
     // ===== BATCH OPERATIONS =====
 
+    public async Task AddRangeAsync(IEnumerable<PlayerEntity> players)
+    {
+        await _context.Players.AddRangeAsync(players);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateRangeAsync(IEnumerable<PlayerEntity> players)
+    {
+        _context.Players.UpdateRange(players);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task<List<string>> GetPlayerPidsBatchAsync(int skip, int take) =>
         await _context.Players
             .AsNoTracking()
@@ -195,15 +202,19 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
             await _context.Database.ExecuteSqlRawAsync(
                 "CREATE TEMP TABLE temp_vr_gains (pid VARCHAR(50), gain24h INT, gain7d INT, gain30d INT)");
 
-            foreach (var batch in vrGains.Chunk(500))
+            var conn = (NpgsqlConnection)_context.Database.GetDbConnection();
+            using (var writer = await conn.BeginBinaryImportAsync(
+                "COPY temp_vr_gains (pid, gain24h, gain7d, gain30d) FROM STDIN (FORMAT BINARY)"))
             {
-                var values = string.Join(", ", batch.Select(kvp =>
-                    $"('{kvp.Key.Replace("'", "''")}', {kvp.Value.gain24h}, {kvp.Value.gain7d}, {kvp.Value.gain30d})"));
-
-#pragma warning disable EF1002
-                await _context.Database.ExecuteSqlRawAsync(
-                    $"INSERT INTO temp_vr_gains (pid, gain24h, gain7d, gain30d) VALUES {values}");
-#pragma warning restore EF1002
+                foreach (var kvp in vrGains)
+                {
+                    await writer.StartRowAsync();
+                    await writer.WriteAsync(kvp.Key, NpgsqlDbType.Varchar);
+                    await writer.WriteAsync(kvp.Value.gain24h, NpgsqlDbType.Integer);
+                    await writer.WriteAsync(kvp.Value.gain7d, NpgsqlDbType.Integer);
+                    await writer.WriteAsync(kvp.Value.gain30d, NpgsqlDbType.Integer);
+                }
+                await writer.CompleteAsync();
             }
 
             await _context.Database.ExecuteSqlRawAsync(@"
@@ -319,26 +330,19 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
         return await PagedResult<LegacyPlayerEntity>.CreateAsync(query, page, pageSize);
     }
 
-    public async Task<LegacyPlayerEntity?> GetLegacyPlayerByFriendCodeAsync(string friendCode)
-    {
-        var normalizedFc = friendCode.Replace("-", "");
-        return await _context.LegacyPlayers
+    public async Task<LegacyPlayerEntity?> GetLegacyPlayerByFriendCodeAsync(string friendCode) =>
+        await _context.LegacyPlayers
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Fc.Replace("-", "") == normalizedFc);
-    }
+            .FirstOrDefaultAsync(p => p.Fc == friendCode);
 
     public async Task<List<LegacyPlayerEntity>> GetLegacyPlayersByFriendCodesAsync(List<string> friendCodes)
     {
         if (friendCodes == null || friendCodes.Count == 0)
             return [];
 
-        var normalizedCodes = friendCodes
-            .Select(fc => fc.Replace("-", ""))
-            .ToList();
-
         return await _context.LegacyPlayers
             .AsNoTracking()
-            .Where(p => normalizedCodes.Contains(p.Fc.Replace("-", "")))
+            .Where(p => friendCodes.Contains(p.Fc))
             .ToListAsync();
     }
 

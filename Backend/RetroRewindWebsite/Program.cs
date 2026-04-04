@@ -83,9 +83,10 @@ builder.Services.AddMemoryCache(options =>
 builder.Services.AddHttpClient();
 
 // ===== REPOSITORIES =====
-builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
-builder.Services.AddScoped<IPlayerMiiRepository, PlayerRepository>();
-builder.Services.AddScoped<ILegacyPlayerRepository, PlayerRepository>();
+builder.Services.AddScoped<PlayerRepository>();
+builder.Services.AddScoped<IPlayerRepository>(sp => sp.GetRequiredService<PlayerRepository>());
+builder.Services.AddScoped<IPlayerMiiRepository>(sp => sp.GetRequiredService<PlayerRepository>());
+builder.Services.AddScoped<ILegacyPlayerRepository>(sp => sp.GetRequiredService<PlayerRepository>());
 builder.Services.AddScoped<IVRHistoryRepository, VRHistoryRepository>();
 builder.Services.AddScoped<ITrackRepository, TrackRepository>();
 builder.Services.AddScoped<ITTProfileRepository, TTProfileRepository>();
@@ -110,6 +111,7 @@ builder.Services.AddScoped<IMiiBatchService, MiiBatchService>();
 builder.Services.AddScoped<IPlayerService, PlayerService>();
 builder.Services.AddScoped<IPlayerModerationService, PlayerModerationService>();
 builder.Services.AddScoped<ITimeTrialService, TimeTrialService>();
+builder.Services.AddScoped<ITimeTrialModerationService, TimeTrialModerationService>();
 builder.Services.AddSingleton<IRoomStatusService, RoomStatusService>();
 builder.Services.AddScoped<IRaceResultService, RaceResultService>();
 builder.Services.AddScoped<IRaceStatsService, RaceStatsService>();
@@ -146,50 +148,25 @@ builder.Services.AddHealthChecks()
             : HealthCheckResult.Unhealthy($"High memory usage: {memoryUsed / 1024 / 1024}MB");
     });
 
-builder.Services.AddScoped<IHealthCheck, ExternalApiHealthCheck>();
-
 // ===== RATE LIMITING =====
+static RateLimitPartition<string> IpFixedWindow(HttpContext ctx, int limit) =>
+    RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        factory: _ => new FixedWindowRateLimiterOptions
+        {
+            AutoReplenishment = true,
+            PermitLimit = limit,
+            Window = TimeSpan.FromMinutes(1)
+        });
+
 builder.Services.AddRateLimiter(options =>
 {
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
-        httpContext => RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: partition => new FixedWindowRateLimiterOptions
-            {
-                AutoReplenishment = true,
-                PermitLimit = 2000,
-                Window = TimeSpan.FromMinutes(1)
-            }));
+        ctx => IpFixedWindow(ctx, 2000));
 
-    options.AddPolicy("RefreshPolicy", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: partition => new FixedWindowRateLimiterOptions
-            {
-                AutoReplenishment = true,
-                PermitLimit = 5,
-                Window = TimeSpan.FromMinutes(1)
-            }));
-
-    options.AddPolicy("DownloadPolicy", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: partition => new FixedWindowRateLimiterOptions
-            {
-                AutoReplenishment = true,
-                PermitLimit = 3,
-                Window = TimeSpan.FromMinutes(1)
-            }));
-
-    options.AddPolicy("GhostDownloadPolicy", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: partition => new FixedWindowRateLimiterOptions
-            {
-                AutoReplenishment = true,
-                PermitLimit = 10,
-                Window = TimeSpan.FromMinutes(1)
-            }));
+    options.AddPolicy("RefreshPolicy", ctx => IpFixedWindow(ctx, 5));
+    options.AddPolicy("DownloadPolicy", ctx => IpFixedWindow(ctx, 3));
+    options.AddPolicy("GhostDownloadPolicy", ctx => IpFixedWindow(ctx, 10));
 
     // Configure rejection behavior when rate limit is exceeded
     options.OnRejected = async (context, token) =>
@@ -250,11 +227,7 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         logger.LogError(ex, "An error occurred while applying migrations");
-
-        if (app.Environment.IsDevelopment())
-        {
-            throw;
-        }
+        throw;
     }
 }
 

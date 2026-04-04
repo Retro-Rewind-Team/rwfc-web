@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Primitives;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace RetroRewindWebsite.Middleware;
 
@@ -10,8 +12,8 @@ namespace RetroRewindWebsite.Middleware;
 public class ApiKeyAuthenticationMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly IConfiguration _configuration;
     private readonly ILogger<ApiKeyAuthenticationMiddleware> _logger;
+    private readonly byte[]? _expectedSecretBytes;
 
     private const string ModerationPathPrefix = "/api/moderation";
     private const string AuthorizationHeader = "Authorization";
@@ -25,8 +27,14 @@ public class ApiKeyAuthenticationMiddleware
         ILogger<ApiKeyAuthenticationMiddleware> logger)
     {
         _next = next;
-        _configuration = configuration;
         _logger = logger;
+
+        var secret = configuration[WfcSecretConfigKey]
+            ?? Environment.GetEnvironmentVariable(WfcSecretEnvVar);
+
+        _expectedSecretBytes = string.IsNullOrEmpty(secret)
+            ? null
+            : Encoding.UTF8.GetBytes(secret);
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -47,11 +55,7 @@ public class ApiKeyAuthenticationMiddleware
             return;
         }
 
-        var token = authHeader.ToString().Replace(BearerPrefix, "");
-        var expectedSecret = _configuration[WfcSecretConfigKey]
-            ?? Environment.GetEnvironmentVariable(WfcSecretEnvVar);
-
-        if (string.IsNullOrEmpty(expectedSecret))
+        if (_expectedSecretBytes == null)
         {
             _logger.LogError("WFC_SECRET is not configured");
 
@@ -60,7 +64,21 @@ public class ApiKeyAuthenticationMiddleware
             return;
         }
 
-        if (token != expectedSecret)
+        var headerValue = authHeader.ToString();
+        if (!headerValue.StartsWith(BearerPrefix, StringComparison.Ordinal))
+        {
+            _logger.LogWarning("Malformed Authorization header from {IP}",
+                context.Connection.RemoteIpAddress);
+
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await context.Response.WriteAsJsonAsync(new { Error = "Invalid API key" });
+            return;
+        }
+
+        var token = headerValue.Substring(BearerPrefix.Length);
+        var tokenBytes = Encoding.UTF8.GetBytes(token);
+
+        if (!CryptographicOperations.FixedTimeEquals(tokenBytes, _expectedSecretBytes))
         {
             _logger.LogWarning("Invalid API key attempt from {IP}",
                 context.Connection.RemoteIpAddress);

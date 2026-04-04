@@ -118,4 +118,14 @@ public interface IPlayerRepository : IRepository<PlayerEntity>
     /// <returns>A task that represents the asynchronous update operation.</returns>
     Task UpdatePlayerVRGainsBatchAsync(Dictionary<string, (int gain24h, int gain7d, int gain30d)> vrGains);
 
+    /// <summary>
+    /// Inserts multiple player entities in a single database round-trip.
+    /// </summary>
+    Task AddRangeAsync(IEnumerable<PlayerEntity> players);
+
+    /// <summary>
+    /// Updates multiple player entities in a single database round-trip.
+    /// </summary>
+    Task UpdateRangeAsync(IEnumerable<PlayerEntity> players);
+
 }

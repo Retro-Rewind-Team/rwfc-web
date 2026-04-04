@@ -5,7 +5,7 @@ namespace RetroRewindWebsite.Services.Background;
 
 public class MiiPreFetchBackgroundService : BackgroundService, IMiiPreFetchBackgroundService
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger<MiiPreFetchBackgroundService> _logger;
 
     private const int RunIntervalMinutes = 30;
@@ -14,10 +14,10 @@ public class MiiPreFetchBackgroundService : BackgroundService, IMiiPreFetchBackg
     private const int RateLimitDelayMs = 200;
 
     public MiiPreFetchBackgroundService(
-        IServiceProvider serviceProvider,
+        IServiceScopeFactory serviceScopeFactory,
         ILogger<MiiPreFetchBackgroundService> logger)
     {
-        _serviceProvider = serviceProvider;
+        _serviceScopeFactory = serviceScopeFactory;
         _logger = logger;
     }
 
@@ -66,7 +66,7 @@ public class MiiPreFetchBackgroundService : BackgroundService, IMiiPreFetchBackg
 
     public async Task PreFetchMiiImagesAsync(CancellationToken cancellationToken = default)
     {
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = _serviceScopeFactory.CreateScope();
         var playerMiiRepository = scope.ServiceProvider.GetRequiredService<IPlayerMiiRepository>();
         var miiService = scope.ServiceProvider.GetRequiredService<IMiiService>();
 

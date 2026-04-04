@@ -7,6 +7,8 @@ public class LeaderboardBackgroundService : PollingBackgroundService, ILeaderboa
 {
     private DateTime? _lastMaintenanceDate;
 
+    public DateTime? LastSyncTime { get; private set; }
+
     private const int RefreshIntervalMinutes = 1;
     private const int MaintenanceHourUtc = 11;
 
@@ -57,8 +59,9 @@ public class LeaderboardBackgroundService : PollingBackgroundService, ILeaderboa
         var syncService = services.GetRequiredService<ILeaderboardSyncService>();
         await syncService.RefreshFromApiAsync();
         await syncService.RefreshRankingsAsync();
+        LastSyncTime = DateTime.UtcNow;
 
-        var now = DateTime.UtcNow;
+        var now = LastSyncTime.Value;
         if (now.Hour == MaintenanceHourUtc && now.Minute < RefreshIntervalMinutes
             && _lastMaintenanceDate?.Date != now.Date)
         {
@@ -68,9 +71,13 @@ public class LeaderboardBackgroundService : PollingBackgroundService, ILeaderboa
             {
                 try
                 {
-                    await PerformMaintenanceTasksAsync();
+                    await PerformMaintenanceTasksAsync(cancellationToken);
                     _lastMaintenanceDate = now;
                     Logger.LogInformation("Daily maintenance tasks completed");
+                }
+                catch (OperationCanceledException)
+                {
+                    Logger.LogInformation("Daily maintenance cancelled during host shutdown");
                 }
                 catch (Exception ex)
                 {
@@ -82,8 +89,9 @@ public class LeaderboardBackgroundService : PollingBackgroundService, ILeaderboa
         Logger.LogDebug("Scheduled leaderboard refresh completed successfully");
     }
 
-    private async Task PerformMaintenanceTasksAsync()
+    private async Task PerformMaintenanceTasksAsync(CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         using var scope = ServiceScopeFactory.CreateScope();
         var maintenanceService = scope.ServiceProvider.GetRequiredService<IMaintenanceService>();
         await maintenanceService.UpdateAllPlayerVRGainsAsync();

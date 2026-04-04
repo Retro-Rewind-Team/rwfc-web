@@ -38,4 +38,9 @@ public interface IVRHistoryRepository : IRepository<VRHistoryEntity>
     /// query, avoiding the N×3 round-trips of calling <see cref="CalculateVRGainAsync"/> separately.
     /// </summary>
     Task<(int Gain24h, int Gain7d, int Gain30d)> CalculateAllVRGainsAsync(string playerId);
+
+    /// <summary>
+    /// Inserts multiple VR history entries in a single database round-trip.
+    /// </summary>
+    Task AddRangeAsync(IEnumerable<VRHistoryEntity> entries);
 }

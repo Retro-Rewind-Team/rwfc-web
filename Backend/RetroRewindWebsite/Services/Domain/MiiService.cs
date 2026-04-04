@@ -116,13 +116,6 @@ public class MiiService : IMiiService
         finally
         {
             semaphore.Release();
-
-            // Clean up the per-FC semaphore once no thread is waiting on it (CurrentCount == 1 means
-            // nobody else is queued). This prevents unbounded growth of the _locks dictionary.
-            if (semaphore.CurrentCount == 1)
-            {
-                _locks.TryRemove(friendCode, out _);
-            }
         }
     }
 }

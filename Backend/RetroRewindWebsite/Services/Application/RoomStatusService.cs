@@ -4,6 +4,7 @@ using RetroRewindWebsite.Models.DTOs.Room;
 using RetroRewindWebsite.Models.Entities.Room;
 using RetroRewindWebsite.Repositories.Room;
 using RetroRewindWebsite.Repositories.TimeTrial;
+using RetroRewindWebsite.Services.Domain;
 using RetroRewindWebsite.Services.External;
 using System.Collections.Concurrent;
 
@@ -128,6 +129,55 @@ public class RoomStatusService : IRoomStatusService
         return await repository.GetMaxIdAsync();
     }
 
+    // ===== MII DATA =====
+
+    public async Task<byte[]?> GetMiiImageBytesAsync(string friendCode)
+    {
+        var latest = _liveCache.LastOrDefault();
+        if (latest == null) return null;
+
+        var miiData = FindMiiDataInRooms(latest.Rooms, friendCode);
+        if (string.IsNullOrEmpty(miiData)) return null;
+
+        using var scope = _serviceScopeFactory.CreateScope();
+        var miiService = scope.ServiceProvider.GetRequiredService<IMiiService>();
+        var base64 = await miiService.GetMiiImageAsync(friendCode, miiData);
+
+        if (string.IsNullOrEmpty(base64)) return null;
+        return Convert.FromBase64String(base64);
+    }
+
+    public async Task<Dictionary<string, string>> GetMiiImageBatchAsync(IReadOnlyList<string> friendCodes)
+    {
+        var latest = _liveCache.LastOrDefault();
+        if (latest == null) return [];
+
+        var miiDataLookup = BuildMiiDataLookup(latest.Rooms);
+
+        var cleanFriendCodes = friendCodes
+            .Where(fc => !string.IsNullOrWhiteSpace(fc))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(fc => miiDataLookup.ContainsKey(fc))
+            .ToList();
+
+        if (cleanFriendCodes.Count == 0) return [];
+
+        using var scope = _serviceScopeFactory.CreateScope();
+        var miiService = scope.ServiceProvider.GetRequiredService<IMiiService>();
+
+        var tasks = cleanFriendCodes.Select(async fc =>
+        {
+            var miiImage = await miiService.GetMiiImageAsync(fc, miiDataLookup[fc]);
+            return (FriendCode: fc, MiiImage: miiImage);
+        });
+
+        var results = await Task.WhenAll(tasks);
+
+        return results
+            .Where(r => !string.IsNullOrEmpty(r.MiiImage))
+            .ToDictionary(r => r.FriendCode, r => r.MiiImage!);
+    }
+
     // ===== REFRESH =====
 
     public async Task RefreshRoomDataAsync()
@@ -165,16 +215,19 @@ public class RoomStatusService : IRoomStatusService
             // Persist to DB, this is the source of truth for all history
             var dbId = await PersistSnapshotAsync(snapshotRepository, roomDtos, timestamp);
 
-            // Update live cache with DB ID so the controller can reference it
+            // On DB failure keep the previous DbId so the live cache doesn't advertise an invalid ID
+            var resolvedDbId = dbId ?? _liveCache.LastOrDefault()?.DbId ?? 0;
+
+            // Update live cache with the latest rooms regardless of DB outcome
             UpdateLiveCache(new RoomStatusSnapshot
             {
-                DbId = dbId,
+                DbId = resolvedDbId,
                 Timestamp = timestamp,
                 Rooms = roomDtos
             });
 
             _logger.LogDebug("Room data refreshed. DB ID: {DbId}, Rooms: {RoomCount}",
-                dbId, groups.Count);
+                resolvedDbId, groups.Count);
         }
         catch (Exception ex)
         {
@@ -189,33 +242,33 @@ public class RoomStatusService : IRoomStatusService
 
     // ===== PRIVATE HELPERS =====
 
-    private async Task<int> PersistSnapshotAsync(
+    private async Task<int?> PersistSnapshotAsync(
         IRoomSnapshotRepository repository,
         List<RoomDto> rooms,
         DateTime timestamp)
     {
+        var totalPlayers = rooms.Sum(r => r.Players.Count);
+        var publicRooms = rooms.Count(r => r.Type == "anybody");
+
+        var entity = new RoomSnapshotEntity
+        {
+            Timestamp = timestamp,
+            TotalPlayers = totalPlayers,
+            TotalRooms = rooms.Count,
+            PublicRooms = publicRooms,
+            PrivateRooms = rooms.Count - publicRooms,
+            Rooms = rooms.Select(RoomMapper.ToRoomData).ToList()
+        };
+
         try
         {
-            var totalPlayers = rooms.Sum(r => r.Players.Count);
-            var publicRooms = rooms.Count(r => r.Type == "anybody");
-
-            var entity = new RoomSnapshotEntity
-            {
-                Timestamp = timestamp,
-                TotalPlayers = totalPlayers,
-                TotalRooms = rooms.Count,
-                PublicRooms = publicRooms,
-                PrivateRooms = rooms.Count - publicRooms,
-                Rooms = rooms
-            };
-
             await repository.AddAsync(entity);
             return entity.Id;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to persist room snapshot to database");
-            return 0;
+            return null;
         }
     }
 
@@ -224,6 +277,36 @@ public class RoomStatusService : IRoomStatusService
         _liveCache.Enqueue(snapshot);
         while (_liveCache.Count > LiveCacheSize)
             _liveCache.TryDequeue(out _);
+    }
+
+    private static string? FindMiiDataInRooms(List<RoomDto> rooms, string friendCode)
+    {
+        foreach (var room in rooms)
+        {
+            var player = room.Players.FirstOrDefault(p =>
+                p.FriendCode.Equals(friendCode, StringComparison.OrdinalIgnoreCase));
+
+            if (player?.Mii != null)
+                return player.Mii.Data;
+        }
+
+        return null;
+    }
+
+    private static Dictionary<string, string> BuildMiiDataLookup(List<RoomDto> rooms)
+    {
+        var lookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var room in rooms)
+        {
+            foreach (var player in room.Players.Where(p => p.Mii != null))
+            {
+                if (!lookup.ContainsKey(player.FriendCode))
+                    lookup[player.FriendCode] = player.Mii!.Data;
+            }
+        }
+
+        return lookup;
     }
 
     private class RoomStatusSnapshot

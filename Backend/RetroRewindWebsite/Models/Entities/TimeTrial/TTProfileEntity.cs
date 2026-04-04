@@ -11,7 +11,6 @@ public class TTProfileEntity
 
     public required string DisplayName { get; set; }
 
-    // TODO: Replace with computed queries instead of stored counters
     public int TotalSubmissions { get; set; } = 0;
     public int CurrentWorldRecords { get; set; } = 0;
 

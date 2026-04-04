@@ -50,6 +50,22 @@ public interface IRoomStatusService
     /// </summary>
     Task<int> GetMaxIdAsync();
 
+    // ===== MII DATA =====
+
+    /// <summary>
+    /// Returns the PNG image bytes for the Mii belonging to <paramref name="friendCode"/> in the
+    /// current live snapshot. Returns <c>null</c> if there is no live snapshot, the FC is not in
+    /// any room, or the Mii image cannot be fetched.
+    /// </summary>
+    Task<byte[]?> GetMiiImageBytesAsync(string friendCode);
+
+    /// <summary>
+    /// Returns a FC → base-64 Mii image map for every friend code in <paramref name="friendCodes"/>
+    /// that is present in the current live snapshot. Friend codes not found in rooms are silently
+    /// omitted. Returns an empty dictionary if there is no live snapshot.
+    /// </summary>
+    Task<Dictionary<string, string>> GetMiiImageBatchAsync(IReadOnlyList<string> friendCodes);
+
     // ===== OPERATIONS =====
 
     /// <summary>

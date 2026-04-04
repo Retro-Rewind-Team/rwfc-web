@@ -219,7 +219,7 @@ public class LeaderboardController : ControllerBase
                 return NotFound($"Mii image not found for player with friend code '{fc}'");
 
             Response.Headers.CacheControl = "public, max-age=3600";
-            // ETag is an MD5 hash of the image bytes — allows the client to detect image changes without re-downloading
+            // ETag is an MD5 hash of the image bytes, this allows clients to cache the image and validate it with the server on subsequent requests
             Response.Headers.ETag = $"\"{Convert.ToHexString(MD5.HashData(Convert.FromBase64String(miiImage)))}\"";
 
             return Ok(new MiiResponseDto(fc, miiImage));

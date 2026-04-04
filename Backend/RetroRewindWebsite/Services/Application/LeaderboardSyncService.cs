@@ -52,14 +52,29 @@ public class LeaderboardSyncService : ILeaderboardSyncService
                 .Select(g => g.First())
                 .ToList();
 
-            var updatedCount = 0;
-            var newCount = 0;
+            if (uniqueApiPlayers.Count == 0)
+            {
+                _logger.LogInformation("API refresh completed. No active players found.");
+                return;
+            }
+
+            // Batch-fetch all existing players in one query instead of N individual lookups
+            var allPids = uniqueApiPlayers.Select(p => p.Pid).ToList();
+            var existingPlayers = await _playerRepository.GetPlayersByPidsAsync(allPids);
+            var existingByPid = existingPlayers.ToDictionary(p => p.Pid);
+
+            var toInsert = new List<PlayerEntity>();
+            var toUpdate = new List<PlayerEntity>();
+            var vrHistoryEntries = new List<VRHistoryEntity>();
+            // pid → previousVR, for gain recalculation after batch insert of history
+            var vrChangedPlayers = new List<(PlayerEntity Player, int PreviousVR)>();
+            var miiInvalidations = new List<string>();
+
+            var now = DateTime.UtcNow;
 
             foreach (var apiPlayer in uniqueApiPlayers)
             {
-                var existingPlayer = await _playerRepository.GetByPidAsync(apiPlayer.Pid);
-
-                if (existingPlayer == null)
+                if (!existingByPid.TryGetValue(apiPlayer.Pid, out var existingPlayer))
                 {
                     var newPlayer = CreatePlayerEntity(apiPlayer);
 
@@ -72,26 +87,76 @@ public class LeaderboardSyncService : ILeaderboardSyncService
                             newPlayer.Name, newPlayer.Pid, newPlayer.Ev);
                     }
 
-                    await _playerRepository.AddAsync(newPlayer);
-                    newCount++;
+                    toInsert.Add(newPlayer);
                 }
                 else
                 {
                     var previousVR = existingPlayer.Ev;
-                    var miiDataChanged = UpdateExistingPlayer(existingPlayer, apiPlayer);
-                    await _playerRepository.UpdateAsync(existingPlayer);
-                    updatedCount++;
+                    var miiDataChanged = UpdateExistingPlayer(existingPlayer, apiPlayer, now);
+                    toUpdate.Add(existingPlayer);
 
                     if (miiDataChanged)
-                        await _playerMiiRepository.InvalidatePlayerMiiCacheAsync(existingPlayer.Pid);
+                        miiInvalidations.Add(existingPlayer.Pid);
 
                     if (existingPlayer.Ev != previousVR)
-                        await TrackVRHistoryAsync(existingPlayer, previousVR);
+                    {
+                        vrHistoryEntries.Add(new VRHistoryEntity
+                        {
+                            PlayerId = existingPlayer.Pid,
+                            Fc = existingPlayer.Fc,
+                            Date = now,
+                            VRChange = existingPlayer.Ev - previousVR,
+                            TotalVR = existingPlayer.Ev
+                        });
+                        vrChangedPlayers.Add((existingPlayer, previousVR));
+                    }
                 }
             }
 
+            // Bulk insert/update players, two round-trips instead of N
+            if (toInsert.Count > 0)
+                await _playerRepository.AddRangeAsync(toInsert);
+
+            if (toUpdate.Count > 0)
+                await _playerRepository.UpdateRangeAsync(toUpdate);
+
+            // Batch insert VR history entries
+            if (vrHistoryEntries.Count > 0)
+                await _vrHistoryRepository.AddRangeAsync(vrHistoryEntries);
+
+            // Per-player gain recalculation (bounded to players whose VR actually changed)
+            foreach (var (player, _) in vrChangedPlayers)
+            {
+                try
+                {
+                    (player.VRGainLast24Hours, player.VRGainLastWeek, player.VRGainLastMonth) =
+                        await _vrHistoryRepository.CalculateAllVRGainsAsync(player.Pid);
+
+                    _logger.LogDebug("Tracked VR change for {Name} ({Pid}): new gains recalculated",
+                        player.Name, player.Pid);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to recalculate VR gains for player {Name} ({Pid})",
+                        player.Name, player.Pid);
+                }
+            }
+
+            // Flush gain updates if any, reuse the existing bulk path
+            if (vrChangedPlayers.Count > 0)
+            {
+                var gainUpdates = vrChangedPlayers.ToDictionary(
+                    x => x.Player.Pid,
+                    x => (x.Player.VRGainLast24Hours, x.Player.VRGainLastWeek, x.Player.VRGainLastMonth));
+                await _playerRepository.UpdatePlayerVRGainsBatchAsync(gainUpdates);
+            }
+
+            // Invalidate Mii caches for players whose Mii data changed
+            foreach (var pid in miiInvalidations)
+                await _playerMiiRepository.InvalidatePlayerMiiCacheAsync(pid);
+
             _logger.LogInformation("API refresh completed. New: {NewCount}, Updated: {UpdatedCount}",
-                newCount, updatedCount);
+                toInsert.Count, toUpdate.Count);
         }
         catch (Exception ex)
         {
@@ -124,8 +189,9 @@ public class LeaderboardSyncService : ILeaderboardSyncService
     /// also updates the timestamps for last seen and last updated.</remarks>
     /// <param name="existingPlayer">The player entity to update. Must not be null.</param>
     /// <param name="apiPlayer">The external player data used to update the existing player. Must not be null.</param>
+    /// <param name="now">The current UTC timestamp to use for LastSeen/LastUpdated, passed in so all players in a batch share the same value.</param>
     // Returns true if the player's Mii data changed (so the caller can invalidate the cache row).
-    private bool UpdateExistingPlayer(PlayerEntity existingPlayer, ExternalPlayer apiPlayer)
+    private bool UpdateExistingPlayer(PlayerEntity existingPlayer, ExternalPlayer apiPlayer, DateTime now)
     {
         var previousVR = existingPlayer.Ev;
 
@@ -159,45 +225,10 @@ public class LeaderboardSyncService : ILeaderboardSyncService
                 existingPlayer.Name, existingPlayer.Fc);
         }
 
-        existingPlayer.LastSeen = DateTime.UtcNow;
-        existingPlayer.LastUpdated = DateTime.UtcNow;
+        existingPlayer.LastSeen = now;
+        existingPlayer.LastUpdated = now;
 
         return miiDataChanged;
-    }
-
-    /// <summary>
-    /// Records the player's VR history and updates their recent VR gain statistics asynchronously.
-    /// </summary>
-    /// <remarks>Updates the player's VR gain for the last 24 hours, week, and month after recording the VR
-    /// change. If an error occurs during tracking, a warning is logged and the player's statistics may not be
-    /// updated.</remarks>
-    /// <param name="player">The player entity whose VR history is being tracked. Cannot be null.</param>
-    /// <param name="previousVR">The previous VR value for the player, used to calculate the VR change.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    private async Task TrackVRHistoryAsync(PlayerEntity player, int previousVR)
-    {
-        try
-        {
-            await _vrHistoryRepository.AddAsync(new VRHistoryEntity
-            {
-                PlayerId = player.Pid,
-                Fc = player.Fc,
-                Date = DateTime.UtcNow,
-                VRChange = player.Ev - previousVR,
-                TotalVR = player.Ev
-            });
-
-            (player.VRGainLast24Hours, player.VRGainLastWeek, player.VRGainLastMonth) =
-                await _vrHistoryRepository.CalculateAllVRGainsAsync(player.Pid);
-
-            _logger.LogDebug("Tracked VR change for {Name} ({Pid}): {OldVR} -> {NewVR}",
-                player.Name, player.Pid, previousVR, player.Ev);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to track VR history for player {Name} ({Pid})",
-                player.Name, player.Pid);
-        }
     }
 
     /// <summary>

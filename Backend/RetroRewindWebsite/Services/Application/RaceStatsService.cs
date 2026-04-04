@@ -11,6 +11,7 @@ public class RaceStatsService : IRaceStatsService
     private readonly IRaceStatsRepository _raceStatsRepository;
     private readonly IPlayerRepository _playerRepository;
     private readonly ITrackRepository _trackRepository;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger<RaceStatsService> _logger;
 
     private const int TopSetupCount = 5;
@@ -19,11 +20,13 @@ public class RaceStatsService : IRaceStatsService
         IRaceStatsRepository raceStatsRepository,
         IPlayerRepository playerRepository,
         ITrackRepository trackRepository,
+        IServiceScopeFactory serviceScopeFactory,
         ILogger<RaceStatsService> logger)
     {
         _raceStatsRepository = raceStatsRepository;
         _playerRepository = playerRepository;
         _trackRepository = trackRepository;
+        _serviceScopeFactory = serviceScopeFactory;
         _logger = logger;
     }
 
@@ -45,37 +48,36 @@ public class RaceStatsService : IRaceStatsService
         if (totalRaces == 0)
             return null;
 
-        var trackedSince = await _raceStatsRepository.GetEarliestRaceTimestampAsync()
-            ?? DateTime.UtcNow;
+        // All remaining queries are independent, run them in parallel, each in its own scope
+        var trackedSinceTask = StatsQuery(r => r.GetEarliestRaceTimestampAsync());
+        var topTracksRawTask = courseId.HasValue
+            ? Task.FromResult<List<(short CourseId, int Count)>>([])
+            : StatsQuery(r => r.GetTopTracksByPlayerAsync(profileId, 5, after, courseId));
+        var topCharactersTask = StatsQuery(r => r.GetTopCharactersByPlayerAsync(profileId, TopSetupCount, after, courseId));
+        var topVehiclesTask = StatsQuery(r => r.GetTopVehiclesByPlayerAsync(profileId, TopSetupCount, after, courseId));
+        var topCombosTask = StatsQuery(r => r.GetTopCombosByPlayerAsync(profileId, TopSetupCount, after, courseId));
+        var totalFramesIn1stTask = StatsQuery(r => r.GetTotalFramesIn1stByPlayerAsync(profileId, after, courseId));
+        var recentTask = StatsQuery(r => r.GetRecentRacesByPlayerAsync(profileId, page, pageSize, after, courseId));
 
-        // Top tracks, omitted when filtering to a single course
-        List<TrackPlayCountDto> topTracks = [];
-        if (!courseId.HasValue)
-        {
-            var topTrackRaw = await _raceStatsRepository.GetTopTracksByPlayerAsync(profileId, 5, after, courseId);
-            var trackNames = await BuildTrackNameMapAsync([.. topTrackRaw.Select(t => t.CourseId)]);
-            topTracks = RaceStatsMapper.MapTrackPlayCounts(topTrackRaw, trackNames);
-        }
+        await Task.WhenAll(trackedSinceTask, topTracksRawTask, topCharactersTask,
+            topVehiclesTask, topCombosTask, totalFramesIn1stTask, recentTask);
 
-        var topCharacters = RaceStatsMapper.MapCharacterEntries(
-            await _raceStatsRepository.GetTopCharactersByPlayerAsync(profileId, TopSetupCount, after, courseId));
+        var trackedSince = trackedSinceTask.Result ?? DateTime.UtcNow;
+        var topTracksRaw = topTracksRawTask.Result;
+        var totalFramesIn1st = totalFramesIn1stTask.Result;
+        var (recentRaw, totalRecentCount) = recentTask.Result;
 
-        var topVehicles = RaceStatsMapper.MapVehicleEntries(
-            await _raceStatsRepository.GetTopVehiclesByPlayerAsync(profileId, TopSetupCount, after, courseId));
+        // Track name lookups depend on previous results, run in parallel with each other
+        var topTrackNamesTask = BuildTrackNameMapAsync([.. topTracksRaw.Select(t => t.CourseId)]);
+        var recentTrackNamesTask = BuildTrackNameMapAsync([.. recentRaw.Select(r => r.CourseId).Distinct()]);
+        await Task.WhenAll(topTrackNamesTask, recentTrackNamesTask);
 
-        var topCombos = RaceStatsMapper.MapCombos(
-            await _raceStatsRepository.GetTopCombosByPlayerAsync(profileId, TopSetupCount, after, courseId));
-
-        var totalFramesIn1st = await _raceStatsRepository.GetTotalFramesIn1stByPlayerAsync(profileId, after, courseId);
+        var topTracks = courseId.HasValue ? [] : RaceStatsMapper.MapTrackPlayCounts(topTracksRaw, topTrackNamesTask.Result);
+        var topCharacters = RaceStatsMapper.MapCharacterEntries(topCharactersTask.Result);
+        var topVehicles = RaceStatsMapper.MapVehicleEntries(topVehiclesTask.Result);
+        var topCombos = RaceStatsMapper.MapCombos(topCombosTask.Result);
+        var recentRaces = RaceStatsMapper.MapRecentRaces(recentRaw, recentTrackNamesTask.Result);
         var avgFramesIn1st = totalRaces > 0 ? (double)totalFramesIn1st / totalRaces : 0;
-
-        var (recentRaw, totalRecentCount) = await _raceStatsRepository.GetRecentRacesByPlayerAsync(
-            profileId, page, pageSize, after, courseId);
-
-        var recentTrackNames = await BuildTrackNameMapAsync(
-            [.. recentRaw.Select(r => r.CourseId).Distinct()]);
-        var recentRaces = RaceStatsMapper.MapRecentRaces(recentRaw, recentTrackNames);
-
         var totalPages = (int)Math.Ceiling((double)totalRecentCount / pageSize);
 
         return new PlayerRaceStatsDto(
@@ -99,47 +101,44 @@ public class RaceStatsService : IRaceStatsService
     {
         var after = days.HasValue ? DateTime.UtcNow.AddDays(-days.Value) : (DateTime?)null;
 
-        var totalRaces = await _raceStatsRepository.GetTotalRaceCountAsync(after);
-        var uniquePlayers = await _raceStatsRepository.GetUniquePlayerCountAsync(after);
-        var trackedSince = await _raceStatsRepository.GetEarliestRaceTimestampAsync()
-            ?? DateTime.UtcNow;
+        // All queries are independent. They run in parallel, each in its own scope
+        var totalRacesTask = StatsQuery(r => r.GetTotalRaceCountAsync(after));
+        var uniquePlayersTask = StatsQuery(r => r.GetUniquePlayerCountAsync(after));
+        var trackedSinceTask = StatsQuery(r => r.GetEarliestRaceTimestampAsync());
+        var allTracksRawTask = StatsQuery(r => r.GetAllPlayedTracksAsync(after));
+        var topCharactersTask = StatsQuery(r => r.GetTopCharactersAsync(TopSetupCount, after));
+        var topVehiclesTask = StatsQuery(r => r.GetTopVehiclesAsync(TopSetupCount, after));
+        var topCombosTask = StatsQuery(r => r.GetTopCombosAsync(TopSetupCount, after));
+        var activePlayersRawTask = StatsQuery(r => r.GetMostActivePlayersAsync(10, after));
+        var racesByDayTask = StatsQuery(r => r.GetRaceCountByDayOfWeekAsync(after));
+        var racesByHourTask = StatsQuery(r => r.GetRaceCountByHourAsync(after));
 
-        var allTracksRaw = await _raceStatsRepository.GetAllPlayedTracksAsync(after);
-        var trackNames = await BuildTrackNameMapAsync([.. allTracksRaw.Select(t => t.CourseId)]);
-        var allPlayedTracks = RaceStatsMapper.MapTrackPlayCounts(allTracksRaw, trackNames);
+        await Task.WhenAll(totalRacesTask, uniquePlayersTask, trackedSinceTask, allTracksRawTask,
+            topCharactersTask, topVehiclesTask, topCombosTask, activePlayersRawTask,
+            racesByDayTask, racesByHourTask);
 
-        var topCharacters = RaceStatsMapper.MapCharacterEntries(
-            await _raceStatsRepository.GetTopCharactersAsync(TopSetupCount, after));
+        var allTracksRaw = allTracksRawTask.Result;
+        var activePlayersRaw = activePlayersRawTask.Result;
 
-        var topVehicles = RaceStatsMapper.MapVehicleEntries(
-            await _raceStatsRepository.GetTopVehiclesAsync(TopSetupCount, after));
-
-        var topCombos = RaceStatsMapper.MapCombos(
-            await _raceStatsRepository.GetTopCombosAsync(TopSetupCount, after));
-
-        var activePlayersRaw = await _raceStatsRepository.GetMostActivePlayersAsync(10, after);
+        // Track name lookup and player name lookup depend on above results, run in parallel
+        var trackNamesTask = BuildTrackNameMapAsync([.. allTracksRaw.Select(t => t.CourseId)]);
         var activePids = activePlayersRaw.Select(x => x.ProfileId.ToString()).ToList();
-        var activePlayers = await _playerRepository.GetPlayersByPidsAsync(activePids);
-        var playerMap = activePlayers.ToDictionary(p => p.Pid, p => (p.Name, p.Fc));
-        var mostActivePlayers = RaceStatsMapper.MapActivePlayers(activePlayersRaw, playerMap);
+        var activePlayersTask = PlayerQuery(r => r.GetPlayersByPidsAsync(activePids));
+        await Task.WhenAll(trackNamesTask, activePlayersTask);
 
-        var racesByDay = RaceStatsMapper.MapDayActivity(
-            await _raceStatsRepository.GetRaceCountByDayOfWeekAsync(after));
-
-        var racesByHour = RaceStatsMapper.MapHourActivity(
-            await _raceStatsRepository.GetRaceCountByHourAsync(after));
+        var playerMap = activePlayersTask.Result.ToDictionary(p => p.Pid, p => (p.Name, p.Fc));
 
         return new GlobalRaceStatsDto(
-            TotalRacesTracked: totalRaces,
-            UniquePlayersCount: uniquePlayers,
-            TrackedSince: trackedSince,
-            AllPlayedTracks: allPlayedTracks,
-            TopCharacters: topCharacters,
-            TopVehicles: topVehicles,
-            TopCombos: topCombos,
-            MostActivePlayers: mostActivePlayers,
-            RacesByDayOfWeek: racesByDay,
-            RacesByHour: racesByHour
+            TotalRacesTracked: totalRacesTask.Result,
+            UniquePlayersCount: uniquePlayersTask.Result,
+            TrackedSince: trackedSinceTask.Result ?? DateTime.UtcNow,
+            AllPlayedTracks: RaceStatsMapper.MapTrackPlayCounts(allTracksRaw, trackNamesTask.Result),
+            TopCharacters: RaceStatsMapper.MapCharacterEntries(topCharactersTask.Result),
+            TopVehicles: RaceStatsMapper.MapVehicleEntries(topVehiclesTask.Result),
+            TopCombos: RaceStatsMapper.MapCombos(topCombosTask.Result),
+            MostActivePlayers: RaceStatsMapper.MapActivePlayers(activePlayersRaw, playerMap),
+            RacesByDayOfWeek: RaceStatsMapper.MapDayActivity(racesByDayTask.Result),
+            RacesByHour: RaceStatsMapper.MapHourActivity(racesByHourTask.Result)
         );
     }
 
@@ -161,9 +160,25 @@ public class RaceStatsService : IRaceStatsService
     /// </summary>
     private async Task<Dictionary<short, string>> BuildTrackNameMapAsync(List<short> courseIds)
     {
-        var tracks = await _trackRepository.GetTracksByCourseIdsAsync(courseIds);
+        using var scope = _serviceScopeFactory.CreateScope();
+        var trackRepo = scope.ServiceProvider.GetRequiredService<ITrackRepository>();
+        var tracks = await trackRepo.GetTracksByCourseIdsAsync(courseIds);
         return tracks
             .GroupBy(t => t.CourseId)
             .ToDictionary(g => g.Key, g => string.Join(" / ", g.Select(t => t.Name)));
+    }
+
+    /// <summary>Runs a stats repository query in an isolated scope so it can be used with Task.WhenAll.</summary>
+    private async Task<T> StatsQuery<T>(Func<IRaceStatsRepository, Task<T>> query)
+    {
+        using var scope = _serviceScopeFactory.CreateScope();
+        return await query(scope.ServiceProvider.GetRequiredService<IRaceStatsRepository>());
+    }
+
+    /// <summary>Runs a player repository query in an isolated scope so it can be used with Task.WhenAll.</summary>
+    private async Task<T> PlayerQuery<T>(Func<IPlayerRepository, Task<T>> query)
+    {
+        using var scope = _serviceScopeFactory.CreateScope();
+        return await query(scope.ServiceProvider.GetRequiredService<IPlayerRepository>());
     }
 }

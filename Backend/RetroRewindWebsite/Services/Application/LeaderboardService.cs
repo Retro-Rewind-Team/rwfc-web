@@ -1,7 +1,9 @@
+using Microsoft.Extensions.Caching.Memory;
 using RetroRewindWebsite.Mappers;
 using RetroRewindWebsite.Models.DTOs.Leaderboard;
 using RetroRewindWebsite.Models.DTOs.Player;
 using RetroRewindWebsite.Repositories.Player;
+using RetroRewindWebsite.Services.Background;
 
 namespace RetroRewindWebsite.Services.Application;
 
@@ -9,15 +11,24 @@ public class LeaderboardService : ILeaderboardService
 {
     private readonly IPlayerRepository _playerRepository;
     private readonly ILegacyPlayerRepository _legacyPlayerRepository;
+    private readonly IMemoryCache _cache;
+    private readonly ILeaderboardBackgroundService _leaderboardBackgroundService;
     private readonly ILogger<LeaderboardService> _logger;
+
+    private const string StatsCacheKey = "leaderboard_stats";
+    private static readonly TimeSpan StatsCacheTtl = TimeSpan.FromMinutes(2);
 
     public LeaderboardService(
         IPlayerRepository playerRepository,
         ILegacyPlayerRepository legacyPlayerRepository,
+        IMemoryCache cache,
+        ILeaderboardBackgroundService leaderboardBackgroundService,
         ILogger<LeaderboardService> logger)
     {
         _playerRepository = playerRepository;
         _legacyPlayerRepository = legacyPlayerRepository;
+        _cache = cache;
+        _leaderboardBackgroundService = leaderboardBackgroundService;
         _logger = logger;
     }
 
@@ -70,14 +81,25 @@ public class LeaderboardService : ILeaderboardService
 
     public async Task<LeaderboardStatsDto> GetStatsAsync()
     {
+        if (_cache.TryGetValue(StatsCacheKey, out LeaderboardStatsDto? cached) && cached != null)
+            return cached;
+
         var totalPlayers = await _playerRepository.GetTotalPlayersCountAsync();
         var suspiciousPlayers = await _playerRepository.GetSuspiciousPlayersCountAsync();
 
-        return new LeaderboardStatsDto(
+        var stats = new LeaderboardStatsDto(
             TotalPlayers: totalPlayers,
             SuspiciousPlayers: suspiciousPlayers,
-            LastUpdated: DateTime.UtcNow
+            LastUpdated: _leaderboardBackgroundService.LastSyncTime ?? DateTime.UtcNow
         );
+
+        _cache.Set(StatsCacheKey, stats, new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = StatsCacheTtl,
+            Size = 1
+        });
+
+        return stats;
     }
 
     public async Task<bool> HasLegacySnapshotAsync() =>

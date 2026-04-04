@@ -101,11 +101,11 @@ public class TimeTrialService : ITimeTrialService
         var pagedResult = await _ghostSubmissionRepository.GetFlapLeaderboardAsync(
             trackId, cc, glitchAllowed, shroomless, vehicleMin, vehicleMax, page, pageSize);
 
+        var flapMs = await _ghostSubmissionRepository.GetFastestLapForTrackAsync(
+            trackId, cc, glitchAllowed, shroomless, vehicleMin, vehicleMax);
+
         var pageOffset = (page - 1) * pageSize;
         var submissions = GhostSubmissionMapper.ToFlapLeaderboardDtos(pagedResult.Items, pageOffset);
-
-        // Fastest flap is the min across the flap submissions on this page
-        var flapMs = submissions.Count > 0 ? submissions.Min(s => s.FastestLapMs) : (int?)null;
 
         return new TrackLeaderboardDto(
             TrackMapper.ToDto(track),

@@ -49,7 +49,7 @@ public static class RoomMapper
     /// </summary>
     public static RoomStatusResponseDto ToResponseDto(RoomSnapshotEntity entity) =>
         new(
-            Rooms: entity.Rooms,
+            Rooms: entity.Rooms.Select(ToRoomDto).ToList(),
             Timestamp: entity.Timestamp,
             Id: entity.Id,
             MinimumId: 0,
@@ -89,6 +89,58 @@ public static class RoomMapper
                 TrackName: r.Race?.TrackName,
                 TrackId: null
             ))]
+        );
+
+    /// <summary>
+    /// Converts a <see cref="RoomDto"/> to its persisted entity representation.
+    /// </summary>
+    public static RoomData ToRoomData(RoomDto dto) =>
+        new(
+            Id: dto.Id,
+            Type: dto.Type,
+            Created: dto.Created,
+            Host: dto.Host,
+            Rk: dto.Rk,
+            Players: dto.Players.Select(p => new RoomPlayerData(
+                Pid: p.Pid,
+                Name: p.Name,
+                FriendCode: p.FriendCode,
+                VR: p.VR,
+                BR: p.BR,
+                IsOpenHost: p.IsOpenHost,
+                IsSuspended: p.IsSuspended,
+                Mii: p.Mii != null ? new MiiData(p.Mii.Data, p.Mii.Name) : null,
+                ConnectionMap: p.ConnectionMap
+            )).ToList(),
+            AverageVR: dto.AverageVR,
+            Race: dto.Race != null ? new RaceData(dto.Race.Num, dto.Race.Course, dto.Race.Cc, dto.Race.TrackName) : null,
+            Suspend: dto.Suspend
+        );
+
+    /// <summary>
+    /// Converts a persisted <see cref="RoomData"/> back to its DTO representation for API responses.
+    /// </summary>
+    public static RoomDto ToRoomDto(RoomData data) =>
+        new(
+            Id: data.Id,
+            Type: data.Type,
+            Created: data.Created,
+            Host: data.Host,
+            Rk: data.Rk,
+            Players: data.Players.Select(p => new RoomPlayerDto(
+                Pid: p.Pid,
+                Name: p.Name,
+                FriendCode: p.FriendCode,
+                VR: p.VR,
+                BR: p.BR,
+                IsOpenHost: p.IsOpenHost,
+                IsSuspended: p.IsSuspended,
+                Mii: p.Mii != null ? new MiiDto(p.Mii.Data, p.Mii.Name) : null,
+                ConnectionMap: p.ConnectionMap
+            )).ToList(),
+            AverageVR: data.AverageVR,
+            Race: data.Race != null ? new RaceDto(data.Race.Num, data.Race.Course, data.Race.Cc, data.Race.TrackName) : null,
+            Suspend: data.Suspend
         );
 
     /// <summary>

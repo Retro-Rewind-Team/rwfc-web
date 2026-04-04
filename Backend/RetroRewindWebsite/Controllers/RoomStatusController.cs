@@ -4,8 +4,6 @@ using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs.Player;
 using RetroRewindWebsite.Models.DTOs.Room;
 using RetroRewindWebsite.Services.Application;
-using RetroRewindWebsite.Services.Background;
-using RetroRewindWebsite.Services.Domain;
 using System.Security.Cryptography;
 
 namespace RetroRewindWebsite.Controllers;
@@ -19,19 +17,13 @@ namespace RetroRewindWebsite.Controllers;
 public class RoomStatusController : ControllerBase
 {
     private readonly IRoomStatusService _roomStatusService;
-    private readonly IMiiService _miiService;
-    private readonly IRoomStatusBackgroundService _backgroundService;
     private readonly ILogger<RoomStatusController> _logger;
 
     public RoomStatusController(
         IRoomStatusService roomStatusService,
-        IMiiService miiService,
-        IRoomStatusBackgroundService backgroundService,
         ILogger<RoomStatusController> logger)
     {
         _roomStatusService = roomStatusService;
-        _miiService = miiService;
-        _backgroundService = backgroundService;
         _logger = logger;
     }
 
@@ -189,7 +181,7 @@ public class RoomStatusController : ControllerBase
     {
         try
         {
-            await _backgroundService.ForceRefreshAsync();
+            await _roomStatusService.RefreshRoomDataAsync();
             return Ok(new { message = "Room data refresh initiated" });
         }
         catch (Exception ex)
@@ -210,19 +202,10 @@ public class RoomStatusController : ControllerBase
     {
         try
         {
-            var latestStatus = await _roomStatusService.GetLatestStatusAsync();
-            if (latestStatus == null)
-                return NotFound("No room data available");
+            var imageBytes = await _roomStatusService.GetMiiImageBytesAsync(fc);
 
-            var miiData = FindMiiDataInRooms(latestStatus.Rooms, fc);
-            if (string.IsNullOrEmpty(miiData))
-                return NotFound($"Friend code '{fc}' not found in current rooms or has no Mii data");
-
-            var miiImageBase64 = await _miiService.GetMiiImageAsync(fc, miiData);
-            if (string.IsNullOrEmpty(miiImageBase64))
-                return NotFound($"Could not generate Mii image for friend code '{fc}'");
-
-            var imageBytes = Convert.FromBase64String(miiImageBase64);
+            if (imageBytes == null)
+                return NotFound($"Mii image not available for friend code '{fc}'");
 
             Response.Headers.CacheControl = "public, max-age=3600";
             Response.Headers.ETag = $"\"{Convert.ToHexString(MD5.HashData(imageBytes))}\"";
@@ -250,30 +233,7 @@ public class RoomStatusController : ControllerBase
             if (miiError != null)
                 return BadRequest(miiError);
 
-            var latestStatus = await _roomStatusService.GetLatestStatusAsync();
-            if (latestStatus == null)
-                return Ok(new BatchMiiResponseDto([]));
-
-            var miiDataLookup = BuildMiiDataLookup(latestStatus.Rooms);
-
-            var cleanFriendCodes = request.FriendCodes
-                .Where(fc => !string.IsNullOrWhiteSpace(fc))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            var tasks = cleanFriendCodes
-                .Where(fc => miiDataLookup.ContainsKey(fc))
-                .Select(async fc =>
-                {
-                    var miiImage = await _miiService.GetMiiImageAsync(fc, miiDataLookup[fc]);
-                    return (FriendCode: fc, MiiImage: miiImage);
-                });
-
-            var miiResults = await Task.WhenAll(tasks);
-
-            var results = miiResults
-                .Where(r => !string.IsNullOrEmpty(r.MiiImage))
-                .ToDictionary(r => r.FriendCode, r => r.MiiImage!);
+            var results = await _roomStatusService.GetMiiImageBatchAsync(request.FriendCodes);
 
             Response.Headers.CacheControl = "public, max-age=1800";
 
@@ -286,43 +246,5 @@ public class RoomStatusController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError,
                 "An error occurred while retrieving Mii images");
         }
-    }
-
-    // ===== HELPER METHODS =====
-
-    /// <summary>
-    /// Returns the raw Mii binary data for the first matching player across all live rooms, or <c>null</c> if not found.
-    /// </summary>
-    private static string? FindMiiDataInRooms(List<RoomDto> rooms, string friendCode)
-    {
-        foreach (var room in rooms)
-        {
-            var player = room.Players.FirstOrDefault(p =>
-                p.FriendCode.Equals(friendCode, StringComparison.OrdinalIgnoreCase));
-
-            if (player?.Mii != null)
-                return player.Mii.Data;
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Builds a FC → Mii-data lookup from all players currently in rooms (one entry per FC).
-    /// </summary>
-    private static Dictionary<string, string> BuildMiiDataLookup(List<RoomDto> rooms)
-    {
-        var lookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var room in rooms)
-        {
-            foreach (var player in room.Players.Where(p => p.Mii != null))
-            {
-                if (!lookup.ContainsKey(player.FriendCode))
-                    lookup[player.FriendCode] = player.Mii!.Data;
-            }
-        }
-
-        return lookup;
     }
 }

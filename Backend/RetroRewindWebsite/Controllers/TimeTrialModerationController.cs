@@ -1,11 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using RetroRewindWebsite.Helpers;
-using RetroRewindWebsite.Mappers;
-using RetroRewindWebsite.Models.Domain;
 using RetroRewindWebsite.Models.DTOs.TimeTrial;
-using RetroRewindWebsite.Models.Entities.TimeTrial;
-using RetroRewindWebsite.Repositories.TimeTrial;
-using RetroRewindWebsite.Services.Domain;
+using RetroRewindWebsite.Services.Application;
 
 namespace RetroRewindWebsite.Controllers;
 
@@ -18,26 +14,17 @@ namespace RetroRewindWebsite.Controllers;
 [Route("api/moderation/timetrial")]
 public class TimeTrialModerationController : ControllerBase
 {
-    private readonly IGhostFileService _ghostFileService;
-    private readonly ITrackRepository _trackRepository;
-    private readonly ITTProfileRepository _ttProfileRepository;
-    private readonly IGhostSubmissionRepository _ghostSubmissionRepository;
+    private readonly ITimeTrialModerationService _moderationService;
     private readonly ILogger<TimeTrialModerationController> _logger;
 
     private const int MinDisplayNameLength = 2;
     private const int MaxDisplayNameLength = 50;
 
     public TimeTrialModerationController(
-        IGhostFileService ghostFileService,
-        ITrackRepository trackRepository,
-        ITTProfileRepository ttProfileRepository,
-        IGhostSubmissionRepository ghostSubmissionRepository,
+        ITimeTrialModerationService moderationService,
         ILogger<TimeTrialModerationController> logger)
     {
-        _ghostFileService = ghostFileService;
-        _trackRepository = trackRepository;
-        _ttProfileRepository = ttProfileRepository;
-        _ghostSubmissionRepository = ghostSubmissionRepository;
+        _moderationService = moderationService;
         _logger = logger;
     }
 
@@ -58,75 +45,19 @@ public class TimeTrialModerationController : ControllerBase
             var ccError = TimeTrialValidation.ValidateCc((short)request.Cc);
             if (ccError != null) return BadRequest(ccError);
 
-            var track = await _trackRepository.GetByIdAsync(request.TrackId);
-            if (track == null)
-                return BadRequest($"Track ID {request.TrackId} not found");
+            var result = await _moderationService.SubmitGhostAsync(
+                request.GhostFile,
+                request.TrackId,
+                (short)request.Cc,
+                request.TtProfileId,
+                request.Shroomless,
+                request.Glitch,
+                request.IsFlap);
 
-            if (request.Glitch && !track.SupportsGlitch)
-                return BadRequest($"Glitch/shortcut runs are not allowed for {track.Name}");
+            if (!result.Success)
+                return BadRequest(result);
 
-            var ttProfile = await _ttProfileRepository.GetByIdAsync(request.TtProfileId);
-            if (ttProfile == null)
-                return BadRequest($"TT Profile with ID {request.TtProfileId} not found. Create the profile first.");
-
-            GhostFileParseResult parseResult;
-            using (var memoryStream = new MemoryStream())
-            {
-                await request.GhostFile.CopyToAsync(memoryStream);
-                memoryStream.Position = 0;
-                parseResult = await _ghostFileService.ParseGhostFileAsync(memoryStream);
-            }
-
-            if (parseResult is not GhostFileParseResult.Success ghostData)
-                return BadRequest(((GhostFileParseResult.Failure)parseResult).ErrorMessage);
-
-            string ghostFilePath;
-            using (var fileStream = request.GhostFile.OpenReadStream())
-            {
-                ghostFilePath = await _ghostFileService.SaveGhostFileAsync(
-                    fileStream, request.TrackId, (short)request.Cc, ttProfile.DisplayName);
-            }
-
-            var submission = new GhostSubmissionEntity
-            {
-                TrackId = request.TrackId,
-                TTProfileId = ttProfile.Id,
-                CC = (short)request.Cc,
-                FinishTimeMs = ghostData.FinishTimeMs,
-                FinishTimeDisplay = ghostData.FinishTimeDisplay,
-                VehicleId = ghostData.VehicleId,
-                CharacterId = ghostData.CharacterId,
-                ControllerType = ghostData.ControllerType,
-                DriftType = ghostData.DriftType,
-                DriftCategory = ghostData.DriftCategory,
-                MiiName = ghostData.MiiName,
-                LapCount = ghostData.LapCount,
-                LapSplitsMs = ghostData.LapSplitsMs,
-                GhostFilePath = ghostFilePath,
-                DateSet = ghostData.DateSet,
-                SubmittedAt = DateTime.UtcNow,
-                Shroomless = request.Shroomless,
-                Glitch = request.Glitch,
-                IsFlap = request.IsFlap
-            };
-
-            await _ghostSubmissionRepository.AddAsync(submission);
-
-            ttProfile.TotalSubmissions =
-                await _ghostSubmissionRepository.GetProfileSubmissionsCountAsync(ttProfile.Id);
-            await _ttProfileRepository.UpdateAsync(ttProfile);
-            await _ghostSubmissionRepository.UpdateWorldRecordCountsAsync();
-
-            _logger.LogInformation(
-                "Ghost submitted: Track {TrackId}, Player {PlayerName} (ID: {ProfileId}), Time {Time}ms, DriftCategory {DriftCategory}",
-                request.TrackId, ttProfile.DisplayName, ttProfile.Id,
-                ghostData.FinishTimeMs, ghostData.DriftCategory);
-
-            return Ok(new GhostSubmissionResultDto(
-                true,
-                "Ghost submitted successfully",
-                GhostSubmissionMapper.ToDto(submission)
-            ));
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -144,41 +75,11 @@ public class TimeTrialModerationController : ControllerBase
     {
         try
         {
-            var submission = await _ghostSubmissionRepository.GetByIdAsync(id);
-            if (submission == null)
+            var result = await _moderationService.DeleteGhostAsync(id);
+            if (result == null)
                 return NotFound(new GhostDeletionResultDto(false, $"Submission {id} not found"));
 
-            if (System.IO.File.Exists(submission.GhostFilePath))
-            {
-                try { System.IO.File.Delete(submission.GhostFilePath); }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to delete ghost file: {FilePath}",
-                        submission.GhostFilePath);
-                }
-            }
-
-            await _ghostSubmissionRepository.DeleteAsync(submission.Id);
-
-            var ttProfile = await _ttProfileRepository.GetByIdAsync(submission.TTProfileId);
-            if (ttProfile != null)
-            {
-                ttProfile.TotalSubmissions =
-                    await _ghostSubmissionRepository.GetProfileSubmissionsCountAsync(ttProfile.Id);
-                await _ttProfileRepository.UpdateAsync(ttProfile);
-            }
-            else
-            {
-                _logger.LogWarning(
-                    "TT Profile {ProfileId} not found when deleting submission {SubmissionId}",
-                    submission.TTProfileId, id);
-            }
-
-            await _ghostSubmissionRepository.UpdateWorldRecordCountsAsync();
-
-            _logger.LogInformation("Ghost submission {SubmissionId} deleted", id);
-
-            return Ok(new GhostDeletionResultDto(true, "Ghost submission deleted successfully"));
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -203,14 +104,10 @@ public class TimeTrialModerationController : ControllerBase
     {
         try
         {
-            limit = Math.Clamp(limit, 1, 100);
-
-            var submissions = await _ghostSubmissionRepository.SearchAsync(
+            var result = await _moderationService.SearchGhostSubmissionsAsync(
                 ttProfileId, trackId, cc, glitch, shroomless, isFlap, driftCategory, limit);
 
-            var submissionDtos = submissions.Select(s => GhostSubmissionMapper.ToDto(s)).ToList();
-
-            return Ok(new GhostSubmissionSearchResultDto(true, submissionDtos.Count, submissionDtos));
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -239,23 +136,17 @@ public class TimeTrialModerationController : ControllerBase
             var ccError = TimeTrialValidation.ValidateCc(cc);
             if (ccError != null) return BadRequest(ccError);
 
-            var track = await _trackRepository.GetByIdAsync(trackId);
-            if (track == null)
-                return NotFound($"Track with ID {trackId} not found");
-
             var (shroomlessFilter, minVehicleId, maxVehicleId, driftTypeFilter, driftCategoryFilter) =
                 TimeTrialValidation.ParseCategoryFiltersWithDrift(shroomless, vehicle, drift, driftCategory);
 
-            bool glitchFilter = nonGlitchOnly || !track.SupportsGlitch;
-
-            var bkt = await _ghostSubmissionRepository.GetBestKnownTimeAsync(
-                trackId, cc, glitchFilter, shroomlessFilter,
+            var bkt = await _moderationService.GetBestKnownTimeAsync(
+                trackId, cc, nonGlitchOnly, shroomlessFilter,
                 minVehicleId, maxVehicleId, driftTypeFilter, driftCategoryFilter);
 
             if (bkt == null)
                 return NotFound("No times found matching the specified filters");
 
-            return Ok(GhostSubmissionMapper.ToDto(bkt));
+            return Ok(bkt);
         }
         catch (Exception ex)
         {
@@ -282,36 +173,12 @@ public class TimeTrialModerationController : ControllerBase
             var validation = ValidateDisplayName(request.DisplayName, out var displayName);
             if (validation != null) return validation;
 
-            var existingProfile = await _ttProfileRepository.GetByNameAsync(displayName);
-            if (existingProfile != null)
-            {
-                return BadRequest(new ProfileCreationResultDto(
-                    false,
-                    $"Profile with name '{displayName}' already exists",
-                    TTProfileMapper.ToDto(existingProfile)
-                ));
-            }
+            var result = await _moderationService.CreateProfileAsync(displayName, request.CountryCode);
 
-            var newProfile = new TTProfileEntity
-            {
-                DisplayName = displayName,
-                TotalSubmissions = 0,
-                CurrentWorldRecords = 0,
-                CountryCode = request.CountryCode ?? 0,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+            if (!result.Success)
+                return BadRequest(result);
 
-            await _ttProfileRepository.AddAsync(newProfile);
-
-            _logger.LogInformation("TT Profile created: {DisplayName} (ID: {ProfileId})",
-                newProfile.DisplayName, newProfile.Id);
-
-            return Ok(new ProfileCreationResultDto(
-                true,
-                "TT Profile created successfully",
-                TTProfileMapper.ToDto(newProfile)
-            ));
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -328,13 +195,8 @@ public class TimeTrialModerationController : ControllerBase
     {
         try
         {
-            var profiles = await _ttProfileRepository.GetAllAsync();
-            var profileDtos = profiles
-                .OrderBy(p => p.DisplayName)
-                .Select(TTProfileMapper.ToDto)
-                .ToList();
-
-            return Ok(new ProfileListResultDto(true, profileDtos.Count, profileDtos));
+            var result = await _moderationService.GetAllProfilesAsync();
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -352,11 +214,11 @@ public class TimeTrialModerationController : ControllerBase
     {
         try
         {
-            var profile = await _ttProfileRepository.GetByIdAsync(id);
-            if (profile == null)
+            var result = await _moderationService.GetProfileAsync(id);
+            if (result == null)
                 return NotFound(new ProfileViewResultDto(false, $"Profile {id} not found"));
 
-            return Ok(new ProfileViewResultDto(true, string.Empty, TTProfileMapper.ToDto(profile)));
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -379,40 +241,22 @@ public class TimeTrialModerationController : ControllerBase
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var profile = await _ttProfileRepository.GetByIdAsync(id);
-            if (profile == null)
-                return NotFound(new ProfileUpdateResultDto(false, $"Profile {id} not found"));
-
+            string? displayName = null;
             if (!string.IsNullOrWhiteSpace(request.DisplayName))
             {
-                var validation = ValidateDisplayName(request.DisplayName, out var displayName);
+                var validation = ValidateDisplayName(request.DisplayName, out var trimmed);
                 if (validation != null) return validation;
-
-                var existingProfile = await _ttProfileRepository.GetByNameAsync(displayName);
-                if (existingProfile != null && existingProfile.Id != id)
-                {
-                    return BadRequest(new ProfileUpdateResultDto(
-                        false,
-                        $"Profile with name '{displayName}' already exists"
-                    ));
-                }
-
-                profile.DisplayName = displayName;
+                displayName = trimmed;
             }
 
-            if (request.CountryCode.HasValue)
-                profile.CountryCode = request.CountryCode.Value;
+            var result = await _moderationService.UpdateProfileAsync(id, displayName, request.CountryCode);
+            if (result == null)
+                return NotFound(new ProfileUpdateResultDto(false, $"Profile {id} not found"));
 
-            await _ttProfileRepository.UpdateAsync(profile);
+            if (!result.Success)
+                return BadRequest(result);
 
-            _logger.LogInformation("TT Profile updated: {DisplayName} (ID: {ProfileId})",
-                profile.DisplayName, id);
-
-            return Ok(new ProfileUpdateResultDto(
-                true,
-                "Profile updated successfully",
-                TTProfileMapper.ToDto(profile)
-            ));
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -431,29 +275,14 @@ public class TimeTrialModerationController : ControllerBase
     {
         try
         {
-            var profile = await _ttProfileRepository.GetByIdAsync(id);
-            if (profile == null)
+            var result = await _moderationService.DeleteProfileAsync(id);
+            if (result == null)
                 return NotFound(new ProfileDeletionResultDto(false, $"Profile {id} not found"));
 
-            var submissionCount =
-                await _ghostSubmissionRepository.GetProfileSubmissionsCountAsync(id);
-            if (submissionCount > 0)
-            {
-                return BadRequest(new ProfileDeletionResultDto(
-                    false,
-                    $"Cannot delete profile '{profile.DisplayName}' - it has {submissionCount} submission(s). Delete submissions first."
-                ));
-            }
+            if (!result.Success)
+                return BadRequest(result);
 
-            await _ttProfileRepository.DeleteAsync(id);
-
-            _logger.LogInformation("TT Profile deleted: {DisplayName} (ID: {ProfileId})",
-                profile.DisplayName, id);
-
-            return Ok(new ProfileDeletionResultDto(
-                true,
-                $"Profile '{profile.DisplayName}' deleted successfully"
-            ));
+            return Ok(result);
         }
         catch (Exception ex)
         {

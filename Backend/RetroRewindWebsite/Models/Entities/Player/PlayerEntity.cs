@@ -17,7 +17,6 @@ public class PlayerEntity
     public DateTime LastSeen { get; set; }
     public int Rank { get; set; }
 
-    // TODO: Consider computing these via queries instead of storing
     public int VRGainLast24Hours { get; set; }
     public int VRGainLastWeek { get; set; }
     public int VRGainLastMonth { get; set; }

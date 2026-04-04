@@ -13,48 +13,49 @@ public static class GhostSubmissionMapper
     {
         var lapSplitsMs = entity.LapSplitsMs;
 
-        return new GhostSubmissionDetailDto(
-            Id: entity.Id,
-            TrackId: entity.TrackId,
-            TrackName: entity.Track?.Name ?? "Unknown",
-            TTProfileId: entity.TTProfileId,
-            PlayerName: entity.TTProfile?.DisplayName ?? "Unknown",
-            CountryCode: entity.TTProfile?.CountryCode ?? 0,
-            CountryAlpha2: entity.TTProfile?.CountryCode != null
+        return new GhostSubmissionDetailDto
+        {
+            Id = entity.Id,
+            TrackId = entity.TrackId,
+            TrackName = entity.Track?.Name ?? "Unknown",
+            TTProfileId = entity.TTProfileId,
+            PlayerName = entity.TTProfile?.DisplayName ?? "Unknown",
+            CountryCode = entity.TTProfile?.CountryCode ?? 0,
+            CountryAlpha2 = entity.TTProfile?.CountryCode != null
                 ? CountryCodeHelper.GetAlpha2Code(entity.TTProfile.CountryCode)
                 : null,
-            CountryName: entity.TTProfile?.CountryCode != null
+            CountryName = entity.TTProfile?.CountryCode != null
                 ? CountryCodeHelper.GetCountryName(entity.TTProfile.CountryCode)
                 : null,
-            CC: entity.CC,
-            FinishTimeMs: entity.FinishTimeMs,
-            FinishTimeDisplay: entity.FinishTimeDisplay,
-            VehicleId: entity.VehicleId,
-            CharacterId: entity.CharacterId,
-            ControllerType: entity.ControllerType,
-            DriftType: entity.DriftType,
-            Shroomless: entity.Shroomless,
-            Glitch: entity.Glitch,
-            IsFlap: entity.IsFlap,
-            DriftCategory: entity.DriftCategory,
-            MiiName: entity.MiiName,
-            LapCount: entity.LapCount,
-            LapSplitsMs: lapSplitsMs,
-            LapSplitsDisplay: FormatLapSplits(lapSplitsMs),
-            FastestLapMs: GetFastestLap(lapSplitsMs),
-            FastestLapDisplay: lapSplitsMs.Count > 0
+            CC = entity.CC,
+            FinishTimeMs = entity.FinishTimeMs,
+            FinishTimeDisplay = entity.FinishTimeDisplay,
+            VehicleId = entity.VehicleId,
+            CharacterId = entity.CharacterId,
+            ControllerType = entity.ControllerType,
+            DriftType = entity.DriftType,
+            Shroomless = entity.Shroomless,
+            Glitch = entity.Glitch,
+            IsFlap = entity.IsFlap,
+            DriftCategory = entity.DriftCategory,
+            MiiName = entity.MiiName,
+            LapCount = entity.LapCount,
+            LapSplitsMs = lapSplitsMs,
+            LapSplitsDisplay = FormatLapSplits(lapSplitsMs),
+            FastestLapMs = GetFastestLap(lapSplitsMs),
+            FastestLapDisplay = lapSplitsMs.Count > 0
                 ? FormatLapTime(GetFastestLap(lapSplitsMs))
                 : string.Empty,
-            GhostFilePath: entity.GhostFilePath,
-            DateSet: entity.DateSet,
-            SubmittedAt: entity.SubmittedAt,
-            VehicleName: MarioKartMappings.GetVehicleName(entity.VehicleId),
-            CharacterName: MarioKartMappings.GetCharacterName(entity.CharacterId),
-            ControllerName: MarioKartMappings.GetControllerName(entity.ControllerType),
-            DriftTypeName: MarioKartMappings.GetDriftTypeName(entity.DriftType),
-            DriftCategoryName: MarioKartMappings.GetDriftCategoryName(entity.DriftCategory),
-            Rank: rank
-        );
+            GhostFilePath = entity.GhostFilePath,
+            DateSet = entity.DateSet,
+            SubmittedAt = entity.SubmittedAt,
+            VehicleName = MarioKartMappings.GetVehicleName(entity.VehicleId),
+            CharacterName = MarioKartMappings.GetCharacterName(entity.CharacterId),
+            ControllerName = MarioKartMappings.GetControllerName(entity.ControllerType),
+            DriftTypeName = MarioKartMappings.GetDriftTypeName(entity.DriftType),
+            DriftCategoryName = MarioKartMappings.GetDriftCategoryName(entity.DriftCategory),
+            Rank = rank
+        };
     }
 
     /// <summary>
