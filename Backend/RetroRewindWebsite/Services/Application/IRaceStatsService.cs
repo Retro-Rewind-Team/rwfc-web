@@ -12,6 +12,7 @@ namespace RetroRewindWebsite.Services.Application
             string pid,
             int? days,
             short? courseId,
+            short? engineClassId,
             int page,
             int pageSize);
 

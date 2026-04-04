@@ -15,7 +15,7 @@ public class RaceStatsRepository : IRaceStatsRepository
 
     // ===== HELPERS =====
 
-    private IQueryable<RaceResultEntity> BasePlayerQuery(long profileId, DateTime? after, short? courseId)
+    private IQueryable<RaceResultEntity> BasePlayerQuery(long profileId, DateTime? after, short? courseId, short? engineClassId)
     {
         var query = _context.RaceResults
             .AsNoTracking()
@@ -26,6 +26,9 @@ public class RaceStatsRepository : IRaceStatsRepository
 
         if (courseId.HasValue)
             query = query.Where(r => r.CourseId == courseId.Value);
+
+        if (engineClassId.HasValue)
+            query = query.Where(r => r.EngineClassId == engineClassId.Value);
 
         return query;
     }
@@ -42,17 +45,17 @@ public class RaceStatsRepository : IRaceStatsRepository
 
     // ===== PLAYER =====
 
-    public async Task<int> GetTotalRaceCountByPlayerAsync(long profileId, DateTime? after, short? courseId) =>
-        await BasePlayerQuery(profileId, after, courseId).CountAsync();
+    public async Task<int> GetTotalRaceCountByPlayerAsync(long profileId, DateTime? after, short? courseId, short? engineClassId = null) =>
+        await BasePlayerQuery(profileId, after, courseId, engineClassId).CountAsync();
 
     public async Task<DateTime?> GetEarliestRaceTimestampAsync() =>
         await _context.RaceResults
             .AsNoTracking()
             .MinAsync(r => (DateTime?)r.RaceTimestamp);
 
-    public async Task<List<(short CourseId, int Count)>> GetTopTracksByPlayerAsync(long profileId, int limit, DateTime? after, short? courseId)
+    public async Task<List<(short CourseId, int Count)>> GetTopTracksByPlayerAsync(long profileId, int limit, DateTime? after, short? courseId, short? engineClassId = null)
     {
-        var rows = await BasePlayerQuery(profileId, after, courseId)
+        var rows = await BasePlayerQuery(profileId, after, courseId, engineClassId)
             .GroupBy(r => r.CourseId)
             .Select(g => new { CourseId = g.Key, Count = g.Count() })
             .OrderByDescending(x => x.Count)
@@ -62,9 +65,9 @@ public class RaceStatsRepository : IRaceStatsRepository
         return [.. rows.Select(x => (x.CourseId, x.Count))];
     }
 
-    public async Task<List<(short Id, int Count)>> GetTopCharactersByPlayerAsync(long profileId, int limit, DateTime? after, short? courseId)
+    public async Task<List<(short Id, int Count)>> GetTopCharactersByPlayerAsync(long profileId, int limit, DateTime? after, short? courseId, short? engineClassId = null)
     {
-        var rows = await BasePlayerQuery(profileId, after, courseId)
+        var rows = await BasePlayerQuery(profileId, after, courseId, engineClassId)
             .GroupBy(r => r.CharacterId)
             .Select(g => new { Id = g.Key, Count = g.Count() })
             .OrderByDescending(x => x.Count)
@@ -74,9 +77,9 @@ public class RaceStatsRepository : IRaceStatsRepository
         return [.. rows.Select(x => (x.Id, x.Count))];
     }
 
-    public async Task<List<(short Id, int Count)>> GetTopVehiclesByPlayerAsync(long profileId, int limit, DateTime? after, short? courseId)
+    public async Task<List<(short Id, int Count)>> GetTopVehiclesByPlayerAsync(long profileId, int limit, DateTime? after, short? courseId, short? engineClassId = null)
     {
-        var rows = await BasePlayerQuery(profileId, after, courseId)
+        var rows = await BasePlayerQuery(profileId, after, courseId, engineClassId)
             .GroupBy(r => r.VehicleId)
             .Select(g => new { Id = g.Key, Count = g.Count() })
             .OrderByDescending(x => x.Count)
@@ -86,9 +89,9 @@ public class RaceStatsRepository : IRaceStatsRepository
         return [.. rows.Select(x => (x.Id, x.Count))];
     }
 
-    public async Task<List<(short CharacterId, short VehicleId, int Count)>> GetTopCombosByPlayerAsync(long profileId, int limit, DateTime? after, short? courseId)
+    public async Task<List<(short CharacterId, short VehicleId, int Count)>> GetTopCombosByPlayerAsync(long profileId, int limit, DateTime? after, short? courseId, short? engineClassId = null)
     {
-        var rows = await BasePlayerQuery(profileId, after, courseId)
+        var rows = await BasePlayerQuery(profileId, after, courseId, engineClassId)
             .GroupBy(r => new { r.CharacterId, r.VehicleId })
             .Select(g => new { g.Key.CharacterId, g.Key.VehicleId, Count = g.Count() })
             .OrderByDescending(x => x.Count)
@@ -98,14 +101,14 @@ public class RaceStatsRepository : IRaceStatsRepository
         return [.. rows.Select(x => (x.CharacterId, x.VehicleId, x.Count))];
     }
 
-    public async Task<long> GetTotalFramesIn1stByPlayerAsync(long profileId, DateTime? after, short? courseId) =>
-        await BasePlayerQuery(profileId, after, courseId)
+    public async Task<long> GetTotalFramesIn1stByPlayerAsync(long profileId, DateTime? after, short? courseId, short? engineClassId = null) =>
+        await BasePlayerQuery(profileId, after, courseId, engineClassId)
             .SumAsync(r => (long)r.FramesIn1st);
 
     public async Task<(List<RaceResultEntity> Rows, int TotalCount)> GetRecentRacesByPlayerAsync(
-        long profileId, int page, int pageSize, DateTime? after, short? courseId)
+        long profileId, int page, int pageSize, DateTime? after, short? courseId, short? engineClassId = null)
     {
-        var query = BasePlayerQuery(profileId, after, courseId)
+        var query = BasePlayerQuery(profileId, after, courseId, engineClassId)
             .OrderByDescending(r => r.RaceTimestamp);
 
         var totalCount = await query.CountAsync();

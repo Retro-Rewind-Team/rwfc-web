@@ -21,11 +21,13 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
         hasRaceStats,
         days,
         courseId,
+        engineClassId,
         activeTrackName,
         currentPage,
         setCurrentPage,
         handleDaysChange,
         handleCourseIdChange,
+        handleEngineClassChange,
     } = usePlayerRaceStats(props.pid);
 
     const stats = () => raceStatsQuery.data as PlayerRaceStats;
@@ -46,22 +48,47 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                 <div class="flex items-center gap-2">
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Race Stats</h2>
                 </div>
-                <div class="flex items-center gap-1">
-                    <For each={DAY_OPTIONS}>
-                        {(opt) => (
+                <div class="flex items-center gap-2 flex-wrap justify-end">
+                    {/* CC toggle */}
+                    <div class="flex rounded overflow-hidden border border-gray-200 dark:border-gray-600 text-xs">
+                        {(
+                            [
+                                { label: "All", value: undefined },
+                                { label: "150cc", value: 2 },
+                                { label: "200cc", value: 1 },
+                            ] as const
+                        ).map((opt) => (
                             <button
                                 type="button"
-                                onClick={() => handleDaysChange(opt.value)}
-                                class={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                                    days() === opt.value
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                onClick={() => handleEngineClassChange(opt.value)}
+                                class={`px-3 py-1.5 font-medium transition-colors ${
+                                    engineClassId() === opt.value
+                                        ? "bg-purple-600 text-white"
+                                        : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
                                 }`}
                             >
                                 {opt.label}
                             </button>
-                        )}
-                    </For>
+                        ))}
+                    </div>
+                    {/* Day filter */}
+                    <div class="flex items-center gap-1">
+                        <For each={DAY_OPTIONS}>
+                            {(opt) => (
+                                <button
+                                    type="button"
+                                    onClick={() => handleDaysChange(opt.value)}
+                                    class={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                                        days() === opt.value
+                                            ? "bg-blue-600 text-white"
+                                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                    }`}
+                                >
+                                    {opt.label}
+                                </button>
+                            )}
+                        </For>
+                    </div>
                 </div>
             </div>
 

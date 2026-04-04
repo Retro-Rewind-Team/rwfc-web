@@ -32,6 +32,7 @@ public class RaceStatsController : ControllerBase
         string pid,
         [FromQuery] int? days = null,
         [FromQuery] short? courseId = null,
+        [FromQuery] short? engineClassId = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = DefaultPageSize)
     {
@@ -40,7 +41,7 @@ public class RaceStatsController : ControllerBase
             page = Math.Max(1, page);
             pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
 
-            var stats = await _raceStatsService.GetPlayerRaceStatsAsync(pid, days, courseId, page, pageSize);
+            var stats = await _raceStatsService.GetPlayerRaceStatsAsync(pid, days, courseId, engineClassId, page, pageSize);
             if (stats == null)
                 return NotFound($"No race data found for player '{pid}'");
 

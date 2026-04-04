@@ -34,6 +34,7 @@ public class RaceStatsService : IRaceStatsService
         string pid,
         int? days,
         short? courseId,
+        short? engineClassId,
         int page,
         int pageSize)
     {
@@ -44,7 +45,7 @@ public class RaceStatsService : IRaceStatsService
         var profileId = long.Parse(pid);
         var after = days.HasValue ? DateTime.UtcNow.AddDays(-days.Value) : (DateTime?)null;
 
-        var totalRaces = await _raceStatsRepository.GetTotalRaceCountByPlayerAsync(profileId, after, courseId);
+        var totalRaces = await _raceStatsRepository.GetTotalRaceCountByPlayerAsync(profileId, after, courseId, engineClassId);
         if (totalRaces == 0)
             return null;
 
@@ -52,12 +53,12 @@ public class RaceStatsService : IRaceStatsService
         var trackedSinceTask = StatsQuery(r => r.GetEarliestRaceTimestampAsync());
         var topTracksRawTask = courseId.HasValue
             ? Task.FromResult<List<(short CourseId, int Count)>>([])
-            : StatsQuery(r => r.GetTopTracksByPlayerAsync(profileId, 5, after, courseId));
-        var topCharactersTask = StatsQuery(r => r.GetTopCharactersByPlayerAsync(profileId, TopSetupCount, after, courseId));
-        var topVehiclesTask = StatsQuery(r => r.GetTopVehiclesByPlayerAsync(profileId, TopSetupCount, after, courseId));
-        var topCombosTask = StatsQuery(r => r.GetTopCombosByPlayerAsync(profileId, TopSetupCount, after, courseId));
-        var totalFramesIn1stTask = StatsQuery(r => r.GetTotalFramesIn1stByPlayerAsync(profileId, after, courseId));
-        var recentTask = StatsQuery(r => r.GetRecentRacesByPlayerAsync(profileId, page, pageSize, after, courseId));
+            : StatsQuery(r => r.GetTopTracksByPlayerAsync(profileId, 5, after, courseId, engineClassId));
+        var topCharactersTask = StatsQuery(r => r.GetTopCharactersByPlayerAsync(profileId, TopSetupCount, after, courseId, engineClassId));
+        var topVehiclesTask = StatsQuery(r => r.GetTopVehiclesByPlayerAsync(profileId, TopSetupCount, after, courseId, engineClassId));
+        var topCombosTask = StatsQuery(r => r.GetTopCombosByPlayerAsync(profileId, TopSetupCount, after, courseId, engineClassId));
+        var totalFramesIn1stTask = StatsQuery(r => r.GetTotalFramesIn1stByPlayerAsync(profileId, after, courseId, engineClassId));
+        var recentTask = StatsQuery(r => r.GetRecentRacesByPlayerAsync(profileId, page, pageSize, after, courseId, engineClassId));
 
         await Task.WhenAll(trackedSinceTask, topTracksRawTask, topCharactersTask,
             topVehiclesTask, topCombosTask, totalFramesIn1stTask, recentTask);
@@ -149,7 +150,7 @@ public class RaceStatsService : IRaceStatsService
             return null;
 
         // Race stats are optional, null if player has no race data
-        var raceStats = await GetPlayerRaceStatsAsync(pid, null, null, 1, 20);
+        var raceStats = await GetPlayerRaceStatsAsync(pid, null, null, null, 1, 20);
 
         return RaceStatsMapper.ToPlayerStatsDto(player, raceStats);
     }
