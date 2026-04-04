@@ -1,9 +1,12 @@
 import { A } from "@solidjs/router";
 import { createMemo, createSignal, For, type JSX, Show } from "solid-js";
+import { useQuery } from "@tanstack/solid-query";
 import { Calendar, ChartBarBig, Clock, Gamepad2, Map, Trophy, Users } from "lucide-solid";
 import { useGlobalRaceStats } from "../../hooks/useGlobalRaceStats";
 import { GlobalRaceStats, SetupEntry } from "../../types/raceStats";
 import { LoadingSpinner } from "../../components/common";
+import { timeTrialApi } from "../../services/api";
+import { queryKeys } from "../../constants/queryKeys";
 
 const DAY_OPTIONS = [
     { label: "7d", value: 7 },
@@ -18,6 +21,21 @@ export default function RaceStatsPage() {
 
     const [trackSearch, setTrackSearch] = createSignal("");
     const [trackSort, setTrackSort] = createSignal<"plays" | "name">("plays");
+    const [trackCategory, setTrackCategory] = createSignal<"all" | "retro" | "custom">("all");
+
+    const tracksQuery = useQuery(() => ({
+        queryKey: queryKeys.ttTracks,
+        queryFn: () => timeTrialApi.getAllTracks(),
+        staleTime: Infinity,
+    }));
+
+    const courseIdCategoryMap = createMemo(() => {
+        const map: Record<number, "retro" | "custom"> = {};
+        tracksQuery.data?.forEach((t) => {
+            map[t.courseId] = t.category;
+        });
+        return map;
+    });
 
     const filteredTracks = createMemo(() => {
         if (!globalStatsQuery.data) return [];
@@ -29,9 +47,14 @@ export default function RaceStatsPage() {
         }));
 
         const search = trackSearch().toLowerCase();
-        const tracks = search
-            ? ranked.filter((t) => t.trackName.toLowerCase().includes(search))
-            : ranked;
+        const category = trackCategory();
+        const categoryMap = courseIdCategoryMap();
+
+        const tracks = ranked.filter((t) => {
+            if (search && !t.trackName.toLowerCase().includes(search)) return false;
+            if (category !== "all" && categoryMap[t.courseId] !== category) return false;
+            return true;
+        });
 
         return trackSort() === "name"
             ? [...tracks].sort((a, b) => a.trackName.localeCompare(b.trackName))
@@ -182,7 +205,31 @@ export default function RaceStatsPage() {
                                     Track Play Counts
                                 </h2>
                             </div>
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                {/* Category toggle */}
+                                <div class="flex rounded overflow-hidden border border-gray-200 dark:border-gray-600 text-xs">
+                                    {(
+                                        [
+                                            { label: "All", value: "all" },
+                                            { label: "Retro", value: "retro" },
+                                            { label: "Custom", value: "custom" },
+                                        ] as const
+                                    ).map((opt) => (
+                                        <button
+                                            type="button"
+                                            onClick={() => setTrackCategory(opt.value)}
+                                            class={`px-3 py-1.5 font-medium transition-colors ${
+                                                trackCategory() === opt.value
+                                                    ? "bg-purple-600 text-white"
+                                                    : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+                                            }`}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Sort toggle */}
                                 <div class="flex rounded overflow-hidden border border-gray-200 dark:border-gray-600 text-xs">
                                     <button
                                         type="button"
@@ -207,6 +254,7 @@ export default function RaceStatsPage() {
                                         A-Z
                                     </button>
                                 </div>
+
                                 <input
                                     type="text"
                                     placeholder="Search tracks..."
