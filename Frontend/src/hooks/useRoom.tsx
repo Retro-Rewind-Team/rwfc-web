@@ -57,7 +57,11 @@ export function useRoomStatus() {
         const id = currentId();
         if (id === undefined || !canGoForward()) return;
         const next = id + 1;
-        if (next <= maxId()) setCurrentId(next);
+        if (next >= maxId()) {
+            setCurrentId(undefined);
+        } else {
+            setCurrentId(next);
+        }
     };
 
     const goBackward = () => {
