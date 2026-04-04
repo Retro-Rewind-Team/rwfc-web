@@ -67,6 +67,7 @@ export interface GlobalRaceStats {
 export interface PlayerRaceStatsParams {
     days?: number;
     courseId?: number;
+    engineClassId?: number;
     page?: number;
     pageSize?: number;
 }

@@ -19,8 +19,9 @@ export const queryKeys = {
         pid: string | undefined,
         days: number | undefined,
         courseId: number | undefined,
+        engineClassId: number | undefined,
         page: number,
-    ) => ["player-race-stats", pid, days, courseId, page] as const,
+    ) => ["player-race-stats", pid, days, courseId, engineClassId, page] as const,
 
     roomStats: ["roomStatus", "stats"] as const,
     room: (id: number | undefined) => ["roomStatus", id] as const,

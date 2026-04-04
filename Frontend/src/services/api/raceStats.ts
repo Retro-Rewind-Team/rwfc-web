@@ -10,6 +10,8 @@ export const raceStatsApi = {
         if (params.days !== undefined) searchParams.append("days", params.days.toString());
         if (params.courseId !== undefined)
             searchParams.append("courseId", params.courseId.toString());
+        if (params.engineClassId !== undefined)
+            searchParams.append("engineClassId", params.engineClassId.toString());
         if (params.page !== undefined) searchParams.append("page", params.page.toString());
         if (params.pageSize !== undefined)
             searchParams.append("pageSize", params.pageSize.toString());

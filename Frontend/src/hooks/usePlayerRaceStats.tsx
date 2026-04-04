@@ -15,21 +15,30 @@ export function usePlayerRaceStats(pid: string | undefined) {
 
     const [days, setDays] = createSignal<number | undefined>(undefined);
     const [courseId, setCourseId] = createSignal<number | undefined>(undefined);
+    const [engineClassId, setEngineClassId] = createSignal<number | undefined>(undefined);
     const [activeTrackName, setActiveTrackName] = createSignal<string | undefined>(undefined);
 
     // Reset to page 1 when filters change
     createEffect(() => {
         days();
         courseId();
+        engineClassId();
         setCurrentPage(1);
     });
 
     const raceStatsQuery = useQuery(() => ({
-        queryKey: queryKeys.playerRaceStats(pid, days(), courseId(), currentPage()),
+        queryKey: queryKeys.playerRaceStats(
+            pid,
+            days(),
+            courseId(),
+            engineClassId(),
+            currentPage(),
+        ),
         queryFn: () =>
             raceStatsApi.getPlayerRaceStats(pid!, {
                 days: days(),
                 courseId: courseId(),
+                engineClassId: engineClassId(),
                 page: currentPage(),
                 pageSize: PAGE_SIZE,
             }),
@@ -46,15 +55,19 @@ export function usePlayerRaceStats(pid: string | undefined) {
         setActiveTrackName(name);
     };
 
+    const handleEngineClassChange = (value: number | undefined) => setEngineClassId(value);
+
     return {
         raceStatsQuery,
         hasRaceStats,
         days,
         courseId,
+        engineClassId,
         activeTrackName,
         currentPage,
         setCurrentPage,
         handleDaysChange,
         handleCourseIdChange,
+        handleEngineClassChange,
     };
 }

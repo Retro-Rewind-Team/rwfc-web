@@ -16,7 +16,7 @@ public interface IRaceStatsRepository
     /// considered.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the total number of races matching
     /// the specified criteria.</returns>
-    Task<int> GetTotalRaceCountByPlayerAsync(long profileId, DateTime? after, short? courseId);
+    Task<int> GetTotalRaceCountByPlayerAsync(long profileId, DateTime? after, short? courseId, short? engineClassId = null);
 
     /// <summary>
     /// Asynchronously retrieves the timestamp of the earliest recorded race, if available.
@@ -38,7 +38,7 @@ public interface IRaceStatsRepository
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of tuples, each consisting of
     /// a course ID and the corresponding play count, ordered by play count in descending order. The list contains at
     /// most the specified number of items.</returns>
-    Task<List<(short CourseId, int Count)>> GetTopTracksByPlayerAsync(long profileId, int limit, DateTime? after, short? courseId);
+    Task<List<(short CourseId, int Count)>> GetTopTracksByPlayerAsync(long profileId, int limit, DateTime? after, short? courseId, short? engineClassId = null);
 
     /// <summary>
     /// Asynchronously retrieves the top characters used by a player, ranked by usage count.
@@ -52,7 +52,7 @@ public interface IRaceStatsRepository
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of tuples, each consisting of
     /// a character ID and the corresponding usage count, ordered by count in descending order. The list may be empty if
     /// no usage data is found.</returns>
-    Task<List<(short Id, int Count)>> GetTopCharactersByPlayerAsync(long profileId, int limit, DateTime? after, short? courseId);
+    Task<List<(short Id, int Count)>> GetTopCharactersByPlayerAsync(long profileId, int limit, DateTime? after, short? courseId, short? engineClassId = null);
 
     /// <summary>
     /// Asynchronously retrieves the top vehicles used by a specific player, ranked by usage count.
@@ -66,7 +66,7 @@ public interface IRaceStatsRepository
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of tuples, each consisting of
     /// a vehicle ID and its corresponding usage count, ordered by count in descending order. The list may be empty if
     /// no usage data is found.</returns>
-    Task<List<(short Id, int Count)>> GetTopVehiclesByPlayerAsync(long profileId, int limit, DateTime? after, short? courseId);
+    Task<List<(short Id, int Count)>> GetTopVehiclesByPlayerAsync(long profileId, int limit, DateTime? after, short? courseId, short? engineClassId = null);
 
     /// <summary>
     /// Asynchronously retrieves the most frequently used character and vehicle combinations for a specified player
@@ -81,7 +81,7 @@ public interface IRaceStatsRepository
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of tuples, each consisting of
     /// a character ID, vehicle ID, and the count of times that combination was used, ordered by descending count. The
     /// list may be empty if no data matches the criteria.</returns>
-    Task<List<(short CharacterId, short VehicleId, int Count)>> GetTopCombosByPlayerAsync(long profileId, int limit, DateTime? after, short? courseId);
+    Task<List<(short CharacterId, short VehicleId, int Count)>> GetTopCombosByPlayerAsync(long profileId, int limit, DateTime? after, short? courseId, short? engineClassId = null);
 
     /// <summary>
     /// Asynchronously retrieves the total number of frames in which the specified player finished in first place,
@@ -93,7 +93,7 @@ public interface IRaceStatsRepository
     /// <param name="courseId">An optional course identifier. If specified, only results from this course are included.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the total number of first-place
     /// frames for the specified player, filtered as requested.</returns>
-    Task<long> GetTotalFramesIn1stByPlayerAsync(long profileId, DateTime? after, short? courseId);
+    Task<long> GetTotalFramesIn1stByPlayerAsync(long profileId, DateTime? after, short? courseId, short? engineClassId = null);
 
     /// <summary>
     /// Asynchronously retrieves a paginated list of recent race results for a specified player profile, optionally
@@ -108,7 +108,7 @@ public interface IRaceStatsRepository
     /// included.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a tuple with a list of recent race
     /// results and the total count of matching races.</returns>
-    Task<(List<RaceResultEntity> Rows, int TotalCount)> GetRecentRacesByPlayerAsync(long profileId, int page, int pageSize, DateTime? after, short? courseId);
+    Task<(List<RaceResultEntity> Rows, int TotalCount)> GetRecentRacesByPlayerAsync(long profileId, int page, int pageSize, DateTime? after, short? courseId, short? engineClassId = null);
 
     // ===== GLOBAL =====
 
