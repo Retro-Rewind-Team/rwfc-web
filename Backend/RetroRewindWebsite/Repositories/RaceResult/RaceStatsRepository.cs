@@ -120,7 +120,10 @@ public class RaceStatsRepository : IRaceStatsRepository
     // ===== GLOBAL =====
 
     public async Task<int> GetTotalRaceCountAsync(DateTime? after) =>
-        await BaseGlobalQuery(after).CountAsync();
+        await BaseGlobalQuery(after)
+            .Select(r => new { r.RoomId, r.RaceNumber })
+            .Distinct()
+            .CountAsync();
 
     public async Task<int> GetUniquePlayerCountAsync(DateTime? after) =>
         await BaseGlobalQuery(after)
@@ -131,6 +134,8 @@ public class RaceStatsRepository : IRaceStatsRepository
     public async Task<List<(short CourseId, int Count)>> GetAllPlayedTracksAsync(DateTime? after)
     {
         var rows = await BaseGlobalQuery(after)
+            .Select(r => new { r.CourseId, r.RoomId, r.RaceNumber })
+            .Distinct()
             .GroupBy(r => r.CourseId)
             .Select(g => new { CourseId = g.Key, Count = g.Count() })
             .OrderByDescending(x => x.Count)
@@ -189,21 +194,29 @@ public class RaceStatsRepository : IRaceStatsRepository
 
     public async Task<List<(int DayOfWeek, int Count)>> GetRaceCountByDayOfWeekAsync(DateTime? after)
     {
-        var rows = await BaseGlobalQuery(after)
-            .GroupBy(r => (int)r.RaceTimestamp.DayOfWeek)
-            .Select(g => new { DayOfWeek = g.Key, Count = g.Count() })
+        var distinctTimestamps = await BaseGlobalQuery(after)
+            .GroupBy(r => new { r.RoomId, r.RaceNumber })
+            .Select(g => g.Min(r => r.RaceTimestamp))
             .ToListAsync();
 
-        return [.. rows.Select(x => (x.DayOfWeek, x.Count))];
+        var rows = distinctTimestamps
+            .GroupBy(ts => (int)ts.DayOfWeek)
+            .Select(g => (DayOfWeek: g.Key, Count: g.Count()));
+
+        return [.. rows];
     }
 
     public async Task<List<(int Hour, int Count)>> GetRaceCountByHourAsync(DateTime? after)
     {
-        var rows = await BaseGlobalQuery(after)
-            .GroupBy(r => r.RaceTimestamp.Hour)
-            .Select(g => new { Hour = g.Key, Count = g.Count() })
+        var distinctTimestamps = await BaseGlobalQuery(after)
+            .GroupBy(r => new { r.RoomId, r.RaceNumber })
+            .Select(g => g.Min(r => r.RaceTimestamp))
             .ToListAsync();
 
-        return [.. rows.Select(x => (x.Hour, x.Count))];
+        var rows = distinctTimestamps
+            .GroupBy(ts => ts.Hour)
+            .Select(g => (Hour: g.Key, Count: g.Count()));
+
+        return [.. rows];
     }
 }
