@@ -6,7 +6,6 @@ export * from "./vrTierHelpers";
 export * from "./friendCodeUtils";
 export * from "./rksysParser";
 export * from "./ratingParser";
-export * from "./rankCalculator";
 export * from "./u8Parser";
 export * from "./yaz0";
 export * from "./fileValidator";
