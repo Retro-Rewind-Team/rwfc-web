@@ -4,7 +4,6 @@ export * from "./constants";
 export * from "./vrTiers";
 export * from "./vrTierHelpers";
 export * from "./friendCodeUtils";
-export * from "./rksysParser";
 export * from "./ratingParser";
 export * from "./u8Parser";
 export * from "./yaz0";
