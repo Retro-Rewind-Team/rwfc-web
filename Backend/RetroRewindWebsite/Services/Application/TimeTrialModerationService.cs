@@ -68,8 +68,6 @@ public class TimeTrialModerationService : ITimeTrialModerationService
             {
                 TrackId = trackId,
                 TTProfileId = ttProfile.Id,
-                Track = track,
-                TTProfile = ttProfile,
                 CC = cc,
                 FinishTimeMs = ghostData.FinishTimeMs,
                 FinishTimeDisplay = ghostData.FinishTimeDisplay,
