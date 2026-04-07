@@ -83,7 +83,7 @@ public class MiiService : IMiiService
                     return null;
                 }
 
-                var miiImageUrl = $"https://studio.mii.nintendo.com/miis/image.png?data={jsonResponse.Mii}&type=face&expression=normal&width=270&bgColor=FFFFFF00";
+                var miiImageUrl = $"https://studio.mii.nintendo.com/miis/image.png?data={jsonResponse.Mii}&type=face&expression=normal&width=64&bgColor=FFFFFF00";
 
                 var imageResponse = await httpClient.GetAsync(miiImageUrl, cancellationToken);
                 if (!imageResponse.IsSuccessStatusCode)
