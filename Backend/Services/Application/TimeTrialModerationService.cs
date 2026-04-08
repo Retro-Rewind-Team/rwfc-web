@@ -47,6 +47,9 @@ public class TimeTrialModerationService : ITimeTrialModerationService
         if (glitch && !track.SupportsGlitch)
             return new GhostSubmissionResultDto(false, $"Glitch/shortcut runs are not allowed for {track.Name}");
 
+        if (isFlap && track.Laps == 1)
+            return new GhostSubmissionResultDto(false, $"{track.Name} is a 1-lap track and does not support flap submissions");
+
         var ttProfile = await _ttProfileRepository.GetByIdAsync(ttProfileId);
         if (ttProfile == null)
             return new GhostSubmissionResultDto(false, $"TT Profile with ID {ttProfileId} not found. Create the profile first.");

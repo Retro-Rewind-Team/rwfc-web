@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using RetroRewindWebsite.Models.External;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 using System.Collections.Concurrent;
 
 namespace RetroRewindWebsite.Services.Domain;
@@ -83,7 +85,7 @@ public class MiiService : IMiiService
                     return null;
                 }
 
-                var miiImageUrl = $"https://studio.mii.nintendo.com/miis/image.png?data={jsonResponse.Mii}&type=face&expression=normal&width=64&bgColor=FFFFFF00";
+                var miiImageUrl = $"https://studio.mii.nintendo.com/miis/image.png?data={jsonResponse.Mii}&type=face&expression=normal&width=270&bgColor=FFFFFF00";
 
                 var imageResponse = await httpClient.GetAsync(miiImageUrl, cancellationToken);
                 if (!imageResponse.IsSuccessStatusCode)
@@ -93,7 +95,12 @@ public class MiiService : IMiiService
                 }
 
                 var imageBytes = await imageResponse.Content.ReadAsByteArrayAsync(cancellationToken);
-                var base64Image = Convert.ToBase64String(imageBytes);
+
+                using var image = Image.Load(imageBytes);
+                image.Mutate(x => x.Resize(64, 64));
+                using var ms = new MemoryStream();
+                await image.SaveAsPngAsync(ms, cancellationToken);
+                var base64Image = Convert.ToBase64String(ms.ToArray());
 
                 // Cache in memory
                 _cache.Set(friendCode, base64Image, _cacheOptions);
