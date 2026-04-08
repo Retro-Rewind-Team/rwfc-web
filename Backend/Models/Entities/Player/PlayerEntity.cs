@@ -28,6 +28,8 @@ public class PlayerEntity
     public string FlagReason { get; set; } = string.Empty;
     public string UnflagReason { get; set; } = string.Empty;
 
+    public bool IsBanned { get; set; }
+
     public virtual PlayerMiiCacheEntity? MiiCache { get; set; }
     public virtual ICollection<VRHistoryEntity> VRHistory { get; set; } = [];
 }
