@@ -1,5 +1,5 @@
-import { A, useParams } from "@solidjs/router";
-import { createMemo, Show } from "solid-js";
+import { A, useNavigate, useParams } from "@solidjs/router";
+import { createEffect, createMemo, Show } from "solid-js";
 import { ChevronLeft, TriangleAlert, Trophy, Zap } from "lucide-solid";
 import { useTTTrackDetail } from "../../hooks/useTTTrackDetail";
 import { AlertBox, InlinePagination, LoadingSpinner } from "../../components/common";
@@ -21,6 +21,7 @@ function parseRouteCC(ccParam: string): {
 
 export default function TTTrackDetailPage() {
     const params = useParams();
+    const navigate = useNavigate();
 
     const parsed = createMemo(() => parseRouteCC(params.cc ?? "150cc"));
     const selectedCC = createMemo((): 150 | 200 => parsed().cc);
@@ -34,6 +35,16 @@ export default function TTTrackDetailPage() {
         glitchAllowed,
         mode,
     );
+
+    // Redirect flap URLs to regular if the track has only 1 lap
+    createEffect(() => {
+        const track = queries.trackQuery.data;
+        if (track && track.laps === 1 && mode() === "flap") {
+            navigate(`/timetrial/${glitchAllowed() ? "" : "no-glitch-"}${selectedCC()}cc/${trackId()}`, {
+                replace: true,
+            });
+        }
+    });
 
     const categoryLabel = () => {
         const parts: string[] = [];
@@ -129,6 +140,7 @@ export default function TTTrackDetailPage() {
                                 <TTFilters
                                     trackId={trackId()}
                                     trackSupportsGlitch={track().supportsGlitch}
+                                    trackLaps={track().laps}
                                     currentCC={selectedCC()}
                                     currentGlitchAllowed={glitchAllowed()}
                                     currentMode={mode()}

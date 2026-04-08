@@ -12,6 +12,7 @@ import ToggleGroup from "../../common/ToggleGroup";
 interface TTFiltersProps {
     trackId: number;
     trackSupportsGlitch: boolean;
+    trackLaps: number;
     currentCC: 150 | 200;
     currentGlitchAllowed: boolean;
     currentMode: LeaderboardMode;
@@ -122,44 +123,46 @@ export default function TTFilters(props: TTFiltersProps) {
                 </div>
             </Show>
 
-            {/* Flap Mode Toggle - navigation links */}
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                    Leaderboard Type
-                </label>
-                <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
-                    <A
-                        href={buildRoute(
-                            props.trackId,
-                            props.currentCC,
-                            props.currentGlitchAllowed,
-                            "regular",
-                        )}
-                        class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
-                            props.currentMode === "regular"
-                                ? "bg-blue-600 text-white shadow-sm"
-                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                        }`}
-                    >
-                        Regular
-                    </A>
-                    <A
-                        href={buildRoute(
-                            props.trackId,
-                            props.currentCC,
-                            props.currentGlitchAllowed,
-                            "flap",
-                        )}
-                        class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
-                            props.currentMode === "flap"
-                                ? "bg-orange-500 text-white shadow-sm"
-                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                        }`}
-                    >
-                        ⚡ Flap
-                    </A>
+            {/* Flap Mode Toggle - navigation links, hidden for 1-lap tracks */}
+            <Show when={props.trackLaps !== 1}>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                        Leaderboard Type
+                    </label>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
+                        <A
+                            href={buildRoute(
+                                props.trackId,
+                                props.currentCC,
+                                props.currentGlitchAllowed,
+                                "regular",
+                            )}
+                            class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
+                                props.currentMode === "regular"
+                                    ? "bg-blue-600 text-white shadow-sm"
+                                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                            }`}
+                        >
+                            Regular
+                        </A>
+                        <A
+                            href={buildRoute(
+                                props.trackId,
+                                props.currentCC,
+                                props.currentGlitchAllowed,
+                                "flap",
+                            )}
+                            class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
+                                props.currentMode === "flap"
+                                    ? "bg-orange-500 text-white shadow-sm"
+                                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                            }`}
+                        >
+                            ⚡ Flap
+                        </A>
+                    </div>
                 </div>
-            </div>
+            </Show>
 
             {/* Display filters grid - button-based, client-side only */}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
