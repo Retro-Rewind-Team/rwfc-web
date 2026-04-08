@@ -46,7 +46,7 @@ The frontend and backend run as separate processes. In development the frontend 
 
 ## Backend Setup
 
-All commands run from `Backend/RetroRewindWebsite/`.
+All commands run from `Backend/`.
 
 ### 1. Create the database
 
@@ -66,7 +66,7 @@ If your local PostgreSQL uses different credentials, update them in `appsettings
 
 ### 2. Create `appsettings.Development.json`
 
-This file is not included in the repository (it is gitignored). Create it at `Backend/RetroRewindWebsite/appsettings.Development.json` with the following content:
+This file is not included in the repository (it is gitignored). Create it at `Backend/appsettings.Development.json` with the following content:
 
 ```json
 {

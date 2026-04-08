@@ -195,6 +195,14 @@ public class LeaderboardSyncService : ILeaderboardSyncService
     {
         var previousVR = existingPlayer.Ev;
 
+        if (existingPlayer.IsBanned)
+        {
+            existingPlayer.IsBanned = false;
+            _logger.LogInformation(
+                "Ban lifted for player seen online: {Name} ({FriendCode}) - PID: {Pid}",
+                existingPlayer.Name, existingPlayer.Fc, existingPlayer.Pid);
+        }
+
         if (existingPlayer.Name != apiPlayer.Name)
             existingPlayer.Name = apiPlayer.Name;
 

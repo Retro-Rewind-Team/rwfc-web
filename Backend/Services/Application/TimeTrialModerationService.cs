@@ -107,10 +107,12 @@ public class TimeTrialModerationService : ITimeTrialModerationService
                 trackId, ttProfile.DisplayName, ttProfile.Id,
                 ghostData.FinishTimeMs, ghostData.DriftCategory);
 
+            var saved = await _ghostSubmissionRepository.GetByIdAsync(submission.Id);
+
             return new GhostSubmissionResultDto(
                 true,
                 "Ghost submitted successfully",
-                GhostSubmissionMapper.ToDto(submission));
+                GhostSubmissionMapper.ToDto(saved!));
         }
     }
 

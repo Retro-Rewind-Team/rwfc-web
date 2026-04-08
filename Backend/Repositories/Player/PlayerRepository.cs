@@ -69,7 +69,7 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
         string sortBy,
         bool ascending)
     {
-        var query = _context.Players.AsNoTracking();
+        var query = _context.Players.AsNoTracking().Where(p => !p.IsBanned);
 
         if (!string.IsNullOrEmpty(search))
         {
@@ -87,7 +87,7 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
     public async Task<List<PlayerEntity>> GetTopPlayersAsync(int count) =>
         await _context.Players
             .AsNoTracking()
-            .Where(p => !p.IsSuspicious)
+            .Where(p => !p.IsSuspicious && !p.IsBanned)
             .OrderBy(p => p.Rank)
             .Take(count)
             .ToListAsync();
@@ -96,6 +96,7 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
     {
         var query = _context.Players
             .AsNoTracking()
+            .Where(p => !p.IsBanned)
             .OrderBy(p => p.Rank);
 
         return await PagedResult<PlayerEntity>.CreateAsync(query, page, 50);
@@ -104,7 +105,7 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
     // ===== STATISTICS =====
 
     public async Task<int> GetTotalPlayersCountAsync() =>
-        await _context.Players.CountAsync();
+        await _context.Players.CountAsync(p => !p.IsBanned);
 
     public async Task<int> GetSuspiciousPlayersCountAsync() =>
         await _context.Players.CountAsync(p => p.IsSuspicious);
@@ -141,15 +142,16 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
 
             await _context.Database.ExecuteSqlRawAsync(@"
                 WITH RankedPlayers AS (
-                    SELECT 
+                    SELECT
                         ""Id"",
                         ROW_NUMBER() OVER (
-                            ORDER BY 
+                            ORDER BY
                                 CASE WHEN ""IsSuspicious"" = false THEN 0 ELSE 1 END,
                                 ""Ev"" DESC,
                                 ""LastSeen"" DESC
                         ) as NewRank
                     FROM ""Players""
+                    WHERE ""IsBanned"" = false
                 )
                 UPDATE ""Players"" p
                 SET ""Rank"" = rp.NewRank

@@ -87,18 +87,25 @@ public class PlayerModerationService : IPlayerModerationService
         if (player == null)
             return null;
 
-        // Capture DTO before deletion so it can be included in the response
-        var playerDto = PlayerMapper.ToDto(player);
+        if (player.IsBanned)
+        {
+            return new ModerationActionResultDto(
+                true,
+                $"Player '{player.Name}' is already banned",
+                PlayerMapper.ToDto(player)
+            );
+        }
 
-        await _playerRepository.DeleteAsync(player.Id);
+        player.IsBanned = true;
+        await _playerRepository.UpdateAsync(player);
 
         _logger.LogWarning("Player banned: {Name} ({FriendCode}) - PID: {Pid}",
             player.Name, player.Fc, player.Pid);
 
         return new ModerationActionResultDto(
             true,
-            $"Player '{player.Name}' has been banned and removed from the leaderboard",
-            playerDto
+            $"Player '{player.Name}' has been banned and hidden from the leaderboard",
+            PlayerMapper.ToDto(player)
         );
     }
 

@@ -8,7 +8,9 @@ namespace RetroRewindWebsite.Mappers;
 /// </summary>
 public static class PlayerMapper
 {
-    /// <summary>Maps a player entity to the full <see cref="PlayerDto"/>, including Mii data.</summary>
+    /// <summary>
+    /// Maps a player entity to the full <see cref="PlayerDto"/>, including Mii data.
+    /// </summary>
     public static PlayerDto ToDto(PlayerEntity entity) => new(
         Pid: entity.Pid,
         Name: entity.Name,
