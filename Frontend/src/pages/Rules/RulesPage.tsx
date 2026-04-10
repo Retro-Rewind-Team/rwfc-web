@@ -150,7 +150,7 @@ export default function RulesPage() {
                         <strong>Allowed:</strong> Stop trolling (coming to a stop with a power item)
                         is allowed as long as it is not being used to troll/target players. Playing
                         like a douchebag is allowed as long as you prioritize actually racing.
-                        Playing with the sole intent to troll/disrupt is unwanted and
+                        Playing with the sole intent to troll/disrupt is unwanted and 
                         <strong>will</strong> result in punishment.
                     </p>
                 </AlertBox>
