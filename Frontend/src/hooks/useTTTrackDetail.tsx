@@ -43,7 +43,7 @@ export function useTTTrackDetail(
     const [driftFilter, setDriftFilter] = createSignal<DriftFilter>("all");
     const [driftCategoryFilter, setDriftCategoryFilter] = createSignal<DriftCategoryFilter>("all");
 
-    // Reset page when external props (CC, glitch, mode) change — these can't be batched from inside the hook
+    // Reset page when external props (CC, glitch, mode) change
     createEffect(() => {
         cc();
         glitchAllowed();

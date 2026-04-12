@@ -9,6 +9,10 @@ interface VRHistoryChartProps {
     readonly initialDays?: number;
 }
 
+// Below this point count, render individual dots for each data point.
+// Above it, just the line is shown (plus the hovered dot) to avoid visual clutter.
+const DOTS_THRESHOLD = 60;
+
 export default function VRHistoryChart(props: VRHistoryChartProps) {
     const { historyData, stats, selectedDays, isLoading, error, changePeriod, refresh } =
         useVRHistory(props.friendCode, props.initialDays);
@@ -18,6 +22,8 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
         x: number;
         y: number;
     } | null>(null);
+
+    let svgRef: SVGSVGElement;
 
     // Detect mobile
     const isMobile = () => {
@@ -87,6 +93,68 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
             ((point.totalVR - scales.minVR) / scales.vrRange) * innerHeight;
 
         return { x, y };
+    };
+
+    // Find and highlight the nearest data point to the cursor's X position.
+    // Uses binary search since data is time-sorted (X values monotonically increase).
+    const snapToNearest = (clientX: number) => {
+        const data = historyData();
+        if (data.length === 0 || !svgRef) return;
+
+        const padding = getPadding();
+        const innerWidth = CHART_WIDTH - padding.left - padding.right;
+        const svgRect = svgRef.getBoundingClientRect();
+        const mouseX = (clientX - svgRect.left) * (CHART_WIDTH / svgRect.width);
+
+        const firstTime = new Date(data[0].date).getTime();
+        const lastTime = new Date(data[data.length - 1].date).getTime();
+        const timeRange = lastTime - firstTime || 1;
+
+        const toX = (i: number) => {
+            const t = new Date(data[i].date).getTime();
+            return padding.left + ((t - firstTime) / timeRange) * innerWidth;
+        };
+
+        let lo = 0,
+            hi = data.length - 1;
+        while (lo < hi) {
+            const mid = (lo + hi) >> 1;
+            if (toX(mid) < mouseX) lo = mid + 1;
+            else hi = mid;
+        }
+
+        // Check if the point just before lo is closer
+        if (lo > 0 && Math.abs(toX(lo - 1) - mouseX) < Math.abs(toX(lo) - mouseX)) {
+            lo--;
+        }
+
+        const nearest = data[lo];
+        setHoveredPoint(nearest);
+        setHoveredPosition(pointToSVG(nearest));
+    };
+
+    const handleSVGMouseMove = (e: MouseEvent) => {
+        if (isMobile()) return;
+        snapToNearest(e.clientX);
+    };
+
+    const handleSVGTouchStart = (e: TouchEvent) => {
+        e.stopPropagation(); // Prevent outer div from clearing the tooltip
+        snapToNearest(e.touches[0].clientX);
+    };
+
+    const handleMouseLeave = () => {
+        if (!isMobile()) {
+            setHoveredPoint(null);
+            setHoveredPosition(null);
+        }
+    };
+
+    const handleTapOutside = () => {
+        if (isMobile()) {
+            setHoveredPoint(null);
+            setHoveredPosition(null);
+        }
     };
 
     // Generate Y-axis ticks
@@ -180,28 +248,6 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
         path += ` L ${lastPoint.x} ${bottomY} Z`;
 
         return path;
-    };
-
-    const handlePointInteraction = (point: ProcessedVRHistory) => {
-        const { x, y } = pointToSVG(point);
-        setHoveredPoint(point);
-        setHoveredPosition({ x, y });
-    };
-
-    const handleMouseLeave = () => {
-        // On mobile, don't clear on mouse leave since we use tap
-        if (!isMobile()) {
-            setHoveredPoint(null);
-            setHoveredPosition(null);
-        }
-    };
-
-    const handleTapOutside = () => {
-        // Clear tooltip when tapping outside on mobile
-        if (isMobile()) {
-            setHoveredPoint(null);
-            setHoveredPosition(null);
-        }
     };
 
     return (
@@ -343,10 +389,13 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                     onTouchStart={handleTapOutside}
                 >
                     <svg
+                        ref={(el) => (svgRef = el)}
                         viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-                        class="w-full h-auto"
+                        class="w-full h-auto cursor-crosshair"
                         preserveAspectRatio="xMidYMid meet"
+                        onMouseMove={handleSVGMouseMove}
                         onMouseLeave={handleMouseLeave}
+                        onTouchStart={handleSVGTouchStart}
                     >
                         <defs>
                             {/* Gradient for line */}
@@ -363,7 +412,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                             </linearGradient>
                         </defs>
 
-                        {/* Grid lines*/}
+                        {/* Grid lines */}
                         <For each={getYAxisTicks()}>
                             {(tick) => {
                                 const padding = getPadding();
@@ -479,48 +528,51 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                             }}
                         </For>
 
-                        {/* Data points */}
-                        <For each={historyData()}>
-                            {(point) => {
-                                const { x, y } = pointToSVG(point);
-                                const isHovered = hoveredPoint() === point;
-
-                                return (
-                                    <g>
-                                        {/* Larger invisible hitbox */}
+                        {/* Individual dots - only rendered for sparse datasets */}
+                        <Show when={historyData().length <= DOTS_THRESHOLD}>
+                            <For each={historyData()}>
+                                {(point) => {
+                                    const { x, y } = pointToSVG(point);
+                                    return (
                                         <circle
                                             cx={x}
                                             cy={y}
-                                            r="12"
-                                            fill="transparent"
-                                            class="cursor-pointer"
-                                            onMouseEnter={() =>
-                                                !isMobile() && handlePointInteraction(point)
-                                            }
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handlePointInteraction(point);
-                                            }}
-                                            onTouchStart={(e) => {
-                                                e.stopPropagation();
-                                                handlePointInteraction(point);
-                                            }}
-                                        />
-
-                                        {/* Visible dot */}
-                                        <circle
-                                            cx={x}
-                                            cy={y}
-                                            r={isHovered ? "6" : "4"}
+                                            r="4"
                                             fill="white"
                                             stroke="url(#lineGradient)"
                                             stroke-width="2"
-                                            class="transition-all cursor-pointer pointer-events-none"
+                                            style="pointer-events: none"
                                         />
-                                    </g>
-                                );
-                            }}
-                        </For>
+                                    );
+                                }}
+                            </For>
+                        </Show>
+
+                        {/* Hover crosshair + highlighted dot */}
+                        <Show when={hoveredPoint() && hoveredPosition()}>
+                            {/* Vertical crosshair line */}
+                            <line
+                                x1={hoveredPosition()!.x}
+                                y1={getPadding().top}
+                                x2={hoveredPosition()!.x}
+                                y2={CHART_HEIGHT - getPadding().bottom}
+                                stroke="currentColor"
+                                class="text-gray-400 dark:text-gray-500"
+                                stroke-width="1"
+                                stroke-dasharray="4,4"
+                                style="pointer-events: none"
+                            />
+                            {/* Highlighted dot */}
+                            <circle
+                                cx={hoveredPosition()!.x}
+                                cy={hoveredPosition()!.y}
+                                r="6"
+                                fill="white"
+                                stroke="url(#lineGradient)"
+                                stroke-width="2"
+                                style="pointer-events: none"
+                            />
+                        </Show>
 
                         {/* Hover tooltip */}
                         <Show when={hoveredPoint() && hoveredPosition()}>
@@ -528,24 +580,29 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                                 {(() => {
                                     const point = hoveredPoint()!;
                                     const pos = hoveredPosition()!;
-                                    const tooltipWidth = 120;
-                                    const tooltipHeight = 60;
                                     const days = selectedDays();
                                     const padding = getPadding();
 
-                                    // Format timestamp based on period
-                                    const pointDate = new Date(point.date);
-                                    let timestamp: string;
+                                    // Tooltip width varies with the amount of date info shown
+                                    const tooltipWidth = days === null ? 145 : days === 1 ? 110 : 135;
+                                    const tooltipHeight = 60;
 
+                                    // Format timestamp - include time for multi-day periods since
+                                    // we now show individual sessions, not daily aggregates
+                                    const pointDate = new Date(point.date);
+                                    const hh = String(pointDate.getHours()).padStart(2, "0");
+                                    const mm = String(pointDate.getMinutes()).padStart(2, "0");
+                                    const dd = String(pointDate.getDate()).padStart(2, "0");
+                                    const mo = String(pointDate.getMonth() + 1).padStart(2, "0");
+                                    const yyyy = pointDate.getFullYear();
+
+                                    let timestamp: string;
                                     if (days === 1) {
-                                        // 24h
-                                        timestamp = `${String(pointDate.getHours()).padStart(2, "0")}:${String(pointDate.getMinutes()).padStart(2, "0")}`;
+                                        timestamp = `${hh}:${mm}`;
                                     } else if (days === null) {
-                                        // Lifetime
-                                        timestamp = `${String(pointDate.getDate()).padStart(2, "0")}/${String(pointDate.getMonth() + 1).padStart(2, "0")}/${pointDate.getFullYear()}`;
+                                        timestamp = `${dd}/${mo}/${yyyy} ${hh}:${mm}`;
                                     } else {
-                                        // 7d, 30d
-                                        timestamp = `${String(pointDate.getDate()).padStart(2, "0")}/${String(pointDate.getMonth() + 1).padStart(2, "0")}`;
+                                        timestamp = `${dd}/${mo} ${hh}:${mm}`;
                                     }
 
                                     // Determine X position (left or right of cursor)
@@ -589,12 +646,14 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                                                 stroke="#E5E7EB"
                                                 stroke-width="2"
                                                 class="dark:fill-gray-800 dark:stroke-gray-600"
+                                                style="pointer-events: none"
                                             />
                                             <text
                                                 x={tooltipX + tooltipWidth / 2}
                                                 y={tooltipY + 18}
                                                 text-anchor="middle"
                                                 class="text-xs fill-gray-600 dark:fill-gray-400"
+                                                style="pointer-events: none"
                                             >
                                                 {timestamp}
                                             </text>
@@ -603,6 +662,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                                                 y={tooltipY + 35}
                                                 text-anchor="middle"
                                                 class="text-xs fill-gray-900 dark:fill-white font-bold"
+                                                style="pointer-events: none"
                                             >
                                                 {point.totalVR.toLocaleString()} VR
                                             </text>
@@ -615,6 +675,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                                                         ? "fill-emerald-600"
                                                         : "fill-red-600"
                                                 }`}
+                                                style="pointer-events: none"
                                             >
                                                 {point.vrChange >= 0 ? "+" : ""}
                                                 {point.vrChange}
@@ -629,7 +690,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
 
                 <div class="mt-4 flex items-center justify-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
                     <Info size={14} />
-                    <span>{isMobile() ? "Tap" : "Hover over"} points to see details</span>
+                    <span>{isMobile() ? "Tap" : "Hover"} to inspect individual sessions</span>
                 </div>
             </Show>
         </div>
