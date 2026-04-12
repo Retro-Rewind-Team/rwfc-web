@@ -39,4 +39,16 @@ public interface IPlayerModerationService
     /// <returns>The result containing the player info and suspicious jump list,
     /// or <see langword="null"/> if no player with the given PID exists.</returns>
     Task<SuspiciousJumpsResultDto?> GetSuspiciousJumpsAsync(string pid);
+
+    /// <summary>
+    /// Atomically swaps all tracked stats between two player licenses: VR, VR history,
+    /// race results, and moderation flags. Neither side loses data — A ends up with B's
+    /// stats and B ends up with A's. Hardware-bound fields (PID, FC, name, Mii) are not touched.
+    /// </summary>
+    /// <param name="sourcePid">The PID of the first player.</param>
+    /// <param name="targetPid">The PID of the second player.</param>
+    /// <param name="reason">The moderator's reason for performing the swap.</param>
+    /// <returns>The result containing both players after the swap,
+    /// or <see langword="null"/> if either PID does not exist.</returns>
+    Task<SwapResultDto?> SwapPlayerStatsAsync(string sourcePid, string targetPid, string reason);
 }
