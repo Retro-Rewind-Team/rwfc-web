@@ -1,4 +1,4 @@
-import { createEffect, createSignal } from "solid-js";
+import { createSignal, onMount } from "solid-js";
 import { leaderboardApi } from "../services/api/leaderboard";
 import { VRHistoryEntry } from "../types";
 
@@ -166,7 +166,7 @@ export function useVRHistory(friendCode: string, initialDays = 30) {
         fetchHistory(selectedDays());
     };
 
-    createEffect(() => {
+    onMount(() => {
         if (friendCode) {
             fetchHistory(selectedDays());
         }

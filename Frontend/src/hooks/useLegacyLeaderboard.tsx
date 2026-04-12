@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal } from "solid-js";
+import { batch, createEffect, createMemo, createSignal } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { legacyLeaderboardApi } from "../services/api/leaderboard";
 import { LeaderboardRequest } from "../types";
@@ -60,13 +60,15 @@ export function useLegacyLeaderboard() {
     });
 
     const handleSort = (field: string) => {
-        if (sortBy() === field) {
-            setAscending(!ascending());
-        } else {
-            setSortBy(field);
-            setAscending(field === "rank");
-        }
-        setCurrentPage(1);
+        batch(() => {
+            if (sortBy() === field) {
+                setAscending(!ascending());
+            } else {
+                setSortBy(field);
+                setAscending(field === "rank");
+            }
+            setCurrentPage(1);
+        });
     };
 
     return {
