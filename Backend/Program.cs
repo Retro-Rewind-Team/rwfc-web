@@ -100,6 +100,7 @@ builder.Services.AddScoped<IRetroWFCApiClient, RetroWFCApiClient>();
 
 // ===== DOMAIN SERVICES =====
 builder.Services.AddScoped<IPlayerValidationService, PlayerValidationService>();
+builder.Services.AddScoped<IDiscordWebhookService, DiscordWebhookService>();
 builder.Services.AddScoped<IMaintenanceService, MaintenanceService>();
 builder.Services.AddScoped<IMiiService, MiiService>();
 builder.Services.AddScoped<IGhostFileService, GhostFileService>();
