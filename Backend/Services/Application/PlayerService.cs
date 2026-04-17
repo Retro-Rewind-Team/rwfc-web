@@ -90,6 +90,47 @@ public class PlayerService : IPlayerService
         );
     }
 
+    public async Task<VRHistoryRangeResponseDto?> GetPlayerHistoryAsync(string fc, DateTime from, DateTime to)
+    {
+        var player = await _playerRepository.GetByFcAsync(fc);
+        if (player == null)
+            return null;
+
+        var history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, from, to);
+
+        var historyDtos = history
+            .Select(PlayerMapper.ToVRHistoryDto)
+            .OrderBy(h => h.Date)
+            .ToList();
+
+        var startingVR = historyDtos.Count > 0
+            ? historyDtos.First().TotalVR - historyDtos.First().VRChange
+            : player.Ev;
+        var endingVR = historyDtos.Count > 0
+            ? historyDtos.Last().TotalVR
+            : player.Ev;
+
+        if (historyDtos.Count > 0)
+        {
+            var initialEntry = new VRHistoryDto(
+                Date: historyDtos.First().Date.AddSeconds(-1),
+                VRChange: 0,
+                TotalVR: startingVR
+            );
+            historyDtos.Insert(0, initialEntry);
+        }
+
+        return new VRHistoryRangeResponseDto(
+            PlayerId: player.Pid,
+            FromDate: from,
+            ToDate: to,
+            History: historyDtos,
+            TotalVRChange: endingVR - startingVR,
+            StartingVR: startingVR,
+            EndingVR: endingVR
+        );
+    }
+
     public async Task<List<VRHistoryDto>?> GetPlayerRecentHistoryAsync(string fc, int count)
     {
         var player = await _playerRepository.GetByFcAsync(fc);

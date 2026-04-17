@@ -14,10 +14,13 @@ interface VRHistoryChartProps {
 const DOTS_THRESHOLD = 60;
 
 export default function VRHistoryChart(props: VRHistoryChartProps) {
-    const { historyData, stats, selectedDays, isLoading, error, changePeriod, refresh } =
+    const { historyData, stats, selectedDays, customRange, isLoading, error, changePeriod, changeRange, refresh } =
         useVRHistory(props.friendCode, props.initialDays);
 
     const [hoveredPoint, setHoveredPoint] = createSignal<ProcessedVRHistory | null>(null);
+    const [showCustomRange, setShowCustomRange] = createSignal(false);
+    const [rangeFrom, setRangeFrom] = createSignal("");
+    const [rangeTo, setRangeTo] = createSignal("");
     const [hoveredPosition, setHoveredPosition] = createSignal<{
         x: number;
         y: number;
@@ -31,17 +34,67 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
         return window.innerWidth < 768 || "ontouchstart" in window || navigator.maxTouchPoints > 0;
     };
 
+    // The intended period width in days, used for all date formatting so it works
+    // correctly for both preset periods and arbitrary custom date ranges.
+    // Presets and custom ranges use the requested window, not the data span, so a
+    // player who only played on one day within a 7d window still gets dd/mm labels.
+    // Lifetime falls back to the data span since there is no fixed window.
+    const displayRangeDays = () => {
+        const range = customRange();
+        if (range) {
+            return (range.to.getTime() - range.from.getTime()) / (1000 * 60 * 60 * 24);
+        }
+        const days = selectedDays();
+        if (days !== null) return days;
+        // Lifetime: derive from actual data extent, but always show date labels
+        // hour-only labels are meaningless without a date when viewing all-time history.
+        const data = historyData();
+        if (data.length < 2) return 365;
+        const span =
+            (new Date(data[data.length - 1].date).getTime() -
+                new Date(data[0].date).getTime()) /
+            (1000 * 60 * 60 * 24);
+        return Math.max(span, 2);
+    };
+
+    const todayString = () => new Date().toISOString().slice(0, 10);
+
+    const handleApplyRange = () => {
+        const fromStr = rangeFrom();
+        const toStr = rangeTo();
+        if (!fromStr || !toStr) return;
+
+        const today = new Date();
+        today.setHours(23, 59, 59, 999);
+
+        let from = new Date(fromStr);
+        let to = new Date(toStr);
+        to.setHours(23, 59, 59, 999);
+
+        // Clamp to today
+        if (to > today) to = today;
+        // Can't start in the future
+        if (from > today) from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+        // Ensure from <= to (swap if not)
+        if (from > to) [from, to] = [to, from];
+
+        // Update inputs to reflect any clamping
+        setRangeFrom(from.toISOString().slice(0, 10));
+        setRangeTo(to.toISOString().slice(0, 10));
+
+        changeRange(from, to);
+    };
+
     // Chart dimensions
     const CHART_HEIGHT = 400;
     const CHART_WIDTH = 800;
 
     // Dynamic padding based on selected period
     const getPadding = () => {
-        const days = selectedDays();
         return {
             top: 20,
             right: 20,
-            bottom: days === null ? 80 : 60, // More space for lifetime dates
+            bottom: displayRangeDays() > 30 ? 80 : 60,
             left: 80,
         };
     };
@@ -171,7 +224,6 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
     // Generate X-axis ticks
     const getXAxisTicks = () => {
         const data = historyData();
-        const days = selectedDays();
 
         if (data.length === 0) return [];
 
@@ -180,8 +232,10 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
         const firstPoint = pointToSVG(data[0]);
         const lastPoint = pointToSVG(data[data.length - 1]);
 
-        if (days === 1) {
-            // 24h
+        const rangeDays = displayRangeDays();
+
+        if (rangeDays <= 1) {
+            // Sub-day — show time only
             const firstLabel = `${String(firstDate.getHours()).padStart(2, "0")}:${String(firstDate.getMinutes()).padStart(2, "0")}`;
             const lastLabel = `${String(lastDate.getHours()).padStart(2, "0")}:${String(lastDate.getMinutes()).padStart(2, "0")}`;
 
@@ -189,8 +243,8 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                 { label: firstLabel, x: firstPoint.x },
                 { label: lastLabel, x: lastPoint.x },
             ];
-        } else if (days === null) {
-            // Lifetime
+        } else if (rangeDays > 30) {
+            // Longer ranges — include the year
             const firstLabel = `${String(firstDate.getDate()).padStart(2, "0")}-${String(firstDate.getMonth() + 1).padStart(2, "0")}-${firstDate.getFullYear()}`;
             const lastLabel = `${String(lastDate.getDate()).padStart(2, "0")}-${String(lastDate.getMonth() + 1).padStart(2, "0")}-${lastDate.getFullYear()}`;
 
@@ -199,7 +253,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                 { label: lastLabel, x: lastPoint.x },
             ];
         } else {
-            // 7d, 30d
+            // Short ranges — dd/mm is sufficient
             const firstLabel = `${String(firstDate.getDate()).padStart(2, "0")}/${String(firstDate.getMonth() + 1).padStart(2, "0")}`;
             const lastLabel = `${String(lastDate.getDate()).padStart(2, "0")}/${String(lastDate.getMonth() + 1).padStart(2, "0")}`;
 
@@ -259,7 +313,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                 </h2>
 
                 {/* Period Selection */}
-                <div class="flex space-x-2 overflow-x-auto">
+                <div class="flex flex-wrap gap-2">
                     <For
                         each={[
                             { days: 1, label: "24h" },
@@ -271,9 +325,12 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                         {(period) => (
                             <button
                                 type="button"
-                                onClick={() => changePeriod(period.days)}
+                                onClick={() => {
+                                    setShowCustomRange(false);
+                                    changePeriod(period.days);
+                                }}
                                 class={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
-                                    selectedDays() === period.days
+                                    !customRange() && selectedDays() === period.days
                                         ? "bg-blue-600 text-white"
                                         : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                                 }`}
@@ -282,7 +339,60 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                             </button>
                         )}
                     </For>
+
+                    {/* Custom date range toggle */}
+                    <button
+                        type="button"
+                        onClick={() => setShowCustomRange((v) => !v)}
+                        class={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
+                            customRange()
+                                ? "bg-blue-600 text-white"
+                                : showCustomRange()
+                                  ? "bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300"
+                                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                        }`}
+                    >
+                        Custom
+                    </button>
                 </div>
+
+                {/* Custom date range picker */}
+                <Show when={showCustomRange()}>
+                    <div class="flex flex-wrap items-end gap-3 p-3 bg-gray-50 dark:bg-gray-900/40 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                From
+                            </label>
+                            <input
+                                type="date"
+                                max={todayString()}
+                                value={rangeFrom()}
+                                onInput={(e) => setRangeFrom(e.currentTarget.value)}
+                                class="px-3 py-2 text-sm rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                            />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                To
+                            </label>
+                            <input
+                                type="date"
+                                max={todayString()}
+                                value={rangeTo()}
+                                onInput={(e) => setRangeTo(e.currentTarget.value)}
+                                class="px-3 py-2 text-sm rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                            />
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleApplyRange}
+                            disabled={!rangeFrom() || !rangeTo()}
+                            class="px-4 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                        >
+                            Apply
+                        </button>
+                    </div>
+                </Show>
             </div>
 
             {/* Loading State */}
@@ -580,11 +690,11 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                                 {(() => {
                                     const point = hoveredPoint()!;
                                     const pos = hoveredPosition()!;
-                                    const days = selectedDays();
                                     const padding = getPadding();
 
                                     // Tooltip width varies with the amount of date info shown
-                                    const tooltipWidth = days === null ? 145 : days === 1 ? 110 : 135;
+                                    const rangeDays = displayRangeDays();
+                                    const tooltipWidth = rangeDays > 30 ? 145 : rangeDays <= 1 ? 110 : 135;
                                     const tooltipHeight = 60;
 
                                     // Format timestamp - include time for multi-day periods since
@@ -597,9 +707,9 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                                     const yyyy = pointDate.getFullYear();
 
                                     let timestamp: string;
-                                    if (days === 1) {
+                                    if (rangeDays <= 1) {
                                         timestamp = `${hh}:${mm}`;
-                                    } else if (days === null) {
+                                    } else if (rangeDays > 30) {
                                         timestamp = `${dd}/${mo}/${yyyy} ${hh}:${mm}`;
                                     } else {
                                         timestamp = `${dd}/${mo} ${hh}:${mm}`;
