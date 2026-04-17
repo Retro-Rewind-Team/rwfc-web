@@ -11,6 +11,7 @@ import {
     Info,
     Search,
     ServerCrash,
+    TrendingUp,
     X,
 } from "lucide-solid/icons/index";
 
@@ -35,8 +36,14 @@ export default function RoomStatusPage() {
     const visibleRooms = createMemo(() => {
         const rooms = roomStatusQuery.data?.rooms ?? [];
         const fc = activeFc();
-        if (!fc) return rooms;
-        return rooms.filter((r) => r.players.some((p) => p.friendCode === fc));
+        const filtered = fc ? rooms.filter((r) => r.players.some((p) => p.friendCode === fc)) : rooms;
+        if (!sortByVR()) return filtered;
+        return [...filtered].sort((a, b) => {
+            if (a.averageVR === null && b.averageVR === null) return 0;
+            if (a.averageVR === null) return 1;
+            if (b.averageVR === null) return -1;
+            return b.averageVR - a.averageVR;
+        });
     });
 
     // Live uptime ticker
@@ -188,8 +195,22 @@ export default function RoomStatusPage() {
                                 </Show>
                             </div>
 
-                            {/* Right side: highlight FC input + status indicators */}
+                            {/* Right side: sort toggle + highlight FC input + status indicators */}
                             <div class="flex items-center gap-2 flex-wrap">
+                                <button
+                                    type="button"
+                                    onClick={() => setSortByVR((v) => !v)}
+                                    class={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg border-2 transition-colors shadow-sm ${
+                                        sortByVR()
+                                            ? "bg-blue-600 border-blue-600 text-white hover:bg-blue-700 hover:border-blue-700"
+                                            : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:border-blue-400 dark:hover:border-blue-500"
+                                    }`}
+                                    title={sortByVR() ? "Sorted by average VR" : "Sort by average VR"}
+                                >
+                                    <TrendingUp size={14} />
+                                    <span class="hidden sm:inline">Avg VR</span>
+                                </button>
+
                                 <div class="relative">
                                     <Search
                                         size={13}
