@@ -11,7 +11,7 @@ public class RetroWFCApiClient : IRetroWFCApiClient
     private const string GroupsApiUrl = "http://rwfc.net/api/groups";
     private const string RaceResultsApiUrl = "http://rwfc.net/api/mkw_rr?id=";
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
@@ -29,7 +29,7 @@ public class RetroWFCApiClient : IRetroWFCApiClient
             _logger.LogDebug("Fetching active groups from Retro WFC API");
 
             var response = await _httpClient.GetStringAsync(GroupsApiUrl);
-            var groups = JsonSerializer.Deserialize<List<Group>>(response, JsonOptions);
+            var groups = JsonSerializer.Deserialize<List<Group>>(response, _jsonOptions);
 
             if (groups == null)
             {
@@ -64,7 +64,7 @@ public class RetroWFCApiClient : IRetroWFCApiClient
             _logger.LogDebug("Fetching race results for room {RoomId}", roomId);
 
             var response = await _httpClient.GetStringAsync($"{RaceResultsApiUrl}{roomId}");
-            var raceResponse = JsonSerializer.Deserialize<RoomRaceResponse>(response, JsonOptions);
+            var raceResponse = JsonSerializer.Deserialize<RoomRaceResponse>(response, _jsonOptions);
 
             if (raceResponse?.Results == null || raceResponse.Results.Count == 0)
             {

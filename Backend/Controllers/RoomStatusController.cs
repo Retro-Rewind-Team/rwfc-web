@@ -185,7 +185,7 @@ public class RoomStatusController : ControllerBase
     {
         try
         {
-            await _roomStatusService.RefreshRoomDataAsync();
+            await _roomStatusService.RefreshRoomDataAsync(persistSnapshot: true);
             return Ok(new { message = "Room data refresh initiated" });
         }
         catch (Exception ex)
