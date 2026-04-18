@@ -13,4 +13,6 @@ export { NotFoundPage } from "./NotFound";
 export { ToolsPage } from "./Tools";
 export { RatingEditorPage } from "./Tools";
 export { FontPatcherPage } from "./Tools";
+export { VRCalculatorPage } from "./Tools";
+export { RankHelperPage } from "./Tools";
 export { RaceStatsPage } from "./RaceStats";

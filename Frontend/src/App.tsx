@@ -11,6 +11,7 @@ import {
     NotFoundPage,
     PrivacyPage,
     RaceStatsPage,
+    RankHelperPage,
     RatingEditorPage,
     RoomStatusPage,
     RulesPage,
@@ -19,6 +20,7 @@ import {
     TTLeaderboardPage,
     TTPlayerProfilePage,
     TTTrackDetailPage,
+    VRCalculatorPage,
 } from "./pages";
 
 const queryClient = new QueryClient({
@@ -80,6 +82,8 @@ function App() {
                     <Route path="/tools" component={ToolsPage} />
                     <Route path="tools/font-patcher" component={FontPatcherPage} />
                     <Route path="tools/rating-editor" component={RatingEditorPage} />
+                    <Route path="tools/vr-calculator" component={VRCalculatorPage} />
+                    <Route path="tools/rank-helper" component={RankHelperPage} />
 
                     {/* 404 Catch-All */}
                     <Route path="*" component={NotFoundPage} />

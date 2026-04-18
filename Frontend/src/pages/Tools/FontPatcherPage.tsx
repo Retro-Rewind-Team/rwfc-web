@@ -1,387 +1,316 @@
-import { createSignal, Show } from "solid-js";
-import { Loader, Package, PenTool, Wrench } from "lucide-solid";
+import { createSignal, type JSX, Show } from "solid-js";
+import { CheckCircle, Loader, Package, PenTool, Wrench, XCircle } from "lucide-solid";
 import { yaz0Compress, yaz0CompressLiteralOnly, yaz0Decompress } from "../../utils/yaz0";
 import { replaceBrfntInU8 } from "../../utils/u8Parser";
 import { validateBrfnt, validateFileName, validateFontSzs } from "../../utils/fileValidator";
 import { triggerBlobDownload } from "../../utils/downloadHelpers";
 import { AlertBox } from "../../components/common";
 
-const getLogClass = (line: string) => {
+const logClass = (line: string) => {
     if (line.startsWith("[OK]") || line.startsWith("[DONE]")) return "text-green-400";
     if (line.startsWith("[ERROR]")) return "text-red-400";
     if (line.startsWith("[WARN]")) return "text-yellow-400";
-    if (line.startsWith("[INFO]") || line.startsWith("[SAVE]")) return "text-blue-400";
     return "text-gray-400";
 };
 
+interface FileSlot {
+    file: File | null;
+    warnings: string[];
+    error: string | null;
+}
+
+const emptySlot = (): FileSlot => ({ file: null, warnings: [], error: null });
+
 export default function FontPatcherPage() {
-    const [fontFile, setFontFile] = createSignal<File | null>(null);
-    const [brfntFile, setBrfntFile] = createSignal<File | null>(null);
+    const [fontSlot, setFontSlot] = createSignal<FileSlot>(emptySlot());
+    const [brfntSlot, setBrfntSlot] = createSignal<FileSlot>(emptySlot());
     const [processing, setProcessing] = createSignal(false);
     const [log, setLog] = createSignal<string[]>([]);
     const [useLiteralOnly, setUseLiteralOnly] = createSignal(false);
-    const [validationWarnings, setValidationWarnings] = createSignal<string[]>([]);
+    const [dragging, setDragging] = createSignal<"font" | "brfnt" | null>(null);
 
-    const addLog = (message: string) => setLog((prev) => [...prev, message]);
+    const addLog = (msg: string) => setLog((p) => [...p, msg]);
     const clearLog = () => setLog([]);
 
-    type ValidateFn = (buffer: ArrayBuffer) => {
-        valid: boolean;
-        error?: string;
-        warnings?: string[];
-    };
-
-    const loadAndValidateFile = async (
+    async function loadFile(
         file: File,
-        extensions: string[],
-        validate: ValidateFn,
-        onSuccess: (file: File) => void,
-        successMessage: string,
-    ) => {
+        exts: string[],
+        validate: (b: ArrayBuffer) => { valid: boolean; error?: string; warnings?: string[] },
+        setSlot: (s: FileSlot) => void,
+        successMsg: string,
+    ) {
         clearLog();
-        setValidationWarnings([]);
-
-        const nameValidation = validateFileName(file.name, extensions);
-        if (!nameValidation.valid) {
-            addLog(`[ERROR] ${nameValidation.error}`);
+        const nameCheck = validateFileName(file.name, exts);
+        if (!nameCheck.valid) {
+            setSlot({ file: null, error: nameCheck.error ?? "Invalid file", warnings: [] });
+            addLog(`[ERROR] ${nameCheck.error}`);
             return;
         }
-
-        addLog(`[INFO] Validating ${file.name}...`);
-
+        addLog(`[INFO] Validating ${file.name}…`);
         try {
-            const buffer = await file.arrayBuffer();
-            const validation = validate(buffer);
-
-            if (!validation.valid) {
-                addLog(`[ERROR] Validation failed: ${validation.error}`);
+            const buf = await file.arrayBuffer();
+            const result = validate(buf);
+            if (!result.valid) {
+                setSlot({ file: null, error: result.error ?? "Validation failed", warnings: [] });
+                addLog(`[ERROR] ${result.error}`);
                 return;
             }
-
-            if (validation.warnings && validation.warnings.length > 0) {
-                validation.warnings.forEach((w) => addLog(`[WARN] ${w}`));
-                setValidationWarnings(validation.warnings);
-            }
-
-            onSuccess(file);
-            addLog(`${successMessage}: ${file.name} (${file.size.toLocaleString()} bytes)`);
-        } catch (error) {
-            addLog(
-                `[ERROR] Error reading file: ${error instanceof Error ? error.message : String(error)}`,
-            );
+            const warnings = result.warnings ?? [];
+            warnings.forEach((w) => addLog(`[WARN] ${w}`));
+            setSlot({ file, error: null, warnings });
+            addLog(`[OK] ${successMsg}: ${file.name} (${file.size.toLocaleString()} bytes)`);
+        } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e);
+            setSlot({ file: null, error: msg, warnings: [] });
+            addLog(`[ERROR] ${msg}`);
         }
-    };
+    }
 
-    const handleFontFileUpload = async (event: Event) => {
-        const file = (event.target as HTMLInputElement).files?.[0];
+    const handleFontInput = (e: Event) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (file) loadFile(file, ["szs"], validateFontSzs, setFontSlot, "Loaded Font.szs");
+    };
+    const handleBrfntInput = (e: Event) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (file) loadFile(file, ["brfnt"], validateBrfnt, setBrfntSlot, "Loaded .brfnt");
+    };
+    const handleDrop = (e: DragEvent, type: "font" | "brfnt") => {
+        e.preventDefault();
+        setDragging(null);
+        const file = e.dataTransfer?.files?.[0];
         if (!file) return;
-        await loadAndValidateFile(
-            file,
-            ["szs"],
-            validateFontSzs,
-            setFontFile,
-            "[OK] Loaded Font.szs",
-        );
+        if (type === "font")
+            loadFile(file, ["szs"], validateFontSzs, setFontSlot, "Dropped Font.szs");
+        else loadFile(file, ["brfnt"], validateBrfnt, setBrfntSlot, "Dropped .brfnt");
     };
 
-    const handleBrfntFileUpload = async (event: Event) => {
-        const file = (event.target as HTMLInputElement).files?.[0];
-        if (!file) return;
-        await loadAndValidateFile(
-            file,
-            ["brfnt"],
-            validateBrfnt,
-            setBrfntFile,
-            "[OK] Loaded replacement .brfnt",
-        );
-    };
-
-    const handleDrop = async (event: DragEvent, type: "font" | "brfnt") => {
-        event.preventDefault();
-        event.stopPropagation();
-
-        const file = event.dataTransfer?.files?.[0];
-        if (!file) return;
-
-        if (type === "font") {
-            await loadAndValidateFile(
-                file,
-                ["szs"],
-                validateFontSzs,
-                setFontFile,
-                "[OK] Dropped Font.szs",
-            );
-        } else {
-            await loadAndValidateFile(
-                file,
-                ["brfnt"],
-                validateBrfnt,
-                setBrfntFile,
-                "[OK] Dropped replacement .brfnt",
-            );
-        }
-    };
-
-    const handleDragOver = (event: DragEvent) => {
-        event.preventDefault();
-        event.stopPropagation();
-    };
-
-    const processFontPatch = async () => {
-        const font = fontFile();
-        const brfnt = brfntFile();
-
-        if (!font) {
-            addLog("[ERROR] Please select a Font.szs file");
-            return;
-        }
-        if (!brfnt) {
-            addLog("[ERROR] Please select a replacement .brfnt file");
-            return;
-        }
+    const patch = async () => {
+        const font = fontSlot().file;
+        const brfnt = brfntSlot().file;
+        if (!font || !brfnt) return;
 
         setProcessing(true);
         clearLog();
-
         try {
-            addLog("[INFO] Reading Font.szs...");
+            addLog("[INFO] Reading Font.szs…");
             const fontData = new Uint8Array(await font.arrayBuffer());
 
-            addLog("[INFO] Decompressing Yaz0...");
+            addLog("[INFO] Decompressing Yaz0…");
             const u8 = yaz0Decompress(fontData);
-            addLog(`[OK] Decompressed to ${u8.length.toLocaleString()} bytes`);
+            addLog(`[OK] Decompressed - ${u8.length.toLocaleString()} bytes`);
 
-            addLog("[INFO] Reading replacement .brfnt...");
-            const replacementData = new Uint8Array(await brfnt.arrayBuffer());
-            addLog(`[OK] Loaded ${replacementData.length.toLocaleString()} bytes`);
+            addLog("[INFO] Reading replacement .brfnt…");
+            const brfntData = new Uint8Array(await brfnt.arrayBuffer());
 
-            addLog("[INFO] Patching U8 archive (replacing tt_kart_extension_font.brfnt)...");
-            const newU8 = replaceBrfntInU8(u8, replacementData);
-            addLog(`[OK] Patched U8 archive (${newU8.length.toLocaleString()} bytes)`);
+            addLog("[INFO] Patching U8 archive…");
+            const newU8 = replaceBrfntInU8(u8, brfntData);
+            addLog(`[OK] Patched - ${newU8.length.toLocaleString()} bytes`);
 
-            let newSZS: Uint8Array;
-            if (useLiteralOnly()) {
-                addLog("[INFO] Re-compressing as Yaz0 (literal-only)...");
-                newSZS = yaz0CompressLiteralOnly(newU8);
-            } else {
-                addLog("[INFO] Re-compressing as Yaz0 (optimized)...");
-                newSZS = yaz0Compress(newU8);
-            }
-            addLog(`[OK] Compressed to ${newSZS.length.toLocaleString()} bytes`);
+            addLog(
+                useLiteralOnly()
+                    ? "[INFO] Re-compressing (literal-only)…"
+                    : "[INFO] Re-compressing (optimised)…",
+            );
+            const newSZS = useLiteralOnly() ? yaz0CompressLiteralOnly(newU8) : yaz0Compress(newU8);
+            addLog(`[OK] Compressed - ${newSZS.length.toLocaleString()} bytes`);
 
-            const baseName = font.name.replace(/\.szs$/i, "");
-            const outName = `${baseName}_tt_ext_patched.szs`;
-
-            addLog("[SAVE] Triggering download...");
+            const outName = font.name.replace(/\.szs$/i, "") + "_tt_ext_patched.szs";
             triggerBlobDownload(
                 new Blob([newSZS.buffer as ArrayBuffer], { type: "application/octet-stream" }),
                 outName,
             );
-            addLog(`[DONE] Done! Downloaded: ${outName}`);
-        } catch (error) {
-            addLog(`[ERROR] ${error instanceof Error ? error.message : String(error)}`);
-            console.error(error);
+            addLog(`[DONE] Downloaded: ${outName}`);
+        } catch (e) {
+            addLog(`[ERROR] ${e instanceof Error ? e.message : String(e)}`);
         } finally {
             setProcessing(false);
         }
     };
 
+    const DropZone = (props: {
+        label: string;
+        hint: string;
+        slot: FileSlot;
+        type: "font" | "brfnt";
+        icon: () => JSX.Element;
+        accept: string;
+        onInput: (e: Event) => void;
+    }) => {
+        const active = () => dragging() === props.type;
+        const ok = () => !!props.slot.file;
+        const err = () => !!props.slot.error;
+
+        return (
+            <div
+                class={`relative rounded-xl border-2 border-dashed p-6 text-center transition-all
+                    ${active() ? "border-blue-500 bg-blue-500/5" : ok() ? "border-green-500/60 bg-green-500/5" : err() ? "border-red-500/60 bg-red-500/5" : "border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500"}`}
+                onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragging(props.type);
+                }}
+                onDragLeave={() => setDragging(null)}
+                onDrop={(e) => handleDrop(e, props.type)}
+            >
+                <div
+                    class={`flex justify-center mb-3 ${ok() ? "text-green-500" : err() ? "text-red-500" : "text-gray-400 dark:text-gray-500"}`}
+                >
+                    <Show
+                        when={ok()}
+                        fallback={
+                            <Show when={err()} fallback={props.icon()}>
+                                <XCircle size={36} />
+                            </Show>
+                        }
+                    >
+                        <CheckCircle size={36} />
+                    </Show>
+                </div>
+
+                <p class="font-semibold text-sm text-gray-700 dark:text-gray-300 mb-1">
+                    {props.label}
+                </p>
+
+                <Show when={ok()}>
+                    <p class="text-xs text-green-600 dark:text-green-400 font-mono truncate mb-2">
+                        {props.slot.file!.name}
+                    </p>
+                </Show>
+                <Show when={err()}>
+                    <p class="text-xs text-red-500 mb-2">{props.slot.error}</p>
+                </Show>
+                <Show when={!ok() && !err()}>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">{props.hint}</p>
+                </Show>
+
+                <label class="cursor-pointer inline-block">
+                    <span
+                        class={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors
+                        ${
+                            ok()
+                                ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50"
+                                : "bg-blue-600 hover:bg-blue-700 text-white"
+                        }`}
+                    >
+                        {ok() ? "Replace file" : "Choose file"}
+                    </span>
+                    <input
+                        type="file"
+                        accept={props.accept}
+                        onChange={props.onInput}
+                        class="hidden"
+                    />
+                </label>
+
+                <Show when={props.slot.warnings.length > 0}>
+                    <p class="mt-2 text-xs text-yellow-600 dark:text-yellow-400">
+                        {props.slot.warnings.length} warning
+                        {props.slot.warnings.length > 1 ? "s" : ""}
+                    </p>
+                </Show>
+            </div>
+        );
+    };
+
+    const canPatch = () => !!fontSlot().file && !!brfntSlot().file && !processing();
+
     return (
-        <div class="max-w-4xl mx-auto space-y-6">
-            {/* Header */}
-            <div class="text-center py-6 border-b border-gray-200 dark:border-gray-700">
-                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Font Patcher</h1>
-                <p class="text-gray-600 dark:text-gray-400">
-                    Replace tt_kart_extension_font.brfnt in Font.szs archives
+        <div class="max-w-3xl mx-auto space-y-6">
+            <div class="border-b border-gray-200 dark:border-gray-700 pb-6">
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-1">Font Patcher</h1>
+                <p class="text-gray-500 dark:text-gray-400 text-sm">
+                    Replace{" "}
+                    <code class="font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">
+                        tt_kart_extension_font.brfnt
+                    </code>{" "}
+                    inside a{" "}
+                    <code class="font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">
+                        Font.szs
+                    </code>{" "}
+                    archive.
                 </p>
             </div>
 
-            {/* Instructions */}
-            <AlertBox type="info" title="How to use">
-                <ol class="list-decimal list-inside space-y-2 text-sm">
-                    <li>
-                        Upload your{" "}
-                        <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">Font.szs</code> file
-                    </li>
-                    <li>
-                        Upload your custom{" "}
-                        <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">
-                            tt_kart_extension_font.brfnt
-                        </code>{" "}
-                        file
-                    </li>
-                    <li>Click "Patch Font" to create a modified Font.szs</li>
-                    <li>The patched file will download automatically</li>
-                </ol>
-            </AlertBox>
-
-            {/* Validation Warnings */}
-            <Show when={validationWarnings().length > 0}>
-                <AlertBox type="warning" title="Validation Warnings">
-                    <ul class="list-disc list-inside space-y-1 text-sm">
-                        {validationWarnings().map((w) => (
-                            <li>{w}</li>
-                        ))}
-                    </ul>
-                    <p class="mt-3 text-sm">
-                        The file passed basic validation but has some unusual characteristics. You
-                        can proceed, but double-check your file if the patch doesn't work.
-                    </p>
-                </AlertBox>
-            </Show>
-
-            {/* File Upload Section */}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Font.szs */}
-                <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        1. Font.szs File
-                    </h3>
-                    <div
-                        onDrop={(e) => handleDrop(e, "font")}
-                        onDragOver={handleDragOver}
-                        class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-blue-500 dark:hover:border-blue-500 transition-colors cursor-pointer"
-                    >
-                        <div class="flex justify-center mb-3 text-gray-400 dark:text-gray-500">
-                            <Package size={36} />
-                        </div>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                            Drag & drop Font.szs here
-                        </p>
-                        <label class="cursor-pointer">
-                            <span class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-block text-sm font-medium">
-                                Choose File
-                            </span>
-                            <input
-                                type="file"
-                                accept=".szs"
-                                onChange={handleFontFileUpload}
-                                class="hidden"
-                            />
-                        </label>
-                    </div>
-                    <Show when={fontFile()}>
-                        <div class="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                            <p class="text-sm text-green-800 dark:text-green-300 font-medium">
-                                {fontFile()!.name}
-                            </p>
-                            <p class="text-xs text-green-700 dark:text-green-400 mt-1">
-                                {fontFile()!.size.toLocaleString()} bytes
-                            </p>
-                        </div>
-                    </Show>
-                </div>
-
-                {/* .brfnt */}
-                <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        2. Replacement .brfnt
-                    </h3>
-                    <div
-                        onDrop={(e) => handleDrop(e, "brfnt")}
-                        onDragOver={handleDragOver}
-                        class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-blue-500 dark:hover:border-blue-500 transition-colors cursor-pointer"
-                    >
-                        <div class="flex justify-center mb-3 text-gray-400 dark:text-gray-500">
-                            <PenTool size={36} />
-                        </div>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                            Drag & drop .brfnt here
-                        </p>
-                        <label class="cursor-pointer">
-                            <span class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-block text-sm font-medium">
-                                Choose File
-                            </span>
-                            <input
-                                type="file"
-                                accept=".brfnt"
-                                onChange={handleBrfntFileUpload}
-                                class="hidden"
-                            />
-                        </label>
-                    </div>
-                    <Show when={brfntFile()}>
-                        <div class="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                            <p class="text-sm text-green-800 dark:text-green-300 font-medium">
-                                {brfntFile()!.name}
-                            </p>
-                            <p class="text-xs text-green-700 dark:text-green-400 mt-1">
-                                {brfntFile()!.size.toLocaleString()} bytes
-                            </p>
-                        </div>
-                    </Show>
-                </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <DropZone
+                    label="1. Font.szs"
+                    hint="Drag & drop or click to choose"
+                    slot={fontSlot()}
+                    type="font"
+                    icon={() => <Package size={36} />}
+                    accept=".szs"
+                    onInput={handleFontInput}
+                />
+                <DropZone
+                    label="2. Replacement .brfnt"
+                    hint="Drag & drop or click to choose"
+                    slot={brfntSlot()}
+                    type="brfnt"
+                    icon={() => <PenTool size={36} />}
+                    accept=".brfnt"
+                    onInput={handleBrfntInput}
+                />
             </div>
 
-            {/* Options */}
-            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Options</h3>
-                <label class="flex items-center gap-3 cursor-pointer">
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                <label class="flex items-start gap-3 cursor-pointer">
                     <input
                         type="checkbox"
                         checked={useLiteralOnly()}
                         onChange={(e) => setUseLiteralOnly(e.currentTarget.checked)}
-                        class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        class="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                     <div>
                         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Use literal-only Yaz0 (no real compression)
+                            Literal-only Yaz0 (no compression)
                         </span>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            Only recommended if compressed output causes issues. File will be larger
-                            but more compatible.
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                            Produces a larger file. Only needed if the compressed output causes
+                            issues on real hardware.
                         </p>
                     </div>
                 </label>
             </div>
 
-            {/* Patch Button */}
             <div class="flex justify-center">
                 <button
                     type="button"
-                    onClick={processFontPatch}
-                    disabled={!fontFile() || !brfntFile() || processing()}
-                    class="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
+                    onClick={patch}
+                    disabled={!canPatch()}
+                    class="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed text-white disabled:text-gray-500 font-semibold rounded-xl transition-colors text-sm"
                 >
                     <Show
                         when={processing()}
                         fallback={
                             <>
-                                <Wrench size={18} /> Patch Font
+                                <Wrench size={16} /> Patch Font.szs
                             </>
                         }
                     >
-                        <Loader size={18} class="animate-spin" />
-                        Processing...
+                        <Loader size={16} class="animate-spin" /> Processing…
                     </Show>
                 </button>
             </div>
 
-            {/* Log Output */}
             <Show when={log().length > 0}>
-                <div class="bg-gray-900 rounded-lg p-4 border border-gray-700">
-                    <h3 class="text-sm font-semibold text-gray-300 mb-3">Process Log</h3>
-                    <div class="space-y-1 font-mono text-sm">
+                <div class="bg-gray-950 rounded-xl border border-gray-800 p-4">
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                        Log
+                    </p>
+                    <div class="space-y-0.5 font-mono text-xs">
                         {log().map((line) => (
-                            <div class={getLogClass(line)}>{line}</div>
+                            <div class={logClass(line)}>{line}</div>
                         ))}
                     </div>
                 </div>
             </Show>
 
-            {/* Important Notes */}
-            <AlertBox type="warning" title="Important Notes">
-                <ul class="space-y-1 text-sm">
-                    <li>Files are validated before processing to ensure correct format</li>
+            <AlertBox type="info" title="Notes">
+                <ul class="space-y-1 text-sm list-disc list-inside">
                     <li>
-                        The patched Font.szs is compatible with Retro Rewind and most MKW
-                        distributions
+                        Back up your original <code class="font-mono">Font.szs</code> before
+                        replacing it.
                     </li>
-                    <li>Make sure your .brfnt file is properly formatted for Mario Kart Wii</li>
-                    <li>Keep a backup of your original Font.szs before replacing</li>
-                    <li>
-                        If the patched file doesn't work, try enabling "literal-only" compression
-                    </li>
+                    <li>If the patched file doesn't load in-game, try the literal-only option.</li>
                 </ul>
             </AlertBox>
         </div>

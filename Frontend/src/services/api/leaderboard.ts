@@ -58,9 +58,7 @@ export const leaderboardApi = {
             from: from.toISOString(),
             to: to.toISOString(),
         });
-        return apiRequest<VRHistoryResponse>(
-            `/leaderboard/player/${friendCode}/history?${params}`,
-        );
+        return apiRequest<VRHistoryResponse>(`/leaderboard/player/${friendCode}/history?${params}`);
     },
 
     async getPlayerRecentHistory(friendCode: string, count = 50): Promise<VRHistoryEntry[]> {

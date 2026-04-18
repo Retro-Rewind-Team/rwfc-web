@@ -14,8 +14,17 @@ interface VRHistoryChartProps {
 const DOTS_THRESHOLD = 60;
 
 export default function VRHistoryChart(props: VRHistoryChartProps) {
-    const { historyData, stats, selectedDays, customRange, isLoading, error, changePeriod, changeRange, refresh } =
-        useVRHistory(props.friendCode, props.initialDays);
+    const {
+        historyData,
+        stats,
+        selectedDays,
+        customRange,
+        isLoading,
+        error,
+        changePeriod,
+        changeRange,
+        refresh,
+    } = useVRHistory(props.friendCode, props.initialDays);
 
     const [hoveredPoint, setHoveredPoint] = createSignal<ProcessedVRHistory | null>(null);
     const [showCustomRange, setShowCustomRange] = createSignal(false);
@@ -51,8 +60,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
         const data = historyData();
         if (data.length < 2) return 365;
         const span =
-            (new Date(data[data.length - 1].date).getTime() -
-                new Date(data[0].date).getTime()) /
+            (new Date(data[data.length - 1].date).getTime() - new Date(data[0].date).getTime()) /
             (1000 * 60 * 60 * 24);
         return Math.max(span, 2);
     };
@@ -74,7 +82,8 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
         // Clamp to today
         if (to > today) to = today;
         // Can't start in the future
-        if (from > today) from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+        if (from > today)
+            from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
         // Ensure from <= to (swap if not)
         if (from > to) [from, to] = [to, from];
 
@@ -235,7 +244,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
         const rangeDays = displayRangeDays();
 
         if (rangeDays <= 1) {
-            // Sub-day — show time only
+            // Sub-day - show time only
             const firstLabel = `${String(firstDate.getHours()).padStart(2, "0")}:${String(firstDate.getMinutes()).padStart(2, "0")}`;
             const lastLabel = `${String(lastDate.getHours()).padStart(2, "0")}:${String(lastDate.getMinutes()).padStart(2, "0")}`;
 
@@ -244,7 +253,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                 { label: lastLabel, x: lastPoint.x },
             ];
         } else if (rangeDays > 30) {
-            // Longer ranges — include the year
+            // Longer ranges - include the year
             const firstLabel = `${String(firstDate.getDate()).padStart(2, "0")}-${String(firstDate.getMonth() + 1).padStart(2, "0")}-${firstDate.getFullYear()}`;
             const lastLabel = `${String(lastDate.getDate()).padStart(2, "0")}-${String(lastDate.getMonth() + 1).padStart(2, "0")}-${lastDate.getFullYear()}`;
 
@@ -253,7 +262,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                 { label: lastLabel, x: lastPoint.x },
             ];
         } else {
-            // Short ranges — dd/mm is sufficient
+            // Short ranges - dd/mm is sufficient
             const firstLabel = `${String(firstDate.getDate()).padStart(2, "0")}/${String(firstDate.getMonth() + 1).padStart(2, "0")}`;
             const lastLabel = `${String(lastDate.getDate()).padStart(2, "0")}/${String(lastDate.getMonth() + 1).padStart(2, "0")}`;
 
@@ -694,7 +703,8 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
 
                                     // Tooltip width varies with the amount of date info shown
                                     const rangeDays = displayRangeDays();
-                                    const tooltipWidth = rangeDays > 30 ? 145 : rangeDays <= 1 ? 110 : 135;
+                                    const tooltipWidth =
+                                        rangeDays > 30 ? 145 : rangeDays <= 1 ? 110 : 135;
                                     const tooltipHeight = 60;
 
                                     // Format timestamp - include time for multi-day periods since

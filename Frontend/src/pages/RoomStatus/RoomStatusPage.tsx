@@ -212,7 +212,9 @@ export default function RoomStatusPage() {
                                             ? "bg-blue-600 border-blue-600 text-white hover:bg-blue-700 hover:border-blue-700"
                                             : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:border-blue-400 dark:hover:border-blue-500"
                                     }`}
-                                    title={sortByVR() ? "Sorted by average VR" : "Sort by average VR"}
+                                    title={
+                                        sortByVR() ? "Sorted by average VR" : "Sort by average VR"
+                                    }
                                 >
                                     <TrendingUp size={14} />
                                     <span class="hidden sm:inline">Avg VR</span>
@@ -226,7 +228,11 @@ export default function RoomStatusPage() {
                                             ? "bg-blue-600 border-blue-600 text-white hover:bg-blue-700 hover:border-blue-700"
                                             : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:border-blue-400 dark:hover:border-blue-500"
                                     }`}
-                                    title={hidePrivate() ? "Showing public rooms only" : "Hide private rooms"}
+                                    title={
+                                        hidePrivate()
+                                            ? "Showing public rooms only"
+                                            : "Hide private rooms"
+                                    }
                                 >
                                     <Lock size={14} />
                                     <span class="hidden sm:inline">Public only</span>
