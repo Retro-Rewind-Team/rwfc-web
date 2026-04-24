@@ -14,6 +14,7 @@ public class TrackEntity
     public required string Category { get; set; } // Retro or Custom, used for filtering/grouping
     public short Laps { get; set; }
     public bool SupportsGlitch { get; set; } = false; // Whether the track supports glitch runs, used for filtering
+    public bool IsHidden { get; set; } = false; // Whether the track is hidden from all endpoints (removed tracks kept for data integrity)
     public int SortOrder { get; set; } // Used for sorting tracks in the UI, lower values appear first
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

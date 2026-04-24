@@ -17,7 +17,7 @@ export function useRoomStatus() {
     const statsQuery = useQuery(() => ({
         queryKey: queryKeys.roomStats,
         queryFn: () => roomStatusApi.getStats(),
-        refetchInterval: 60000,
+        refetchInterval: 10000,
     }));
 
     const roomStatusQuery = useQuery(() => ({
@@ -32,7 +32,7 @@ export function useRoomStatus() {
             setMaxId(data.maximumId);
             return data;
         },
-        refetchInterval: () => (currentId() === undefined ? 60000 : false),
+        refetchInterval: () => (currentId() === undefined ? 10000 : false),
     }));
 
     const isLatest = createMemo(() => currentId() === undefined);

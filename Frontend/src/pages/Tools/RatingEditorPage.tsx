@@ -1,36 +1,30 @@
 import { createEffect, createMemo, createResource, createSignal, For, Show } from "solid-js";
 import { buildRatingFile, parseRatingFile } from "../../utils/ratingParser";
 import { pidToFriendCode } from "../../utils/friendCodeUtils";
+import { validateFileName, validateRatingFile } from "../../utils/fileValidator";
+import { triggerBlobDownload } from "../../utils/downloadHelpers";
 import type { RatingEntry, RatingFile } from "../../types/tools";
 import { AlertBox } from "../../components/common";
 import { leaderboardApi } from "../../services/api/leaderboard";
-import { validateFileName, validateRatingFile } from "../../utils/fileValidator";
-import { Download } from "lucide-solid/icons/index";
-import { triggerBlobDownload } from "../../utils/downloadHelpers";
-import TriangleAlert from "lucide-solid/icons/triangle-alert";
+import { Download, TriangleAlert } from "lucide-solid";
 
 export default function RatingEditorPage() {
     const [ratingFile, setRatingFile] = createSignal<RatingFile | null>(null);
-    const [fileName, setFileName] = createSignal<string>("");
+    const [fileName, setFileName] = createSignal("RRRating.pul");
     const [selectedRows, setSelectedRows] = createSignal<Set<number>>(new Set());
     const [validationWarnings, setValidationWarnings] = createSignal<string[]>([]);
     const [validationError, setValidationError] = createSignal<string | null>(null);
-
-    // Store original FCs when file is loaded
     const [originalFCs, setOriginalFCs] = createSignal<Set<string>>(new Set());
+    const [takenFCs, setTakenFCs] = createSignal<Set<string>>(new Set());
 
-    // Build a map of Friend Code -> array of indices for duplicate detection
     const fcMap = createMemo(() => {
         const file = ratingFile();
         if (!file) return new Map<string, number[]>();
-
         const map = new Map<string, number[]>();
         file.entries.forEach((entry, idx) => {
             if (entry.profileId > 0) {
                 const fc = pidToFriendCode(entry.profileId);
-                if (!map.has(fc)) {
-                    map.set(fc, []);
-                }
+                if (!map.has(fc)) map.set(fc, []);
                 map.get(fc)!.push(idx);
             }
         });
@@ -39,28 +33,13 @@ export default function RatingEditorPage() {
 
     const hasDuplicateFC = (index: number) => {
         const file = ratingFile();
-        if (!file) return false;
-
-        const entry = file.entries[index];
-        if (entry.profileId <= 0) return false;
-
-        const fc = pidToFriendCode(entry.profileId);
-        const indices = fcMap().get(fc);
-        return indices ? indices.length > 1 : false;
+        if (!file || file.entries[index].profileId <= 0) return false;
+        const fc = pidToFriendCode(file.entries[index].profileId);
+        return (fcMap().get(fc)?.length ?? 0) > 1;
     };
 
-    // Track which FCs have been found on leaderboard that weren't in original file
-    const [takenFCs, setTakenFCs] = createSignal<Set<string>>(new Set());
-
-    const addTakenFC = (fc: string) => {
-        if (!originalFCs().has(fc)) {
-            setTakenFCs((prev) => new Set([...prev, fc]));
-        }
-    };
-
-    const handleFileUpload = async (event: Event) => {
-        const input = event.target as HTMLInputElement;
-        const file = input.files?.[0];
+    const handleFileUpload = async (e: Event) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
         if (!file) return;
 
         setFileName(file.name);
@@ -69,335 +48,256 @@ export default function RatingEditorPage() {
         setRatingFile(null);
         setSelectedRows(new Set<number>());
 
-        // Validate filename extension
-        const nameValidation = validateFileName(file.name, ["pul"]);
-        if (!nameValidation.valid) {
-            setValidationError(nameValidation.error || "Invalid file type");
+        const nameCheck = validateFileName(file.name, ["pul"]);
+        if (!nameCheck.valid) {
+            setValidationError(nameCheck.error ?? "Invalid file");
             return;
         }
 
         try {
-            const arrayBuffer = await file.arrayBuffer();
-
-            // Validate file structure
-            const validation = validateRatingFile(arrayBuffer);
-            if (!validation.valid) {
-                setValidationError(validation.error || "File validation failed");
+            const buf = await file.arrayBuffer();
+            const check = validateRatingFile(buf);
+            if (!check.valid) {
+                setValidationError(check.error ?? "Validation failed");
                 return;
             }
+            if (check.warnings?.length) setValidationWarnings(check.warnings);
 
-            if (validation.warnings && validation.warnings.length > 0) {
-                setValidationWarnings(validation.warnings);
-            }
-
-            // Parse file (rest of your existing parsing code)
-            const parsed = parseRatingFile(arrayBuffer);
+            const parsed = parseRatingFile(buf);
             setRatingFile(parsed);
 
-            // Store original FCs
             const fcs = new Set<string>();
-            parsed.entries.forEach((entry) => {
-                if (entry.profileId > 0) {
-                    fcs.add(pidToFriendCode(entry.profileId));
-                }
+            parsed.entries.forEach((e) => {
+                if (e.profileId > 0) fcs.add(pidToFriendCode(e.profileId));
             });
             setOriginalFCs(fcs);
             setTakenFCs(new Set<string>());
-        } catch (error) {
-            setValidationError(error instanceof Error ? error.message : "Failed to parse file");
-            console.error("File parsing error:", error);
-        }
-    };
-
-    const toggleRowSelection = (index: number) => {
-        const newSet = new Set(selectedRows());
-        if (newSet.has(index)) {
-            newSet.delete(index);
-        } else {
-            newSet.add(index);
-        }
-        setSelectedRows(newSet);
-    };
-
-    const toggleAllRows = () => {
-        const file = ratingFile();
-        if (!file) return;
-
-        if (selectedRows().size === file.entries.length) {
-            setSelectedRows(new Set<number>());
-        } else {
-            setSelectedRows(new Set<number>(file.entries.map((_, i) => i)));
+        } catch (err) {
+            setValidationError(err instanceof Error ? err.message : "Failed to parse file");
         }
     };
 
     const updateEntry = (index: number, updates: Partial<RatingEntry>) => {
         setRatingFile((prev) => {
             if (!prev) return prev;
-            const newEntries = [...prev.entries];
-            newEntries[index] = { ...newEntries[index], ...updates };
-
-            // Auto-update flags based on profileId and active state
-            const entry = newEntries[index];
-            if (entry.profileId > 0 && (entry.flags & 0x1) !== 0) {
-                // Keep active
-            } else if (entry.profileId <= 0) {
-                // Clear active flag if profileId is invalid
-                newEntries[index].flags = entry.flags & ~0x1;
-            }
-
-            return { ...prev, entries: newEntries };
+            const entries = [...prev.entries];
+            entries[index] = { ...entries[index], ...updates };
+            const e = entries[index];
+            if (e.profileId <= 0) entries[index] = { ...e, flags: e.flags & ~0x1 };
+            return { ...prev, entries };
         });
     };
 
     const toggleActive = (index: number) => {
         const file = ratingFile();
         if (!file) return;
+        const e = file.entries[index];
+        if (e.profileId <= 0) return;
+        updateEntry(index, { flags: (e.flags & 0x1) !== 0 ? e.flags & ~0x1 : e.flags | 0x1 });
+    };
 
-        const entry = file.entries[index];
-        const isActive = (entry.flags & 0x1) !== 0;
-
-        if (entry.profileId > 0) {
-            updateEntry(index, {
-                flags: isActive ? entry.flags & ~0x1 : entry.flags | 0x1,
-            });
+    const toggleRowSelection = (index: number) => {
+        const s = new Set(selectedRows());
+        if (s.has(index)) {
+            s.delete(index);
+        } else {
+            s.add(index);
         }
+        setSelectedRows(s);
     };
 
-    const clearSelectedRows = () => {
-        const file = ratingFile();
-        if (!file) return;
-
-        setRatingFile((prev) => {
-            if (!prev) return prev;
-            const newEntries = prev.entries.map((entry, idx) => {
-                if (selectedRows().has(idx)) {
-                    return {
-                        ...entry,
-                        profileId: 0,
-                        vr: 0,
-                        br: 0,
-                        flags: 0x00000000,
-                    };
-                }
-                return entry;
-            });
-            return { ...prev, entries: newEntries };
-        });
-
-        setSelectedRows(new Set<number>());
-    };
-
-    const downloadFile = () => {
-        const file = ratingFile();
-        if (!file) return;
-
-        const buffer = buildRatingFile(file);
-        triggerBlobDownload(
-            new Blob([buffer], { type: "application/octet-stream" }),
-            fileName() || "RRRating.pul",
+    const toggleAll = () => {
+        if (!ratingFile()) return;
+        const visible = visibleEntries();
+        setSelectedRows(
+            selectedRows().size === visible.length
+                ? new Set<number>()
+                : new Set<number>(visible.map((e) => e.index)),
         );
     };
 
-    const isEntryActive = (entry: RatingEntry) => {
-        return (entry.flags & 0x1) !== 0 && entry.profileId > 0;
-    };
-
-    const getActiveCount = () => {
-        const file = ratingFile();
-        if (!file) return 0;
-        return file.entries.filter(isEntryActive).length;
-    };
-
-    const getDuplicateFCCount = () => {
-        let count = 0;
-        fcMap().forEach((indices) => {
-            if (indices.length > 1) {
-                count += indices.length;
-            }
+    const clearSelected = () => {
+        setRatingFile((prev) => {
+            if (!prev) return prev;
+            return {
+                ...prev,
+                entries: prev.entries.map((e, i) =>
+                    selectedRows().has(i) ? { ...e, profileId: 0, vr: 0, br: 0, flags: 0 } : e,
+                ),
+            };
         });
-        return count;
+        setSelectedRows(new Set<number>());
+    };
+
+    const download = () => {
+        const file = ratingFile();
+        if (!file) return;
+        triggerBlobDownload(
+            new Blob([buildRatingFile(file)], { type: "application/octet-stream" }),
+            fileName(),
+        );
+    };
+
+    const isActive = (e: RatingEntry) => (e.flags & 0x1) !== 0 && e.profileId > 0;
+    const filledEntries = createMemo(
+        () => ratingFile()?.entries.filter((e) => e.profileId > 0) ?? [],
+    );
+    const visibleEntries = createMemo(() => ratingFile()?.entries.slice(0, 4) ?? []);
+    const activeCount = () => ratingFile()?.entries.filter(isActive).length ?? 0;
+    const dupCount = () => {
+        let n = 0;
+        fcMap().forEach((idxs) => {
+            if (idxs.length > 1) n += idxs.length;
+        });
+        return n;
     };
 
     return (
         <div class="max-w-7xl mx-auto space-y-6">
-            {/* Header */}
-            <div class="text-center py-6">
-                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Rating Editor</h1>
-                <p class="text-gray-600 dark:text-gray-400">
-                    Edit RRRating.pul server rating files
+            <div class="border-b border-gray-200 dark:border-gray-700 pb-6">
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-1">Rating Editor</h1>
+                <p class="text-gray-500 dark:text-gray-400 text-sm">
+                    Edit your{" "}
+                    <code class="font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">
+                        RRRating.pul
+                    </code>{" "}
+                    file. This is a personal file stored on your save, with one entry per license
+                    (up to 4).
                 </p>
             </div>
 
-            {/* File Upload */}
-            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <label class="flex-1">
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                            Upload RRRating.pul file
-                        </span>
-                        <input
-                            type="file"
-                            accept=".pul"
-                            onChange={handleFileUpload}
-                            class="block w-full text-sm text-gray-600 dark:text-gray-400
-                                file:mr-4 file:py-2 file:px-4
-                                file:rounded-lg file:border-0
-                                file:text-sm file:font-semibold
-                                file:bg-blue-50 file:text-blue-700
-                                hover:file:bg-blue-100
-                                dark:file:bg-blue-900/30 dark:file:text-blue-400
-                                dark:hover:file:bg-blue-900/50"
-                        />
-                    </label>
-
-                    <Show when={ratingFile()}>
-                        <button
-                            type="button"
-                            onClick={downloadFile}
-                            class="ml-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors inline-flex items-center gap-2"
-                        >
-                            <Download size={16} />
-                            Download
-                        </button>
-                    </Show>
-                </div>
-
+            {/* Upload + actions */}
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 flex flex-wrap items-center gap-4">
+                <label class="flex-1 min-w-0">
+                    <span class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                        RRRating.pul
+                    </span>
+                    <input
+                        type="file"
+                        accept=".pul"
+                        onChange={handleFileUpload}
+                        class="block w-full text-sm text-gray-600 dark:text-gray-400
+                            file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0
+                            file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700
+                            hover:file:bg-blue-100 dark:file:bg-blue-900/30 dark:file:text-blue-400
+                            dark:hover:file:bg-blue-900/50"
+                    />
+                </label>
                 <Show when={ratingFile()}>
-                    {(file) => (
-                        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
-                            <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
-                                <div class="text-gray-500 dark:text-gray-400 text-xs mb-1">
-                                    Magic
-                                </div>
-                                <div class="font-mono text-gray-900 dark:text-white">
-                                    {file().magic}
-                                </div>
-                            </div>
-                            <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
-                                <div class="text-gray-500 dark:text-gray-400 text-xs mb-1">
-                                    Version
-                                </div>
-                                <div class="font-mono text-gray-900 dark:text-white">
-                                    {file().version}
-                                </div>
-                            </div>
-                            <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
-                                <div class="text-gray-500 dark:text-gray-400 text-xs mb-1">
-                                    Total Entries
-                                </div>
-                                <div class="font-mono text-gray-900 dark:text-white">
-                                    {file().count}
-                                </div>
-                            </div>
-                            <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
-                                <div class="text-gray-500 dark:text-gray-400 text-xs mb-1">
-                                    Active Entries
-                                </div>
-                                <div class="font-mono text-gray-900 dark:text-white">
-                                    {getActiveCount()}
-                                </div>
-                            </div>
-                            <div
-                                class={`rounded-lg p-3 ${getDuplicateFCCount() > 0 ? "bg-yellow-50 dark:bg-yellow-900/20" : "bg-gray-50 dark:bg-gray-900"}`}
-                            >
-                                <div class="text-gray-500 dark:text-gray-400 text-xs mb-1">
-                                    Duplicate FCs
-                                </div>
-                                <div
-                                    class={`font-mono ${getDuplicateFCCount() > 0 ? "text-yellow-700 dark:text-yellow-400" : "text-gray-900 dark:text-white"}`}
-                                >
-                                    {getDuplicateFCCount()}
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    <button
+                        type="button"
+                        onClick={download}
+                        class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors shrink-0"
+                    >
+                        <Download size={14} /> Download
+                    </button>
                 </Show>
             </div>
 
-            {/* Validation Error */}
+            {/* File summary */}
+            <Show when={ratingFile()}>
+                {(_) => (
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {[
+                            {
+                                label: "License Slots",
+                                value: `${filledEntries().length} / 4`,
+                                mono: true,
+                            },
+                            { label: "Active", value: activeCount().toLocaleString(), mono: true },
+                            {
+                                label: "Duplicate FCs",
+                                value: dupCount().toLocaleString(),
+                                mono: true,
+                                warn: dupCount() > 0,
+                            },
+                        ].map((s) => (
+                            <div
+                                class={`rounded-lg p-3 border ${s.warn ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700" : "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700"}`}
+                            >
+                                <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                                    {s.label}
+                                </div>
+                                <div
+                                    class={`font-semibold ${s.warn ? "text-yellow-700 dark:text-yellow-400" : "text-gray-900 dark:text-white"} ${s.mono ? "font-mono" : ""}`}
+                                >
+                                    {s.value}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </Show>
+
             <Show when={validationError()}>
                 <AlertBox type="error" title="Validation Error">
-                    <p class="text-gray-700 dark:text-gray-300">{validationError()}</p>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                        Please ensure you're uploading a valid RRRating.pul file.
-                    </p>
+                    <p>{validationError()}</p>
                 </AlertBox>
             </Show>
 
-            {/* Validation Warnings */}
             <Show when={validationWarnings().length > 0}>
                 <AlertBox type="warning" title="Validation Warnings">
-                    <ul class="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
-                        {validationWarnings().map((warning) => (
-                            <li>{warning}</li>
+                    <ul class="list-disc list-inside space-y-1 text-sm">
+                        {validationWarnings().map((w) => (
+                            <li>{w}</li>
                         ))}
                     </ul>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-3">
-                        The file passed validation but has some unusual characteristics. You can
-                        proceed with editing, but verify the file if something seems wrong.
-                    </p>
                 </AlertBox>
             </Show>
 
             <Show when={!ratingFile() && !validationError()}>
                 <AlertBox type="info" title="How to use">
-                    <ol class="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
+                    <ol class="list-decimal list-inside space-y-1.5 text-sm">
                         <li>
-                            Upload your{" "}
-                            <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">
-                                RRRating.pul
-                            </code>{" "}
-                            file
+                            Upload your <code class="font-mono">RRRating.pul</code> file
                         </li>
-                        <li>The file will be automatically validated before loading</li>
-                        <li>Click on any cell to edit it directly</li>
-                        <li>Toggle "Active" checkbox to enable/disable entries</li>
-                        <li>The "RWFC Name" column shows the player name from the leaderboard</li>
-                        <li>Select rows and click "Clear Selected" to reset entries</li>
+                        <li>
+                            Edit Profile IDs, VR, and BR directly in the table (one row per license)
+                        </li>
+                        <li>Use the "Active" checkbox to enable or disable a license slot</li>
+                        <li>
+                            Click the down arrow next to VR to fetch the current leaderboard VR for
+                            that license
+                        </li>
+                        <li>Select rows and clear them to zero out a slot</li>
                         <li>Download the modified file when done</li>
                     </ol>
-                    <div class="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800">
-                        <p class="font-medium mb-2">File Location:</p>
-                        <ul class="space-y-1 text-sm">
-                            <li>
-                                <strong>Dolphin:</strong>{" "}
-                                <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">
-                                    Dolphin Emulator\Wii\shared2\Pulsar\RetroRewind6\RRRating.pul
-                                </code>
-                            </li>
-                            <li>
-                                <strong>Wii:</strong>{" "}
-                                <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">
-                                    SD Card\RetroRewind6\RRRating.pul
-                                </code>
-                            </li>
-                        </ul>
+                    <div class="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800 text-sm space-y-1">
+                        <p class="font-medium">File location:</p>
+                        <p>
+                            <strong>Dolphin:</strong>{" "}
+                            <code class="font-mono">
+                                Dolphin Emulator\Wii\shared2\Pulsar\RetroRewind6\RRRating.pul
+                            </code>
+                        </p>
+                        <p>
+                            <strong>Wii:</strong>{" "}
+                            <code class="font-mono">SD Card\RetroRewind6\RRRating.pul</code>
+                        </p>
                     </div>
                 </AlertBox>
             </Show>
 
             <Show when={ratingFile()}>
-                {(file) => (
+                {(_) => (
                     <>
-                        <Show when={getDuplicateFCCount() > 0}>
-                            <AlertBox type="warning" title="Duplicate Friend Codes Detected">
-                                <p class="text-gray-700 dark:text-gray-300">
-                                    {getDuplicateFCCount()} entries have duplicate Friend Codes
-                                    within this file. Duplicate entries are highlighted in yellow in
-                                    the table below.
+                        <Show when={dupCount() > 0}>
+                            <AlertBox type="warning" title="Duplicate Friend Codes">
+                                <p>
+                                    {dupCount()} entries share a Friend Code with another entry.
+                                    They are highlighted below.
                                 </p>
                             </AlertBox>
                         </Show>
-
                         <Show when={takenFCs().size > 0}>
-                            <AlertBox type="warning" title="Friend Codes Already on Leaderboard">
-                                <p class="text-gray-700 dark:text-gray-300 mb-2">
-                                    The following Friend Codes are already registered on the RWFC
-                                    leaderboard and were not in the original file:
+                            <AlertBox type="warning" title="FCs Already on Leaderboard">
+                                <p class="mb-2">
+                                    These Friend Codes are registered on the leaderboard but were
+                                    not in the original file:
                                 </p>
-                                <div class="flex flex-wrap gap-2 font-mono text-sm">
+                                <div class="flex flex-wrap gap-1.5 font-mono text-xs">
                                     {Array.from(takenFCs()).map((fc) => (
-                                        <span class="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 px-2 py-1 rounded">
+                                        <span class="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 px-2 py-0.5 rounded">
                                             {fc}
                                         </span>
                                     ))}
@@ -405,38 +305,32 @@ export default function RatingEditorPage() {
                             </AlertBox>
                         </Show>
 
-                        <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                             {/* Toolbar */}
-                            <div class="p-4 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                                <div class="text-sm text-gray-600 dark:text-gray-400">
+                            <div class="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between gap-3">
+                                <span class="text-sm text-gray-500 dark:text-gray-400">
                                     <Show
                                         when={selectedRows().size > 0}
                                         fallback="No rows selected"
                                     >
-                                        {selectedRows().size} row(s) selected
+                                        {selectedRows().size} selected
                                     </Show>
-                                </div>
+                                </span>
                                 <div class="flex gap-2">
                                     <button
                                         type="button"
-                                        onClick={toggleAllRows}
-                                        class="px-3 py-1.5 text-sm font-medium rounded-lg
-                                            bg-gray-200 dark:bg-gray-700
-                                            text-gray-700 dark:text-gray-300
-                                            hover:bg-gray-300 dark:hover:bg-gray-600"
+                                        onClick={toggleAll}
+                                        class="px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                                     >
-                                        {selectedRows().size === file().entries.length
+                                        {selectedRows().size === visibleEntries().length
                                             ? "Deselect All"
                                             : "Select All"}
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={clearSelectedRows}
+                                        onClick={clearSelected}
                                         disabled={selectedRows().size === 0}
-                                        class="px-3 py-1.5 text-sm font-medium rounded-lg
-                                            bg-red-600 hover:bg-red-700
-                                            text-white
-                                            disabled:opacity-50 disabled:cursor-not-allowed"
+                                        class="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                     >
                                         Clear Selected
                                     </button>
@@ -446,299 +340,256 @@ export default function RatingEditorPage() {
                             {/* Table */}
                             <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
                                 <table class="w-full text-sm">
-                                    <thead class="bg-gray-50 dark:bg-gray-900 sticky top-0 z-10">
-                                        <tr class="border-b border-gray-200 dark:border-gray-700">
-                                            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300 w-12">
-                                                #
-                                            </th>
-                                            <th class="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300 w-12">
-                                                Sel
-                                            </th>
-                                            <th class="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300 w-20">
-                                                Active
-                                            </th>
-                                            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
-                                                Profile ID
-                                            </th>
-                                            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
-                                                Friend Code
-                                            </th>
-                                            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
-                                                RWFC Name
-                                            </th>
-                                            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
-                                                VR
-                                            </th>
-                                            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
-                                                BR
-                                            </th>
-                                            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
-                                                Flags
-                                            </th>
+                                    <thead class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+                                        <tr>
+                                            {[
+                                                "#",
+                                                "Sel",
+                                                "Active",
+                                                "Profile ID",
+                                                "Friend Code",
+                                                "RWFC Name",
+                                                "VR (pts)",
+                                                "BR (pts)",
+                                            ].map((h) => (
+                                                <th class="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                                                    {h}
+                                                </th>
+                                            ))}
                                         </tr>
                                     </thead>
-                                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                        <For each={file().entries}>
-                                            {(entry, idx) => {
-                                                const isActive = () => isEntryActive(entry);
-                                                const isSelected = () => selectedRows().has(idx());
-                                                const isDuplicate = () => hasDuplicateFC(idx());
-                                                const friendCode = () =>
+                                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50">
+                                        <For each={visibleEntries()}>
+                                            {(entry) => {
+                                                const idx = () => entry.index;
+                                                const active = () => isActive(entry);
+                                                const selected = () => selectedRows().has(idx());
+                                                const dup = () => hasDuplicateFC(idx());
+                                                const fc = () =>
                                                     entry.profileId > 0
                                                         ? pidToFriendCode(entry.profileId)
-                                                        : "-";
+                                                        : "";
 
-                                                // Fetch player name from leaderboard
                                                 const [playerData] = createResource(
-                                                    () =>
-                                                        entry.profileId > 0 ? friendCode() : null,
-                                                    async (fc) => {
+                                                    () => (entry.profileId > 0 ? fc() : null),
+                                                    async (code) => {
                                                         try {
-                                                            const player =
-                                                                await leaderboardApi.getPlayer(fc);
-                                                            // Mark as taken if not in original file
-                                                            if (!originalFCs().has(fc)) {
-                                                                addTakenFC(fc);
-                                                            }
-                                                            return player.name;
+                                                            const p =
+                                                                await leaderboardApi.getPlayer(
+                                                                    code,
+                                                                );
+                                                            if (!originalFCs().has(code))
+                                                                setTakenFCs(
+                                                                    (prev) =>
+                                                                        new Set([...prev, code]),
+                                                                );
+                                                            return p;
                                                         } catch {
                                                             return null;
                                                         }
                                                     },
                                                 );
 
-                                                // Local editing state for each field
-                                                const [editingProfileId, setEditingProfileId] =
-                                                    createSignal<string>(
-                                                        entry.profileId.toString(),
-                                                    );
-                                                const [editingVR, setEditingVR] =
-                                                    createSignal<string>(entry.vr.toFixed(2));
-                                                const [editingBR, setEditingBR] =
-                                                    createSignal<string>(entry.br.toFixed(2));
-                                                const [editingFlags, setEditingFlags] =
-                                                    createSignal<string>(
-                                                        `0x${(entry.flags >>> 0).toString(16).padStart(8, "0")}`,
-                                                    );
+                                                const [editPid, setEditPid] = createSignal(
+                                                    String(entry.profileId),
+                                                );
+                                                const [editVr, setEditVr] = createSignal(
+                                                    String(Math.round(entry.vr * 100)),
+                                                );
+                                                const [editBr, setEditBr] = createSignal(
+                                                    String(Math.round(entry.br * 100)),
+                                                );
+                                                const [fetchingVr, setFetchingVr] =
+                                                    createSignal(false);
 
-                                                // Update local state when entry changes externally
                                                 createEffect(() => {
-                                                    setEditingProfileId(entry.profileId.toString());
-                                                    setEditingVR(entry.vr.toFixed(2));
-                                                    setEditingBR(entry.br.toFixed(2));
-                                                    setEditingFlags(
-                                                        `0x${(entry.flags >>> 0).toString(16).padStart(8, "0")}`,
-                                                    );
+                                                    setEditPid(String(entry.profileId));
+                                                    setEditVr(String(Math.round(entry.vr * 100)));
+                                                    setEditBr(String(Math.round(entry.br * 100)));
                                                 });
 
-                                                const commitProfileId = () => {
-                                                    const value = parseInt(editingProfileId()) || 0;
-                                                    const clampedValue = Math.max(
+                                                const commitPid = () => {
+                                                    const v = Math.max(
                                                         0,
-                                                        Math.min(1000000000, value),
+                                                        Math.min(
+                                                            1_000_000_000,
+                                                            parseInt(editPid()) || 0,
+                                                        ),
                                                     );
-                                                    updateEntry(idx(), { profileId: clampedValue });
+                                                    updateEntry(idx(), { profileId: v });
                                                 };
 
-                                                const commitVR = () => {
-                                                    const value = parseFloat(editingVR()) || 0;
-                                                    updateEntry(idx(), {
-                                                        vr: Math.max(0, Math.min(10000, value)),
-                                                    });
+                                                const commitVr = () => {
+                                                    const pts = Math.max(
+                                                        0,
+                                                        Math.min(
+                                                            1_000_000,
+                                                            parseInt(editVr()) || 0,
+                                                        ),
+                                                    );
+                                                    setEditVr(String(pts));
+                                                    updateEntry(idx(), { vr: pts / 100 });
                                                 };
 
-                                                const commitBR = () => {
-                                                    const value = parseFloat(editingBR()) || 0;
-                                                    updateEntry(idx(), {
-                                                        br: Math.max(0, Math.min(10000, value)),
-                                                    });
+                                                const commitBr = () => {
+                                                    const pts = Math.max(
+                                                        0,
+                                                        Math.min(
+                                                            1_000_000,
+                                                            parseInt(editBr()) || 0,
+                                                        ),
+                                                    );
+                                                    setEditBr(String(pts));
+                                                    updateEntry(idx(), { br: pts / 100 });
                                                 };
 
-                                                const commitFlags = () => {
-                                                    const hex = editingFlags().replace(/^0x/i, "");
-                                                    const value = parseInt(hex, 16) || 0;
-                                                    updateEntry(idx(), { flags: value >>> 0 });
+                                                const fetchVr = async () => {
+                                                    if (entry.profileId <= 0) return;
+                                                    const code = fc();
+                                                    setFetchingVr(true);
+                                                    try {
+                                                        const p =
+                                                            await leaderboardApi.getPlayer(code);
+                                                        const pts = Math.round(p.vr);
+                                                        setEditVr(String(pts));
+                                                        updateEntry(idx(), { vr: pts / 100 });
+                                                    } catch {
+                                                        // silently fail
+                                                    } finally {
+                                                        setFetchingVr(false);
+                                                    }
                                                 };
+
+                                                const inputCls =
+                                                    "w-full px-2 py-1 text-xs font-mono rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent";
+                                                const onEnter =
+                                                    (cb: () => void) => (e: KeyboardEvent) => {
+                                                        if (e.key === "Enter") {
+                                                            cb();
+                                                            (e.target as HTMLElement).blur();
+                                                        }
+                                                    };
 
                                                 return (
                                                     <tr
-                                                        class={`${
-                                                            isSelected()
-                                                                ? "bg-blue-50 dark:bg-blue-900/20"
-                                                                : ""
-                                                        } ${
-                                                            isDuplicate()
-                                                                ? "bg-yellow-50 dark:bg-yellow-900/20"
-                                                                : ""
-                                                        } ${
-                                                            !isActive() && entry.profileId > 0
-                                                                ? "opacity-60"
-                                                                : ""
-                                                        } hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors`}
+                                                        class={`${selected() ? "bg-blue-50 dark:bg-blue-900/20" : dup() ? "bg-yellow-50/60 dark:bg-yellow-900/10" : ""} hover:bg-gray-50/80 dark:hover:bg-gray-700/20 transition-colors`}
                                                     >
-                                                        <td class="px-4 py-2 font-mono text-xs text-gray-500 dark:text-gray-400">
+                                                        <td class="px-3 py-1.5 font-mono text-xs text-gray-400">
                                                             {idx()}
                                                         </td>
-                                                        <td class="px-4 py-2 text-center">
+                                                        <td class="px-3 py-1.5 text-center">
                                                             <input
                                                                 type="checkbox"
-                                                                checked={isSelected()}
+                                                                checked={selected()}
                                                                 onChange={() =>
                                                                     toggleRowSelection(idx())
                                                                 }
-                                                                class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                                                class="w-3.5 h-3.5 rounded cursor-pointer"
                                                             />
                                                         </td>
-                                                        <td class="px-4 py-2 text-center">
+                                                        <td class="px-3 py-1.5 text-center">
                                                             <input
                                                                 type="checkbox"
-                                                                checked={isActive()}
-                                                                onChange={() => toggleActive(idx())}
+                                                                checked={active()}
                                                                 disabled={entry.profileId <= 0}
-                                                                class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 disabled:opacity-30 cursor-pointer"
+                                                                onChange={() => toggleActive(idx())}
+                                                                class="w-3.5 h-3.5 rounded cursor-pointer disabled:opacity-30"
                                                             />
                                                         </td>
-                                                        <td class="px-4 py-2">
+                                                        <td class="px-3 py-1.5 min-w-[110px]">
                                                             <input
-                                                                type="text"
-                                                                value={editingProfileId()}
+                                                                class={inputCls}
+                                                                value={editPid()}
                                                                 onInput={(e) =>
-                                                                    setEditingProfileId(
+                                                                    setEditPid(
                                                                         e.currentTarget.value,
                                                                     )
                                                                 }
-                                                                onBlur={commitProfileId}
-                                                                onKeyDown={(e) => {
-                                                                    if (e.key === "Enter") {
-                                                                        commitProfileId();
-                                                                        e.currentTarget.blur();
-                                                                    }
-                                                                }}
-                                                                class="w-full px-2 py-1 text-sm font-mono rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                                onBlur={commitPid}
+                                                                onKeyDown={onEnter(commitPid)}
                                                             />
                                                         </td>
-                                                        <td class="px-4 py-2 font-mono text-xs">
+                                                        <td class="px-3 py-1.5 font-mono text-xs whitespace-nowrap">
                                                             <span
                                                                 class={
-                                                                    isDuplicate()
-                                                                        ? "text-yellow-700 dark:text-yellow-400 font-semibold"
-                                                                        : "text-gray-600 dark:text-gray-400"
+                                                                    dup()
+                                                                        ? "text-yellow-600 dark:text-yellow-400"
+                                                                        : "text-gray-500 dark:text-gray-400"
                                                                 }
                                                             >
-                                                                {friendCode()}
-                                                                <Show when={isDuplicate()}>
+                                                                {fc()}
+                                                                <Show when={dup()}>
                                                                     <TriangleAlert
-                                                                        size={12}
-                                                                        class="inline ml-1 text-yellow-600 dark:text-yellow-400"
+                                                                        size={11}
+                                                                        class="inline ml-1 text-yellow-500"
                                                                     />
                                                                 </Show>
                                                             </span>
                                                         </td>
-                                                        <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                                                        <td class="px-3 py-1.5 text-xs max-w-[130px] truncate">
                                                             <Show when={playerData.loading}>
-                                                                <span class="text-gray-400 dark:text-gray-500 text-xs">
-                                                                    Loading...
+                                                                <span class="text-gray-400 italic">
+                                                                    …
                                                                 </span>
                                                             </Show>
-                                                            <Show
-                                                                when={
-                                                                    !playerData.loading &&
-                                                                    playerData()
-                                                                }
-                                                            >
+                                                            <Show when={!playerData.loading}>
                                                                 <span
                                                                     class={
-                                                                        takenFCs().has(friendCode())
-                                                                            ? "text-yellow-700 dark:text-yellow-400 font-semibold"
-                                                                            : ""
+                                                                        takenFCs().has(fc())
+                                                                            ? "text-yellow-600 dark:text-yellow-400"
+                                                                            : "text-gray-700 dark:text-gray-300"
                                                                     }
                                                                 >
-                                                                    {playerData()}
+                                                                    {playerData()?.name ??
+                                                                        (entry.profileId > 0
+                                                                            ? "Not found"
+                                                                            : "")}
                                                                     <Show
-                                                                        when={takenFCs().has(
-                                                                            friendCode(),
-                                                                        )}
+                                                                        when={takenFCs().has(fc())}
                                                                     >
                                                                         <TriangleAlert
-                                                                            size={12}
-                                                                            class="inline ml-1 text-yellow-600 dark:text-yellow-400"
+                                                                            size={11}
+                                                                            class="inline ml-1 text-yellow-500"
                                                                         />
                                                                     </Show>
                                                                 </span>
                                                             </Show>
-                                                            <Show
-                                                                when={
-                                                                    !playerData.loading &&
-                                                                    !playerData() &&
-                                                                    entry.profileId > 0
-                                                                }
-                                                            >
-                                                                <span class="text-gray-400 dark:text-gray-500 text-xs italic">
-                                                                    Not found
-                                                                </span>
-                                                            </Show>
                                                         </td>
-                                                        <td class="px-4 py-2">
-                                                            <input
-                                                                type="text"
-                                                                value={editingVR()}
-                                                                onInput={(e) =>
-                                                                    setEditingVR(
-                                                                        e.currentTarget.value,
-                                                                    )
-                                                                }
-                                                                onBlur={commitVR}
-                                                                onKeyDown={(e) => {
-                                                                    if (e.key === "Enter") {
-                                                                        commitVR();
-                                                                        e.currentTarget.blur();
+                                                        <td class="px-3 py-1.5 min-w-[130px]">
+                                                            <div class="flex gap-1 items-center">
+                                                                <input
+                                                                    class={inputCls}
+                                                                    value={editVr()}
+                                                                    onInput={(e) =>
+                                                                        setEditVr(
+                                                                            e.currentTarget.value,
+                                                                        )
                                                                     }
-                                                                }}
-                                                                class="w-full px-2 py-1 text-sm font-mono rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                            />
-                                                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                                                ×100: {Math.round(entry.vr * 100)}
+                                                                    onBlur={commitVr}
+                                                                    onKeyDown={onEnter(commitVr)}
+                                                                />
+                                                                <Show when={entry.profileId > 0}>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={fetchVr}
+                                                                        disabled={fetchingVr()}
+                                                                        title="Fetch from leaderboard"
+                                                                        class="shrink-0 px-1.5 py-1 text-xs rounded bg-gray-100 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-40 transition-colors"
+                                                                    >
+                                                                        {fetchingVr() ? "…" : "↓"}
+                                                                    </button>
+                                                                </Show>
                                                             </div>
                                                         </td>
-                                                        <td class="px-4 py-2">
+                                                        <td class="px-3 py-1.5 min-w-[100px]">
                                                             <input
-                                                                type="text"
-                                                                value={editingBR()}
+                                                                class={inputCls}
+                                                                value={editBr()}
                                                                 onInput={(e) =>
-                                                                    setEditingBR(
-                                                                        e.currentTarget.value,
-                                                                    )
+                                                                    setEditBr(e.currentTarget.value)
                                                                 }
-                                                                onBlur={commitBR}
-                                                                onKeyDown={(e) => {
-                                                                    if (e.key === "Enter") {
-                                                                        commitBR();
-                                                                        e.currentTarget.blur();
-                                                                    }
-                                                                }}
-                                                                class="w-full px-2 py-1 text-sm font-mono rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                            />
-                                                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                                                ×100: {Math.round(entry.br * 100)}
-                                                            </div>
-                                                        </td>
-                                                        <td class="px-4 py-2">
-                                                            <input
-                                                                type="text"
-                                                                value={editingFlags()}
-                                                                onInput={(e) =>
-                                                                    setEditingFlags(
-                                                                        e.currentTarget.value,
-                                                                    )
-                                                                }
-                                                                onBlur={commitFlags}
-                                                                onKeyDown={(e) => {
-                                                                    if (e.key === "Enter") {
-                                                                        commitFlags();
-                                                                        e.currentTarget.blur();
-                                                                    }
-                                                                }}
-                                                                class="w-full px-2 py-1 text-sm font-mono rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                                onBlur={commitBr}
+                                                                onKeyDown={onEnter(commitBr)}
                                                             />
                                                         </td>
                                                     </tr>
@@ -751,42 +602,6 @@ export default function RatingEditorPage() {
                         </div>
                     </>
                 )}
-            </Show>
-
-            {/* Info Box */}
-            <Show when={ratingFile()}>
-                <AlertBox type="info" title="File Format Notes">
-                    <ul class="list-disc list-inside space-y-1 text-sm">
-                        <li>
-                            <strong>Profile ID:</strong> Must be &gt; 0 for an active entry
-                            (0–1,000,000,000)
-                        </li>
-                        <li>
-                            <strong>RWFC Name:</strong> Automatically fetched from the leaderboard
-                            for verification
-                        </li>
-                        <li>
-                            <strong>VR/BR:</strong> Float values (0.01–10000.00); ×100 shows integer
-                            representation
-                        </li>
-                        <li>
-                            <strong>Flags:</strong> Bit 0 (0x1) = hasData; toggle "Active" to manage
-                            automatically
-                        </li>
-                        <li>
-                            <strong>Active:</strong> Entry is active if Profile ID &gt; 0 AND flags
-                            bit 0 is set
-                        </li>
-                        <li>
-                            <strong>Warnings:</strong> Yellow highlights indicate duplicate FCs or
-                            FCs already on the leaderboard
-                        </li>
-                        <li>
-                            <strong>File Validation:</strong> Files are automatically validated on
-                            upload to prevent corruption
-                        </li>
-                    </ul>
-                </AlertBox>
             </Show>
         </div>
     );

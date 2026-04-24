@@ -396,7 +396,7 @@ function SetupColumn(props: { title: string; entries: SetupEntry[] }) {
                                     {entry.name}
                                 </div>
                                 <div class="text-xs text-gray-400 dark:text-gray-500">
-                                    {entry.raceCount.toLocaleString()} races
+                                    {entry.raceCount.toLocaleString()} times
                                 </div>
                             </div>
                         </div>

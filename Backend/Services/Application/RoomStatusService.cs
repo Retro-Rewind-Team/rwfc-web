@@ -19,6 +19,11 @@ public class RoomStatusService : IRoomStatusService
     private readonly ConcurrentQueue<RoomStatusSnapshot> _liveCache = new();
     private readonly SemaphoreSlim _refreshLock = new(1, 1);
 
+    // In-memory peak tracking, loaded from DB at startup, updated on each new peak
+    private volatile int _peakPlayersToday;
+    private volatile int _peakPlayersAllTime;
+    private DateOnly _peakTodayDate; // only read/written under _refreshLock
+
     private const int LiveCacheSize = 1;
     private const int RefreshTimeoutSeconds = 5;
 
@@ -44,31 +49,24 @@ public class RoomStatusService : IRoomStatusService
         return Task.FromResult<RoomStatusResponseDto?>(RoomMapper.ToResponseDto(latest.Rooms, latest.DbId, latest.Timestamp));
     }
 
-    public async Task<RoomStatusStatsDto> GetStatsAsync()
+    public Task<RoomStatusStatsDto> GetStatsAsync()
     {
         var latest = _liveCache.LastOrDefault();
 
         var totalPlayers = latest?.Rooms.Sum(r => r.Players.Count) ?? 0;
-        var publicRooms = latest?.Rooms.Count(r => r.Type == "anybody") ?? 0;
         var totalRooms = latest?.Rooms.Count ?? 0;
+        var publicRooms = latest?.Rooms.Count(r => r.Type == "anybody") ?? 0;
         var lastUpdated = latest?.Timestamp ?? DateTime.UtcNow;
 
-        using var scope = _serviceScopeFactory.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IRoomSnapshotRepository>();
-
-        var today = DateTime.UtcNow.Date;
-        var peakToday = await repository.GetPeakPlayerCountAsync(since: today);
-        var peakAllTime = await repository.GetPeakPlayerCountAsync();
-
-        return new RoomStatusStatsDto(
+        return Task.FromResult(new RoomStatusStatsDto(
             TotalPlayers: totalPlayers,
             TotalRooms: totalRooms,
             PublicRooms: publicRooms,
             PrivateRooms: totalRooms - publicRooms,
             LastUpdated: lastUpdated,
-            PeakPlayersToday: peakToday,
-            PeakPlayersAllTime: peakAllTime
-        );
+            PeakPlayersToday: _peakPlayersToday,
+            PeakPlayersAllTime: _peakPlayersAllTime
+        ));
     }
 
     // ===== HISTORICAL STATUS (DB) =====
@@ -180,7 +178,22 @@ public class RoomStatusService : IRoomStatusService
 
     // ===== REFRESH =====
 
-    public async Task RefreshRoomDataAsync()
+    public async Task InitializePeaksAsync()
+    {
+        using var scope = _serviceScopeFactory.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRoomSnapshotRepository>();
+
+        var now = DateTime.UtcNow;
+        _peakPlayersAllTime = await repository.GetPeakPlayerCountAsync();
+        _peakPlayersToday = await repository.GetPeakPlayerCountAsync(since: now.Date);
+        _peakTodayDate = DateOnly.FromDateTime(now);
+
+        _logger.LogInformation(
+            "Peak players initialized: Today={PeakToday}, AllTime={PeakAllTime}",
+            _peakPlayersToday, _peakPlayersAllTime);
+    }
+
+    public async Task RefreshRoomDataAsync(bool persistSnapshot)
     {
         if (!await _refreshLock.WaitAsync(TimeSpan.FromSeconds(RefreshTimeoutSeconds)))
         {
@@ -211,14 +224,38 @@ public class RoomStatusService : IRoomStatusService
 
             // Map to DTOs (track names resolved here)
             var roomDtos = groups.Select(g => RoomMapper.ToDto(g, trackNames)).ToList();
+            var totalPlayers = roomDtos.Sum(r => r.Players.Count);
 
-            // Persist to DB, this is the source of truth for all history
-            var dbId = await PersistSnapshotAsync(snapshotRepository, roomDtos, timestamp);
+            // Reset daily peak on day rollover (under _refreshLock, so no contention with reads)
+            var today = DateOnly.FromDateTime(timestamp);
+            if (today != _peakTodayDate)
+            {
+                _peakPlayersToday = 0;
+                _peakTodayDate = today;
+            }
+
+            // Always persist if a new peak is detected, regardless of the scheduled tick
+            if (totalPlayers > _peakPlayersToday || totalPlayers > _peakPlayersAllTime)
+                persistSnapshot = true;
+
+            int? dbId = null;
+            if (persistSnapshot)
+            {
+                dbId = await PersistSnapshotAsync(snapshotRepository, roomDtos, timestamp);
+
+                // Only update in-memory peaks if the write actually succeeded.
+                // If it failed (dbId is null), leave peaks unchanged so the next tick retries.
+                if (dbId.HasValue)
+                {
+                    if (totalPlayers > _peakPlayersToday) _peakPlayersToday = totalPlayers;
+                    if (totalPlayers > _peakPlayersAllTime) _peakPlayersAllTime = totalPlayers;
+                }
+            }
 
             // On DB failure keep the previous DbId so the live cache doesn't advertise an invalid ID
             var resolvedDbId = dbId ?? _liveCache.LastOrDefault()?.DbId ?? 0;
 
-            // Update live cache with the latest rooms regardless of DB outcome
+            // Update live cache regardless of whether we persisted
             UpdateLiveCache(new RoomStatusSnapshot
             {
                 DbId = resolvedDbId,
@@ -226,8 +263,9 @@ public class RoomStatusService : IRoomStatusService
                 Rooms = roomDtos
             });
 
-            _logger.LogDebug("Room data refreshed. DB ID: {DbId}, Rooms: {RoomCount}",
-                resolvedDbId, groups.Count);
+            _logger.LogDebug(
+                "Room data refreshed. Persisted={Persisted}, DB ID: {DbId}, Rooms: {RoomCount}, Players: {TotalPlayers}",
+                persistSnapshot, resolvedDbId, groups.Count, totalPlayers);
         }
         catch (Exception ex)
         {

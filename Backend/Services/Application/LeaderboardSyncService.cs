@@ -13,6 +13,7 @@ public class LeaderboardSyncService : ILeaderboardSyncService
     private readonly IVRHistoryRepository _vrHistoryRepository;
     private readonly IRetroWFCApiClient _apiClient;
     private readonly IPlayerValidationService _validationService;
+    private readonly IDiscordWebhookService _discordWebhook;
     private readonly ILogger<LeaderboardSyncService> _logger;
 
     private static readonly HashSet<string> AllowedRoomTypes =
@@ -28,6 +29,7 @@ public class LeaderboardSyncService : ILeaderboardSyncService
         IVRHistoryRepository vrHistoryRepository,
         IRetroWFCApiClient apiClient,
         IPlayerValidationService validationService,
+        IDiscordWebhookService discordWebhook,
         ILogger<LeaderboardSyncService> logger)
     {
         _playerRepository = playerRepository;
@@ -35,6 +37,7 @@ public class LeaderboardSyncService : ILeaderboardSyncService
         _vrHistoryRepository = vrHistoryRepository;
         _apiClient = apiClient;
         _validationService = validationService;
+        _discordWebhook = discordWebhook;
         _logger = logger;
     }
 
@@ -81,10 +84,11 @@ public class LeaderboardSyncService : ILeaderboardSyncService
                     if (_validationService.IsSuspiciousNewPlayer(newPlayer.Ev))
                     {
                         newPlayer.IsSuspicious = true;
-                        newPlayer.FlagReason = "High initial VR";
+                        newPlayer.FlagReason = $"High initial VR ({newPlayer.Ev})";
                         _logger.LogWarning(
                             "New player flagged as suspicious: {Name} ({Pid}) with VR {VR}",
                             newPlayer.Name, newPlayer.Pid, newPlayer.Ev);
+                        await _discordWebhook.SendAutoFlagAsync(newPlayer.Name, newPlayer.Fc, newPlayer.FlagReason);
                     }
 
                     toInsert.Add(newPlayer);
@@ -92,7 +96,7 @@ public class LeaderboardSyncService : ILeaderboardSyncService
                 else
                 {
                     var previousVR = existingPlayer.Ev;
-                    var miiDataChanged = UpdateExistingPlayer(existingPlayer, apiPlayer, now);
+                    var miiDataChanged = await UpdateExistingPlayer(existingPlayer, apiPlayer, now);
                     toUpdate.Add(existingPlayer);
 
                     if (miiDataChanged)
@@ -191,7 +195,7 @@ public class LeaderboardSyncService : ILeaderboardSyncService
     /// <param name="apiPlayer">The external player data used to update the existing player. Must not be null.</param>
     /// <param name="now">The current UTC timestamp to use for LastSeen/LastUpdated, passed in so all players in a batch share the same value.</param>
     // Returns true if the player's Mii data changed (so the caller can invalidate the cache row).
-    private bool UpdateExistingPlayer(PlayerEntity existingPlayer, ExternalPlayer apiPlayer, DateTime now)
+    private async Task<bool> UpdateExistingPlayer(PlayerEntity existingPlayer, ExternalPlayer apiPlayer, DateTime now)
     {
         var previousVR = existingPlayer.Ev;
 
@@ -213,12 +217,16 @@ public class LeaderboardSyncService : ILeaderboardSyncService
         {
             existingPlayer.Ev = apiPlayer.VR;
 
+            var wasSuspicious = existingPlayer.IsSuspicious;
             var update = _validationService.CheckSuspiciousStatus(existingPlayer, previousVR);
             if (update != null)
             {
                 existingPlayer.IsSuspicious = update.IsSuspicious;
                 existingPlayer.SuspiciousVRJumps = update.SuspiciousVRJumps;
                 existingPlayer.FlagReason = update.FlagReason;
+
+                if (update.IsSuspicious && !wasSuspicious)
+                    await _discordWebhook.SendAutoFlagAsync(existingPlayer.Name, existingPlayer.Fc, update.FlagReason);
             }
         }
 

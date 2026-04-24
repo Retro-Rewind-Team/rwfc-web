@@ -160,43 +160,26 @@ export function validateRatingFile(buffer: ArrayBuffer): ValidationResult {
         );
     }
 
-    // Warn about unusually large entry counts
-    if (count > 10000) {
-        warnings.push(`Very large entry count: ${count.toLocaleString()}`);
+    if (count > 1000) {
+        warnings.push(`Unusually large entry count: ${count.toLocaleString()}`);
     }
 
     return { valid: true, warnings };
 }
 
 export function validateRksysFile(buffer: ArrayBuffer): ValidationResult {
-    const warnings: string[] = [];
-
-    // Expected size for rksys.dat (approximately 110,000 bytes)
-    const expectedSize = 0x1ae48; // 110,152 bytes
-    const minSize = 100000; // At least 100 KB
-    const maxSize = 150000; // At most 150 KB
+    // Minimum size to reach the last field of license slot 4:
+    // base 0x1A648 + DIST1ST offset 0xE0 + 4 bytes = 0x1A72C = 107,308 bytes
+    const minSize = 0x1a72c;
 
     if (buffer.byteLength < minSize) {
         return {
             valid: false,
-            error: `File too small to be a valid rksys.dat (expected ~${expectedSize.toLocaleString()} bytes, got ${buffer.byteLength.toLocaleString()})`,
+            error: `File too small to be a valid rksys.dat (got ${buffer.byteLength.toLocaleString()} bytes, need at least ${minSize.toLocaleString()})`,
         };
     }
 
-    if (buffer.byteLength > maxSize) {
-        return {
-            valid: false,
-            error: `File too large to be a valid rksys.dat (expected ~${expectedSize.toLocaleString()} bytes, got ${buffer.byteLength.toLocaleString()})`,
-        };
-    }
-
-    if (buffer.byteLength !== expectedSize) {
-        warnings.push(
-            `File size differs from expected (expected ${expectedSize.toLocaleString()} bytes, got ${buffer.byteLength.toLocaleString()})`,
-        );
-    }
-
-    return { valid: true, warnings };
+    return { valid: true };
 }
 
 export function getFileExtension(filename: string): string {
