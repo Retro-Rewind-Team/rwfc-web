@@ -69,8 +69,16 @@ public interface IRoomStatusService
     // ===== OPERATIONS =====
 
     /// <summary>
-    /// Fetches fresh room data from the Retro WFC API, persists it as a new snapshot, and updates
-    /// the in-memory live cache. On failure the live cache is left unchanged (last-known-good).
+    /// Loads the current peak player counts from the database into memory. Should be called once
+    /// at startup before the polling loop begins so the in-memory peaks are not incorrectly zero.
     /// </summary>
-    Task RefreshRoomDataAsync();
+    Task InitializePeaksAsync();
+
+    /// <summary>
+    /// Fetches fresh room data from the Retro WFC API and updates the in-memory live cache.
+    /// If <paramref name="persistSnapshot"/> is <c>true</c>, or if a new peak player count is
+    /// detected, the snapshot is also written to the database. On failure the live cache is left
+    /// unchanged (last-known-good).
+    /// </summary>
+    Task RefreshRoomDataAsync(bool persistSnapshot);
 }

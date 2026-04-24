@@ -47,9 +47,9 @@ public class PlayerService : IPlayerService
         }
         else
         {
-            // No window requested: fetch up to the last 1000 entries and derive fromDate from the earliest
-            const int maxHistoryEntries = 1000;
-            history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, maxHistoryEntries);
+            // No window requested: fetch all history and derive fromDate from the earliest entry
+            fromDate = DateTime.MinValue;
+            history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, fromDate, toDate);
             fromDate = history.Count > 0 ? history.Min(h => h.Date) : toDate;
         }
 
@@ -83,6 +83,47 @@ public class PlayerService : IPlayerService
             PlayerId: player.Pid,
             FromDate: fromDate,
             ToDate: toDate,
+            History: historyDtos,
+            TotalVRChange: endingVR - startingVR,
+            StartingVR: startingVR,
+            EndingVR: endingVR
+        );
+    }
+
+    public async Task<VRHistoryRangeResponseDto?> GetPlayerHistoryAsync(string fc, DateTime from, DateTime to)
+    {
+        var player = await _playerRepository.GetByFcAsync(fc);
+        if (player == null)
+            return null;
+
+        var history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, from, to);
+
+        var historyDtos = history
+            .Select(PlayerMapper.ToVRHistoryDto)
+            .OrderBy(h => h.Date)
+            .ToList();
+
+        var startingVR = historyDtos.Count > 0
+            ? historyDtos.First().TotalVR - historyDtos.First().VRChange
+            : player.Ev;
+        var endingVR = historyDtos.Count > 0
+            ? historyDtos.Last().TotalVR
+            : player.Ev;
+
+        if (historyDtos.Count > 0)
+        {
+            var initialEntry = new VRHistoryDto(
+                Date: historyDtos.First().Date.AddSeconds(-1),
+                VRChange: 0,
+                TotalVR: startingVR
+            );
+            historyDtos.Insert(0, initialEntry);
+        }
+
+        return new VRHistoryRangeResponseDto(
+            PlayerId: player.Pid,
+            FromDate: from,
+            ToDate: to,
             History: historyDtos,
             TotalVRChange: endingVR - startingVR,
             StartingVR: startingVR,

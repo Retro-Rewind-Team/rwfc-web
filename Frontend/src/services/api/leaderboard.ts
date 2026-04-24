@@ -49,6 +49,18 @@ export const leaderboardApi = {
         return apiRequest<VRHistoryResponse>(url);
     },
 
+    async getPlayerHistoryByRange(
+        friendCode: string,
+        from: Date,
+        to: Date,
+    ): Promise<VRHistoryResponse> {
+        const params = new URLSearchParams({
+            from: from.toISOString(),
+            to: to.toISOString(),
+        });
+        return apiRequest<VRHistoryResponse>(`/leaderboard/player/${friendCode}/history?${params}`);
+    },
+
     async getPlayerRecentHistory(friendCode: string, count = 50): Promise<VRHistoryEntry[]> {
         return apiRequest<VRHistoryEntry[]>(
             `/leaderboard/player/${friendCode}/history/recent?count=${count}`,

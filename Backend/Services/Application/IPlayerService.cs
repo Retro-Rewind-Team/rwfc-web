@@ -22,6 +22,11 @@ public interface IPlayerService
     Task<VRHistoryRangeResponseDto?> GetPlayerHistoryAsync(string fc, int? days);
 
     /// <summary>
+    /// Retrieves the player's VR history between two explicit UTC timestamps.
+    /// </summary>
+    Task<VRHistoryRangeResponseDto?> GetPlayerHistoryAsync(string fc, DateTime from, DateTime to);
+
+    /// <summary>
     /// Retrieves a list of recent VR history records for the specified player asynchronously.
     /// </summary>
     /// <param name="fc">The unique identifier of the player whose history is to be retrieved. Cannot be null or empty.</param>

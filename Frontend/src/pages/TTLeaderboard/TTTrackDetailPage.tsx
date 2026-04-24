@@ -40,9 +40,12 @@ export default function TTTrackDetailPage() {
     createEffect(() => {
         const track = queries.trackQuery.data;
         if (track && track.laps === 1 && mode() === "flap") {
-            navigate(`/timetrial/${glitchAllowed() ? "" : "no-glitch-"}${selectedCC()}cc/${trackId()}`, {
-                replace: true,
-            });
+            navigate(
+                `/timetrial/${glitchAllowed() ? "" : "no-glitch-"}${selectedCC()}cc/${trackId()}`,
+                {
+                    replace: true,
+                },
+            );
         }
     });
 

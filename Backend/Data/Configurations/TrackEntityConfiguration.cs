@@ -13,5 +13,6 @@ public class TrackEntityConfiguration : IEntityTypeConfiguration<TrackEntity>
 
         entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
         entity.Property(e => e.Category).HasMaxLength(10).IsRequired();
+        entity.Property(e => e.IsHidden).HasDefaultValue(false).IsRequired();
     }
 }

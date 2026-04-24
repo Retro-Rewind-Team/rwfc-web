@@ -16,11 +16,12 @@ public class TrackRepository : ITrackRepository
     public async Task<TrackEntity?> GetByIdAsync(int id) =>
         await _context.Tracks
             .AsNoTracking()
-            .FirstOrDefaultAsync(t => t.Id == id);
+            .FirstOrDefaultAsync(t => t.Id == id && !t.IsHidden);
 
     public async Task<List<TrackEntity>> GetAllTracksAsync() =>
         await _context.Tracks
             .AsNoTracking()
+            .Where(t => !t.IsHidden)
             .OrderBy(t => t.SortOrder)
             .ToListAsync();
 
@@ -53,7 +54,7 @@ public class TrackRepository : ITrackRepository
 
         return await _context.Tracks
             .AsNoTracking()
-            .Where(t => courseIds.Contains(t.CourseId))
+            .Where(t => courseIds.Contains(t.CourseId) && !t.IsHidden)
             .ToListAsync();
     }
 }

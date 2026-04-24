@@ -1,4 +1,4 @@
-import { createEffect, createSignal } from "solid-js";
+import { batch, createEffect, createSignal } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { timeTrialApi } from "../services/api/timeTrial";
 import {
@@ -43,13 +43,11 @@ export function useTTTrackDetail(
     const [driftFilter, setDriftFilter] = createSignal<DriftFilter>("all");
     const [driftCategoryFilter, setDriftCategoryFilter] = createSignal<DriftCategoryFilter>("all");
 
-    // Reset page when any server-side filter, CC, glitch, or mode changes
+    // Reset page when external props (CC, glitch, mode) change
     createEffect(() => {
         cc();
         glitchAllowed();
         mode();
-        shroomlessFilter();
-        vehicleFilter();
         setCurrentPage(1);
     });
 
@@ -182,8 +180,16 @@ export function useTTTrackDetail(
     // Active WR history query state - for loading/error display
     const activeWrHistoryQuery = () => (mode() === "flap" ? flapWrHistoryQuery : wrHistoryQuery);
 
-    const handleShroomlessFilterChange = (filter: ShroomlessFilter) => setShroomlessFilter(filter);
-    const handleVehicleFilterChange = (filter: VehicleFilter) => setVehicleFilter(filter);
+    const handleShroomlessFilterChange = (filter: ShroomlessFilter) =>
+        batch(() => {
+            setShroomlessFilter(filter);
+            setCurrentPage(1);
+        });
+    const handleVehicleFilterChange = (filter: VehicleFilter) =>
+        batch(() => {
+            setVehicleFilter(filter);
+            setCurrentPage(1);
+        });
     const handleDriftFilterChange = (filter: DriftFilter) => setDriftFilter(filter);
     const handleDriftCategoryFilterChange = (filter: DriftCategoryFilter) =>
         setDriftCategoryFilter(filter);

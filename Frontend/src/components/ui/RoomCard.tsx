@@ -46,7 +46,7 @@ export default function RoomCard(props: RoomCardProps) {
                         <Show when={props.room.roomType}>
                             <h3 class="text-white text-2xl sm:text-3xl font-extrabold truncate mb-3">
                                 {props.room.roomType}
-                                <span class="font-mono"> — Room {props.room.id}</span>
+                                <span class="font-mono"> - Room {props.room.id}</span>
                             </h3>
                         </Show>
 

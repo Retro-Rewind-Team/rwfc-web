@@ -1,5 +1,5 @@
 import { A } from "@solidjs/router";
-import { PenTool, Settings } from "lucide-solid";
+import { Calculator, PenTool, Settings, Trophy } from "lucide-solid";
 import { AlertBox } from "../../components/common";
 import { JSX } from "solid-js";
 
@@ -22,8 +22,25 @@ const tools: {
         id: "rating-editor",
         title: "Rating Editor",
         icon: () => <Settings size={36} />,
-        description: "Edit RRRating.pul files to modify VR/BR values and flags for server ratings.",
+        description:
+            "Edit your RRRating.pul file to modify VR and BR values across your license slots.",
         path: "/tools/rating-editor",
+    },
+    {
+        id: "vr-calculator",
+        title: "VR Calculator",
+        icon: () => <Calculator size={36} />,
+        description:
+            "Simulate a race with 2–12 players to see exact VR deltas, with modifier support.",
+        path: "/tools/vr-calculator",
+    },
+    {
+        id: "rank-helper",
+        title: "Rank Helper",
+        icon: () => <Trophy size={36} />,
+        description:
+            "Load your rksys.dat to see your rank score and what stats you need for the next rank.",
+        path: "/tools/rank-helper",
     },
 ];
 

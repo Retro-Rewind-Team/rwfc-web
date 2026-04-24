@@ -158,15 +158,36 @@ public class LeaderboardController : ControllerBase
 
     [HttpGet("player/{fc}/history")]
     [ProducesResponseType<VRHistoryRangeResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<VRHistoryRangeResponseDto>> GetPlayerHistory(
         string fc,
-        [FromQuery] int? days)
+        [FromQuery] int? days,
+        [FromQuery] DateTime? from,
+        [FromQuery] DateTime? to)
     {
         try
         {
-            var response = await _playerService.GetPlayerHistoryAsync(fc, days);
+            VRHistoryRangeResponseDto? response;
+
+            if (from.HasValue || to.HasValue)
+            {
+                var now = DateTime.UtcNow;
+                var resolvedFrom = (from?.ToUniversalTime() ?? now.AddDays(-30));
+                var resolvedTo = (to?.ToUniversalTime() ?? now);
+
+                if (resolvedTo > now) resolvedTo = now;
+                if (resolvedFrom > now) return BadRequest("'from' date cannot be in the future");
+                if (resolvedFrom > resolvedTo) (resolvedFrom, resolvedTo) = (resolvedTo, resolvedFrom);
+
+                response = await _playerService.GetPlayerHistoryAsync(fc, resolvedFrom, resolvedTo);
+            }
+            else
+            {
+                response = await _playerService.GetPlayerHistoryAsync(fc, days);
+            }
+
             if (response == null)
                 return NotFound($"Player with friend code '{fc}' not found");
 

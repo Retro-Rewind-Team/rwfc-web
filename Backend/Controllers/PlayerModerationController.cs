@@ -126,6 +126,39 @@ public class PlayerModerationController : ControllerBase
         }
     }
 
+    [HttpPost("swap")]
+    [ProducesResponseType<SwapResultDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<SwapResultDto>> SwapPlayerStats([FromBody] SwapRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.SourcePid))
+                return BadRequest("Source player ID (SourcePid) is required");
+
+            if (string.IsNullOrWhiteSpace(request.TargetPid))
+                return BadRequest("Target player ID (TargetPid) is required");
+
+            if (request.SourcePid == request.TargetPid)
+                return BadRequest("Source and target PIDs must be different");
+
+            var result = await _moderationService.SwapPlayerStatsAsync(request.SourcePid, request.TargetPid, request.Reason);
+            if (result == null)
+                return NotFound($"One or both players not found (SourcePid: '{request.SourcePid}', TargetPid: '{request.TargetPid}')");
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error swapping stats between PID {SourcePid} and PID {TargetPid}",
+                request.SourcePid, request.TargetPid);
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while swapping player stats");
+        }
+    }
+
     // ===== UTILITY ENDPOINTS =====
 
     /// <summary>

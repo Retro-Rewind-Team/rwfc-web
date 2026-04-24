@@ -1,4 +1,4 @@
-import { createEffect, createSignal } from "solid-js";
+import { batch, createSignal } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { raceStatsApi } from "../services/api/raceStats";
 import { queryKeys } from "../constants/queryKeys";
@@ -17,14 +17,6 @@ export function usePlayerRaceStats(pid: string | undefined) {
     const [courseId, setCourseId] = createSignal<number | undefined>(undefined);
     const [engineClassId, setEngineClassId] = createSignal<number | undefined>(undefined);
     const [activeTrackName, setActiveTrackName] = createSignal<string | undefined>(undefined);
-
-    // Reset to page 1 when filters change
-    createEffect(() => {
-        days();
-        courseId();
-        engineClassId();
-        setCurrentPage(1);
-    });
 
     const raceStatsQuery = useQuery(() => ({
         queryKey: queryKeys.playerRaceStats(
@@ -48,14 +40,27 @@ export function usePlayerRaceStats(pid: string | undefined) {
 
     const hasRaceStats = () => raceStatsQuery.isSuccess && !!raceStatsQuery.data;
 
-    const handleDaysChange = (value: number | undefined) => setDays(value);
-
-    const handleCourseIdChange = (value: number | undefined, name?: string) => {
-        setCourseId(value);
-        setActiveTrackName(name);
+    const handleDaysChange = (value: number | undefined) => {
+        batch(() => {
+            setDays(value);
+            setCurrentPage(1);
+        });
     };
 
-    const handleEngineClassChange = (value: number | undefined) => setEngineClassId(value);
+    const handleCourseIdChange = (value: number | undefined, name?: string) => {
+        batch(() => {
+            setCourseId(value);
+            setActiveTrackName(name);
+            setCurrentPage(1);
+        });
+    };
+
+    const handleEngineClassChange = (value: number | undefined) => {
+        batch(() => {
+            setEngineClassId(value);
+            setCurrentPage(1);
+        });
+    };
 
     return {
         raceStatsQuery,

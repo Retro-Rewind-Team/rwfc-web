@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { batch, createSignal } from "solid-js";
 
 /**
  * Encapsulates page/pageSize signals and the handlePageSizeChange handler that
@@ -10,8 +10,10 @@ export function usePagination(defaultPageSize = 10) {
     const [pageSize, setPageSize] = createSignal(defaultPageSize);
 
     const handlePageSizeChange = (size: number) => {
-        setPageSize(size);
-        setCurrentPage(1);
+        batch(() => {
+            setPageSize(size);
+            setCurrentPage(1);
+        });
     };
 
     return { currentPage, setCurrentPage, pageSize, setPageSize, handlePageSizeChange };
