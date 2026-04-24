@@ -152,7 +152,7 @@ export const teamData: Record<string, TeamMember[]> = {
         {
             name: "wrkus",
             discord: "wrkus",
-            role: "Community Staff",
+            role: "Discord Moderator",
             image: "/profiles/wrkus.png",
             fc: "3006-4772-3801",
         },
