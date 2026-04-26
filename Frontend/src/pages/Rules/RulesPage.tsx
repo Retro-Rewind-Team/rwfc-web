@@ -323,14 +323,14 @@ export default function RulesPage() {
                 <p class="text-gray-600 dark:text-gray-300 mb-3">
                     To ensure the safety, competitive integrity, and enjoyment of our community, we occasionally
                     sanction heavily disruptive behavior that occurs outside of Retro WFC. Cheating, ban evasion,
-                    harassment, and other similar conduct on service adjacent to Retro WFC can result in penalties
+                    harassment, and other similar conduct on services adjacent to Retro WFC can result in penalties
                     on Retro WFC in addition to that service's moderation.
                 </p>
 
                 <p class="text-gray-600 dark:text-gray-300 mb-3">
                     While this rule most often applies to disruptive usage of other WFC services, in extreme
                     cases we may apply this rule when protecting our community from particularly disruptive
-                    community behavior as well, such as on Discord or other social media platforms.
+                    social behavior as well, such as on Discord or other platforms.
                 </p>
 
             </div>
