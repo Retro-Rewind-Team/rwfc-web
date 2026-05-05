@@ -91,12 +91,12 @@ export const SECTION_COLORS: Record<
         accent: "border-indigo-500",
         shadowColor: "79, 70, 229",
     },
-    Administrators: {
+    "Discord Community Administrators": {
         color: "text-orange-600 dark:text-orange-400",
         accent: "border-orange-500",
         shadowColor: "234, 88, 12",
     },
-    Moderators: {
+    "Discord Community Moderators": {
         color: "text-emerald-600 dark:text-emerald-400",
         accent: "border-emerald-500",
         shadowColor: "5, 150, 105",
@@ -126,14 +126,9 @@ export const SECTION_COLORS: Record<
         accent: "border-pink-500",
         shadowColor: "219, 39, 119",
     },
-    "Mogi Staff": {
+    "Competitive Mogi Discord": {
         color: "text-pink-600 dark:text-pink-400",
         accent: "border-pink-500",
         shadowColor: "219, 39, 119",
-    },
-    "Mogi Updaters": {
-        color: "text-sky-600 dark:text-sky-400",
-        accent: "border-sky-500",
-        shadowColor: "2, 132, 199",
     },
 };
