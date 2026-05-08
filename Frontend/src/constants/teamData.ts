@@ -112,7 +112,7 @@ export const teamData: Record<string, TeamMember[]> = {
             discord: "darkchaosuk",
             role: "Discord Administrator",
             image: "/profiles/DARKCHAOS.png",
-            fc: "1251-5641-0479",
+            fc: "4687-5372-7718",
         },
         {
             name: "ppeb",
@@ -205,7 +205,7 @@ export const teamData: Record<string, TeamMember[]> = {
             discord: "darkchaosuk",
             role: "RWFC Moderator",
             image: "/profiles/DARKCHAOS.png",
-            fc: "1251-5641-0479",
+            fc: "4687-5372-7718",
         },
         {
             name: "Dynohack",
@@ -668,7 +668,7 @@ export const teamData: Record<string, TeamMember[]> = {
             discord: "darkchaosuk",
             role: "Mogi Adminstrator",
             image: "/profiles/DARKCHAOS.png",
-            fc: "1251-5641-0479",
+            fc: "4687-5372-7718",
         },
         {
             name: "Dynohack",
