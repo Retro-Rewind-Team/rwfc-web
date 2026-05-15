@@ -29,7 +29,33 @@ public static class CountryCodeHelper
         { 372, "IE" }, // Ireland
         { 620, "PT" }, // Portugal
         { 300, "GR" }, // Greece
-        
+        { 470, "MT" }, // Malta
+        { 442, "LU" }, // Luxembourg
+        { 703, "SK" }, // Slovakia
+        { 705, "SI" }, // Slovenia
+        { 191, "HR" }, // Croatia
+        { 100, "BG" }, // Bulgaria
+        { 688, "RS" }, // Serbia
+        { 70, "BA" },  // Bosnia and Herzegovina
+        { 499, "ME" }, // Montenegro
+        { 807, "MK" }, // North Macedonia
+        { 8, "AL" },   // Albania
+        { 440, "LT" }, // Lithuania
+        { 428, "LV" }, // Latvia
+        { 233, "EE" }, // Estonia
+        { 352, "IS" }, // Iceland
+        { 196, "CY" }, // Cyprus
+        { 498, "MD" }, // Moldova
+        { 112, "BY" }, // Belarus
+        { 268, "GE" }, // Georgia
+        { 51, "AM" },  // Armenia
+        { 31, "AZ" },  // Azerbaijan
+        { 438, "LI" }, // Liechtenstein
+        { 492, "MC" }, // Monaco
+        { 674, "SM" }, // San Marino
+        { 20, "AD" },  // Andorra
+        { 234, "FO" }, // Faroe Islands
+
         // Americas
         { 840, "US" }, // United States
         { 124, "CA" }, // Canada
@@ -40,7 +66,23 @@ public static class CountryCodeHelper
         { 170, "CO" }, // Colombia
         { 604, "PE" }, // Peru
         { 862, "VE" }, // Venezuela
-        
+        { 68, "BO" },  // Bolivia
+        { 218, "EC" }, // Ecuador
+        { 600, "PY" }, // Paraguay
+        { 858, "UY" }, // Uruguay
+        { 188, "CR" }, // Costa Rica
+        { 320, "GT" }, // Guatemala
+        { 591, "PA" }, // Panama
+        { 214, "DO" }, // Dominican Republic
+        { 630, "PR" }, // Puerto Rico
+        { 192, "CU" }, // Cuba
+        { 388, "JM" }, // Jamaica
+        { 340, "HN" }, // Honduras
+        { 222, "SV" }, // El Salvador
+        { 332, "HT" }, // Haiti
+        { 558, "NI" }, // Nicaragua
+        { 780, "TT" }, // Trinidad and Tobago
+
         // Asia
         { 392, "JP" }, // Japan
         { 156, "CN" }, // China
@@ -54,21 +96,52 @@ public static class CountryCodeHelper
         { 360, "ID" }, // Indonesia
         { 608, "PH" }, // Philippines
         { 356, "IN" }, // India
-        
+        { 586, "PK" }, // Pakistan
+        { 50, "BD" },  // Bangladesh
+        { 144, "LK" }, // Sri Lanka
+        { 524, "NP" }, // Nepal
+        { 398, "KZ" }, // Kazakhstan
+        { 104, "MM" }, // Myanmar
+        { 860, "UZ" }, // Uzbekistan
+
         // Oceania
         { 36, "AU" },  // Australia
         { 554, "NZ" }, // New Zealand
-        
+        { 242, "FJ" }, // Fiji
+        { 598, "PG" }, // Papua New Guinea
+
         // Middle East
         { 784, "AE" }, // United Arab Emirates
         { 682, "SA" }, // Saudi Arabia
         { 376, "IL" }, // Israel
         { 792, "TR" }, // Turkey
-        
+        { 364, "IR" }, // Iran
+        { 368, "IQ" }, // Iraq
+        { 400, "JO" }, // Jordan
+        { 414, "KW" }, // Kuwait
+        { 634, "QA" }, // Qatar
+        { 48, "BH" },  // Bahrain
+        { 512, "OM" }, // Oman
+        { 422, "LB" }, // Lebanon
+
         // Africa
         { 710, "ZA" }, // South Africa
         { 818, "EG" }, // Egypt
-        
+        { 566, "NG" }, // Nigeria
+        { 404, "KE" }, // Kenya
+        { 504, "MA" }, // Morocco
+        { 288, "GH" }, // Ghana
+        { 231, "ET" }, // Ethiopia
+        { 788, "TN" }, // Tunisia
+        { 12, "DZ" },  // Algeria
+        { 834, "TZ" }, // Tanzania
+        { 120, "CM" }, // Cameroon
+        { 384, "CI" }, // Ivory Coast
+        { 686, "SN" }, // Senegal
+        { 800, "UG" }, // Uganda
+        { 716, "ZW" }, // Zimbabwe
+        { 24, "AO" },  // Angola
+
         // Other
         { 643, "RU" }, // Russia
         { 804, "UA" }, // Ukraine
@@ -98,7 +171,33 @@ public static class CountryCodeHelper
         { "IE", "Ireland" },
         { "PT", "Portugal" },
         { "GR", "Greece" },
-        
+        { "MT", "Malta" },
+        { "LU", "Luxembourg" },
+        { "SK", "Slovakia" },
+        { "SI", "Slovenia" },
+        { "HR", "Croatia" },
+        { "BG", "Bulgaria" },
+        { "RS", "Serbia" },
+        { "BA", "Bosnia and Herzegovina" },
+        { "ME", "Montenegro" },
+        { "MK", "North Macedonia" },
+        { "AL", "Albania" },
+        { "LT", "Lithuania" },
+        { "LV", "Latvia" },
+        { "EE", "Estonia" },
+        { "IS", "Iceland" },
+        { "CY", "Cyprus" },
+        { "MD", "Moldova" },
+        { "BY", "Belarus" },
+        { "GE", "Georgia" },
+        { "AM", "Armenia" },
+        { "AZ", "Azerbaijan" },
+        { "LI", "Liechtenstein" },
+        { "MC", "Monaco" },
+        { "SM", "San Marino" },
+        { "AD", "Andorra" },
+        { "FO", "Faroe Islands" },
+
         // Americas
         { "US", "United States" },
         { "CA", "Canada" },
@@ -109,7 +208,23 @@ public static class CountryCodeHelper
         { "CO", "Colombia" },
         { "PE", "Peru" },
         { "VE", "Venezuela" },
-        
+        { "BO", "Bolivia" },
+        { "EC", "Ecuador" },
+        { "PY", "Paraguay" },
+        { "UY", "Uruguay" },
+        { "CR", "Costa Rica" },
+        { "GT", "Guatemala" },
+        { "PA", "Panama" },
+        { "DO", "Dominican Republic" },
+        { "PR", "Puerto Rico" },
+        { "CU", "Cuba" },
+        { "JM", "Jamaica" },
+        { "HN", "Honduras" },
+        { "SV", "El Salvador" },
+        { "HT", "Haiti" },
+        { "NI", "Nicaragua" },
+        { "TT", "Trinidad and Tobago" },
+
         // Asia
         { "JP", "Japan" },
         { "CN", "China" },
@@ -123,21 +238,52 @@ public static class CountryCodeHelper
         { "ID", "Indonesia" },
         { "PH", "Philippines" },
         { "IN", "India" },
-        
+        { "PK", "Pakistan" },
+        { "BD", "Bangladesh" },
+        { "LK", "Sri Lanka" },
+        { "NP", "Nepal" },
+        { "KZ", "Kazakhstan" },
+        { "MM", "Myanmar" },
+        { "UZ", "Uzbekistan" },
+
         // Oceania
         { "AU", "Australia" },
         { "NZ", "New Zealand" },
-        
+        { "FJ", "Fiji" },
+        { "PG", "Papua New Guinea" },
+
         // Middle East
         { "AE", "United Arab Emirates" },
         { "SA", "Saudi Arabia" },
         { "IL", "Israel" },
         { "TR", "Turkey" },
-        
+        { "IR", "Iran" },
+        { "IQ", "Iraq" },
+        { "JO", "Jordan" },
+        { "KW", "Kuwait" },
+        { "QA", "Qatar" },
+        { "BH", "Bahrain" },
+        { "OM", "Oman" },
+        { "LB", "Lebanon" },
+
         // Africa
         { "ZA", "South Africa" },
         { "EG", "Egypt" },
-        
+        { "NG", "Nigeria" },
+        { "KE", "Kenya" },
+        { "MA", "Morocco" },
+        { "GH", "Ghana" },
+        { "ET", "Ethiopia" },
+        { "TN", "Tunisia" },
+        { "DZ", "Algeria" },
+        { "TZ", "Tanzania" },
+        { "CM", "Cameroon" },
+        { "CI", "Ivory Coast" },
+        { "SN", "Senegal" },
+        { "UG", "Uganda" },
+        { "ZW", "Zimbabwe" },
+        { "AO", "Angola" },
+
         // Other
         { "RU", "Russia" },
         { "UA", "Ukraine" },
