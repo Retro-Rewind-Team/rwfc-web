@@ -91,7 +91,7 @@ export const leaderboardApi = {
     async getRRVersion() {
         try {
             const response = await fetch(
-                "https://rwfc.net/updates/RetroRewind/RetroRewindVersion.txt",
+                "https://update.rwfc.net/RetroRewind/RetroRewindVersion.txt",
             );
 
             if (!response.ok) {
@@ -105,7 +105,7 @@ export const leaderboardApi = {
 
             const updateUrl = latest[1].replace(
                 "http://update.rwfc.net:8000/RetroRewind",
-                "https://rwfc.net/updates/RetroRewind",
+                "https://update.rwfc.net/RetroRewind",
             );
 
             return {
