@@ -9,9 +9,31 @@ interface PlayerCardProps {
     highlightFc?: string;
 }
 
+type NatStatus = "good" | "pending" | "warning" | "problem" | "unknown";
+
+function getNatStatus(connectionMap: string[]): NatStatus {
+    const connValue = connectionMap.join("");
+    if (connValue === "") return "unknown";
+    if (connValue.includes("3")) return "problem";
+    if (connValue.includes("0")) return "warning";
+    if (connValue.includes("1")) return "pending";
+    if (/^2+$/.test(connValue)) return "good";
+    return "unknown";
+}
+
+const NAT_CONFIG: Record<NatStatus, { label: string; title: string; classes: string }> = {
+    pending: { label: "⧗",  title: "NAT: Pending - connections still establishing.",             classes: "bg-yellow-100 dark:bg-yellow-900/40 border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300" },
+    warning: { label: "⚠",  title: "NAT: Warning - failed to connect to some room members.",    classes: "bg-orange-100 dark:bg-orange-900/40 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-300" },
+    problem: { label: "!",  title: "NAT: Problem - serious connectivity issues with this player.", classes: "bg-red-100 dark:bg-red-900/40 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300" },
+    unknown: { label: "??", title: "NAT: Unknown - no connection data available.",               classes: "bg-gray-100 dark:bg-gray-700/40 border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400" },
+};
+
 export default function PlayerCard(props: PlayerCardProps) {
     const isHighlighted = () =>
         !!props.highlightFc && props.player.friendCode === props.highlightFc;
+
+    const natStatus = () => getNatStatus(props.player.connectionMap);
+    const natConfig = () => NAT_CONFIG[natStatus()];
 
     return (
         <a
@@ -60,6 +82,13 @@ export default function PlayerCard(props: PlayerCardProps) {
                         </Show>
                         <span class="text-xs bg-cyan-100 dark:bg-cyan-900/40 border border-cyan-200 dark:border-cyan-800 text-cyan-700 dark:text-cyan-300 px-2 py-0.5 rounded-md font-semibold">
                             BR {props.player.br ?? "??"}
+                        </span>
+                        <span
+                            title={natConfig().title}
+                            aria-label={natConfig().title}
+                            class={`inline-flex items-center gap-1 text-xs border px-2 py-0.5 rounded-md font-semibold font-mono ${natConfig().classes}`}
+                        >
+                            {natConfig().label} NAT
                         </span>
                         <Show when={props.showOpenHost}>
                             <span
