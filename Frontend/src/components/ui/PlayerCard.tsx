@@ -22,6 +22,7 @@ function getNatStatus(connectionMap: string[]): NatStatus {
 }
 
 const NAT_CONFIG: Record<NatStatus, { label: string; title: string; classes: string }> = {
+    good:    { label: "✓",  title: "NAT: Good - fully connected to all room members.",          classes: "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300" },
     pending: { label: "⧗",  title: "NAT: Pending - connections still establishing.",             classes: "bg-yellow-100 dark:bg-yellow-900/40 border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300" },
     warning: { label: "⚠",  title: "NAT: Warning - failed to connect to some room members.",    classes: "bg-orange-100 dark:bg-orange-900/40 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-300" },
     problem: { label: "!",  title: "NAT: Problem - serious connectivity issues with this player.", classes: "bg-red-100 dark:bg-red-900/40 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300" },
