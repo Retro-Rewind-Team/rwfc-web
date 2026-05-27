@@ -132,7 +132,7 @@ export default function DownloadsPage() {
                 </p>
                 <div class="flex flex-col sm:flex-row gap-3">
                     <a
-                        href="https://rwfc.net/updates/RetroRewind/zip/RetroRewind.zip"
+                        href="https://update.rwfc.net/RetroRewind/zip/RetroRewind.zip"
                         target="_blank"
                         rel="noopener noreferrer"
                         class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-center"
