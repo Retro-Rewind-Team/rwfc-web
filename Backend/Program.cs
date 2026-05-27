@@ -66,7 +66,8 @@ if (string.IsNullOrEmpty(connectionString))
     throw new InvalidOperationException($"{environment} connection string is not configured.");
 }
 
-var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+var csb = new NpgsqlConnectionStringBuilder(connectionString) { MaxPoolSize = 10 };
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(csb.ConnectionString);
 dataSourceBuilder.EnableDynamicJson();
 var dataSource = dataSourceBuilder.Build();
 
@@ -137,7 +138,7 @@ builder.Services.AddHostedService<RaceResultBackgroundService>(sp =>
 // ===== HEALTH CHECKS =====
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<LeaderboardDbContext>()
-    .AddNpgSql(connectionString)
+    .AddNpgSql(csb.ConnectionString)
     .AddCheck<ExternalApiHealthCheck>("retro-wfc-api")
     .AddCheck("memory", () =>
     {
