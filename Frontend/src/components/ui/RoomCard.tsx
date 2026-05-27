@@ -1,5 +1,6 @@
-import { createSignal, For, Show } from "solid-js";
+import { createMemo, createSignal, For, Show } from "solid-js";
 import {
+    AlertTriangle,
     ChevronDown,
     CircleCheck,
     CirclePause,
@@ -12,6 +13,7 @@ import {
     Users,
 } from "lucide-solid";
 import { Room } from "../../types";
+import { detectSplitGroups } from "../../utils";
 import PlayerCard from "./PlayerCard";
 
 interface RoomCardProps {
@@ -27,6 +29,8 @@ export default function RoomCard(props: RoomCardProps) {
     const playerCount = () => props.room.players.length;
     const isJoinable = () => props.room.isJoinable;
     const isVoting = () => props.room.isSuspended;
+    const splitGroups = createMemo(() => detectSplitGroups(props.room.players));
+    const isSplit = () => splitGroups().length > 1;
 
     const uptime = () => {
         void props.tick;
@@ -97,6 +101,14 @@ export default function RoomCard(props: RoomCardProps) {
                                 <span>{playerCount()}/12 Players</span>
                             </div>
 
+                            {/* Split room indicator */}
+                            <Show when={isSplit()}>
+                                <div class="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/90 rounded-lg font-bold text-xs text-white">
+                                    <AlertTriangle size={12} />
+                                    <span>Split Room ({splitGroups().length} groups)</span>
+                                </div>
+                            </Show>
+
                             {/* Uptime */}
                             <Show when={props.isLatest}>
                                 <div class="flex items-center gap-1.5 px-3 py-1.5 bg-white/25 rounded-lg font-bold text-xs text-white">
@@ -138,17 +150,50 @@ export default function RoomCard(props: RoomCardProps) {
             {/* Players Grid */}
             <Show when={isExpanded()}>
                 <div class="p-5 bg-gray-50 dark:bg-gray-900/30">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                        <For each={props.room.players}>
-                            {(player) => (
-                                <PlayerCard
-                                    player={player}
-                                    showOpenHost={props.room.isPublic}
-                                    highlightFc={props.highlightFc}
-                                />
-                            )}
-                        </For>
-                    </div>
+                    <Show
+                        when={isSplit()}
+                        fallback={
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                                <For each={props.room.players}>
+                                    {(player) => (
+                                        <PlayerCard
+                                            player={player}
+                                            showOpenHost={props.room.isPublic}
+                                            highlightFc={props.highlightFc}
+                                        />
+                                    )}
+                                </For>
+                            </div>
+                        }
+                    >
+                        <div class="space-y-5">
+                            <For each={splitGroups()}>
+                                {(group, i) => (
+                                    <div>
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <div class="h-px flex-1 bg-orange-200 dark:bg-orange-800/60" />
+                                            <span class="text-xs font-bold text-orange-600 dark:text-orange-400 px-2 uppercase tracking-wide">
+                                                Group {String.fromCharCode(65 + i())} &mdash; {group.length}{" "}
+                                                {group.length === 1 ? "player" : "players"}
+                                            </span>
+                                            <div class="h-px flex-1 bg-orange-200 dark:bg-orange-800/60" />
+                                        </div>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                                            <For each={group}>
+                                                {(player) => (
+                                                    <PlayerCard
+                                                        player={player}
+                                                        showOpenHost={props.room.isPublic}
+                                                        highlightFc={props.highlightFc}
+                                                    />
+                                                )}
+                                            </For>
+                                        </div>
+                                    </div>
+                                )}
+                            </For>
+                        </div>
+                    </Show>
                 </div>
             </Show>
         </div>

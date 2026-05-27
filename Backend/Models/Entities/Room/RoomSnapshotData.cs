@@ -25,7 +25,8 @@ public record RoomPlayerData(
     bool IsOpenHost,
     bool IsSuspended,
     MiiData? Mii,
-    List<string> ConnectionMap
+    List<string> ConnectionMap,
+    string? SlotId = null
 );
 
 public record RaceData(int Num, int Course, int Cc, string? TrackName);

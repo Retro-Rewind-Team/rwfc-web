@@ -7,6 +7,7 @@ export interface RoomPlayer {
     isOpenHost: boolean;
     isSuspended: boolean;
     connectionMap: string[];
+    slotId: string | null;
     mii: {
         data: string;
         name: string;

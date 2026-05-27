@@ -16,7 +16,7 @@ public static class RoomMapper
     /// </summary>
     public static RoomDto ToDto(Group group, Dictionary<short, string> trackNames)
     {
-        var players = group.Players.Values.Select(ToPlayerDto).ToList();
+        var players = group.Players.Select(kvp => ToPlayerDto(kvp.Value, kvp.Key)).ToList();
 
         var playersWithVR = players.Where(p => p.VR is > 0).ToList();
         int? averageVR = playersWithVR.Count > 0
@@ -110,7 +110,8 @@ public static class RoomMapper
                 IsOpenHost: p.IsOpenHost,
                 IsSuspended: p.IsSuspended,
                 Mii: p.Mii != null ? new MiiData(p.Mii.Data, p.Mii.Name) : null,
-                ConnectionMap: p.ConnectionMap
+                ConnectionMap: p.ConnectionMap,
+                SlotId: p.SlotId
             )).ToList(),
             AverageVR: dto.AverageVR,
             Race: dto.Race != null ? new RaceData(dto.Race.Num, dto.Race.Course, dto.Race.Cc, dto.Race.TrackName) : null,
@@ -136,7 +137,8 @@ public static class RoomMapper
                 IsOpenHost: p.IsOpenHost,
                 IsSuspended: p.IsSuspended,
                 Mii: p.Mii != null ? new MiiDto(p.Mii.Data, p.Mii.Name) : null,
-                ConnectionMap: p.ConnectionMap
+                ConnectionMap: p.ConnectionMap,
+                SlotId: p.SlotId
             )).ToList(),
             AverageVR: data.AverageVR,
             Race: data.Race != null ? new RaceDto(data.Race.Num, data.Race.Course, data.Race.Cc, data.Race.TrackName) : null,
@@ -146,7 +148,7 @@ public static class RoomMapper
     /// <summary>
     /// Maps an external WFC player to the room player DTO, normalising empty VR/BR strings to null.
     /// </summary>
-    private static RoomPlayerDto ToPlayerDto(ExternalPlayer player)
+    private static RoomPlayerDto ToPlayerDto(ExternalPlayer player, string slotId)
     {
         List<string> connectionMap = string.IsNullOrEmpty(player.Conn_map)
             ? []
@@ -165,7 +167,8 @@ public static class RoomMapper
             IsOpenHost: player.IsOpenHost,
             IsSuspended: player.IsSuspended,
             Mii: mii,
-            ConnectionMap: connectionMap
+            ConnectionMap: connectionMap,
+            SlotId: slotId
         );
     }
 }

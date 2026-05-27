@@ -1,4 +1,5 @@
 export * from "./formatter";
+export * from "./roomUtils";
 export * from "./downloadHelpers";
 export * from "./constants";
 export * from "./vrTiers";

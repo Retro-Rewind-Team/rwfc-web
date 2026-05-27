@@ -37,7 +37,8 @@ public record RoomPlayerDto(
     bool IsOpenHost,
     bool IsSuspended,
     MiiDto? Mii,
-    List<string> ConnectionMap
+    List<string> ConnectionMap,
+    string? SlotId
 );
 
 public record RaceDto(int Num, int Course, int Cc, string? TrackName);
