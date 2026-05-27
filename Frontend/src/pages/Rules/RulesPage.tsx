@@ -270,8 +270,8 @@ export default function RulesPage() {
                     Discord server of the distribution where the violation occurred. Enforcement on
                     Discord is at the sole discretion of that distribution's moderation team. In
                     extreme situations, serious violations on a distribution's Discord server may
-                    also lead to corresponding action on Retro WFC. In very rare cases, behavior outside
-                    of Retro WFC or a distribution's Discord can apply this rule as well.
+                    also lead to corresponding action on Retro WFC. In very rare cases, behavior
+                    outside of Retro WFC or a distribution's Discord can apply this rule as well.
                 </p>
             </div>
 
@@ -321,20 +321,20 @@ export default function RulesPage() {
                 </h2>
 
                 <p class="text-gray-600 dark:text-gray-300 mb-3">
-                    To ensure the safety, competitive integrity, and enjoyment of our community, we occasionally
-                    sanction heavily disruptive behavior that occurs outside of Retro WFC. Cheating, ban evasion,
-                    harassment, and other similar conduct on services adjacent to Retro WFC can result in penalties
-                    on Retro WFC in addition to that service's moderation.
+                    To ensure the safety, competitive integrity, and enjoyment of our community, we
+                    occasionally sanction heavily disruptive behavior that occurs outside of Retro
+                    WFC. Cheating, ban evasion, harassment, and other similar conduct on services
+                    adjacent to Retro WFC can result in penalties on Retro WFC in addition to that
+                    service's moderation.
                 </p>
 
                 <p class="text-gray-600 dark:text-gray-300 mb-3">
-                    While this rule most often applies to disruptive usage of other WFC services, in extreme
-                    cases we may apply this rule when protecting our community from particularly disruptive
-                    social behavior as well, such as on Discord or other platforms.
+                    While this rule most often applies to disruptive usage of other WFC services, in
+                    extreme cases we may apply this rule when protecting our community from
+                    particularly disruptive social behavior as well, such as on Discord or other
+                    platforms.
                 </p>
-
             </div>
-
 
             {/* Appealing Section */}
             <AlertBox type="info" icon={<Scale size={20} />} title="Appealing">

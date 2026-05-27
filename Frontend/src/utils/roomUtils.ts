@@ -14,11 +14,9 @@ import { RoomPlayer } from "../types";
 export function detectSplitGroups(players: RoomPlayer[]): RoomPlayer[][] {
     if (players.length <= 1) return [players];
 
-    if (players.some(p => !p.slotId)) return [players];
+    if (players.some((p) => !p.slotId)) return [players];
 
-    const sorted = [...players].sort(
-        (a, b) => parseInt(a.slotId!) - parseInt(b.slotId!)
-    );
+    const sorted = [...players].sort((a, b) => parseInt(a.slotId!) - parseInt(b.slotId!));
     const n = sorted.length;
 
     const canConnect = (i: number, j: number): boolean => {
@@ -50,7 +48,7 @@ export function detectSplitGroups(players: RoomPlayer[]): RoomPlayer[][] {
             }
         }
 
-        groups.push(groupIndices.map(idx => sorted[idx]));
+        groups.push(groupIndices.map((idx) => sorted[idx]));
     }
 
     return groups;
