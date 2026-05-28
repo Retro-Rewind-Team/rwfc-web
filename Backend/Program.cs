@@ -285,3 +285,5 @@ static async Task WriteHealthCheckResponse(HttpContext context, HealthReport rep
 
     await context.Response.WriteAsync(JsonSerializer.Serialize(response));
 }
+
+public partial class Program { }
