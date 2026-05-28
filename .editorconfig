@@ -1,0 +1,12 @@
+﻿# Root config — applies to Frontend and any other non-Backend code.
+# Backend/.editorconfig has root=true and overrides everything below it.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.md]
+trim_trailing_whitespace = false

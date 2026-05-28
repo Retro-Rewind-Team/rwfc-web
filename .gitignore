@@ -187,3 +187,4 @@ dist
 CLAUDE.md
 **/publish
 /.claude
+/docs

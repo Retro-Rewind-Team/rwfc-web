@@ -12,6 +12,11 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["src/**/*.test.ts"],
+    include: ["src/__tests__/**/*.test.ts"],
+    coverage: {
+      provider: "v8",
+      include: ["src/utils/**/*.ts"],
+      exclude: ["src/utils/index.ts"],
+    },
   },
 });

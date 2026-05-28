@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { detectSplitGroups } from "./roomUtils";
-import { RoomPlayer } from "../types";
+import { detectSplitGroups } from "../../utils/roomUtils";
+import { RoomPlayer } from "../../types";
 
 function makePlayer(slotId: string | null, connectionMap: string[]): RoomPlayer {
     return {

@@ -1,5 +1,5 @@
-# Normalize line endings in the repository to LF; working tree uses platform default (CRLF on Windows)
-* text=auto
+﻿# Enforce CRLF line endings in the working tree for all text files
+* text=auto eol=crlf
 
 # Explicitly mark binary files as binary (no line ending conversion)
 *.png binary
