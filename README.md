@@ -12,6 +12,7 @@ This README is aimed at developers setting up the project locally for developmen
 - [Prerequisites](#prerequisites)
 - [Backend Setup](#backend-setup)
 - [Frontend Setup](#frontend-setup)
+- [Testing](#testing)
 - [Configuration Reference](#configuration-reference)
 - [Background Services](#background-services)
 - [API Reference](#api-reference)
@@ -152,6 +153,51 @@ npm run format         # Format all source files with Prettier
 npm run format:check   # Check formatting without modifying files (CI-safe)
 npm run type-check     # TypeScript check without emitting files
 ```
+
+---
+
+## Testing
+
+### Frontend
+
+Tests use [Vitest](https://vitest.dev/) and live in `Frontend/src/__tests__/`. They cover utility functions and require no server or database.
+
+```bash
+# Run from Frontend/
+npm test                # Run all tests once
+npm run test:watch      # Watch mode
+npm run test:coverage   # With coverage report
+```
+
+### Backend
+
+Tests use [xUnit v3](https://xunit.net/) and live in `Backend.Tests/`. There are two categories:
+
+**Unit tests:** cover helpers, domain services, and mappers. No database required.
+
+```bash
+dotnet test Backend.Tests/RetroRewindWebsite.Tests.csproj --filter "Category=Unit"
+```
+
+**Integration tests:** cover API controllers end-to-end via `WebApplicationFactory`. Requires PostgreSQL running locally with an `rr_test` database (created automatically on first run).
+
+```bash
+dotnet test Backend.Tests/RetroRewindWebsite.Tests.csproj --filter "Category=Integration"
+```
+
+**Run everything:**
+
+```bash
+dotnet test Backend.Tests/RetroRewindWebsite.Tests.csproj
+```
+
+**With coverage:**
+
+```bash
+dotnet test Backend.Tests/RetroRewindWebsite.Tests.csproj --collect:"XPlat Code Coverage"
+```
+
+The integration tests connect to `rr_test` using the same PostgreSQL credentials as `rr_dev` by default. Override with the `RR_TEST_CONNECTION_STRING` environment variable if needed.
 
 ---
 
