@@ -18,9 +18,9 @@ function makePlayer(slotId: string | null, connectionMap: string[]): RoomPlayer 
 }
 
 describe("detectSplitGroups", () => {
-    it("returns one empty group for an empty player list", () => {
+    it("returns no groups for an empty player list", () => {
         const result = detectSplitGroups([]);
-        expect(result).toEqual([[]]);
+        expect(result).toEqual([]);
     });
 
     it("returns one group for a single player", () => {

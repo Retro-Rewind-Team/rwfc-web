@@ -12,7 +12,8 @@ import { RoomPlayer } from "../types";
  * Falls back to a single group if slot IDs are unavailable (old snapshots).
  */
 export function detectSplitGroups(players: RoomPlayer[]): RoomPlayer[][] {
-    if (players.length <= 1) return [players];
+    if (players.length === 0) return [];
+    if (players.length === 1) return [players];
 
     if (players.some((p) => !p.slotId)) return [players];
 

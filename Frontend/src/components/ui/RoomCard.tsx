@@ -172,8 +172,9 @@ export default function RoomCard(props: RoomCardProps) {
                                     <div>
                                         <div class="flex items-center gap-2 mb-3">
                                             <div class="h-px flex-1 bg-orange-200 dark:bg-orange-800/60" />
+                                            {/* Groups label A–Z; clamped defensively (rooms hold max 12 players in practice) */}
                                             <span class="text-xs font-bold text-orange-600 dark:text-orange-400 px-2 uppercase tracking-wide">
-                                                Group {String.fromCharCode(65 + i())} &mdash;{" "}
+                                                Group {String.fromCharCode(65 + Math.min(i(), 25))} &mdash;{" "}
                                                 {group.length}{" "}
                                                 {group.length === 1 ? "player" : "players"}
                                             </span>
