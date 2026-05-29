@@ -20,17 +20,17 @@ public class HealthControllerTests
     public async Task GetHealthLive_ReturnsOk()
     {
         // /api/health/live uses Predicate = _ => false, so no checks run — always 200
-        var response = await _client.GetAsync("/api/health/live");
+        var response = await _client.GetAsync("/api/health/live", TestContext.Current.CancellationToken);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetHealth_ReturnsJsonWithStatusAndChecksFields()
     {
-        var response = await _client.GetAsync("/api/health");
+        var response = await _client.GetAsync("/api/health", TestContext.Current.CancellationToken);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
-        var json = await response.Content.ReadAsStringAsync();
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         json.ShouldContain("\"status\"");
         json.ShouldContain("\"checks\"");
     }

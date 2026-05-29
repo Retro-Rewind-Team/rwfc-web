@@ -110,17 +110,17 @@ public class GhostFileServiceTests
         uint timeValue = ((uint)finishMinutes << 25) |
                          ((uint)finishSeconds << 18) |
                          ((uint)finishMs << 8) |
-                         ((uint)trackId << 2);
+                         ((uint)(ushort)trackId << 2);
         WriteUInt32BE(bytes, 0x04, timeValue);
 
         // 0x08: StatsInfo (big-endian uint32)
         // vehicleId[31:26] characterId[25:20] (year-2000)[19:13] month[12:9] day[8:4] controllerId[3:0]
-        uint statsInfo = ((uint)vehicleId << 26) |
-                         ((uint)characterId << 20) |
+        uint statsInfo = ((uint)(ushort)vehicleId << 26) |
+                         ((uint)(ushort)characterId << 20) |
                          ((uint)(year - 2000) << 13) |
                          ((uint)month << 9) |
                          ((uint)day << 4) |
-                         (uint)controllerId;
+                         (uint)(ushort)controllerId;
         WriteUInt32BE(bytes, 0x08, statsInfo);
 
         // 0x0C: Info2 (big-endian uint16)

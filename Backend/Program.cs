@@ -156,7 +156,7 @@ builder.Services.AddHealthChecks()
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    options.KnownNetworks.Clear();
+    options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
 });
 
@@ -297,4 +297,3 @@ static async Task WriteHealthCheckResponse(HttpContext context, HealthReport rep
     await context.Response.WriteAsync(JsonSerializer.Serialize(response));
 }
 
-public partial class Program { }

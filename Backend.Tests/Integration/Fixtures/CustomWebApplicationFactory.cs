@@ -7,7 +7,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace RetroRewindWebsite.Tests.Integration.Fixtures;
 
-public class CustomWebApplicationFactory : WebApplicationFactory<Program>
+internal class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
     // Default matches appsettings.Development.json format; override via env var for CI
     private const string DefaultTestConnectionString =

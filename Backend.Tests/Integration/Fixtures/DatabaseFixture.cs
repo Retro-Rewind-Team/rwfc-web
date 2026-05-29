@@ -11,7 +11,7 @@ public class IntegrationCollection : ICollectionFixture<DatabaseFixture> { }
 
 public class DatabaseFixture : IAsyncLifetime
 {
-    public CustomWebApplicationFactory Factory { get; } = new();
+    internal CustomWebApplicationFactory Factory { get; } = new();
     // Shared across all tests in the collection — do not mutate DefaultRequestHeaders;
     // set auth headers per-request via new HttpRequestMessage instead.
     public HttpClient Client { get; private set; } = null!;
@@ -32,6 +32,7 @@ public class DatabaseFixture : IAsyncLifetime
 
     public async ValueTask DisposeAsync()
     {
+        GC.SuppressFinalize(this);
         try
         {
             using var scope = Factory.Services.CreateScope();
