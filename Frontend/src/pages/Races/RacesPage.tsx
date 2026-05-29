@@ -15,14 +15,34 @@ function positionBadgeClass(pos: number) {
     return "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400";
 }
 
-function PositionBadge(props: { pos: number }) {
+function PositionBadge(props: { pos: number | null }) {
     return (
-        <span
-            class={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs ${positionBadgeClass(props.pos)}`}
+        <Show
+            when={props.pos !== null}
+            fallback={
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs bg-red-100 dark:bg-red-900/30 text-red-500 dark:text-red-400 font-medium">
+                    DNF
+                </span>
+            }
         >
-            {props.pos}
-        </span>
+            <span
+                class={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs ${positionBadgeClass(props.pos!)}`}
+            >
+                {props.pos}
+            </span>
+        </Show>
     );
+}
+
+function parseFinishTimeMs(display: string): number {
+    const colonIdx = display.indexOf(":");
+    if (colonIdx === -1) return Infinity;
+    const minutes = parseInt(display.slice(0, colonIdx), 10);
+    const rest = display.slice(colonIdx + 1);
+    const dotIdx = rest.indexOf(".");
+    const seconds = dotIdx === -1 ? parseInt(rest, 10) : parseInt(rest.slice(0, dotIdx), 10);
+    const ms = dotIdx === -1 ? 0 : parseInt(rest.slice(dotIdx + 1).padEnd(3, "0"), 10);
+    return minutes * 60000 + seconds * 1000 + ms;
 }
 
 function RaceCard(props: { race: RaceResult }) {
@@ -33,6 +53,18 @@ function RaceCard(props: { race: RaceResult }) {
             year: "numeric",
             hour: "2-digit",
             minute: "2-digit",
+        });
+
+    const sortedParticipants = () =>
+        [...props.race.participants].sort((a, b) => {
+            const ta = parseFinishTimeMs(a.finishTimeDisplay);
+            const tb = parseFinishTimeMs(b.finishTimeDisplay);
+            const dnfA = ta === 0;
+            const dnfB = tb === 0;
+            if (dnfA && dnfB) return 0;
+            if (dnfA) return 1;
+            if (dnfB) return -1;
+            return ta - tb;
         });
 
     return (
@@ -63,11 +95,13 @@ function RaceCard(props: { race: RaceResult }) {
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50 dark:divide-gray-700/50">
-                        <For each={props.race.participants}>
-                            {(entry: RaceEntry) => (
+                        <For each={sortedParticipants()}>
+                            {(entry: RaceEntry, index) => {
+                                const isDnf = () => parseFinishTimeMs(entry.finishTimeDisplay) === 0;
+                                return (
                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                                     <td class="py-1.5 pr-2">
-                                        <PositionBadge pos={entry.finishPos} />
+                                        <PositionBadge pos={isDnf() ? null : index() + 1} />
                                     </td>
                                     <td class="py-1.5 pr-3 font-medium">
                                         <Show
@@ -96,7 +130,8 @@ function RaceCard(props: { race: RaceResult }) {
                                         {entry.finishTimeDisplay}
                                     </td>
                                 </tr>
-                            )}
+                                );
+                            }}
                         </For>
                     </tbody>
                 </table>
