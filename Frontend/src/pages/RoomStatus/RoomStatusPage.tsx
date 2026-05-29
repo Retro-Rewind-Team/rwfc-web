@@ -206,6 +206,7 @@ export default function RoomStatusPage() {
                             <div class="flex items-center gap-2 flex-wrap">
                                 <button
                                     type="button"
+                                    aria-pressed={sortByVR()}
                                     onClick={() => setSortByVR((v) => !v)}
                                     class={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg border-2 transition-colors shadow-sm ${
                                         sortByVR()
@@ -222,6 +223,7 @@ export default function RoomStatusPage() {
 
                                 <button
                                     type="button"
+                                    aria-pressed={hidePrivate()}
                                     onClick={() => setHidePrivate((v) => !v)}
                                     class={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg border-2 transition-colors shadow-sm ${
                                         hidePrivate()
@@ -240,6 +242,7 @@ export default function RoomStatusPage() {
 
                                 <button
                                     type="button"
+                                    aria-pressed={hideFull()}
                                     onClick={() => setHideFull((v) => !v)}
                                     class={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg border-2 transition-colors shadow-sm ${
                                         hideFull()

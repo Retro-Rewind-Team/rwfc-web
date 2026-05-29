@@ -1,4 +1,4 @@
-import { A } from "@solidjs/router";
+﻿import { A } from "@solidjs/router";
 import { createSignal } from "solid-js";
 import { Menu, X } from "lucide-solid";
 import ThemeToggle from "./ThemeToggle";
@@ -13,6 +13,7 @@ const navLinks = [
     { href: "/rules", label: "Rules" },
     { href: "/privacy", label: "Privacy" },
     { href: "/stats", label: "Stats" },
+    { href: "/races", label: "Races" },
 ];
 
 export default function Navbar() {
@@ -20,6 +21,12 @@ export default function Navbar() {
 
     return (
         <nav class="bg-white dark:bg-gray-800 shadow-lg border-b border-gray-200 dark:border-gray-700 transition-colors">
+            <a
+                href="#main-content"
+                class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:font-medium"
+            >
+                Skip to content
+            </a>
             <div class="container mx-auto px-4">
                 <div class="flex justify-between items-center h-16">
                     {/* Logo */}
