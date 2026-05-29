@@ -1,3 +1,4 @@
+using RetroRewindWebsite.Models.Domain;
 using RetroRewindWebsite.Models.Entities.RaceResult;
 
 namespace RetroRewindWebsite.Repositories.RaceResult;
@@ -14,6 +15,7 @@ public interface IRaceStatsRepository
     /// <param name="after">An optional date and time. Only races completed after this date are included. If null, all races are considered.</param>
     /// <param name="courseId">An optional course identifier. Only races on this course are included. If null, races on all courses are
     /// considered.</param>
+    /// <param name="engineClassId">An optional engine class identifier (1 = 200cc, 2 = 150cc). If null, all engine classes are included.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the total number of races matching
     /// the specified criteria.</returns>
     Task<int> GetTotalRaceCountByPlayerAsync(long profileId, DateTime? after, short? courseId, short? engineClassId = null);
@@ -35,6 +37,7 @@ public interface IRaceStatsRepository
     /// applied.</param>
     /// <param name="courseId">An optional filter to include only tracks from the specified course. If null, tracks from all courses are
     /// considered.</param>
+    /// <param name="engineClassId">An optional engine class identifier (1 = 200cc, 2 = 150cc). If null, all engine classes are included.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of tuples, each consisting of
     /// a course ID and the corresponding play count, ordered by play count in descending order. The list contains at
     /// most the specified number of items.</returns>
@@ -49,6 +52,7 @@ public interface IRaceStatsRepository
     /// records are considered.</param>
     /// <param name="courseId">An optional course identifier to restrict results to a specific course. If null, results are not filtered by
     /// course.</param>
+    /// <param name="engineClassId">An optional engine class identifier (1 = 200cc, 2 = 150cc). If null, all engine classes are included.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of tuples, each consisting of
     /// a character ID and the corresponding usage count, ordered by count in descending order. The list may be empty if
     /// no usage data is found.</returns>
@@ -63,6 +67,7 @@ public interface IRaceStatsRepository
     /// are considered.</param>
     /// <param name="courseId">An optional course identifier to filter vehicle usage by a specific course. If null, usage across all courses is
     /// included.</param>
+    /// <param name="engineClassId">An optional engine class identifier (1 = 200cc, 2 = 150cc). If null, all engine classes are included.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of tuples, each consisting of
     /// a vehicle ID and its corresponding usage count, ordered by count in descending order. The list may be empty if
     /// no usage data is found.</returns>
@@ -78,6 +83,7 @@ public interface IRaceStatsRepository
     /// available data is included.</param>
     /// <param name="courseId">An optional course identifier to filter results to a specific course. If null, combinations from all courses are
     /// included.</param>
+    /// <param name="engineClassId">An optional engine class identifier (1 = 200cc, 2 = 150cc). If null, all engine classes are included.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of tuples, each consisting of
     /// a character ID, vehicle ID, and the count of times that combination was used, ordered by descending count. The
     /// list may be empty if no data matches the criteria.</returns>
@@ -91,6 +97,7 @@ public interface IRaceStatsRepository
     /// <param name="after">An optional date and time. Only results after this date are included. If null, all available results are
     /// considered.</param>
     /// <param name="courseId">An optional course identifier. If specified, only results from this course are included.</param>
+    /// <param name="engineClassId">An optional engine class identifier (1 = 200cc, 2 = 150cc). If null, all engine classes are included.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the total number of first-place
     /// frames for the specified player, filtered as requested.</returns>
     Task<long> GetTotalFramesIn1stByPlayerAsync(long profileId, DateTime? after, short? courseId, short? engineClassId = null);
@@ -106,6 +113,7 @@ public interface IRaceStatsRepository
     /// filter is applied.</param>
     /// <param name="courseId">An optional filter to include only races on the specified course. If null, results from all courses are
     /// included.</param>
+    /// <param name="engineClassId">An optional engine class identifier (1 = 200cc, 2 = 150cc). If null, all engine classes are included.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a tuple with a list of recent race
     /// results and the total count of matching races.</returns>
     Task<(List<RaceResultEntity> Rows, int TotalCount)> GetRecentRacesByPlayerAsync(long profileId, int page, int pageSize, DateTime? after, short? courseId, short? engineClassId = null);
@@ -202,4 +210,40 @@ public interface IRaceStatsRepository
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of tuples, each containing
     /// the hour of the day and the corresponding count of races for that hour. The list is empty if no races are found.</returns>
     Task<List<(int Hour, int Count)>> GetRaceCountByHourAsync(DateTime? after);
+
+    // ===== ANALYTICS =====
+
+    Task<List<(short Position, int Count)>> GetFinishPositionDistributionAsync(
+        long profileId, DateTime? after, short? engineClassId);
+
+    Task<List<(short CourseId, int RaceCount, int WinCount, double AvgFinishPos)>> GetTrackPerformanceByPlayerAsync(
+        long profileId, DateTime? after, short? engineClassId);
+
+    Task<List<(int DayOfWeek, int Count)>> GetRaceCountByDayOfWeekByPlayerAsync(
+        long profileId, DateTime? after, short? engineClassId);
+
+    Task<List<(int Hour, int Count)>> GetRaceCountByHourByPlayerAsync(
+        long profileId, DateTime? after, short? engineClassId);
+
+    // ===== RACE BROWSER =====
+
+    /// <summary>
+    /// Returns a paginated list of distinct races matching the given filters, sorted newest first.
+    /// When friendCode filter is active, profileId should already be resolved by the caller.
+    /// </summary>
+    Task<(List<RaceKey> Races, int TotalCount)> GetDistinctRacesAsync(
+        string? roomId,
+        int? raceNumber,
+        short? courseId,
+        short? engineClassId,
+        long? profileId,
+        DateTime? from,
+        DateTime? to,
+        int page,
+        int pageSize);
+
+    /// <summary>
+    /// Returns all RaceResultEntity rows whose (RoomId, RaceNumber) pair is in the provided list.
+    /// </summary>
+    Task<List<RaceResultEntity>> GetParticipantsByRaceKeysAsync(List<RaceKey> raceKeys);
 }

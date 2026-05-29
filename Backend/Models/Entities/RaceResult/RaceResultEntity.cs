@@ -12,10 +12,9 @@ public class RaceResultEntity
     public required string RoomId { get; set; }
     public int RaceNumber { get; set; }
     public DateTime RaceTimestamp { get; set; }
-
     public long ProfileId { get; set; } // Foreign key to PlayerProfileEntity.ProfileId
-    public int PlayerId { get; set; }
-
+    public int PlayerId { get; set; }  // 0 = main racer (the online player), 1 = local co-op guest on the same console. Only 0 is ever stored;
+                                       // RaceResultService filters out 1 at collection time.
     public int FinishTime { get; set; }
     public short CharacterId { get; set; }
     public short VehicleId { get; set; }

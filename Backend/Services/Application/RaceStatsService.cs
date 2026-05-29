@@ -1,4 +1,5 @@
 using RetroRewindWebsite.Mappers;
+using RetroRewindWebsite.Models.DTOs.Common;
 using RetroRewindWebsite.Models.DTOs.RaceStats;
 using RetroRewindWebsite.Repositories.Player;
 using RetroRewindWebsite.Repositories.RaceResult;
@@ -169,6 +170,40 @@ public class RaceStatsService : IRaceStatsService
             .ToDictionary(g => g.Key, g => string.Join(" / ", g.Select(t => t.Name)));
     }
 
+    public async Task<PlayerAnalyticsDto?> GetPlayerAnalyticsAsync(
+        string pid, int? days, short? engineClassId)
+    {
+        var player = await _playerRepository.GetByPidAsync(pid);
+        if (player == null)
+            return null;
+
+        var profileId = long.Parse(pid);
+        var after = days.HasValue ? DateTime.UtcNow.AddDays(-days.Value) : (DateTime?)null;
+
+        var totalRaces = await _raceStatsRepository.GetTotalRaceCountByPlayerAsync(
+            profileId, after, null, engineClassId);
+        if (totalRaces == 0)
+            return null;
+
+        var posDistTask = StatsQuery(r => r.GetFinishPositionDistributionAsync(profileId, after, engineClassId));
+        var trackPerfTask = StatsQuery(r => r.GetTrackPerformanceByPlayerAsync(profileId, after, engineClassId));
+        var dayTask = StatsQuery(r => r.GetRaceCountByDayOfWeekByPlayerAsync(profileId, after, engineClassId));
+        var hourTask = StatsQuery(r => r.GetRaceCountByHourByPlayerAsync(profileId, after, engineClassId));
+
+        await Task.WhenAll(posDistTask, trackPerfTask, dayTask, hourTask);
+
+        var courseIds = trackPerfTask.Result.Select(t => t.CourseId).ToList();
+        var trackNameMap = await BuildTrackNameMapAsync(courseIds);
+
+        return RaceStatsMapper.MapPlayerAnalytics(
+            totalRaces,
+            posDistTask.Result,
+            trackPerfTask.Result,
+            trackNameMap,
+            dayTask.Result,
+            hourTask.Result);
+    }
+
     /// <summary>Runs a stats repository query in an isolated scope so it can be used with Task.WhenAll.</summary>
     private async Task<T> StatsQuery<T>(Func<IRaceStatsRepository, Task<T>> query)
     {
@@ -181,5 +216,45 @@ public class RaceStatsService : IRaceStatsService
     {
         using var scope = _serviceScopeFactory.CreateScope();
         return await query(scope.ServiceProvider.GetRequiredService<IPlayerRepository>());
+    }
+
+    public async Task<PagedResult<RaceResultDto>> GetRacesAsync(
+        string? roomId,
+        int? raceNumber,
+        short? courseId,
+        short? engineClassId,
+        string? friendCode,
+        DateTime? from,
+        DateTime? to,
+        int page,
+        int pageSize)
+    {
+        // Resolve friendCode → profileId if provided
+        long? profileId = null;
+        if (!string.IsNullOrEmpty(friendCode))
+        {
+            var player = await _playerRepository.GetByFcAsync(friendCode);
+            if (player == null)
+                return new PagedResult<RaceResultDto>([], 0, page, pageSize);
+            profileId = long.Parse(player.Pid);
+        }
+
+        var (raceKeys, totalCount) = await _raceStatsRepository.GetDistinctRacesAsync(
+            roomId, raceNumber, courseId, engineClassId, profileId, from, to, page, pageSize);
+
+        if (raceKeys.Count == 0)
+            return new PagedResult<RaceResultDto>([], totalCount, page, pageSize);
+
+        var participants = await _raceStatsRepository.GetParticipantsByRaceKeysAsync(raceKeys);
+
+        var courseIds = raceKeys.Select(k => k.CourseId).Distinct().ToList();
+        var trackNameMap = await BuildTrackNameMapAsync(courseIds);
+
+        var profileIdStrings = participants.Select(p => p.ProfileId.ToString()).Distinct().ToList();
+        var playerEntities = await PlayerQuery(r => r.GetPlayersByPidsAsync(profileIdStrings));
+        var playerMap = playerEntities.ToDictionary(p => p.Pid, p => (p.Name, p.Fc));
+
+        var items = RaceStatsMapper.MapRaces(raceKeys, participants, trackNameMap, playerMap);
+        return new PagedResult<RaceResultDto>(items, totalCount, page, pageSize);
     }
 }

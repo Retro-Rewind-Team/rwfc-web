@@ -8,7 +8,11 @@ public record RecentRaceDto(
     string FinishTimeDisplay,
     string CharacterName,
     string VehicleName,
-    DateTime Timestamp
+    DateTime Timestamp,
+    short FinishPos,
+    short PlayerCount,
+    string RoomId,
+    int RaceNumber
 );
 
 public record SetupEntryDto(string Name, int RaceCount);

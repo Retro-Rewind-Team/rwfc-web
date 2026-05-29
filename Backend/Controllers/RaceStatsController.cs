@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using RetroRewindWebsite.Models.DTOs.Common;
 using RetroRewindWebsite.Models.DTOs.RaceStats;
 using RetroRewindWebsite.Services.Application;
 
@@ -77,6 +78,30 @@ public class RaceStatsController : ControllerBase
         }
     }
 
+    [HttpGet("player/{pid}/analytics")]
+    [ProducesResponseType<PlayerAnalyticsDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<PlayerAnalyticsDto>> GetPlayerAnalytics(
+        string pid,
+        [FromQuery] int? days = null,
+        [FromQuery] short? engineClassId = null)
+    {
+        try
+        {
+            var analytics = await _raceStatsService.GetPlayerAnalyticsAsync(pid, days, engineClassId);
+            if (analytics == null)
+                return NotFound($"No race data found for player '{pid}'");
+            return Ok(analytics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving analytics for player {Pid}", pid);
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while retrieving player analytics");
+        }
+    }
+
     [HttpGet("global")]
     [ProducesResponseType<GlobalRaceStatsDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -93,6 +118,36 @@ public class RaceStatsController : ControllerBase
             _logger.LogError(ex, "Error retrieving global race stats");
             return StatusCode(StatusCodes.Status500InternalServerError,
                 "An error occurred while retrieving global race stats");
+        }
+    }
+
+    [HttpGet("races")]
+    [ProducesResponseType<PagedResult<RaceResultDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<PagedResult<RaceResultDto>>> GetRaces(
+        [FromQuery] string? roomId = null,
+        [FromQuery] int? raceNumber = null,
+        [FromQuery] short? courseId = null,
+        [FromQuery] short? engineClassId = null,
+        [FromQuery] string? friendCode = null,
+        [FromQuery] DateTime? from = null,
+        [FromQuery] DateTime? to = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = DefaultPageSize)
+    {
+        try
+        {
+            page = Math.Max(1, page);
+            pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
+
+            var result = await _raceStatsService.GetRacesAsync(
+                roomId, raceNumber, courseId, engineClassId, friendCode, from, to, page, pageSize);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving races");
+            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving races");
         }
     }
 }

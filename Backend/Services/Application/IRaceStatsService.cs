@@ -1,3 +1,4 @@
+using RetroRewindWebsite.Models.DTOs.Common;
 using RetroRewindWebsite.Models.DTOs.RaceStats;
 
 namespace RetroRewindWebsite.Services.Application
@@ -27,5 +28,26 @@ namespace RetroRewindWebsite.Services.Application
         /// Returns <c>null</c> if the player does not exist.
         /// </summary>
         Task<PlayerStatsDto?> GetPlayerFullStatsAsync(string pid);
+
+        /// <summary>
+        /// Returns aggregated analytics for a player: win rate, finish position distribution,
+        /// track performance, and activity patterns. Returns null if the player does not exist
+        /// or has no race data.
+        /// </summary>
+        Task<PlayerAnalyticsDto?> GetPlayerAnalyticsAsync(string pid, int? days, short? engineClassId);
+
+        /// <summary>
+        /// Returns a paginated list of races matching the given filters, with full participant details.
+        /// </summary>
+        Task<PagedResult<RaceResultDto>> GetRacesAsync(
+            string? roomId,
+            int? raceNumber,
+            short? courseId,
+            short? engineClassId,
+            string? friendCode,
+            DateTime? from,
+            DateTime? to,
+            int page,
+            int pageSize);
     }
 }

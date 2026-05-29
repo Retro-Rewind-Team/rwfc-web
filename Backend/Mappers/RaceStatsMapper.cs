@@ -1,4 +1,5 @@
 using RetroRewindWebsite.Helpers;
+using RetroRewindWebsite.Models.Domain;
 using RetroRewindWebsite.Models.DTOs.RaceStats;
 using RetroRewindWebsite.Models.Entities.Player;
 using RetroRewindWebsite.Models.Entities.RaceResult;
@@ -11,7 +12,7 @@ namespace RetroRewindWebsite.Mappers;
 /// </summary>
 public static class RaceStatsMapper
 {
-    private static readonly string[] DayNames =
+    private static readonly string[] _dayNames =
         ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
     /// <summary>
@@ -80,7 +81,11 @@ public static class RaceStatsMapper
             FormatFinishTime(r.FinishTime),
             MarioKartMappings.GetCharacterName(r.CharacterId),
             MarioKartMappings.GetVehicleName(r.VehicleId),
-            r.RaceTimestamp))];
+            r.RaceTimestamp,
+            r.FinishPos,
+            r.PlayerCount,
+            r.RoomId,
+            r.RaceNumber))];
 
     /// <summary>
     /// Maps most-active player data to DTOs, resolving names and friend codes from
@@ -108,7 +113,7 @@ public static class RaceStatsMapper
     {
         var dayMap = raw.ToDictionary(x => x.DayOfWeek, x => x.Count);
         return [.. Enumerable.Range(0, 7)
-            .Select(d => new DayActivityDto(DayNames[d], dayMap.TryGetValue(d, out var c) ? c : 0))];
+            .Select(d => new DayActivityDto(_dayNames[d], dayMap.TryGetValue(d, out var c) ? c : 0))];
     }
 
     /// <summary>
@@ -120,6 +125,83 @@ public static class RaceStatsMapper
         var hourMap = raw.ToDictionary(x => x.Hour, x => x.Count);
         return [.. Enumerable.Range(0, 24)
             .Select(h => new HourActivityDto(h, hourMap.TryGetValue(h, out var c) ? c : 0))];
+    }
+
+    /// <summary>
+    /// Maps race keys and their participant rows into RaceResultDtos.
+    /// Players not in playerMap get null Name and FriendCode.
+    /// </summary>
+    public static List<RaceResultDto> MapRaces(
+        List<RaceKey> raceKeys,
+        List<RaceResultEntity> participants,
+        Dictionary<short, string> trackNames,
+        Dictionary<string, (string Name, string Fc)> playerMap)
+    {
+        var byRace = participants
+            .GroupBy(r => (r.RoomId, r.RaceNumber))
+            .ToDictionary(g => g.Key, g => g.OrderBy(r => r.FinishPos).ToList());
+
+        return [.. raceKeys.Select(k =>
+        {
+            var rows = byRace.GetValueOrDefault((k.RoomId, k.RaceNumber), []);
+            var trackName = trackNames.TryGetValue(k.CourseId, out var tn) ? tn : $"Course {k.CourseId}";
+
+            var entries = rows.Select(p =>
+            {
+                var (name, fc) = playerMap.TryGetValue(p.ProfileId.ToString(), out var info)
+                    ? (info.Name, (string?)info.Fc)
+                    : ((string?)null, null);
+                return new RaceEntryDto(
+                    p.ProfileId,
+                    name,
+                    fc,
+                    p.FinishPos,
+                    FormatFinishTime(p.FinishTime),
+                    MarioKartMappings.GetCharacterName(p.CharacterId),
+                    MarioKartMappings.GetVehicleName(p.VehicleId),
+                    p.FramesIn1st);
+            }).ToList();
+
+            return new RaceResultDto(k.RoomId, k.RaceNumber, k.RaceTimestamp, k.CourseId, trackName, k.EngineClassId, entries);
+        })];
+    }
+
+    /// <summary>
+    /// Maps player analytics data to a PlayerAnalyticsDto.
+    /// </summary>
+    public static PlayerAnalyticsDto MapPlayerAnalytics(
+        int totalRaces,
+        List<(short Position, int Count)> positionDistribution,
+        List<(short CourseId, int RaceCount, int WinCount, double AvgFinishPos)> trackPerformance,
+        Dictionary<short, string> trackNames,
+        List<(int DayOfWeek, int Count)> racesByDay,
+        List<(int Hour, int Count)> racesByHour)
+    {
+        var winRate = totalRaces > 0
+            ? positionDistribution.Where(p => p.Position == 1).Sum(p => p.Count) * 100.0 / totalRaces
+            : 0.0;
+
+        var positionDtos = positionDistribution
+            .Select(p => new PositionCountDto(p.Position, p.Count))
+            .ToList();
+
+        var trackDtos = trackPerformance
+            .Where(t => trackNames.ContainsKey(t.CourseId))
+            .Select(t => new TrackPerformanceDto(
+                t.CourseId,
+                trackNames[t.CourseId],
+                t.RaceCount,
+                t.RaceCount > 0 ? Math.Round(t.WinCount * 100.0 / t.RaceCount, 1) : 0.0,
+                Math.Round(t.AvgFinishPos, 2),
+                t.RaceCount < 3))
+            .ToList();
+
+        return new PlayerAnalyticsDto(
+            Math.Round(winRate, 1),
+            positionDtos,
+            trackDtos,
+            MapDayActivity(racesByDay),
+            MapHourActivity(racesByHour));
     }
 
     /// <summary>
