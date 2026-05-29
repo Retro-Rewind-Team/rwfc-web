@@ -11,6 +11,10 @@ export interface RecentRace {
     characterName: string;
     vehicleName: string;
     timestamp: string;
+    finishPos: number;
+    playerCount: number;
+    roomId: string;
+    raceNumber: number;
 }
 
 export interface SetupEntry {
@@ -64,6 +68,28 @@ export interface GlobalRaceStats {
     racesByHour: HourActivity[];
 }
 
+export interface PositionCount {
+    position: number;
+    count: number;
+}
+
+export interface TrackPerformance {
+    courseId: number;
+    trackName: string;
+    raceCount: number;
+    winRate: number;
+    avgFinishPos: number;
+    lowSample: boolean;
+}
+
+export interface PlayerAnalytics {
+    winRate: number;
+    finishPositionDistribution: PositionCount[];
+    trackPerformance: TrackPerformance[];
+    racesByDayOfWeek: DayActivity[];
+    racesByHour: HourActivity[];
+}
+
 export interface PlayerRaceStatsParams {
     days?: number;
     courseId?: number;
@@ -71,3 +97,37 @@ export interface PlayerRaceStatsParams {
     page?: number;
     pageSize?: number;
 }
+
+export interface RaceEntry {
+    profileId: number;
+    name: string | null;
+    friendCode: string | null;
+    finishPos: number;
+    finishTimeDisplay: string;
+    characterName: string;
+    vehicleName: string;
+    framesIn1st: number;
+}
+
+export interface RaceResult {
+    roomId: string;
+    raceNumber: number;
+    timestamp: string;
+    courseId: number;
+    trackName: string;
+    engineClassId: number;
+    participants: RaceEntry[];
+}
+
+export interface RacesParams {
+    roomId?: string;
+    raceNumber?: number;
+    courseId?: number;
+    engineClassId?: number;
+    friendCode?: string;
+    from?: string;
+    to?: string;
+    page?: number;
+    pageSize?: number;
+}
+

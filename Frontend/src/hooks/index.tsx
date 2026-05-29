@@ -1,4 +1,4 @@
-export { useLeaderboard } from "./useLeaderboard";
+﻿export { useLeaderboard } from "./useLeaderboard";
 export { useLegacyLeaderboard } from "./useLegacyLeaderboard";
 export { usePlayer } from "./usePlayer";
 export { useDebouncedSearch } from "./useDebouncedSearch";
@@ -12,3 +12,5 @@ export { useTTTrackBrowser } from "./useTTTrackBrowser";
 export { useTTTrackDetail } from "./useTTTrackDetail";
 export { usePlayerRaceStats } from "./usePlayerRaceStats";
 export { useGlobalRaceStats } from "./useGlobalRaceStats";
+export { useRaces } from "./useRaces";
+export { usePlayerAnalytics } from "./usePlayerAnalytics";

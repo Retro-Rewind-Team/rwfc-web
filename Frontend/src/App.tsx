@@ -11,6 +11,7 @@ import {
     NotFoundPage,
     PrivacyPage,
     RaceStatsPage,
+    RacesPage,
     RankHelperPage,
     RatingEditorPage,
     RoomStatusPage,
@@ -77,6 +78,7 @@ function App() {
                     <Route path="/privacy" component={PrivacyPage} />
                     <Route path="/team" component={TeamPage} />
                     <Route path="/stats" component={RaceStatsPage} />
+                    <Route path="/races" component={RacesPage} />
 
                     {/* Tools Pages */}
                     <Route path="/tools" component={ToolsPage} />

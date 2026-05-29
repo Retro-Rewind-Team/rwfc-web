@@ -1,4 +1,4 @@
-export { default as MiiComponent } from "./MiiComponent";
+﻿export { default as MiiComponent } from "./MiiComponent";
 export { default as PlayerCard } from "./PlayerCard";
 export { default as RoomCard } from "./RoomCard";
 export { default as TeamMemberCard } from "./TeamMemberCard";
@@ -8,6 +8,7 @@ export { default as LeaderboardTable } from "./LeaderboardTable";
 export { default as PlayerBadges } from "./PlayerBadges";
 export { default as Badge } from "./Badge";
 export { default as PlayerRaceStatsCard } from "./PlayerRaceStatsCard";
+export { default as PlayerAnalyticsCard } from "./PlayerAnalyticsCard";
 
 // VR tier components
 export { default as VRTierNumberPlate } from "./vrTier/VRTierNumberplate";

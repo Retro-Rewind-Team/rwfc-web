@@ -23,6 +23,17 @@ export const queryKeys = {
         page: number,
     ) => ["player-race-stats", pid, days, courseId, engineClassId, page] as const,
 
+    races: (
+        roomId: string | undefined,
+        raceNumber: number | undefined,
+        courseId: number | undefined,
+        engineClassId: number | undefined,
+        friendCode: string,
+        from: string | undefined,
+        to: string | undefined,
+        page: number,
+    ) => ["races", roomId, raceNumber, courseId, engineClassId, friendCode, from, to, page] as const,
+
     roomStats: ["roomStatus", "stats"] as const,
     room: (id: number | undefined) => ["roomStatus", id] as const,
 
@@ -68,4 +79,10 @@ export const queryKeys = {
         vehicle: string,
     ) => ["tt-profile-submissions", id, page, pageSize, cc, glitch, shroomless, vehicle] as const,
     ttProfileStats: (id: number) => ["tt-profile-stats", id] as const,
+
+    playerAnalytics: (
+        pid: string | undefined,
+        days: number | undefined,
+        engineClassId: number | undefined,
+    ) => ["player-analytics", pid, days, engineClassId] as const,
 } as const;

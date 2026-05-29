@@ -1,8 +1,24 @@
 import { For, Show } from "solid-js";
-import { ChevronLeft, ChevronRight, X } from "lucide-solid";
+import { A } from "@solidjs/router";
+import { ChevronLeft, ChevronRight, ExternalLink, X } from "lucide-solid";
 import { usePlayerRaceStats } from "../../hooks/usePlayerRaceStats";
 import { PlayerRaceStats, RecentRace, SetupEntry, TrackPlayCount } from "../../types/raceStats";
 import { LoadingSpinner } from "../../components/common";
+
+function positionBadgeClass(pos: number) {
+    if (pos === 1) return "bg-yellow-400 text-yellow-900 font-bold";
+    if (pos === 2) return "bg-gray-300 text-gray-800 font-bold";
+    if (pos === 3) return "bg-amber-600 text-white font-bold";
+    return "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400";
+}
+
+function PositionBadge(props: { pos: number }) {
+    return (
+        <span class={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs ${positionBadgeClass(props.pos)}`}>
+            {props.pos}
+        </span>
+    );
+}
 
 interface PlayerRaceStatsCardProps {
     pid: string;
@@ -203,31 +219,28 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                             <table class="w-full text-sm">
                                 <thead>
                                     <tr class="text-left text-xs text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-gray-700">
+                                        <th class="pb-2 font-medium w-8">Pos</th>
                                         <th class="pb-2 font-medium">Track</th>
                                         <th class="pb-2 font-medium">Time</th>
-                                        <th class="pb-2 font-medium hidden sm:table-cell">
-                                            Character
-                                        </th>
-                                        <th class="pb-2 font-medium hidden md:table-cell">
-                                            Vehicle
-                                        </th>
+                                        <th class="pb-2 font-medium hidden sm:table-cell">Character</th>
+                                        <th class="pb-2 font-medium hidden md:table-cell">Vehicle</th>
+                                        <th class="pb-2 font-medium hidden lg:table-cell text-center">Players</th>
                                         <th class="pb-2 font-medium text-right">Date</th>
+                                        <th class="pb-2 font-medium w-6"></th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                                     <For each={stats().recentRaces}>
                                         {(race: RecentRace) => (
                                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                                <td class="py-2 pr-2">
+                                                    <PositionBadge pos={race.finishPos} />
+                                                </td>
                                                 <td class="py-2 pr-3 max-w-[140px]">
                                                     <span
                                                         class="text-gray-800 dark:text-gray-200 truncate block cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                                                         title={`Filter by ${race.trackName}`}
-                                                        onClick={() =>
-                                                            handleCourseIdChange(
-                                                                race.courseId,
-                                                                race.trackName,
-                                                            )
-                                                        }
+                                                        onClick={() => handleCourseIdChange(race.courseId, race.trackName)}
                                                     >
                                                         {race.trackName}
                                                     </span>
@@ -241,8 +254,20 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                                 <td class="py-2 pr-3 text-gray-600 dark:text-gray-400 hidden md:table-cell">
                                                     {race.vehicleName}
                                                 </td>
+                                                <td class="py-2 pr-3 text-center text-gray-500 dark:text-gray-400 text-xs hidden lg:table-cell">
+                                                    {race.playerCount}p
+                                                </td>
                                                 <td class="py-2 text-gray-400 dark:text-gray-500 text-right whitespace-nowrap">
                                                     {formatTimestamp(race.timestamp)}
+                                                </td>
+                                                <td class="py-2 pl-2">
+                                                    <A
+                                                        href={`/races?roomId=${race.roomId}&raceNumber=${race.raceNumber}`}
+                                                        title="View full race"
+                                                        class="text-gray-300 dark:text-gray-600 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+                                                    >
+                                                        <ExternalLink size={13} />
+                                                    </A>
                                                 </td>
                                             </tr>
                                         )}

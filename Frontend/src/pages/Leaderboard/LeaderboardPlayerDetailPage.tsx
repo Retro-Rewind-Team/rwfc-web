@@ -5,6 +5,7 @@ import { usePlayer } from "../../hooks";
 import { formatLastSeen } from "../../utils";
 import {
     MiiComponent,
+    PlayerAnalyticsCard,
     PlayerBadges,
     PlayerRaceStatsCard,
     VRHistoryChartComponent,
@@ -301,6 +302,7 @@ export default function PlayerDetailPage() {
 
                         <VRHistoryChartComponent friendCode={player().friendCode} />
                         <PlayerRaceStatsCard pid={player().pid} />
+                        <PlayerAnalyticsCard pid={player().pid} />
                     </div>
                 )}
             </Show>
