@@ -174,7 +174,7 @@ static RateLimitPartition<string> IpFixedWindow(HttpContext ctx, int limit) =>
 builder.Services.AddRateLimiter(options =>
 {
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
-        ctx => IpFixedWindow(ctx, 300));
+        ctx => IpFixedWindow(ctx, 2000));
 
     options.AddPolicy("RefreshPolicy", ctx => IpFixedWindow(ctx, 5));
     options.AddPolicy("DownloadPolicy", ctx => IpFixedWindow(ctx, 3));
