@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi;
@@ -15,6 +16,7 @@ using RetroRewindWebsite.Services.Domain;
 using RetroRewindWebsite.Services.External;
 using Scalar.AspNetCore;
 using Serilog;
+using System.Net;
 using System.Text.Json;
 using System.Threading.RateLimiting;
 
@@ -150,6 +152,14 @@ builder.Services.AddHealthChecks()
             : HealthCheckResult.Unhealthy($"High memory usage: {memoryUsed / 1024 / 1024}MB");
     });
 
+// ===== FORWARDED HEADERS =====
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 // ===== RATE LIMITING =====
 static RateLimitPartition<string> IpFixedWindow(HttpContext ctx, int limit) =>
     RateLimitPartition.GetFixedWindowLimiter(
@@ -164,7 +174,7 @@ static RateLimitPartition<string> IpFixedWindow(HttpContext ctx, int limit) =>
 builder.Services.AddRateLimiter(options =>
 {
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
-        ctx => IpFixedWindow(ctx, 2000));
+        ctx => IpFixedWindow(ctx, 300));
 
     options.AddPolicy("RefreshPolicy", ctx => IpFixedWindow(ctx, 5));
     options.AddPolicy("DownloadPolicy", ctx => IpFixedWindow(ctx, 3));
@@ -211,6 +221,7 @@ builder.Services.AddOpenApi(options =>
 var app = builder.Build();
 
 // ===== MIDDLEWARE PIPELINE =====
+app.UseForwardedHeaders();
 app.UseCors("AllowFrontend");
 app.UseMiddleware<RetroRewindWebsite.Middleware.ApiKeyAuthenticationMiddleware>();
 
