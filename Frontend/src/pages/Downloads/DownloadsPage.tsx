@@ -53,10 +53,10 @@ export default function DownloadsPage() {
     }));
 
     const retroTrackCount = createMemo(
-        () => tracksQuery.data?.filter((t) => t.category === "retro").length ?? null,
+        () => tracksQuery.data?.filter((t) => t.category === "retro" && !t.isHidden).length ?? null,
     );
     const customTrackCount = createMemo(
-        () => tracksQuery.data?.filter((t) => t.category === "custom").length ?? null,
+        () => tracksQuery.data?.filter((t) => t.category === "custom" && !t.isHidden).length ?? null,
     );
 
     const v = () => versionQuery.data ?? null;

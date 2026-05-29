@@ -18,6 +18,7 @@ public static class TrackMapper
         track.Category,
         track.Laps,
         track.SupportsGlitch,
-        track.SortOrder
+        track.SortOrder,
+        track.IsHidden
     );
 }

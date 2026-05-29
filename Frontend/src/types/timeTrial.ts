@@ -6,6 +6,7 @@ export interface Track {
     category: "retro" | "custom";
     laps: number;
     supportsGlitch: boolean;
+    isHidden: boolean;
 }
 
 export interface TTProfile {

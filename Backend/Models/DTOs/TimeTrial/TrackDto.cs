@@ -7,5 +7,6 @@ public record TrackDto(
     string Category,
     short Laps,
     bool SupportsGlitch,
-    int SortOrder
+    int SortOrder,
+    bool IsHidden
 );
