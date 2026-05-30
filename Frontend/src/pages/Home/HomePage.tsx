@@ -88,7 +88,9 @@ export default function HomePage() {
         staleTime: 1000 * 60 * 60,
     }));
 
-    const totalTrackCount = createMemo(() => tracksQuery.data?.length ?? null);
+    const totalTrackCount = createMemo(
+        () => tracksQuery.data?.filter((t) => !t.isHidden).length ?? null,
+    );
 
     return (
         <div class="space-y-12">
