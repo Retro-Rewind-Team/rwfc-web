@@ -168,6 +168,16 @@ export default function DownloadsPage() {
                         WheelWizard (PC Launcher)
                     </a>
                 </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-3">
+                    Playing online on Retro WFC involves data collection.{" "}
+                    <a
+                        href="/privacy"
+                        class="underline hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                    >
+                        View our Privacy Policy
+                    </a>
+                    .
+                </p>
             </AlertBox>
 
             {/* Important Notes */}
