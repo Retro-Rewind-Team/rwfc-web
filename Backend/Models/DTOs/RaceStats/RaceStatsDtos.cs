@@ -9,7 +9,7 @@ public record RecentRaceDto(
     string CharacterName,
     string VehicleName,
     DateTime Timestamp,
-    short FinishPos,
+    short? FinishPos,
     short PlayerCount,
     string RoomId,
     int RaceNumber

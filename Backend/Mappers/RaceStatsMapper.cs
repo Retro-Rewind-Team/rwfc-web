@@ -82,7 +82,7 @@ public static class RaceStatsMapper
             MarioKartMappings.GetCharacterName(r.CharacterId),
             MarioKartMappings.GetVehicleName(r.VehicleId),
             r.RaceTimestamp,
-            r.FinishPos,
+            r.FinishPos == 0 ? (short?)null : r.FinishPos,
             r.PlayerCount,
             r.RoomId,
             r.RaceNumber))];

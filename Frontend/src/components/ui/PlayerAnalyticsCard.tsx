@@ -1,4 +1,4 @@
-﻿import { For, Show, createSignal } from "solid-js";
+﻿import { createSignal, For, Show } from "solid-js";
 import { ChevronDown, ChevronUp } from "lucide-solid";
 import { usePlayerAnalytics } from "../../hooks/usePlayerAnalytics";
 import { PositionCount, TrackPerformance } from "../../types/raceStats";

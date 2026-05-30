@@ -12,11 +12,20 @@ function positionBadgeClass(pos: number) {
     return "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400";
 }
 
-function PositionBadge(props: { pos: number }) {
+function PositionBadge(props: { pos: number | null }) {
     return (
-        <span class={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs ${positionBadgeClass(props.pos)}`}>
-            {props.pos}
-        </span>
+        <Show
+            when={props.pos !== null}
+            fallback={
+                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs bg-red-100 dark:bg-red-900/30 text-red-500 dark:text-red-400 font-medium">
+                    DNF
+                </span>
+            }
+        >
+            <span class={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs ${positionBadgeClass(props.pos!)}`}>
+                {props.pos}
+            </span>
+        </Show>
     );
 }
 

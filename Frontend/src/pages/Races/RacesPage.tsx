@@ -1,7 +1,7 @@
 ﻿import { A } from "@solidjs/router";
 import { For, Show } from "solid-js";
 import { X } from "lucide-solid";
-import { useRaces, RACES_PAGE_SIZE } from "../../hooks/useRaces";
+import { RACES_PAGE_SIZE, useRaces } from "../../hooks/useRaces";
 import { RaceEntry, RaceResult } from "../../types/raceStats";
 import { InlinePagination, LoadingSpinner } from "../../components/common";
 import { queryKeys } from "../../constants/queryKeys";

@@ -11,7 +11,7 @@ export interface RecentRace {
     characterName: string;
     vehicleName: string;
     timestamp: string;
-    finishPos: number;
+    finishPos: number | null;
     playerCount: number;
     roomId: string;
     raceNumber: number;

@@ -232,6 +232,7 @@ public class RaceStatsRepository : IRaceStatsRepository
         long profileId, DateTime? after, short? engineClassId)
     {
         var rows = await BasePlayerQuery(profileId, after, null, engineClassId)
+            .Where(r => r.FinishPos != 0)
             .GroupBy(r => r.FinishPos)
             .Select(g => new { Position = g.Key, Count = g.Count() })
             .ToListAsync();
@@ -247,19 +248,25 @@ public class RaceStatsRepository : IRaceStatsRepository
     public async Task<List<(short CourseId, int RaceCount, int WinCount, double AvgFinishPos)>> GetTrackPerformanceByPlayerAsync(
         long profileId, DateTime? after, short? engineClassId)
     {
-        var rows = await BasePlayerQuery(profileId, after, null, engineClassId)
-            .GroupBy(r => r.CourseId)
-            .Select(g => new
-            {
-                CourseId = g.Key,
-                RaceCount = g.Count(),
-                WinCount = g.Count(r => r.FinishPos == 1),
-                AvgFinishPos = g.Average(r => (double)r.FinishPos),
-            })
-            .OrderByDescending(g => g.RaceCount)
+        // Load only CourseId + FinishPos to memory; conditional average (finishers only) can't translate to SQL.
+        var rawRows = await BasePlayerQuery(profileId, after, null, engineClassId)
+            .Select(r => new { r.CourseId, r.FinishPos })
             .ToListAsync();
 
-        return rows.Select(r => (r.CourseId, r.RaceCount, r.WinCount, r.AvgFinishPos)).ToList();
+        return rawRows
+            .GroupBy(r => r.CourseId)
+            .Select(g =>
+            {
+                var finishers = g.Where(r => r.FinishPos != 0).ToList();
+                return (
+                    g.Key,
+                    g.Count(),
+                    g.Count(r => r.FinishPos == 1),
+                    finishers.Count > 0 ? finishers.Average(r => (double)r.FinishPos) : 0.0
+                );
+            })
+            .OrderByDescending(x => x.Item2)
+            .ToList();
     }
 
     public async Task<List<(int DayOfWeek, int Count)>> GetRaceCountByDayOfWeekByPlayerAsync(
