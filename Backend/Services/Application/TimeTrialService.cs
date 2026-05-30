@@ -1,3 +1,4 @@
+using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Mappers;
 using RetroRewindWebsite.Models.DTOs.TimeTrial;
 using RetroRewindWebsite.Repositories.TimeTrial;
@@ -297,5 +298,62 @@ public class TimeTrialService : ITimeTrialService
             await _ghostSubmissionRepository.CalculateAverageFinishPositionAsync(ttProfileId),
             await _ghostSubmissionRepository.CountTop10FinishesAsync(ttProfileId)
         );
+    }
+
+    public async Task<TTPlayerRankingsDto> GetPlayerRankingsAsync(
+        short cc,
+        bool glitchAllowed,
+        bool? shroomless,
+        short? vehicleMin,
+        short? vehicleMax,
+        string? trackCategory,
+        int page,
+        int pageSize)
+    {
+        var wrByTrack = await _ghostSubmissionRepository.GetAllWorldRecordsAsync(
+            cc, glitchAllowed, shroomless, vehicleMin, vehicleMax, trackCategory);
+
+        // Group WR submissions by player, count how many WRs each player holds
+        var sorted = wrByTrack.Values
+            .GroupBy(g => g.TTProfileId)
+            .Select(grp => (
+                TTProfileId: grp.Key,
+                Profile: grp.First().TTProfile!,
+                WRCount: grp.Count()
+            ))
+            .OrderByDescending(x => x.WRCount)
+            .ThenBy(x => x.Profile.DisplayName)
+            .ToList();
+
+        var totalPlayers = sorted.Count;
+        var totalPages = (int)Math.Ceiling((double)totalPlayers / pageSize);
+
+        // Assign 1-based dense ranks (tied WR counts share a rank; next distinct count gets rank+1)
+        var denseRank = 0;
+        var lastCount = -1;
+        var dtos = new List<TTPlayerRankingDto>(totalPlayers);
+        foreach (var player in sorted)
+        {
+            if (player.WRCount != lastCount)
+            {
+                denseRank++;
+                lastCount = player.WRCount;
+            }
+            dtos.Add(new TTPlayerRankingDto(
+                denseRank,
+                player.TTProfileId,
+                player.Profile.DisplayName,
+                CountryCodeHelper.GetAlpha2Code(player.Profile.CountryCode),
+                CountryCodeHelper.GetCountryName(player.Profile.CountryCode),
+                player.WRCount
+            ));
+        }
+
+        var paginated = dtos
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return new TTPlayerRankingsDto(paginated, totalPlayers, page, pageSize, totalPages);
     }
 }

@@ -156,4 +156,19 @@ public interface ITimeTrialService
     /// Returns aggregate statistics for a TT profile, or <see langword="null"/> if not found.
     /// </summary>
     Task<TTPlayerStatsDto?> GetPlayerStatsAsync(int ttProfileId);
+
+    /// <summary>
+    /// Returns a paged, ranked list of TT players ordered by world records held in the
+    /// given category. Only players with at least one WR in the filtered category appear.
+    /// Players with equal WR counts share the same dense rank.
+    /// </summary>
+    Task<TTPlayerRankingsDto> GetPlayerRankingsAsync(
+        short cc,
+        bool glitchAllowed,
+        bool? shroomless,
+        short? vehicleMin,
+        short? vehicleMax,
+        string? trackCategory,
+        int page,
+        int pageSize);
 }

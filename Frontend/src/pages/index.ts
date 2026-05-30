@@ -4,6 +4,7 @@ export { LeaderboardPlayerDetailPage } from "./Leaderboard";
 export { TTLeaderboardPage } from "./TTLeaderboard";
 export { TTPlayerProfilePage } from "./TTLeaderboard";
 export { TTTrackDetailPage } from "./TTLeaderboard";
+export { TTRankingsPage } from "./TTLeaderboard";
 export { RoomStatusPage } from "./RoomStatus";
 export { DownloadsPage } from "./Downloads";
 export { RulesPage } from "./Rules";

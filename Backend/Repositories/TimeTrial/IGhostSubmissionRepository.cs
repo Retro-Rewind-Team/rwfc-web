@@ -175,13 +175,16 @@ public interface IGhostSubmissionRepository
     /// <summary>
     /// Returns the current world record for every track in a single query, keyed by track ID.
     /// Tracks with no qualifying submission are absent from the dictionary.
+    /// Pass <paramref name="trackCategory"/> as "retro" or "custom" to restrict to one track
+    /// category; pass <see langword="null"/> to include all tracks.
     /// </summary>
     Task<Dictionary<int, GhostSubmissionEntity>> GetAllWorldRecordsAsync(
         short cc,
         bool glitchAllowed,
         bool? shroomless = null,
         short? minVehicleId = null,
-        short? maxVehicleId = null);
+        short? maxVehicleId = null,
+        string? trackCategory = null);
 
     /// <summary>
     /// Retrieves the history of world record ghost submissions for a specified track and configuration.

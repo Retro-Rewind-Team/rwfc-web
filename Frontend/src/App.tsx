@@ -20,6 +20,7 @@ import {
     ToolsPage,
     TTLeaderboardPage,
     TTPlayerProfilePage,
+    TTRankingsPage,
     TTTrackDetailPage,
     VRCalculatorPage,
 } from "./pages";
@@ -59,6 +60,10 @@ function App() {
                     <Route path="/tt-leaderboard" component={TTLeaderboardPage} />
                     <Route path="/tt" component={TTLeaderboardPage} />
                     <Route path="/timetrial" component={TTLeaderboardPage} />
+
+                    {/* TT Player Rankings */}
+                    <Route path="/timetrial/rankings" component={TTRankingsPage} />
+                    <Route path="/tt/rankings" component={TTRankingsPage} />
 
                     {/* Individual Track Pages */}
                     <Route path="/timetrial/:cc/:trackId" component={TTTrackDetailPage} />

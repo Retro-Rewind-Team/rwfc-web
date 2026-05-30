@@ -4,9 +4,11 @@ import {
     PagedSubmissions,
     ShroomlessFilter,
     Track,
+    TrackCategoryFilter,
     TrackFlap,
     TrackLeaderboard,
     TrackWorldRecords,
+    TTPlayerRankings,
     TTPlayerStats,
     TTProfile,
     VehicleFilter,
@@ -191,5 +193,22 @@ export const timeTrialApi = {
 
     async getPlayerStats(ttProfileId: number): Promise<TTPlayerStats> {
         return apiRequest<TTPlayerStats>(`/timetrial/profile/${ttProfileId}/stats`);
+    },
+
+    async getRankings(
+        cc: 150 | 200,
+        glitchAllowed: boolean,
+        shroomless: ShroomlessFilter,
+        vehicle: VehicleFilter,
+        trackCategory: TrackCategoryFilter,
+        page = 1,
+        pageSize = 25,
+    ): Promise<TTPlayerRankings> {
+        const params = buildCategoryParams(glitchAllowed, shroomless, vehicle);
+        params.append("cc", cc.toString());
+        params.append("page", page.toString());
+        params.append("pageSize", pageSize.toString());
+        if (trackCategory !== "all") params.append("trackCategory", trackCategory);
+        return apiRequest<TTPlayerRankings>(`/timetrial/rankings?${params}`);
     },
 };

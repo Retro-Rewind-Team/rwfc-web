@@ -79,6 +79,16 @@ export const queryKeys = {
         vehicle: string,
     ) => ["tt-profile-submissions", id, page, pageSize, cc, glitch, shroomless, vehicle] as const,
     ttProfileStats: (id: number) => ["tt-profile-stats", id] as const,
+    ttRankings: (
+        cc: number,
+        glitch: boolean,
+        shroomless: string,
+        vehicle: string,
+        trackCategory: string,
+        page: number,
+        pageSize: number,
+    ) =>
+        ["tt-rankings", cc, glitch, shroomless, vehicle, trackCategory, page, pageSize] as const,
 
     playerAnalytics: (
         pid: string | undefined,

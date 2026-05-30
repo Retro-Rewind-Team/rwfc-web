@@ -107,3 +107,22 @@ export type DriftFilter = "all" | "manual" | "hybrid";
 export type DriftCategoryFilter = "all" | "inside" | "outside";
 
 export type LeaderboardMode = "regular" | "flap";
+
+export interface TTPlayerRanking {
+    rank: number;
+    ttProfileId: number;
+    displayName: string;
+    countryAlpha2: string | null;
+    countryName: string | null;
+    worldRecordCount: number;
+}
+
+export interface TTPlayerRankings {
+    players: TTPlayerRanking[];
+    totalPlayers: number;
+    currentPage: number;
+    pageSize: number;
+    totalPages: number;
+}
+
+export type TrackCategoryFilter = "all" | "retro" | "custom";

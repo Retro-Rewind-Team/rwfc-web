@@ -1,6 +1,6 @@
 import { createMemo, For, Show } from "solid-js";
 import { A } from "@solidjs/router";
-import { Search, TriangleAlert } from "lucide-solid";
+import { Search, TriangleAlert, Trophy } from "lucide-solid";
 import { useTTTrackBrowser } from "../../hooks/useTTTrackBrowser";
 import { CountryFlag, LoadingSpinner } from "../../components/common";
 import { TTBrowserFilters } from "../../components/ui";
@@ -28,12 +28,25 @@ export default function TTLeaderboardPage() {
         <div class="space-y-8">
             {/* Page Title */}
             <div class="pb-6 border-b border-gray-200 dark:border-gray-700">
-                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                    Time Trial Leaderboards
-                </h1>
-                <p class="text-lg text-gray-600 dark:text-gray-400">
-                    Browse world records for all Retro Rewind tracks
-                </p>
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div>
+                        <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+                            Time Trial Leaderboards
+                        </h1>
+                        <p class="text-lg text-gray-600 dark:text-gray-400">
+                            Browse world records for all Retro Rewind tracks
+                        </p>
+                    </div>
+                    <div class="shrink-0">
+                        <A
+                            href="/timetrial/rankings"
+                            class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm"
+                        >
+                            <Trophy size={16} />
+                            Player Rankings
+                        </A>
+                    </div>
+                </div>
             </div>
 
             {/* Filters */}

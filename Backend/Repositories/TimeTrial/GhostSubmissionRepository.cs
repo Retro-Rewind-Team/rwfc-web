@@ -605,10 +605,15 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
         bool glitchAllowed,
         bool? shroomless = null,
         short? minVehicleId = null,
-        short? maxVehicleId = null)
+        short? maxVehicleId = null,
+        string? trackCategory = null)
     {
-        // Single query for all tracks: fetch ordered submissions, group in memory.
-        var all = await BuildCategoryQuery(cc, glitchAllowed, shroomless, minVehicleId, maxVehicleId)
+        var query = BuildCategoryQuery(cc, glitchAllowed, shroomless, minVehicleId, maxVehicleId);
+
+        if (trackCategory != null)
+            query = query.Where(g => g.Track!.Category == trackCategory);
+
+        var all = await query
             .OrderBy(g => g.FinishTimeMs)
             .ToListAsync();
 

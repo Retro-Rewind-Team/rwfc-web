@@ -466,4 +466,41 @@ public class TimeTrialController : ControllerBase
         }
     }
 
+    [HttpGet("rankings")]
+    [ProducesResponseType<TTPlayerRankingsDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<TTPlayerRankingsDto>> GetPlayerRankings(
+        [FromQuery] short cc,
+        [FromQuery] bool glitchAllowed = true,
+        [FromQuery] string? shroomless = null,
+        [FromQuery] string? vehicle = null,
+        [FromQuery] string? trackCategory = null,
+        [FromQuery] int page = MinPage,
+        [FromQuery] int pageSize = DefaultPageSize)
+    {
+        try
+        {
+            var ccError = TimeTrialValidation.ValidateCc(cc);
+            if (ccError != null) return BadRequest(ccError);
+
+            if (trackCategory != null && trackCategory != "retro" && trackCategory != "custom")
+                return BadRequest("trackCategory must be 'retro', 'custom', or omitted");
+
+            page = Math.Max(MinPage, page);
+            pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
+
+            var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
+
+            return Ok(await _timeTrialService.GetPlayerRankingsAsync(
+                cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax, trackCategory, page, pageSize));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving TT player rankings CC {CC} glitch {GlitchAllowed}", cc, glitchAllowed);
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while retrieving player rankings");
+        }
+    }
+
 }
