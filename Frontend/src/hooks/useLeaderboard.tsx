@@ -18,6 +18,7 @@ export function useLeaderboard() {
     const [sortBy, setSortBy] = createSignal("rank");
     const [ascending, setAscending] = createSignal(true);
     const [timePeriod, setTimePeriod] = createSignal("24");
+    const [activeDays, setActiveDays] = createSignal<number | null>(null);
 
     const miiLoader = useMiiLoader();
 
@@ -36,6 +37,7 @@ export function useLeaderboard() {
             sortBy: sortBy(),
             ascending: ascending(),
             timePeriod: timePeriod(),
+            activeDays: activeDays() ?? undefined,
         }),
     );
 
@@ -102,6 +104,13 @@ export function useLeaderboard() {
         });
     };
 
+    const handleActiveDaysChange = (days: number | null) => {
+        batch(() => {
+            setActiveDays(days);
+            setCurrentPage(1);
+        });
+    };
+
     const getVRGain = (player: Player) => {
         switch (timePeriod()) {
             case "week":
@@ -127,6 +136,7 @@ export function useLeaderboard() {
         ascending,
         searchQuery,
         timePeriod,
+        activeDays,
 
         // Queries
         statsQuery,
@@ -136,6 +146,7 @@ export function useLeaderboard() {
         handleSearchInput,
         handleSort,
         handleTimePeriodChange,
+        handleActiveDaysChange,
         handlePageSizeChange,
         getVRGain,
         refreshLeaderboard,

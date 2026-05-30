@@ -67,7 +67,8 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
         int pageSize,
         string? search,
         string sortBy,
-        bool ascending)
+        bool ascending,
+        int? activeDays = null)
     {
         var query = _context.Players.AsNoTracking().Where(p => !p.IsBanned);
 
@@ -77,6 +78,12 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
             query = query.Where(p =>
                 EF.Functions.ILike(p.Name, searchTerm) ||
                 EF.Functions.ILike(p.Fc, searchTerm));
+        }
+
+        if (activeDays.HasValue && IsValidActiveDaysFilter(activeDays.Value))
+        {
+            var cutoff = DateTime.UtcNow.AddDays(-activeDays.Value);
+            query = query.Where(p => p.LastSeen >= cutoff);
         }
 
         query = ApplySorting(query, sortBy, ascending);
@@ -371,4 +378,7 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
             "vrgain30" => ascending ? query.OrderBy(p => p.VRGainLastMonth) : query.OrderByDescending(p => p.VRGainLastMonth),
             _ => query.OrderBy(p => p.Rank)
         };
+
+    private static bool IsValidActiveDaysFilter(int days) =>
+        days == 7 || days == 14 || days == 30;
 }

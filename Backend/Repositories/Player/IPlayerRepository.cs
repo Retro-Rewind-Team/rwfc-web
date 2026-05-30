@@ -54,9 +54,11 @@ public interface IPlayerRepository : IRepository<PlayerEntity>
     /// player entity.</param>
     /// <param name="ascending">A value indicating whether the results should be sorted in ascending order. Set to <see langword="true"/> for
     /// ascending; otherwise, results are sorted in descending order.</param>
+    /// <param name="activeDays">An optional filter to include only players active within the specified number of days (7, 14, or 30). If null or
+    /// an invalid value, no activity filtering is applied.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a paged collection of player
     /// entities matching the specified criteria. The collection may be empty if no players match.</returns>
-    Task<PagedResult<PlayerEntity>> GetLeaderboardPageAsync(int page, int pageSize, string? search, string sortBy, bool ascending);
+    Task<PagedResult<PlayerEntity>> GetLeaderboardPageAsync(int page, int pageSize, string? search, string sortBy, bool ascending, int? activeDays = null);
 
     /// <summary>
     /// Asynchronously retrieves a list of the top players ranked by performance.

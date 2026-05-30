@@ -173,6 +173,30 @@ export default function LeaderboardPage() {
                                 <option value="month">Last 30 days</option>
                             </select>
                         </div>
+                        <div>
+                            <label
+                                for="active-players-select"
+                                class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+                            >
+                                Active Players
+                            </label>
+                            <select
+                                id="active-players-select"
+                                value={currentLeaderboard.activeDays() ?? ""}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    currentLeaderboard.handleActiveDaysChange(
+                                        val === "" ? null : parseInt(val),
+                                    );
+                                }}
+                                class="w-full px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            >
+                                <option value="">All time</option>
+                                <option value="7">Last 7 days</option>
+                                <option value="14">Last 14 days</option>
+                                <option value="30">Last 30 days</option>
+                            </select>
+                        </div>
                     </Show>
                     <div>
                         <label

@@ -22,4 +22,5 @@ export interface LeaderboardRequest {
     sortBy?: string;
     ascending?: boolean;
     timePeriod?: string;
+    activeDays?: number;
 }
