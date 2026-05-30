@@ -1,3 +1,4 @@
+import { type LucideIcon, Medal, Trophy } from "lucide-solid";
 import { getDriftCategoryName, getDriftTypeName } from "../constants/marioKartMappings";
 
 /** Formats an ISO date string as DD/MM/YYYY. */
@@ -45,11 +46,11 @@ export function getRankBadgeClass(rank: number): string {
     return "bg-blue-500 text-white";
 }
 
-/** Returns a trophy/medal emoji for ranks 1–3, or null for all other ranks. */
-export function getRankIcon(rank: number): string | null {
-    if (rank === 1) return "🏆"; // Gold trophy
-    if (rank === 2) return "🥈"; // Silver medal
-    if (rank === 3) return "🥉"; // Bronze medal
+/** Returns the Lucide Trophy/Medal component for ranks 1–3, or null for all other ranks. */
+export function getRankIcon(rank: number): LucideIcon | null {
+    if (rank === 1) return Trophy;
+    if (rank === 2) return Medal;
+    if (rank === 3) return Medal;
     return null;
 }
 

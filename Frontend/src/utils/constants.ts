@@ -1,3 +1,5 @@
+import { type LucideIcon, Medal, Trophy } from "lucide-solid";
+
 export const TIME_PERIODS = {
     LAST_24H: "24",
     LAST_WEEK: "week",
@@ -13,11 +15,11 @@ export const SORT_FIELDS = {
     LAST_SEEN: "lastSeen",
 } as const;
 
-export const RANK_ICONS = {
-    FIRST: "🏆",
-    SECOND: "🥈",
-    THIRD: "🥉",
-} as const;
+export const RANK_ICONS: { FIRST: LucideIcon; SECOND: LucideIcon; THIRD: LucideIcon } = {
+    FIRST: Trophy,
+    SECOND: Medal,
+    THIRD: Medal,
+};
 
 export const REFETCH_INTERVALS = {
     STATS: 60000, // 1 minute

@@ -1,4 +1,5 @@
 ﻿import { describe, expect, it } from "vitest";
+import { Medal, Trophy } from "lucide-solid";
 import {
     formatVRRange,
     getNextVRTier,
@@ -116,15 +117,15 @@ describe("isTopThreeRank", () => {
 
 describe("getTrophyIcon", () => {
     it("returns gold medal for rank 1", () => {
-        expect(getTrophyIcon(1)).toBe("🥇");
+        expect(getTrophyIcon(1)).toBe(Trophy);
     });
 
     it("returns silver medal for rank 2", () => {
-        expect(getTrophyIcon(2)).toBe("🥈");
+        expect(getTrophyIcon(2)).toBe(Medal);
     });
 
     it("returns bronze medal for rank 3", () => {
-        expect(getTrophyIcon(3)).toBe("🥉");
+        expect(getTrophyIcon(3)).toBe(Medal);
     });
 
     it("returns null for rank 0 and 4+", () => {

@@ -7,6 +7,7 @@ import {
     VR_TIERS,
 } from "./vrTiers";
 import { VRTierInfo } from "../types";
+import { type LucideIcon, Medal, Trophy } from "lucide-solid";
 
 /** Returns the VR tier info for a given VR value, or the suspicious tier if flagged. */
 export function getVRTierInfo(vr: number, isSuspicious: boolean = false): VRTierInfo {
@@ -93,15 +94,15 @@ export function isTopThreeRank(rank: number): boolean {
     return rank >= 1 && rank <= 3;
 }
 
-/** Returns the gold/silver/bronze trophy emoji for ranks 1–3, or null for all others. */
-export function getTrophyIcon(rank: number): string | null {
+/** Returns the Lucide Trophy/Medal component for ranks 1–3, or null for all others. */
+export function getTrophyIcon(rank: number): LucideIcon | null {
     switch (rank) {
         case TROPHY_RANKS.FIRST:
-            return "🥇";
+            return Trophy;
         case TROPHY_RANKS.SECOND:
-            return "🥈";
+            return Medal;
         case TROPHY_RANKS.THIRD:
-            return "🥉";
+            return Medal;
         default:
             return null;
     }

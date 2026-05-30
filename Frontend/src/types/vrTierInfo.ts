@@ -1,8 +1,11 @@
+﻿import type { LucideIcon } from "lucide-solid";
+
 export interface VRTierInfo {
     tier: string;
     gradient: string;
     glow: boolean;
-    icon: string;
+    icon: LucideIcon;
+    iconColor: string;
     label: string;
     description: string;
     minVR: number;

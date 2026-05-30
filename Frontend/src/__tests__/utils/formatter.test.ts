@@ -1,4 +1,5 @@
 ﻿import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { Medal, Trophy } from "lucide-solid";
 import {
     formatDate,
     formatLastSeen,
@@ -56,15 +57,15 @@ describe("getRankBadgeClass", () => {
 
 describe("getRankIcon", () => {
     it("returns trophy emoji for rank 1", () => {
-        expect(getRankIcon(1)).toBe("🏆");
+        expect(getRankIcon(1)).toBe(Trophy);
     });
 
     it("returns silver medal emoji for rank 2", () => {
-        expect(getRankIcon(2)).toBe("🥈");
+        expect(getRankIcon(2)).toBe(Medal);
     });
 
     it("returns bronze medal emoji for rank 3", () => {
-        expect(getRankIcon(3)).toBe("🥉");
+        expect(getRankIcon(3)).toBe(Medal);
     });
 
     it("returns null for rank 4 and above", () => {

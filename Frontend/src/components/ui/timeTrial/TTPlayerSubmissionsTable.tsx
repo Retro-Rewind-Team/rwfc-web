@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 import { createSignal, For, Show } from "solid-js";
-import { ChevronDown, Download } from "lucide-solid";
+import { ChevronDown, Download, Zap } from "lucide-solid";
 import { GhostSubmission } from "../../../types/timeTrial";
 import {
     getCharacterName,
@@ -121,8 +121,8 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
                                                     {submission.cc}cc
                                                 </span>
                                                 <Show when={submission.glitch}>
-                                                    <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                                                        ⚡
+                                                    <span class="inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                                        <Zap size={10} />
                                                     </span>
                                                 </Show>
                                             </div>
@@ -136,7 +136,7 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
                                                 </div>
                                                 <Show when={submission.shroomless}>
                                                     <span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 w-fit">
-                                                        🍄
+                                                        Shroomless
                                                     </span>
                                                 </Show>
                                             </div>

@@ -1,5 +1,6 @@
 import { A } from "@solidjs/router";
 import { Show } from "solid-js";
+import { Zap } from "lucide-solid";
 import {
     DriftCategoryFilter,
     DriftFilter,
@@ -152,13 +153,13 @@ export default function TTFilters(props: TTFiltersProps) {
                                 props.currentGlitchAllowed,
                                 "flap",
                             )}
-                            class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
+                            class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm inline-flex items-center justify-center gap-1 ${
                                 props.currentMode === "flap"
                                     ? "bg-orange-500 text-white shadow-sm"
                                     : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                             }`}
                         >
-                            ⚡ Flap
+                            <Zap size={12} /> Flap
                         </A>
                     </div>
                 </div>

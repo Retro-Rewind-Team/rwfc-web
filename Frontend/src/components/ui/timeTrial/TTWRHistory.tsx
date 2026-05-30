@@ -198,18 +198,13 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                         <div class="flex flex-wrap gap-1">
                                                             <Show when={record.shroomless}>
                                                                 <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 whitespace-nowrap">
-                                                                    🍄{" "}
-                                                                    <span class="hidden sm:inline ml-1">
-                                                                        Shroomless
-                                                                    </span>
+                                                                    Shroomless
                                                                 </span>
                                                             </Show>
                                                             <Show when={record.glitch}>
-                                                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 whitespace-nowrap">
-                                                                    ⚡{" "}
-                                                                    <span class="hidden sm:inline ml-1">
-                                                                        Glitch/Shortcut
-                                                                    </span>
+                                                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 whitespace-nowrap">
+                                                                    <Zap size={12} />
+                                                                    <span class="hidden sm:inline">Glitch/Shortcut</span>
                                                                 </span>
                                                             </Show>
                                                         </div>

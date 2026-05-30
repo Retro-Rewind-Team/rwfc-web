@@ -1,10 +1,8 @@
-import { Show } from "solid-js";
+﻿import { Show } from "solid-js";
 import {
-    getTrophyIcon,
     getVRTierInfo,
     isTopThreeRank,
     tierHasGlow,
-    tierHasIcon,
 } from "../../../utils/vrTierHelpers";
 import { VR_TIER_STYLES } from "../../../utils/vrTiers";
 import { VR_TIER_SIZES, type VRTierSize } from "../../../utils/constants";
@@ -22,7 +20,6 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
     const size = () => props.size || "md";
     const config = () => VR_TIER_SIZES[size()];
     const isTopThree = () => isTopThreeRank(props.rank);
-    const trophyIcon = () => getTrophyIcon(props.rank);
 
     const getSpecialTopThreeGradient = (rank: number) => {
         switch (rank) {
@@ -78,8 +75,6 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
         ];
     };
 
-    const shouldShowIcon = () => tierHasIcon(tier().tier) || isTopThree();
-
     const getTextStyling = () => {
         const baseText = `text-white font-black ${config().text} select-none tracking-tight`;
 
@@ -99,17 +94,6 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
         >
             <div class={`${plateClasses()} ${borderColor()}`}>
                 <div class="absolute inset-1 border border-white/20 rounded-md pointer-events-none"></div>
-
-                {/* Icon for special tiers or top 3 ranks */}
-                <Show when={shouldShowIcon()}>
-                    <div
-                        class={`absolute ${config().iconPos} left-1/2 transform -translate-x-1/2 ${config().icon} drop-shadow-md`}
-                    >
-                        <Show when={isTopThree()} fallback={tier().icon}>
-                            {trophyIcon()}
-                        </Show>
-                    </div>
-                </Show>
 
                 {/* Enhanced Rank Number */}
                 <span class={getTextStyling()}>

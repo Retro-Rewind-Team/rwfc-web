@@ -1,22 +1,24 @@
-import { createSignal, Show } from "solid-js";
+﻿import { createSignal, For, Show } from "solid-js";
+import { Dynamic } from "solid-js/web";
 import { useTheme } from "../../stores/theme";
+import { Check, type LucideIcon, Monitor, Moon, Sun } from "lucide-solid";
 
 export default function ThemeToggle() {
     const { theme, resolvedTheme, setTheme } = useTheme();
     const [isOpen, setIsOpen] = createSignal(false);
 
-    const themes = [
-        { value: "light" as const, label: "Light", icon: "☀️" },
-        { value: "dark" as const, label: "Dark", icon: "🌙" },
-        { value: "system" as const, label: "System", icon: "💻" },
+    const themes: { value: "light" | "dark" | "system"; label: string; icon: LucideIcon }[] = [
+        { value: "light", label: "Light", icon: Sun },
+        { value: "dark", label: "Dark", icon: Moon },
+        { value: "system", label: "System", icon: Monitor },
     ];
 
-    const getCurrentIcon = () => {
+    const getCurrentIcon = (): LucideIcon => {
         const currentTheme = theme();
         if (currentTheme === "system") {
-            return resolvedTheme() === "dark" ? "🌙" : "☀️";
+            return resolvedTheme() === "dark" ? Moon : Sun;
         }
-        return themes.find((t) => t.value === currentTheme)?.icon || "☀️";
+        return themes.find((t) => t.value === currentTheme)?.icon ?? Sun;
     };
 
     return (
@@ -28,33 +30,37 @@ export default function ThemeToggle() {
                 class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
                 title="Toggle theme"
             >
-                <span class="text-xl">{getCurrentIcon()}</span>
+                <Dynamic component={getCurrentIcon()} size={20} />
             </button>
 
             {/* Dropdown Menu */}
             <Show when={isOpen()}>
                 <div class="absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
                     <div class="py-1">
-                        {themes.map((themeOption) => (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setTheme(themeOption.value);
-                                    setIsOpen(false);
-                                }}
-                                class={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center space-x-2 ${
-                                    theme() === themeOption.value
-                                        ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                                        : "text-gray-700 dark:text-gray-300"
-                                }`}
-                            >
-                                <span>{themeOption.icon}</span>
-                                <span>{themeOption.label}</span>
-                                {theme() === themeOption.value && (
-                                    <span class="ml-auto text-blue-600 dark:text-blue-400">✓</span>
-                                )}
-                            </button>
-                        ))}
+                        <For each={themes}>
+                            {(themeOption) => (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setTheme(themeOption.value);
+                                        setIsOpen(false);
+                                    }}
+                                    class={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2 ${
+                                        theme() === themeOption.value
+                                            ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                                            : "text-gray-700 dark:text-gray-300"
+                                    }`}
+                                >
+                                    <Dynamic component={themeOption.icon} size={14} />
+                                    <span>{themeOption.label}</span>
+                                    <Show when={theme() === themeOption.value}>
+                                        <span class="ml-auto text-blue-600 dark:text-blue-400">
+                                            <Check size={14} />
+                                        </span>
+                                    </Show>
+                                </button>
+                            )}
+                        </For>
                     </div>
                 </div>
             </Show>

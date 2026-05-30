@@ -1,5 +1,6 @@
 import { Show } from "solid-js";
-import { Check, X } from "lucide-solid";
+import { Check, CircleQuestionMark, CircleX, Clock, type LucideIcon, TriangleAlert, X } from "lucide-solid";
+import { Dynamic } from "solid-js/web";
 import { RoomPlayer } from "../../types";
 import { MiiComponent } from "../ui";
 
@@ -21,33 +22,33 @@ function getNatStatus(connectionMap: string[]): NatStatus {
     return "unknown";
 }
 
-const NAT_CONFIG: Record<NatStatus, { label: string; title: string; classes: string }> = {
+const NAT_CONFIG: Record<NatStatus, { icon: LucideIcon; title: string; classes: string }> = {
     good: {
-        label: "✓",
+        icon: Check,
         title: "NAT: Good - fully connected to all room members.",
         classes:
             "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300",
     },
     pending: {
-        label: "⧗",
+        icon: Clock,
         title: "NAT: Pending - connections still establishing.",
         classes:
             "bg-yellow-100 dark:bg-yellow-900/40 border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300",
     },
     warning: {
-        label: "⚠",
+        icon: TriangleAlert,
         title: "NAT: Warning - failed to connect to some room members.",
         classes:
             "bg-orange-100 dark:bg-orange-900/40 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-300",
     },
     problem: {
-        label: "!",
+        icon: CircleX,
         title: "NAT: Problem - serious connectivity issues with this player.",
         classes:
             "bg-red-100 dark:bg-red-900/40 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300",
     },
     unknown: {
-        label: "??",
+        icon: CircleQuestionMark,
         title: "NAT: Unknown - no connection data available.",
         classes:
             "bg-gray-100 dark:bg-gray-700/40 border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400",
@@ -112,9 +113,9 @@ export default function PlayerCard(props: PlayerCardProps) {
                         <span
                             title={natConfig().title}
                             aria-label={natConfig().title}
-                            class={`inline-flex items-center gap-1 text-xs border px-2 py-0.5 rounded-md font-semibold font-mono ${natConfig().classes}`}
+                            class={`inline-flex items-center gap-1 text-xs border px-2 py-0.5 rounded-md font-semibold ${natConfig().classes}`}
                         >
-                            {natConfig().label} NAT
+                            <Dynamic component={natConfig().icon} size={10} /> NAT
                         </span>
                         <Show when={props.showOpenHost}>
                             <span

@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 import { createSignal, For, Show } from "solid-js";
-import { ChevronDown, Download } from "lucide-solid";
+import { ChevronDown, Download, Medal, Trophy, Zap } from "lucide-solid";
 import { GhostSubmission } from "../../../types/timeTrial";
 import {
     getCharacterName,
@@ -52,9 +52,9 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
     };
 
     const getRankDisplay = (rank: number | null) => {
-        if (rank === 1) return <span class="text-xl sm:text-2xl">🥇</span>;
-        if (rank === 2) return <span class="text-xl sm:text-2xl">🥈</span>;
-        if (rank === 3) return <span class="text-xl sm:text-2xl">🥉</span>;
+        if (rank === 1) return <Trophy size={22} class="text-yellow-500" />;
+        if (rank === 2) return <Medal size={22} class="text-gray-400" />;
+        if (rank === 3) return <Medal size={22} class="text-amber-600" />;
         return (
             <span class="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
                 {rank ?? "-"}
@@ -158,12 +158,12 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                 <div class="flex gap-1">
                                                     <Show when={submission.shroomless}>
                                                         <span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                                                            🍄
+                                                            Shroomless
                                                         </span>
                                                     </Show>
                                                     <Show when={submission.glitch}>
-                                                        <span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                                                            ⚡
+                                                        <span class="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                                            <Zap size={10} />
                                                         </span>
                                                     </Show>
                                                 </div>
