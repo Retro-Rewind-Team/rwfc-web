@@ -16,6 +16,7 @@ const DAY_OPTIONS = [
 ] as const;
 
 function positionLabel(pos: number) {
+    if (pos === 0) return "DNF";
     if (pos === 1) return "1st";
     if (pos === 2) return "2nd";
     if (pos === 3) return "3rd";
@@ -24,6 +25,7 @@ function positionLabel(pos: number) {
 }
 
 function positionBarColor(pos: number) {
+    if (pos === 0) return "bg-red-400";
     if (pos === 1) return "bg-yellow-400";
     if (pos === 2) return "bg-gray-300";
     if (pos === 3) return "bg-amber-600";

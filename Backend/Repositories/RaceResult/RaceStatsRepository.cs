@@ -232,16 +232,15 @@ public class RaceStatsRepository : IRaceStatsRepository
         long profileId, DateTime? after, short? engineClassId)
     {
         var rows = await BasePlayerQuery(profileId, after, null, engineClassId)
-            .Where(r => r.FinishPos != 0)
             .GroupBy(r => r.FinishPos)
             .Select(g => new { Position = g.Key, Count = g.Count() })
             .ToListAsync();
 
-        // Bucket positions 9+ into position 9
+        // Bucket positions 9+ into position 9; DNF (position 0) sorts last
         return rows
-            .GroupBy(r => r.Position > 8 ? (short)9 : r.Position)
+            .GroupBy(r => r.Position > 8 && r.Position != 0 ? (short)9 : r.Position)
             .Select(g => (g.Key, g.Sum(x => x.Count)))
-            .OrderBy(x => x.Item1)
+            .OrderBy(x => x.Item1 == 0 ? short.MaxValue : x.Item1)
             .ToList();
     }
 
