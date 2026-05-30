@@ -272,6 +272,15 @@ app.MapHealthChecks("api/health/live", new HealthCheckOptions
 
 app.MapHealthChecks("api/health/ready");
 
+// ===== DEBUG: remove after verifying X-Forwarded-For is working =====
+app.MapGet("/api/debug/ip", (HttpContext ctx) => Results.Ok(new
+{
+    remoteIp = ctx.Connection.RemoteIpAddress?.ToString(),
+    xForwardedFor = ctx.Request.Headers["X-Forwarded-For"].ToString(),
+    xRealIp = ctx.Request.Headers["X-Real-IP"].ToString(),
+    effectiveIp = GetClientIp(ctx)
+})).DisableRateLimiting();
+
 // ===== CONFIGURE PIPELINE =====
 if (app.Environment.IsDevelopment())
 {
