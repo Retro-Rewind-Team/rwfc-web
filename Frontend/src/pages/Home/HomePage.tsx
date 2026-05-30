@@ -16,7 +16,7 @@ import { queryKeys } from "../../constants/queryKeys";
 import { StatCard } from "../../components/common";
 import { A } from "@solidjs/router";
 
-const featureCards = [
+const staticFeatureCards = [
     {
         icon: () => <Trophy size={32} />,
         iconColor: "text-blue-500 dark:text-blue-400",
@@ -25,14 +25,6 @@ const featureCards = [
             "Track rankings and see who's dominating the Retro WFC servers with up to 1,000,000 VR.",
         href: "/vr",
         label: "View Rankings",
-    },
-    {
-        icon: () => <Timer size={32} />,
-        iconColor: "text-green-500 dark:text-green-400",
-        title: "TT Leaderboard",
-        description: "Compare the fastest times across all 208 retro tracks and 88 custom tracks.",
-        href: "/tt",
-        label: "View Times",
     },
     {
         icon: () => <MonitorPlay size={32} />,
@@ -88,9 +80,29 @@ export default function HomePage() {
         staleTime: 1000 * 60 * 60,
     }));
 
-    const totalTrackCount = createMemo(
-        () => tracksQuery.data?.filter((t) => !t.isHidden).length ?? null,
+    const retroTrackCount = createMemo(
+        () => tracksQuery.data?.filter((t) => t.category === "retro" && !t.isHidden).length ?? null,
     );
+    const customTrackCount = createMemo(
+        () =>
+            tracksQuery.data?.filter((t) => t.category === "custom" && !t.isHidden).length ?? null,
+    );
+    const totalTrackCount = createMemo(
+        () => (retroTrackCount() ?? 0) + (customTrackCount() ?? 0) || null,
+    );
+
+    const featureCards = createMemo(() => [
+        staticFeatureCards[0],
+        {
+            icon: () => <Timer size={32} />,
+            iconColor: "text-green-500 dark:text-green-400",
+            title: "TT Leaderboard",
+            description: `Compare the fastest times across all ${retroTrackCount() ?? "..."} retro tracks and ${customTrackCount() ?? "..."} custom tracks.`,
+            href: "/tt",
+            label: "View Times",
+        },
+        ...staticFeatureCards.slice(1),
+    ]);
 
     return (
         <div class="space-y-12">
@@ -140,7 +152,7 @@ export default function HomePage() {
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {featureCards.map((card) => (
+                    {featureCards().map((card) => (
                         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 p-6 transition-colors flex flex-col">
                             <div class={`${card.iconColor} mb-4`}>{card.icon()}</div>
                             <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
