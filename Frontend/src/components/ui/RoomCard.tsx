@@ -117,8 +117,8 @@ export default function RoomCard(props: RoomCardProps) {
                                 </div>
                             </Show>
 
-                            {/* Average VR */}
-                            <Show when={props.room.averageVR !== null}>
+                            {/* Average VR (hidden when split; per-group averages shown in group headers) */}
+                            <Show when={props.room.averageVR !== null && !isSplit()}>
                                 <div class="flex items-center gap-1.5 px-3 py-1.5 bg-white/25 rounded-lg font-bold text-xs text-white">
                                     <TrendingUp size={12} />
                                     <span>Avg VR: {Math.round(props.room.averageVR!)}</span>
@@ -168,31 +168,48 @@ export default function RoomCard(props: RoomCardProps) {
                     >
                         <div class="space-y-5">
                             <For each={splitGroups()}>
-                                {(group, i) => (
-                                    <div>
-                                        <div class="flex items-center gap-2 mb-3">
-                                            <div class="h-px flex-1 bg-orange-200 dark:bg-orange-800/60" />
-                                            {/* Groups label A–Z; clamped defensively (rooms hold max 12 players in practice) */}
-                                            <span class="text-xs font-bold text-orange-600 dark:text-orange-400 px-2 uppercase tracking-wide">
-                                                Group {String.fromCharCode(65 + Math.min(i(), 25))} &mdash;{" "}
-                                                {group.length}{" "}
-                                                {group.length === 1 ? "player" : "players"}
-                                            </span>
-                                            <div class="h-px flex-1 bg-orange-200 dark:bg-orange-800/60" />
+                                {(group, i) => {
+                                    const withVr = group.filter((p) => p.vr !== null && p.vr! > 0);
+                                    const avgVr =
+                                        withVr.length > 0
+                                            ? Math.round(
+                                                  withVr.reduce((sum, p) => sum + p.vr!, 0) /
+                                                      withVr.length
+                                              )
+                                            : null;
+                                    return (
+                                        <div>
+                                            <div class="flex items-center gap-2 mb-3">
+                                                <div class="h-px flex-1 bg-orange-200 dark:bg-orange-800/60" />
+                                                {/* Groups label A–Z; clamped defensively (rooms hold max 12 players in practice) */}
+                                                <div class="flex items-center gap-2 flex-wrap justify-center">
+                                                    <span class="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wide">
+                                                        Group {String.fromCharCode(65 + Math.min(i(), 25))} &mdash;{" "}
+                                                        {group.length}{" "}
+                                                        {group.length === 1 ? "player" : "players"}
+                                                    </span>
+                                                    <Show when={avgVr !== null}>
+                                                        <span class="text-xs font-semibold text-orange-500 dark:text-orange-400">
+                                                            Avg VR: {avgVr}
+                                                        </span>
+                                                    </Show>
+                                                </div>
+                                                <div class="h-px flex-1 bg-orange-200 dark:bg-orange-800/60" />
+                                            </div>
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                                                <For each={group}>
+                                                    {(player) => (
+                                                        <PlayerCard
+                                                            player={player}
+                                                            showOpenHost={props.room.isPublic}
+                                                            highlightFc={props.highlightFc}
+                                                        />
+                                                    )}
+                                                </For>
+                                            </div>
                                         </div>
-                                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                                            <For each={group}>
-                                                {(player) => (
-                                                    <PlayerCard
-                                                        player={player}
-                                                        showOpenHost={props.room.isPublic}
-                                                        highlightFc={props.highlightFc}
-                                                    />
-                                                )}
-                                            </For>
-                                        </div>
-                                    </div>
-                                )}
+                                    );
+                                }}
                             </For>
                         </div>
                     </Show>
