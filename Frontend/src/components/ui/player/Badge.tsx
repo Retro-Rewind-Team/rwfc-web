@@ -1,5 +1,5 @@
 import { createSignal, Show } from "solid-js";
-import { badgeInfo, type BadgeType } from "../../constants/badgeData";
+import { badgeInfo, type BadgeType } from "../../../constants/badgeData";
 import WhWzDevBadge from "./badges/WhWzDevBadge";
 import RrDevBadge from "./badges/RrDevBadge";
 import TranslatorBadge from "./badges/TranslatorBadge";

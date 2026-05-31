@@ -1,5 +1,5 @@
 import { For, Show } from "solid-js";
-import Badge from "./Badge";
+import Badge from "./player/Badge";
 import { getPlayerBadges } from "../../constants/badgeData";
 
 interface PlayerBadgesProps {
