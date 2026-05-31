@@ -45,7 +45,6 @@ export interface GhostSubmission {
     lapSplitsDisplay: string[];
     fastestLapMs: number;
     fastestLapDisplay: string;
-    ghostFilePath: string;
     dateSet: string;
     submittedAt: string;
     rank: number | null;
@@ -69,12 +68,10 @@ export interface TrackLeaderboard {
 
 export interface TrackFlap {
     fastestLapMs: number;
-    fastestLapDisplay: string;
 }
 
 export interface TrackWorldRecords {
     trackId: number;
-    trackName: string;
     activeWorldRecord: GhostSubmission | null;
 }
 
@@ -86,19 +83,12 @@ export interface PagedSubmissions {
     totalPages: number;
 }
 
-export interface GhostSubmissionResponse {
-    success: boolean;
-    message: string;
-    submission?: GhostSubmission;
-}
-
 export interface TTPlayerStats {
     profile: TTProfile;
     totalTracks: number;
     tracks150cc: number;
     tracks200cc: number;
     averageFinishPosition: number;
-    top10Count: number;
 }
 
 export type VehicleFilter = "all" | "karts" | "bikes";

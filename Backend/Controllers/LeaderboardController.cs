@@ -329,7 +329,7 @@ public class LeaderboardController : ControllerBase
     {
         try
         {
-            var player = await _playerService.GetPlayerAsync(fc);
+            var player = await _playerService.GetPlayerMiiDownloadAsync(fc);
             if (player == null)
                 return NotFound($"Player with friend code '{fc}' not found");
 

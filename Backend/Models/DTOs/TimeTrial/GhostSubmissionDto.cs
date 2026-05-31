@@ -27,7 +27,6 @@ public record GhostSubmissionDto
     public required List<string> LapSplitsDisplay { get; init; }
     public required int FastestLapMs { get; init; }
     public required string FastestLapDisplay { get; init; }
-    public required string GhostFilePath { get; init; }
     public required DateOnly DateSet { get; init; }
     public required DateTime SubmittedAt { get; init; }
     public int? Rank { get; init; }

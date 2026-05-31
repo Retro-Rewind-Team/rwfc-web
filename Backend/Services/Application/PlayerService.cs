@@ -149,4 +149,10 @@ public class PlayerService : IPlayerService
         var legacyPlayer = await _legacyPlayerRepository.GetLegacyPlayerByFriendCodeAsync(friendCode);
         return legacyPlayer != null ? PlayerMapper.FromLegacy(legacyPlayer) : null;
     }
+
+    public async Task<PlayerMiiDownloadDto?> GetPlayerMiiDownloadAsync(string fc)
+    {
+        var player = await _playerRepository.GetByFcAsync(fc);
+        return player != null ? PlayerMapper.ToMiiDownloadDto(player) : null;
+    }
 }

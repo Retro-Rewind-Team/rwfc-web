@@ -8,9 +8,6 @@ namespace RetroRewindWebsite.Mappers;
 /// </summary>
 public static class PlayerMapper
 {
-    /// <summary>
-    /// Maps a player entity to the full <see cref="PlayerDto"/>, including Mii data.
-    /// </summary>
     public static PlayerDto ToDto(PlayerEntity entity) => new(
         Pid: entity.Pid,
         Name: entity.Name,
@@ -23,8 +20,7 @@ public static class PlayerMapper
             entity.VRGainLast24Hours,
             entity.VRGainLastWeek,
             entity.VRGainLastMonth),
-        MiiImageBase64: entity.MiiCache?.MiiImageBase64,
-        MiiData: entity.MiiData
+        MiiImageBase64: entity.MiiCache?.MiiImageBase64
     );
 
     /// <summary>
@@ -42,8 +38,7 @@ public static class PlayerMapper
             entity.VRGainLast24Hours,
             entity.VRGainLastWeek,
             entity.VRGainLastMonth),
-        MiiImageBase64: null,
-        MiiData: entity.MiiData
+        MiiImageBase64: null
     );
 
     /// <summary>
@@ -59,8 +54,7 @@ public static class PlayerMapper
         LastSeen: entity.SnapshotDate,
         IsSuspicious: entity.IsSuspicious,
         VRStats: new VRStatsDto(0, 0, 0),
-        MiiImageBase64: entity.MiiImageBase64,
-        MiiData: entity.MiiData
+        MiiImageBase64: entity.MiiImageBase64
     );
 
     /// <summary>
@@ -86,6 +80,12 @@ public static class PlayerMapper
         FlagReason: entity.FlagReason,
         UnflagReason: entity.UnflagReason
     );
+
+    /// <summary>
+    /// Maps a player entity to the minimal <see cref="PlayerMiiDownloadDto"/> used only by the Mii download endpoint.
+    /// </summary>
+    public static PlayerMiiDownloadDto ToMiiDownloadDto(PlayerEntity entity) =>
+        new(entity.Name, entity.MiiData);
 
     /// <summary>
     /// Maps a VR history entity to its DTO.

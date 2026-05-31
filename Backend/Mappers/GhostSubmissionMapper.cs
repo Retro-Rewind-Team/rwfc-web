@@ -46,7 +46,6 @@ public static class GhostSubmissionMapper
             FastestLapDisplay = lapSplitsMs.Count > 0
                 ? FormatLapTime(GetFastestLap(lapSplitsMs))
                 : string.Empty,
-            GhostFilePath = entity.GhostFilePath,
             DateSet = entity.DateSet,
             SubmittedAt = entity.SubmittedAt,
             VehicleName = MarioKartMappings.GetVehicleName(entity.VehicleId),

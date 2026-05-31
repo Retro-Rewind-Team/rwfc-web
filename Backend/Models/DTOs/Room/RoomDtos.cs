@@ -1,4 +1,5 @@
 using RetroRewindWebsite.Models.DTOs.Player;
+using System.Text.Json.Serialization;
 
 namespace RetroRewindWebsite.Models.DTOs.Room;
 
@@ -19,7 +20,7 @@ public record RoomDto(
     List<RoomPlayerDto> Players,
     int? AverageVR,
     RaceDto? Race,
-    bool Suspend
+    [property: JsonIgnore] bool Suspend
 )
 {
     public string RoomType => RoomDtoExtensions.GetRoomType(this);

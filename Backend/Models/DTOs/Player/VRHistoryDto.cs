@@ -11,11 +11,3 @@ public record VRHistoryRangeResponseDto(
     int StartingVR,
     int EndingVR
 );
-
-public record RecentChangeDto(
-    string PlayerId,
-    string FriendCode,
-    DateTime Date,
-    int VRChange,
-    int TotalVR
-);

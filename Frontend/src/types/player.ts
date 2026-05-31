@@ -16,11 +16,3 @@ export interface VRStats {
     lastMonth: number;
 }
 
-export interface PlayerSearchResult {
-    name: string;
-    friendCode: string;
-    vr: number;
-    rank: number;
-    isSuspicious: boolean;
-    lastSeen: string;
-}

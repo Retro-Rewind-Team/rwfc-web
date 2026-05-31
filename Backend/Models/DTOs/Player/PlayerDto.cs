@@ -9,6 +9,7 @@ public record PlayerDto(
     DateTime LastSeen,
     bool IsSuspicious,
     VRStatsDto VRStats,
-    string? MiiImageBase64,
-    string? MiiData
+    string? MiiImageBase64
 );
+
+public record PlayerMiiDownloadDto(string Name, string? MiiData);
