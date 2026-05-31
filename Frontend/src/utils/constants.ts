@@ -1,36 +1,3 @@
-import { type LucideIcon, Medal, Trophy } from "lucide-solid";
-
-export const TIME_PERIODS = {
-    LAST_24H: "24",
-    LAST_WEEK: "week",
-    LAST_MONTH: "month",
-} as const;
-
-export const PAGE_SIZES = [10, 25, 50, 100] as const;
-
-export const SORT_FIELDS = {
-    RANK: "rank",
-    VR: "vr",
-    NAME: "name",
-    LAST_SEEN: "lastSeen",
-} as const;
-
-export const RANK_ICONS: { FIRST: LucideIcon; SECOND: LucideIcon; THIRD: LucideIcon } = {
-    FIRST: Trophy,
-    SECOND: Medal,
-    THIRD: Medal,
-};
-
-export const REFETCH_INTERVALS = {
-    STATS: 60000, // 1 minute
-    LEADERBOARD: 60000, // 1 minute
-} as const;
-
-export const DEBOUNCE_DELAYS = {
-    SEARCH: 300, // 300ms
-    FILTER: 100, // 100ms
-} as const;
-
 export const VR_TIER_SIZES = {
     sm: {
         plate: "w-16 h-10",

@@ -15,37 +15,10 @@ public class VRHistoryRepository : IVRHistoryRepository
         _logger = logger;
     }
 
-    public async Task<VRHistoryEntity?> GetByIdAsync(int id) =>
-        await _context.VRHistories
-            .AsNoTracking()
-            .FirstOrDefaultAsync(h => h.Id == id);
-
-    public async Task AddAsync(VRHistoryEntity vrHistory)
-    {
-        await _context.VRHistories.AddAsync(vrHistory);
-        await _context.SaveChangesAsync();
-    }
-
     public async Task AddRangeAsync(IEnumerable<VRHistoryEntity> entries)
     {
         await _context.VRHistories.AddRangeAsync(entries);
         await _context.SaveChangesAsync();
-    }
-
-    public async Task UpdateAsync(VRHistoryEntity vrHistory)
-    {
-        _context.VRHistories.Update(vrHistory);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task DeleteAsync(int id)
-    {
-        var entry = await _context.VRHistories.FindAsync(id);
-        if (entry != null)
-        {
-            _context.VRHistories.Remove(entry);
-            await _context.SaveChangesAsync();
-        }
     }
 
     public async Task<List<VRHistoryEntity>> GetPlayerHistoryAsync(
@@ -65,15 +38,6 @@ public class VRHistoryRepository : IVRHistoryRepository
             .OrderByDescending(h => h.Date)
             .Take(count)
             .ToListAsync();
-
-    public async Task<int> CalculateVRGainAsync(string playerId, TimeSpan timeSpan)
-    {
-        var fromDate = DateTime.UtcNow.Subtract(timeSpan);
-        return await _context.VRHistories
-            .AsNoTracking()
-            .Where(h => h.PlayerId == playerId && h.Date >= fromDate)
-            .SumAsync(h => h.VRChange);
-    }
 
     public async Task<(int Gain24h, int Gain7d, int Gain30d)> CalculateAllVRGainsAsync(string playerId)
     {

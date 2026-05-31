@@ -1,9 +1,8 @@
 using RetroRewindWebsite.Models.Entities.RaceResult;
-using RetroRewindWebsite.Repositories.Common;
 
 namespace RetroRewindWebsite.Repositories.RaceResult;
 
-public interface IRaceResultRepository : IRepository<RaceResultEntity>
+public interface IRaceResultRepository
 {
     /// <summary>
     /// Determines whether a race result exists for the specified room, race number, and profile identifier.
@@ -29,5 +28,4 @@ public interface IRaceResultRepository : IRepository<RaceResultEntity>
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of race result entities for
     /// the specified room. The list will be empty if no results are found.</returns>
     Task<List<RaceResultEntity>> GetRaceResultsByRoomAsync(string roomId);
-
 }

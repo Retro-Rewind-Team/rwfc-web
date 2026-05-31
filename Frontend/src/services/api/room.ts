@@ -1,4 +1,4 @@
-import { apiBlobRequest, apiRequest } from "./client";
+import { apiRequest } from "./client";
 import { batchMiis } from "./miiHelpers";
 import { PagedResult, RoomSnapshot, RoomStatusResponse, RoomStatusStats } from "../../types";
 
@@ -25,16 +25,6 @@ export const roomStatusApi = {
         return apiRequest<PagedResult<RoomSnapshot>>(
             `/roomstatus/history?page=${page}&pageSize=${pageSize}`,
         );
-    },
-
-    async getSnapshotsByDateRange(from: Date, to: Date): Promise<RoomSnapshot[]> {
-        return apiRequest<RoomSnapshot[]>(
-            `/roomstatus/history?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`,
-        );
-    },
-
-    async getMiiImage(friendCode: string): Promise<Blob> {
-        return apiBlobRequest(`/roomstatus/mii/${friendCode}`);
     },
 
     async getMiisBatch(friendCodes: string[]) {

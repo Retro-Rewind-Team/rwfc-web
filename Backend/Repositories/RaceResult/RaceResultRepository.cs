@@ -15,33 +15,6 @@ public class RaceResultRepository : IRaceResultRepository
         _logger = logger;
     }
 
-    public async Task<RaceResultEntity?> GetByIdAsync(int id) =>
-        await _context.RaceResults
-            .AsNoTracking()
-            .FirstOrDefaultAsync(r => r.Id == id);
-
-    public async Task AddAsync(RaceResultEntity raceResult)
-    {
-        await _context.RaceResults.AddAsync(raceResult);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task UpdateAsync(RaceResultEntity raceResult)
-    {
-        _context.RaceResults.Update(raceResult);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task DeleteAsync(int id)
-    {
-        var result = await _context.RaceResults.FindAsync(id);
-        if (result != null)
-        {
-            _context.RaceResults.Remove(result);
-            await _context.SaveChangesAsync();
-        }
-    }
-
     public async Task<bool> RaceResultExistsAsync(string roomId, int raceNumber, long profileId) =>
         await _context.RaceResults
             .AnyAsync(r => r.RoomId == roomId &&

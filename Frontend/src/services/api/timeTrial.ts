@@ -74,35 +74,7 @@ export const timeTrialApi = {
         return apiRequest<TrackLeaderboard>(`/timetrial/leaderboard/flap?${params}`);
     },
 
-    async getTopTimes(
-        trackId: number,
-        cc: 150 | 200,
-        glitchAllowed: boolean,
-        shroomless: ShroomlessFilter,
-        vehicle: VehicleFilter,
-        count = 10,
-    ): Promise<GhostSubmission[]> {
-        const params = buildCategoryParams(glitchAllowed, shroomless, vehicle);
-        params.append("trackId", trackId.toString());
-        params.append("cc", cc.toString());
-        params.append("count", count.toString());
-        return apiRequest<GhostSubmission[]>(`/timetrial/leaderboard/top?${params}`);
-    },
-
     // ===== WORLD RECORDS =====
-
-    async getWorldRecord(
-        trackId: number,
-        cc: 150 | 200,
-        glitchAllowed: boolean,
-        shroomless: ShroomlessFilter = "all",
-        vehicle: VehicleFilter = "all",
-    ): Promise<GhostSubmission> {
-        const params = buildCategoryParams(glitchAllowed, shroomless, vehicle);
-        params.append("trackId", trackId.toString());
-        params.append("cc", cc.toString());
-        return apiRequest<GhostSubmission>(`/timetrial/worldrecord?${params}`);
-    },
 
     async getAllWorldRecords(
         cc: 150 | 200,

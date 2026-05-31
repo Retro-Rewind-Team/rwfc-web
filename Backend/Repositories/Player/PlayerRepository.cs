@@ -20,11 +20,6 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
 
     // ===== BASIC QUERIES =====
 
-    public async Task<PlayerEntity?> GetByIdAsync(int id) =>
-        await _context.Players
-            .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == id);
-
     public async Task<PlayerEntity?> GetByPidAsync(string pid) =>
         await _context.Players
             .AsNoTracking()
@@ -119,26 +114,10 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
 
     // ===== MODIFICATIONS =====
 
-    public async Task AddAsync(PlayerEntity player)
-    {
-        await _context.Players.AddAsync(player);
-        await _context.SaveChangesAsync();
-    }
-
     public async Task UpdateAsync(PlayerEntity player)
     {
         _context.Players.Update(player);
         await _context.SaveChangesAsync();
-    }
-
-    public async Task DeleteAsync(int id)
-    {
-        var player = await _context.Players.FindAsync(id);
-        if (player != null)
-        {
-            _context.Players.Remove(player);
-            await _context.SaveChangesAsync();
-        }
     }
 
     public async Task UpdatePlayerRanksAsync()

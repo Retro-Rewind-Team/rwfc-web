@@ -1,9 +1,8 @@
 using RetroRewindWebsite.Models.Entities.Player;
-using RetroRewindWebsite.Repositories.Common;
 
 namespace RetroRewindWebsite.Repositories.Player;
 
-public interface IVRHistoryRepository : IRepository<VRHistoryEntity>
+public interface IVRHistoryRepository
 {
     /// <summary>
     /// Retrieves the history records for a specified player within a given date range asynchronously.
@@ -25,17 +24,8 @@ public interface IVRHistoryRepository : IRepository<VRHistoryEntity>
     Task<List<VRHistoryEntity>> GetPlayerHistoryAsync(string playerId, int count = 100);
 
     /// <summary>
-    /// Calculates the VR gain for the specified player over a given time span asynchronously.
-    /// </summary>
-    /// <param name="playerId">The unique identifier of the player for whom the VR gain is calculated. Cannot be null or empty.</param>
-    /// <param name="timeSpan">The duration over which the VR gain is measured. Must be a positive value.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the calculated VR gain as an
-    /// integer.</returns>
-    Task<int> CalculateVRGainAsync(string playerId, TimeSpan timeSpan);
-
-    /// <summary>
     /// Calculates VR gains for the 24-hour, 7-day, and 30-day periods in a single database
-    /// query, avoiding the N×3 round-trips of calling <see cref="CalculateVRGainAsync"/> separately.
+    /// query, avoiding the N×3 round-trips of calling each period separately.
     /// </summary>
     Task<(int Gain24h, int Gain7d, int Gain30d)> CalculateAllVRGainsAsync(string playerId);
 

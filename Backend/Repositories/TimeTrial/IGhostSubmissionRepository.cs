@@ -21,13 +21,6 @@ public interface IGhostSubmissionRepository
     Task AddAsync(GhostSubmissionEntity submission);
 
     /// <summary>
-    /// Asynchronously updates the specified ghost submission entity in the data store.
-    /// </summary>
-    /// <param name="submission">The ghost submission entity to update. Cannot be null.</param>
-    /// <returns>A task that represents the asynchronous update operation.</returns>
-    Task UpdateAsync(GhostSubmissionEntity submission);
-
-    /// <summary>
     /// Asynchronously deletes the entity with the specified identifier.
     /// </summary>
     /// <param name="id">The unique identifier of the entity to delete. Must be a valid, existing entity ID.</param>

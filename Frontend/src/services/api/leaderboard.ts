@@ -22,10 +22,6 @@ export const leaderboardApi = {
         return apiRequest<LeaderboardResponse>(`/leaderboard?${searchParams}`);
     },
 
-    async getTopPlayers(count = 10): Promise<Player[]> {
-        return apiRequest<Player[]>(`/leaderboard/top/${count}`);
-    },
-
     async getPlayer(friendCode: string): Promise<Player> {
         return apiRequest<Player>(`/leaderboard/player/${friendCode}`);
     },

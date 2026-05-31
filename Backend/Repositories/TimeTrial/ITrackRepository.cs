@@ -1,10 +1,11 @@
 using RetroRewindWebsite.Models.Entities.TimeTrial;
-using RetroRewindWebsite.Repositories.Common;
 
 namespace RetroRewindWebsite.Repositories.TimeTrial;
 
-public interface ITrackRepository : IRepository<TrackEntity>
+public interface ITrackRepository
 {
+    Task<TrackEntity?> GetByIdAsync(int id);
+
     /// <summary>
     /// Asynchronously retrieves all track entities from the data source.
     /// </summary>

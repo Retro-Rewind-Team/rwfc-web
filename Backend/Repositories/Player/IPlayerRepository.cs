@@ -1,19 +1,15 @@
 using RetroRewindWebsite.Models.DTOs.Common;
 using RetroRewindWebsite.Models.Entities.Player;
-using RetroRewindWebsite.Repositories.Common;
 
 namespace RetroRewindWebsite.Repositories.Player;
 
-public interface IPlayerRepository : IRepository<PlayerEntity>
+public interface IPlayerRepository
 {
     // ===== BASIC QUERIES =====
 
     /// <summary>
     /// Retrieves a player entity by its unique player identifier (PID).
     /// </summary>
-    /// <param name="pid">The unique identifier of the player to retrieve. Cannot be null or empty.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the player entity if found;
-    /// otherwise, null.</returns>
     Task<PlayerEntity?> GetByPidAsync(string pid);
 
     /// <summary>
@@ -94,6 +90,13 @@ public interface IPlayerRepository : IRepository<PlayerEntity>
     Task<int> GetSuspiciousPlayersCountAsync();
 
     // ===== MODIFICATIONS =====
+
+    /// <summary>
+    /// Asynchronously updates the specified player entity in the data store.
+    /// </summary>
+    /// <param name="player">The player entity to update. Cannot be null. The entity must already exist in the data store.</param>
+    /// <returns>A task that represents the asynchronous update operation.</returns>
+    Task UpdateAsync(PlayerEntity player);
 
     /// <summary>
     /// Asynchronously updates the ranks of all players based on the latest game data.

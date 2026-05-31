@@ -29,12 +29,6 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task UpdateAsync(GhostSubmissionEntity submission)
-    {
-        _context.GhostSubmissions.Update(submission);
-        await _context.SaveChangesAsync();
-    }
-
     public async Task DeleteAsync(int id)
     {
         var submission = await _context.GhostSubmissions.FindAsync(id);

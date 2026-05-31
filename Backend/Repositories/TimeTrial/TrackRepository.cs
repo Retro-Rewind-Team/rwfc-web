@@ -25,28 +25,6 @@ public class TrackRepository : ITrackRepository
             .OrderBy(t => t.SortOrder)
             .ToListAsync();
 
-    public async Task AddAsync(TrackEntity track)
-    {
-        await _context.Tracks.AddAsync(track);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task UpdateAsync(TrackEntity track)
-    {
-        _context.Tracks.Update(track);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task DeleteAsync(int id)
-    {
-        var track = await _context.Tracks.FindAsync(id);
-        if (track != null)
-        {
-            _context.Tracks.Remove(track);
-            await _context.SaveChangesAsync();
-        }
-    }
-
     public async Task<List<TrackEntity>> GetTracksByCourseIdsAsync(List<short> courseIds)
     {
         if (courseIds == null || courseIds.Count == 0)
