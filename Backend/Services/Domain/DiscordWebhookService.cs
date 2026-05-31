@@ -3,6 +3,9 @@ using System.Text.Json;
 
 namespace RetroRewindWebsite.Services.Domain;
 
+/// <summary>
+/// Sends auto-flag and moderation alert notifications to a configured Discord webhook URL.
+/// </summary>
 public class DiscordWebhookService : IDiscordWebhookService
 {
     private readonly IHttpClientFactory _httpClientFactory;

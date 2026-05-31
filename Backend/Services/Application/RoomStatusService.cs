@@ -10,6 +10,9 @@ using System.Collections.Concurrent;
 
 namespace RetroRewindWebsite.Services.Application;
 
+/// <summary>
+/// Fetches and caches live RWFC room snapshots, serves historical snapshot queries, and resolves Mii images for room players.
+/// </summary>
 public class RoomStatusService : IRoomStatusService
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;

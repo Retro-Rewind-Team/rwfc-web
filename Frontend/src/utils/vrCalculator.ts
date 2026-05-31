@@ -26,28 +26,55 @@ function evalSpline(x: number): number {
     return r / 30;
 }
 
+/**
+ * Calculates the positive VR points earned by beating one opponent.
+ * Uses a cubic B-spline over the VR difference, biased toward the opponent's rating.
+ * Returns a value in [0.02, 0.24] in internal VR units.
+ * @param selfVr - The player's internal VR (display VR / 100).
+ * @param oppVr - The opponent's internal VR.
+ */
 export function calcPosPoints(selfVr: number, oppVr: number): number {
     const s = clamp(SPLINE_BIAS + (oppVr - selfVr) * 4, 0, SPLINE_BIAS * 2);
     return clamp(evalSpline(SPLINE_SCALE * s), 0.02, 0.24);
 }
 
+/**
+ * Calculates the negative VR points lost by finishing behind one opponent.
+ * Mirrors the positive spline but inverts the VR difference and returns a value in [-0.19, 0].
+ * @param selfVr - The player's internal VR (display VR / 100).
+ * @param oppVr - The opponent's internal VR.
+ */
 export function calcNegPoints(selfVr: number, oppVr: number): number {
     const s = clamp(SPLINE_BIAS - (oppVr - selfVr) * 16, 0, SPLINE_BIAS * 2);
     return clamp(-evalSpline(SPLINE_SCALE * s), -0.19, 0);
 }
 
+/**
+ * Returns the maximum VR gain cap for a given internal rating.
+ * Players below 1500 have no cap (1e6). From 1500 to 9000 the cap decreases
+ * linearly from ~1000 down to 0.1 to slow runaway inflation at high ratings.
+ * @param rating - The player's current internal VR value (display VR / 100).
+ */
 export function getGainCap(rating: number): number {
     if (rating < 1500) return 1e6;
     if (rating >= 9000) return 0.1;
     return 0.1 + 999.9 * (1 - (rating - 1500) / 7500);
 }
 
+/**
+ * Returns the maximum VR loss cap (a negative value) for a given internal rating.
+ * Players at or below 150 are hard-floored at -0.5 to prevent large losses at the
+ * lowest ratings. From 150 to 500 the cap grows linearly in magnitude to -2.09 as
+ * rating increases, then stays fixed above 500.
+ * @param rating - The player's current internal VR value (display VR / 100).
+ */
 export function getLossCap(rating: number): number {
     if (rating <= 150) return -0.5;
     if (rating >= 500) return -2.09;
     return -0.5 - 1.59 * ((rating - 150) / 350);
 }
 
+/** Truncates a value to two decimal places (centis) without rounding. */
 export function truncCentis(v: number): number {
     return Math.trunc(v * 100) / 100;
 }
@@ -74,6 +101,14 @@ export interface MultiplierInfo {
     total: number;
 }
 
+/**
+ * Computes the VR multiplier breakdown for a race session.
+ * The base multiplier starts at 2 on event days, else 1. Special and weekend multipliers
+ * each add 25%. The battle bonus adds 0.166 per player above 5. If betaBuild is active,
+ * the total (base + battle) is scaled by 1.15.
+ * @param mods - Active modifier flags for the session.
+ * @param playerCount - Number of players in the room, used for the battle bonus.
+ */
 export function getMultiplier(mods: VRModifiers, playerCount: number): MultiplierInfo {
     let base = mods.eventDay ? 2 : 1;
     if (mods.specialMultiplier) base *= 1.25;
@@ -112,6 +147,17 @@ export interface SimulationResult {
     mult: MultiplierInfo;
 }
 
+/**
+ * Simulates a full VR race result for all players in a room.
+ * For each ordered pair (winner i, loser j), calculates pair-wise point contributions
+ * using calcPosPoints and calcNegPoints, sums them, applies multipliers, clamps with
+ * gain/loss caps, and applies Retro Rewind's "tiny negative to zero" and
+ * "all disconnected" edge-case rules. The final display VR is truncated to centis.
+ * @param players - Each player's ID and current display VR.
+ * @param mods - Session modifier flags (event day, weekend, etc.).
+ * @param opts - Simulation options including VR mode, disconnect state, and VR floor/ceiling.
+ * @returns Per-player results with intermediate values and the session multiplier breakdown.
+ */
 export function simulate(
     players: PlayerInput[],
     mods: VRModifiers,
@@ -189,12 +235,14 @@ export function simulate(
     return { players: results, mult };
 }
 
+/** Formats an internal VR delta as a signed display-VR string (e.g. "+250" or "-50"). */
 export function fmtDelta(internalDelta: number): string {
     const d = Math.round(internalDelta * VR_DISPLAY_SCALE);
     if (d === 0) return "±0";
     return d > 0 ? `+${d}` : `${d}`;
 }
 
+/** Formats a number to a fixed number of decimal places, or returns "-" for non-finite values. */
 export function fmtFixed(val: number, dp = 4): string {
     return Number.isFinite(val) ? val.toFixed(dp) : "-";
 }

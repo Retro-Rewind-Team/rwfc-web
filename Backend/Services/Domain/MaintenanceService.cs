@@ -2,6 +2,9 @@ using RetroRewindWebsite.Repositories.Player;
 
 namespace RetroRewindWebsite.Services.Domain;
 
+/// <summary>
+/// Runs scheduled maintenance tasks such as recalculating daily and weekly VR gain stats for all players.
+/// </summary>
 public class MaintenanceService : IMaintenanceService
 {
     private readonly IPlayerRepository _playerRepository;

@@ -7,6 +7,9 @@ using RetroRewindWebsite.Services.Background;
 
 namespace RetroRewindWebsite.Services.Application;
 
+/// <summary>
+/// Assembles leaderboard responses by combining paged player data, stats, and legacy snapshots.
+/// </summary>
 public class LeaderboardService : ILeaderboardService
 {
     private readonly IPlayerRepository _playerRepository;

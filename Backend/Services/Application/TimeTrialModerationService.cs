@@ -7,6 +7,9 @@ using RetroRewindWebsite.Services.Domain;
 
 namespace RetroRewindWebsite.Services.Application;
 
+/// <summary>
+/// Handles ghost submission review, approval, and rejection, including ghost file parsing and profile management.
+/// </summary>
 public class TimeTrialModerationService : ITimeTrialModerationService
 {
     private readonly IGhostFileService _ghostFileService;

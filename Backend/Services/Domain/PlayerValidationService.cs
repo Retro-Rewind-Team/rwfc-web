@@ -3,6 +3,9 @@ using RetroRewindWebsite.Models.Entities.Player;
 
 namespace RetroRewindWebsite.Services.Domain;
 
+/// <summary>
+/// Evaluates player VR changes against configurable thresholds to detect suspicious new accounts and abnormal VR jumps.
+/// </summary>
 public class PlayerValidationService : IPlayerValidationService
 {
     private readonly ILogger<PlayerValidationService> _logger;

@@ -6,6 +6,9 @@ using System.Collections.Concurrent;
 
 namespace RetroRewindWebsite.Services.Domain;
 
+/// <summary>
+/// Fetches and caches Mii avatar images from RiiConnect24, applying size normalization and per-friend-code request throttling.
+/// </summary>
 public class MiiService : IMiiService
 {
     private readonly IHttpClientFactory _httpClientFactory;

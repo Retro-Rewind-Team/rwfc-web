@@ -3,6 +3,12 @@ import { useQuery } from "@tanstack/solid-query";
 import { raceStatsApi } from "../services/api/raceStats";
 import { queryKeys } from "../constants/queryKeys";
 
+/**
+ * Fetches detailed performance analytics for a single player. The query is
+ * lazy -- it only fires after `handleExpand` is called, avoiding unnecessary
+ * network requests until the analytics panel is opened.
+ * @param pid - The player ID. Pass `undefined` to keep the query disabled.
+ */
 export function usePlayerAnalytics(pid: string | undefined) {
     const [enabled, setEnabled] = createSignal(false);
     const [days, setDays] = createSignal<number | undefined>(undefined);

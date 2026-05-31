@@ -4,6 +4,9 @@ namespace RetroRewindWebsite.Repositories.TimeTrial;
 
 public interface ITrackRepository
 {
+    /// <summary>
+    /// Returns the track with the given identifier, or null if not found.
+    /// </summary>
     Task<TrackEntity?> GetByIdAsync(int id);
 
     /// <summary>

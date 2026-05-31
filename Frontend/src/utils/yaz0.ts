@@ -1,4 +1,11 @@
-// Yaz0 decompression for Nintendo archives
+/**
+ * Decompresses a Yaz0-encoded buffer.
+ * Yaz0 is Nintendo's run-length encoding scheme used in MKWii .szs and .rkg files.
+ * The input must start with the "Yaz0" magic bytes (0x59 0x61 0x7A 0x30).
+ * The decompressed size is read from bytes 4-7 (big-endian). The 16-byte header is skipped.
+ * @param src - The Yaz0-compressed data.
+ * @returns The raw decompressed bytes.
+ */
 export function yaz0Decompress(src: Uint8Array): Uint8Array {
     if (src[0] !== 0x59 || src[1] !== 0x61 || src[2] !== 0x7a || src[3] !== 0x30) {
         throw new Error("Input is not Yaz0-compressed (missing 'Yaz0' magic).");
@@ -62,7 +69,14 @@ export function yaz0Decompress(src: Uint8Array): Uint8Array {
     return dst;
 }
 
-// Yaz0 compression with LZ-style matching
+/**
+ * Compresses a byte array using the Yaz0 format with LZ-style back-reference matching.
+ * Produces a standard Yaz0 stream with "Yaz0" magic, big-endian uncompressed size header,
+ * and 8 reserved zero bytes before the compressed data blocks.
+ * Search depth is capped at 8 candidates per position for performance.
+ * @param uncompressed - The raw data to compress.
+ * @returns A Yaz0-compressed buffer.
+ */
 export function yaz0Compress(uncompressed: Uint8Array): Uint8Array {
     const size = uncompressed.length;
     const out: number[] = [];
@@ -165,7 +179,13 @@ export function yaz0Compress(uncompressed: Uint8Array): Uint8Array {
     return new Uint8Array(out);
 }
 
-// Literal-only Yaz0 compression (fallback for compatibility)
+/**
+ * Compresses a byte array into Yaz0 format using literal-only encoding (no back-references).
+ * Every byte is emitted as a literal, so the output is always larger than the input.
+ * Use as a fast fallback when compression quality does not matter, or for testing.
+ * @param uncompressed - The raw data to encode.
+ * @returns A valid Yaz0 buffer where all data bytes are stored as literals.
+ */
 export function yaz0CompressLiteralOnly(uncompressed: Uint8Array): Uint8Array {
     const size = uncompressed.length;
     const out: number[] = [];

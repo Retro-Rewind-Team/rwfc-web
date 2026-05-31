@@ -8,6 +8,15 @@ function clamp(value: number, min: number, max: number): number {
     return v;
 }
 
+/**
+ * Parses a Retro Rewind RRRating.pul file into structured rating data.
+ * The binary format starts with a 4-byte magic ("RRRT"), a 2-byte version,
+ * and a 2-byte entry count. Each entry is 16 bytes: int32 profileId, float32 vr,
+ * float32 br, uint32 flags. VR and BR values are clamped to [-10000, 10000].
+ * If the header count exceeds the actual file capacity the read is safely truncated.
+ * @param buffer - Raw bytes of an RRRating.pul file.
+ * @returns Parsed magic, version, declared count, and all readable entries.
+ */
 export function parseRatingFile(buffer: ArrayBuffer): RatingFile {
     const view = new DataView(buffer);
     if (view.byteLength < 8) {
@@ -56,6 +65,14 @@ export function parseRatingFile(buffer: ArrayBuffer): RatingFile {
     return { magic, version, count, entries };
 }
 
+/**
+ * Serializes a {@link RatingFile} back to the RRRating.pul binary format.
+ * Writes the 8-byte header (magic, version, entry count) followed by one 16-byte
+ * record per entry. The number of written entries is capped to the smaller of
+ * ratingFile.count and ratingFile.entries.length to prevent overflows.
+ * @param ratingFile - The rating data to serialize.
+ * @returns A new ArrayBuffer containing the binary RRRating.pul data.
+ */
 export function buildRatingFile(ratingFile: RatingFile): ArrayBuffer {
     const totalEntries = Math.min(ratingFile.count, ratingFile.entries.length);
     const byteLength = 8 + totalEntries * 16;

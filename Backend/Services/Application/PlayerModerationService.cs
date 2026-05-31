@@ -6,6 +6,9 @@ using RetroRewindWebsite.Repositories.Player;
 
 namespace RetroRewindWebsite.Services.Application;
 
+/// <summary>
+/// Implements flag, unflag, ban, stat-swap, and suspicious VR-jump detection for player moderation.
+/// </summary>
 public class PlayerModerationService : IPlayerModerationService
 {
     private readonly IPlayerRepository _playerRepository;

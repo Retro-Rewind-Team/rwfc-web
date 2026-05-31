@@ -4,6 +4,12 @@ export interface ValidationResult {
     warnings?: string[];
 }
 
+/**
+ * Validates that a buffer is a plausible Font.szs file.
+ * Checks for the Yaz0 magic header and a sensible decompressed size (> 0, <= 100 MB).
+ * Issues warnings for unusually small (< 10 KB) or large (> 50 MB) files.
+ * @param buffer - Raw file bytes to validate.
+ */
 export function validateFontSzs(buffer: ArrayBuffer): ValidationResult {
     const view = new DataView(buffer);
     const warnings: string[] = [];
@@ -51,6 +57,12 @@ export function validateFontSzs(buffer: ArrayBuffer): ValidationResult {
     return { valid: true, warnings };
 }
 
+/**
+ * Validates that a buffer is a plausible Nintendo .brfnt (binary font) file.
+ * Checks for the RFNT magic and a big-endian BOM of 0xFEFF.
+ * Issues warnings for unusual file sizes (< 1 KB or > 10 MB) and unexpected BOM values.
+ * @param buffer - Raw file bytes to validate.
+ */
 export function validateBrfnt(buffer: ArrayBuffer): ValidationResult {
     const view = new DataView(buffer);
     const warnings: string[] = [];
@@ -97,6 +109,13 @@ export function validateBrfnt(buffer: ArrayBuffer): ValidationResult {
     return { valid: true, warnings };
 }
 
+/**
+ * Validates that a buffer is a plausible RRRating.pul file.
+ * Checks the RRRT magic, version (expected 1), and that the declared entry count
+ * fits within the actual buffer size (16 bytes per entry, 8-byte header).
+ * Issues warnings for version mismatches, zero entries, oversized files, or large entry counts.
+ * @param buffer - Raw file bytes to validate.
+ */
 export function validateRatingFile(buffer: ArrayBuffer): ValidationResult {
     const view = new DataView(buffer);
     const warnings: string[] = [];
@@ -167,6 +186,12 @@ export function validateRatingFile(buffer: ArrayBuffer): ValidationResult {
     return { valid: true, warnings };
 }
 
+/**
+ * Validates that a buffer is large enough to be a Mario Kart Wii rksys.dat file.
+ * The minimum size (0x1A72C = 107,308 bytes) ensures the last field of the fourth
+ * license slot is reachable. No magic-byte check is performed.
+ * @param buffer - Raw file bytes to validate.
+ */
 export function validateRksysFile(buffer: ArrayBuffer): ValidationResult {
     // Minimum size to reach the last field of license slot 4:
     // base 0x1A648 + DIST1ST offset 0xE0 + 4 bytes = 0x1A72C = 107,308 bytes
@@ -182,11 +207,18 @@ export function validateRksysFile(buffer: ArrayBuffer): ValidationResult {
     return { valid: true };
 }
 
+/** Returns the lowercase file extension of a filename (without the leading dot), or "" if none. */
 export function getFileExtension(filename: string): string {
     const parts = filename.split(".");
     return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : "";
 }
 
+/**
+ * Checks that a filename ends with one of the expected extensions.
+ * Extensions in expectedExtensions should be provided without a leading dot (e.g. "szs", "brfnt").
+ * @param filename - The file name to check.
+ * @param expectedExtensions - Allowed lowercase extensions.
+ */
 export function validateFileName(filename: string, expectedExtensions: string[]): ValidationResult {
     const ext = getFileExtension(filename);
 

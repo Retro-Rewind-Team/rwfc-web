@@ -5,6 +5,9 @@ using RetroRewindWebsite.Services.External;
 
 namespace RetroRewindWebsite.Services.Application;
 
+/// <summary>
+/// Collects race results from the WFC API and persists them, deduplicating by room and race number.
+/// </summary>
 public class RaceResultService : IRaceResultService
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;

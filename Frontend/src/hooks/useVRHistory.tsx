@@ -17,15 +17,20 @@ export interface ProcessedVRHistory extends VRHistoryEntry {
     formattedDate: string;
 }
 
-/**
- * Fetches and processes a player's VR change history. All data points are
- * returned as-is - the chart handles display density via nearest-point hover snap.
- */
+/** A date range used for custom VR history queries. */
 export interface CustomRange {
     from: Date;
     to: Date;
 }
 
+/**
+ * Fetches and processes a player's VR change history for charts and stat
+ * summaries. Supports preset day windows and custom date ranges. All data
+ * points are returned as-is; the chart handles display density via
+ * nearest-point hover snap.
+ * @param friendCode - The player's friend code.
+ * @param initialDays - Day window to load on mount. Defaults to 30.
+ */
 export function useVRHistory(friendCode: string, initialDays = 30) {
     const [historyData, setHistoryData] = createSignal<ProcessedVRHistory[]>([]);
     const [stats, setStats] = createSignal<VRHistoryStats | null>(null);

@@ -8,6 +8,12 @@ import { useDebouncedSearch } from "./useDebouncedSearch";
 
 export const RACES_PAGE_SIZE = 20;
 
+/**
+ * Manages filter state and data fetching for the race history browser.
+ * Reads `roomId` and `raceNumber` once from URL search params on mount for
+ * deep-linking into a specific race; all other filters are reactive signals.
+ * Returns `isDeepLinked` to indicate when a URL-scoped view is active.
+ */
 export function useRaces() {
     const [searchParams] = useSearchParams();
 

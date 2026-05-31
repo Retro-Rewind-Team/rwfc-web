@@ -3,6 +3,9 @@ using RetroRewindWebsite.Services.Domain;
 
 namespace RetroRewindWebsite.Services.Application;
 
+/// <summary>
+/// Pre-fetches and caches Mii images for a batch of players, refreshing stale entries on a configurable schedule.
+/// </summary>
 public class MiiBatchService : IMiiBatchService
 {
     private readonly IPlayerRepository _playerRepository;

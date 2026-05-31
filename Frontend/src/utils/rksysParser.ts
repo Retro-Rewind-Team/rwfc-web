@@ -124,6 +124,15 @@ function clamp(v: number, lo: number, hi: number) {
     return Math.max(lo, Math.min(hi, v));
 }
 
+/**
+ * Parses a Mario Kart Wii rksys.dat save file and extracts statistics for all license slots.
+ * The file contains up to 4 license blocks at fixed offsets (LIC_BASES). Each block holds
+ * the Mii name (UTF-16 BE), VR, win/loss counts, first-place finishes, and distance stats.
+ * The region ID is read from offset 0x26B0A and mapped to a human-readable region name.
+ * Returns null for any license slot that appears empty (no name and no profile ID).
+ * @param buffer - Raw bytes of an rksys.dat file.
+ * @returns The detected region and an array of up to 4 license stats (null entries for empty slots).
+ */
 export function parseRksys(buffer: ArrayBuffer): RksysFile {
     const dv = new DataView(buffer);
 
@@ -167,6 +176,14 @@ function vrToNorm(vrPoints: number): number {
     return clamp((vrPoints / 100 / MAX_VR_INTERNAL) * 100, 0, 100);
 }
 
+/**
+ * Computes the composite rank score for a single license.
+ * Normalizes VR, win percentage, first-place finishes, and distance stats, then applies
+ * the weighted formula defined by RANK_ALPHA and RANK_BETA. Players with fewer than
+ * MIN_VS_FOR_RANK races receive a score of 0 and rank 0.
+ * @param stats - Parsed license statistics from an rksys.dat file.
+ * @returns The score, rank index (0-9), intermediate normalized values, and race requirements.
+ */
 export function computeScore(stats: LicenseStats): LicenseScore {
     const totalVs = stats.vsWins + stats.vsLosses;
     const winPct = totalVs > 0 ? (100 * stats.vsWins) / totalVs : 45;
@@ -201,6 +218,12 @@ export function computeScore(stats: LicenseStats): LicenseScore {
     };
 }
 
+/**
+ * Maps a composite score (0-100) to a rank index (1-9) using the RANK_THRESHOLDS table.
+ * Returns 1 for scores below the first threshold.
+ * @param score - The composite score to map.
+ * @returns A rank index between 1 and 9.
+ */
 export function rankFromScore(score: number): number {
     if (score >= 100) return 9;
     if (score >= 94) return 8;
@@ -219,6 +242,15 @@ function feasibility(normReq: number): "ok" | "warn" | "infeasible" {
     return "infeasible";
 }
 
+/**
+ * Calculates the minimum raw stat values a player needs to reach their next rank.
+ * For each stat category, assumes all other categories stay at their current level
+ * and solves for the value needed to push the composite score over the next threshold.
+ * Feasibility is flagged as "warn" when the needed normalized value exceeds 100 by up to 10%,
+ * and "infeasible" beyond that.
+ * Returns null if the player is already at the maximum rank (9).
+ * @param stats - Parsed license statistics from an rksys.dat file.
+ */
 export function computeNeeds(stats: LicenseStats): RankNeeds | null {
     const cur = computeScore(stats);
     const effectiveRank = cur.meetsRaceReq

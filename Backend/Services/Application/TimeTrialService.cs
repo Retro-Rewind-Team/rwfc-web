@@ -5,6 +5,9 @@ using RetroRewindWebsite.Repositories.TimeTrial;
 
 namespace RetroRewindWebsite.Services.Application;
 
+/// <summary>
+/// Handles track listings, paged leaderboards, ghost submissions, world records, and TT player profiles.
+/// </summary>
 public class TimeTrialService : ITimeTrialService
 {
     private readonly ITrackRepository _trackRepository;

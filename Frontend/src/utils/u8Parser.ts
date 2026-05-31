@@ -1,5 +1,13 @@
 import type { U8Archive, U8Node } from "../types/tools";
 
+/**
+ * Parses a U8 archive (Nintendo's general-purpose container format, magic 0x55AA382D).
+ * Reads the node table, resolves the string table for each node name, and builds
+ * full slash-delimited paths for every node by walking the parent stack.
+ * Used to inspect the contents of .szs files after Yaz0 decompression.
+ * @param u8 - Raw bytes of a U8 archive. Must start with the U8 magic.
+ * @returns A parsed archive with the node list, resolved paths, and key header offsets.
+ */
 export function parseU8(u8: Uint8Array): U8Archive {
     if (u8[0] !== 0x55 || u8[1] !== 0xaa || u8[2] !== 0x38 || u8[3] !== 0x2d) {
         throw new Error("Not a U8 archive (missing U8 magic).");
@@ -71,6 +79,16 @@ export function parseU8(u8: Uint8Array): U8Archive {
     return { nodes, paths, rootOffset, headerSize, dataOffset };
 }
 
+/**
+ * Rebuilds a U8 archive with one .brfnt file replaced by new data.
+ * Iterates every file node, pads to 32-byte alignment, and rewrites the node's
+ * data offset and size fields. The target file is identified by a path suffix match.
+ * @param u8 - The original U8 archive bytes.
+ * @param replacementUint8 - The new .brfnt data to splice in.
+ * @param targetSuffix - Path suffix identifying the file to replace. Defaults to
+ *   "tt_kart_extension_font.brfnt".
+ * @returns A new U8 archive buffer with the replacement applied.
+ */
 export function replaceBrfntInU8(
     u8: Uint8Array,
     replacementUint8: Uint8Array,

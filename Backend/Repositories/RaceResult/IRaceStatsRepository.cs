@@ -213,15 +213,30 @@ public interface IRaceStatsRepository
 
     // ===== ANALYTICS =====
 
+    /// <summary>
+    /// Returns the distribution of finish positions for a player, optionally filtered by date and engine class.
+    /// </summary>
     Task<List<(short Position, int Count)>> GetFinishPositionDistributionAsync(
         long profileId, DateTime? after, short? engineClassId);
 
+    /// <summary>
+    /// Returns per-track performance stats (race count, win count, average finish position) for a player,
+    /// optionally filtered by date and engine class.
+    /// </summary>
     Task<List<(short CourseId, int RaceCount, int WinCount, double AvgFinishPos)>> GetTrackPerformanceByPlayerAsync(
         long profileId, DateTime? after, short? engineClassId);
 
+    /// <summary>
+    /// Returns the number of races played by a player grouped by day of the week,
+    /// optionally filtered by date and engine class.
+    /// </summary>
     Task<List<(int DayOfWeek, int Count)>> GetRaceCountByDayOfWeekByPlayerAsync(
         long profileId, DateTime? after, short? engineClassId);
 
+    /// <summary>
+    /// Returns the number of races played by a player grouped by hour of the day,
+    /// optionally filtered by date and engine class.
+    /// </summary>
     Task<List<(int Hour, int Count)>> GetRaceCountByHourByPlayerAsync(
         long profileId, DateTime? after, short? engineClassId);
 

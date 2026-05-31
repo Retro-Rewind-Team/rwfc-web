@@ -4,6 +4,11 @@ import { timeTrialApi } from "../services/api/timeTrial";
 import { ShroomlessFilter, TrackCategoryFilter, VehicleFilter } from "../types/timeTrial";
 import { queryKeys } from "../constants/queryKeys";
 
+/**
+ * Manages filter state and data fetching for the time trial player rankings
+ * page. Rankings are fetched server-side with full filter and pagination
+ * parameters included in the query key.
+ */
 export function useTTRankings() {
     const [selectedCC, setSelectedCC] = createSignal<150 | 200>(150);
     const [glitchAllowed, setGlitchAllowed] = createSignal<boolean>(true);

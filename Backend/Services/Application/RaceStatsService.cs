@@ -7,6 +7,9 @@ using RetroRewindWebsite.Repositories.TimeTrial;
 
 namespace RetroRewindWebsite.Services.Application;
 
+/// <summary>
+/// Aggregates race result data into per-player and global statistics, including analytics and filtered race queries.
+/// </summary>
 public class RaceStatsService : IRaceStatsService
 {
     private readonly IRaceStatsRepository _raceStatsRepository;

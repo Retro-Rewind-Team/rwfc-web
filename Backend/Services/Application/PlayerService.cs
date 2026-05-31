@@ -5,6 +5,9 @@ using RetroRewindWebsite.Repositories.Player;
 
 namespace RetroRewindWebsite.Services.Application;
 
+/// <summary>
+/// Provides player lookup, profile retrieval, and VR history queries for the leaderboard.
+/// </summary>
 public class PlayerService : IPlayerService
 {
     private readonly IPlayerRepository _playerRepository;

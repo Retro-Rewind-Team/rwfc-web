@@ -6,6 +6,9 @@ using RetroRewindWebsite.Services.External;
 
 namespace RetroRewindWebsite.Services.Application;
 
+/// <summary>
+/// Syncs player VR and race data from the WFC API, applying validation rules and recording VR history.
+/// </summary>
 public class LeaderboardSyncService : ILeaderboardSyncService
 {
     private readonly IPlayerRepository _playerRepository;
