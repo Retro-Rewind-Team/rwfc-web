@@ -1,4 +1,4 @@
-import type { BadgeType } from "../../../constants/badgeData";
+import type { BadgeType } from "../../../../constants/badgeData";
 
 type MedalVariant = Exclude<BadgeType, "WhWzDev" | "RrDev" | "Translator" | "TranslatorLead">;
 

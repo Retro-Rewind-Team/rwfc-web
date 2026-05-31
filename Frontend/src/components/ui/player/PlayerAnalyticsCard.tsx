@@ -1,8 +1,8 @@
-﻿import { createSignal, For, Show } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
 import { ChevronDown, ChevronUp } from "lucide-solid";
-import { usePlayerAnalytics } from "../../hooks/usePlayerAnalytics";
-import { PositionCount, TrackPerformance } from "../../types/raceStats";
-import { LoadingSpinner } from "../../components/common";
+import { usePlayerAnalytics } from "../../../hooks/usePlayerAnalytics";
+import { PositionCount, TrackPerformance } from "../../../types/raceStats";
+import { LoadingSpinner } from "../../../components/common";
 
 interface PlayerAnalyticsCardProps {
     pid: string;

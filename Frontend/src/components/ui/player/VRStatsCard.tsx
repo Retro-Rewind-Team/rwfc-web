@@ -1,4 +1,4 @@
-import { getVRGainClass } from "../../utils";
+import { getVRGainClass } from "../../../utils";
 
 interface VRStatsCardProps {
     value: number;

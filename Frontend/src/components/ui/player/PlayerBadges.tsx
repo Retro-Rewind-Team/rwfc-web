@@ -1,6 +1,6 @@
 import { For, Show } from "solid-js";
-import Badge from "./player/Badge";
-import { getPlayerBadges } from "../../constants/badgeData";
+import Badge from "./Badge";
+import { getPlayerBadges } from "../../../constants/badgeData";
 
 interface PlayerBadgesProps {
     friendCode: string;

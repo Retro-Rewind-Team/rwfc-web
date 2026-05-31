@@ -12,9 +12,9 @@ import {
     TrendingUp,
     Users,
 } from "lucide-solid";
-import { Room } from "../../types";
-import { detectSplitGroups } from "../../utils";
-import PlayerCard from "./PlayerCard";
+import { Room } from "../../../types";
+import { detectSplitGroups } from "../../../utils";
+import PlayerCard from "../player/PlayerCard";
 
 interface RoomCardProps {
     room: Room;

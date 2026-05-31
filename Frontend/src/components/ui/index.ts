@@ -1,14 +1,24 @@
-﻿export { default as MiiComponent } from "./MiiComponent";
-export { default as PlayerCard } from "./PlayerCard";
-export { default as RoomCard } from "./RoomCard";
-export { default as TeamMemberCard } from "./TeamMemberCard";
-export { default as VRStatsCard } from "./VRStatsCard";
-export { default as TutorialCard } from "./TutorialCard";
-export { default as LeaderboardTable } from "./LeaderboardTable";
-export { default as PlayerBadges } from "./PlayerBadges";
-export { default as Badge } from "./Badge";
-export { default as PlayerRaceStatsCard } from "./PlayerRaceStatsCard";
-export { default as PlayerAnalyticsCard } from "./PlayerAnalyticsCard";
+// Player components
+export { default as MiiComponent } from "./player/MiiComponent";
+export { default as PlayerCard } from "./player/PlayerCard";
+export { default as PlayerBadges } from "./player/PlayerBadges";
+export { default as PlayerAnalyticsCard } from "./player/PlayerAnalyticsCard";
+export { default as PlayerRaceStatsCard } from "./player/PlayerRaceStatsCard";
+export { default as VRStatsCard } from "./player/VRStatsCard";
+export { default as Badge } from "./player/Badge";
+export { default as PositionBadge } from "./player/PositionBadge";
+
+// Leaderboard components
+export { default as LeaderboardTable } from "./leaderboard/LeaderboardTable";
+
+// Room components
+export { default as RoomCard } from "./room/RoomCard";
+
+// Team components
+export { default as TeamMemberCard } from "./team/TeamMemberCard";
+
+// Downloads components
+export { default as TutorialCard } from "./downloads/TutorialCard";
 
 // VR tier components
 export { default as VRTierNumberPlate } from "./vrTier/VRTierNumberplate";

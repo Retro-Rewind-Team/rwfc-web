@@ -1,8 +1,8 @@
 import { Show } from "solid-js";
 import { Check, CircleQuestionMark, CircleX, Clock, type LucideIcon, TriangleAlert, X } from "lucide-solid";
 import { Dynamic } from "solid-js/web";
-import { RoomPlayer } from "../../types";
-import { MiiComponent } from "../ui";
+import { RoomPlayer } from "../../../types";
+import MiiComponent from "./MiiComponent";
 
 interface PlayerCardProps {
     player: RoomPlayer;

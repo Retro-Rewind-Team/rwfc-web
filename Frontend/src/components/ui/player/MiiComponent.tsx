@@ -1,5 +1,5 @@
 import { onMount, Show } from "solid-js";
-import { useIntersectionObserver, useMiiImage } from "../../hooks/useMiiLoader";
+import { useIntersectionObserver, useMiiImage } from "../../../hooks/useMiiLoader";
 
 interface MiiComponentProps {
     miiImageBase64?: string;

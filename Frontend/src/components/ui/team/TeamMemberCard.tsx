@@ -1,6 +1,6 @@
 import { Heart, Users } from "lucide-solid";
 import { Show } from "solid-js";
-import type { TeamMember } from "../../types/team";
+import type { TeamMember } from "../../../types/team";
 
 interface TeamMemberCardProps {
     member: TeamMember;

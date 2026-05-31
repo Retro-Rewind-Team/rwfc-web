@@ -1,8 +1,10 @@
 import { For, Show } from "solid-js";
 import { A } from "@solidjs/router";
-import { Player } from "../../types";
-import { formatLastSeen, getVRGainClass } from "../../utils";
-import { MiiComponent, PlayerBadges, VRTierNumberPlate } from "../ui";
+import { Player } from "../../../types";
+import { formatLastSeen, getVRGainClass } from "../../../utils";
+import MiiComponent from "../player/MiiComponent";
+import PlayerBadges from "../player/PlayerBadges";
+import VRTierNumberPlate from "../vrTier/VRTierNumberplate";
 import { ArrowDown, ArrowUp } from "lucide-solid/icons/index";
 import TriangleAlert from "lucide-solid/icons/triangle-alert";
 

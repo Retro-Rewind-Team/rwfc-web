@@ -7,32 +7,7 @@ import { InlinePagination, LoadingSpinner } from "../../components/common";
 import { queryKeys } from "../../constants/queryKeys";
 import { useQuery } from "@tanstack/solid-query";
 import { timeTrialApi } from "../../services/api";
-
-function positionBadgeClass(pos: number) {
-    if (pos === 1) return "bg-yellow-400 text-yellow-900 font-bold";
-    if (pos === 2) return "bg-gray-300 text-gray-800 font-bold";
-    if (pos === 3) return "bg-amber-600 text-white font-bold";
-    return "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400";
-}
-
-function PositionBadge(props: { pos: number | null }) {
-    return (
-        <Show
-            when={props.pos !== null}
-            fallback={
-                <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs bg-red-100 dark:bg-red-900/30 text-red-500 dark:text-red-400 font-medium">
-                    DNF
-                </span>
-            }
-        >
-            <span
-                class={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs ${positionBadgeClass(props.pos!)}`}
-            >
-                {props.pos}
-            </span>
-        </Show>
-    );
-}
+import PositionBadge from "../../components/ui/player/PositionBadge";
 
 function parseFinishTimeMs(display: string): number {
     const colonIdx = display.indexOf(":");
@@ -101,7 +76,7 @@ function RaceCard(props: { race: RaceResult }) {
                                 return (
                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                                     <td class="py-1.5 pr-2">
-                                        <PositionBadge pos={isDnf() ? null : index() + 1} />
+                                        <PositionBadge pos={isDnf() ? null : index() + 1} size="lg" />
                                     </td>
                                     <td class="py-1.5 pr-3 font-medium">
                                         <Show
