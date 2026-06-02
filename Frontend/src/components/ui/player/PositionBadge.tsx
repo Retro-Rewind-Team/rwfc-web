@@ -5,30 +5,24 @@ interface PositionBadgeProps {
     size?: "md" | "lg";
 }
 
-function positionBadgeClass(pos: number): string {
-    if (pos === 1) return "bg-yellow-400 text-yellow-900 font-bold";
-    if (pos === 2) return "bg-gray-300 text-gray-800 font-bold";
-    if (pos === 3) return "bg-amber-600 text-white font-bold";
-    return "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400";
+function positionClass(pos: number): string {
+    if (pos === 1) return "text-yellow-500 dark:text-yellow-400 font-bold";
+    if (pos === 2) return "text-gray-400 dark:text-gray-300 font-bold";
+    if (pos === 3) return "text-amber-600 dark:text-amber-500 font-bold";
+    return "text-gray-500 dark:text-gray-400 font-medium";
 }
 
 export default function PositionBadge(props: PositionBadgeProps) {
-    const dim = () => (props.size === "lg" ? "w-7 h-7" : "w-6 h-6");
+    const textSize = () => (props.size === "lg" ? "text-sm" : "text-xs");
 
     return (
         <Show
             when={props.pos !== null}
             fallback={
-                <span
-                    class={`inline-flex items-center justify-center ${dim()} rounded-full text-xs bg-red-100 dark:bg-red-900/30 text-red-500 dark:text-red-400 font-medium`}
-                >
-                    DNF
-                </span>
+                <span class={`${textSize()} text-gray-400 dark:text-gray-500 italic`}>DNF</span>
             }
         >
-            <span
-                class={`inline-flex items-center justify-center ${dim()} rounded-full text-xs ${positionBadgeClass(props.pos!)}`}
-            >
+            <span class={`${textSize()} ${positionClass(props.pos!)} tabular-nums`}>
                 {props.pos}
             </span>
         </Show>

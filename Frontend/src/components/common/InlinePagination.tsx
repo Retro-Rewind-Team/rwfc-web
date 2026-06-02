@@ -26,19 +26,19 @@ export default function InlinePagination(props: InlinePaginationProps) {
     };
 
     return (
-        <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 dark:border-gray-600 gap-2 sm:gap-0">
+        <div class="bg-gray-200 dark:bg-gray-900 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 dark:border-gray-800 gap-2 sm:gap-0">
             <div class="flex items-center justify-center sm:justify-start gap-2">
                 <button
                     type="button"
                     onClick={() => props.onPageChange(Math.max(1, props.currentPage - 1))}
                     disabled={props.currentPage === 1}
-                    class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                     <ChevronLeft size={16} />
                     Previous
                 </button>
 
-                <span class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 font-medium whitespace-nowrap">
+                <span class="flex items-center gap-2 text-sm text-gray-500 dark:text-white/70 font-medium whitespace-nowrap">
                     Page
                     <input
                         type="number"
@@ -58,7 +58,7 @@ export default function InlinePagination(props: InlinePaginationProps) {
                                 e.target.value = String(props.currentPage);
                             }
                         }}
-                        class="w-16 px-2 py-1 text-center border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        class="w-16 px-2 py-1 text-center border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     of {props.totalPages}
                 </span>
@@ -69,7 +69,7 @@ export default function InlinePagination(props: InlinePaginationProps) {
                         props.onPageChange(Math.min(props.totalPages, props.currentPage + 1))
                     }
                     disabled={props.currentPage === props.totalPages}
-                    class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                     Next
                     <ChevronRight size={16} />

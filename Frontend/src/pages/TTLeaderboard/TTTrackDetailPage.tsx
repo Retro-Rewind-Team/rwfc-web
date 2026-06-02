@@ -57,12 +57,6 @@ export default function TTTrackDetailPage() {
         return parts.join(" ");
     };
 
-    const headerColor = () => {
-        if (mode() === "flap") return "bg-orange-500";
-        if (!glitchAllowed()) return "bg-green-600";
-        return "bg-blue-600";
-    };
-
     const wrHistoryTitle = () =>
         mode() === "flap" ? "Flap Record History" : "World Record History";
 
@@ -119,13 +113,13 @@ export default function TTTrackDetailPage() {
                     <div class="space-y-6">
                         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
                             {/* Header */}
-                            <div class={`px-6 py-4 ${headerColor()}`}>
+                            <div class="px-6 py-4 bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
                                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                     <div>
-                                        <h1 class="text-3xl font-bold text-white mb-1">
+                                        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-1">
                                             {track().name}
                                         </h1>
-                                        <div class="flex items-center gap-3 text-sm text-white/80">
+                                        <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-white/80">
                                             <span class="font-semibold">{categoryLabel()}</span>
                                             <span>•</span>
                                             <span>

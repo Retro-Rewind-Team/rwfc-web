@@ -2,7 +2,7 @@ import { createEffect, createMemo, createSignal, For, onCleanup, Show } from "so
 import { useRoomStatus } from "../../hooks/useRoom";
 import { useMiiLoader } from "../../hooks/useMiiLoader";
 import { RoomCard } from "../../components/ui";
-import { StatCard } from "../../components/common";
+import { StatCard, Tooltip } from "../../components/common";
 import {
     ChevronLeft,
     ChevronRight,
@@ -149,15 +149,16 @@ export default function RoomStatusPage() {
                         <div class="flex items-center justify-between gap-3 flex-wrap">
                             <div class="flex items-center gap-2">
                                 {/* Jump to oldest */}
-                                <button
-                                    type="button"
-                                    onClick={goToOldest}
-                                    disabled={!canGoBackward()}
-                                    class="p-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-all hover:scale-110 disabled:hover:scale-100 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                                    title="Jump to oldest"
-                                >
-                                    <ChevronsLeft size={20} />
-                                </button>
+                                <Tooltip text="Jump to oldest">
+                                    <button
+                                        type="button"
+                                        onClick={goToOldest}
+                                        disabled={!canGoBackward()}
+                                        class="p-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-all hover:scale-110 disabled:hover:scale-100 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                                    >
+                                        <ChevronsLeft size={20} />
+                                    </button>
+                                </Tooltip>
 
                                 {/* Previous */}
                                 <button
@@ -182,15 +183,16 @@ export default function RoomStatusPage() {
                                 </button>
 
                                 {/* Jump to latest */}
-                                <button
-                                    type="button"
-                                    onClick={goToLatest}
-                                    disabled={isLatest()}
-                                    class="p-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-all hover:scale-110 disabled:hover:scale-100 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                                    title="Jump to latest"
-                                >
-                                    <ChevronsLeft size={20} class="rotate-180" />
-                                </button>
+                                <Tooltip text="Jump to latest">
+                                    <button
+                                        type="button"
+                                        onClick={goToLatest}
+                                        disabled={isLatest()}
+                                        class="p-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-all hover:scale-110 disabled:hover:scale-100 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                                    >
+                                        <ChevronsLeft size={20} class="rotate-180" />
+                                    </button>
+                                </Tooltip>
 
                                 <Show when={isLatest()}>
                                     <div class="flex items-center bg-gradient-to-r from-emerald-500 to-emerald-600 px-3 sm:px-5 py-2.5 rounded-xl shadow-lg flex-shrink-0">
@@ -210,8 +212,8 @@ export default function RoomStatusPage() {
                                     onClick={() => setSortByVR((v) => !v)}
                                     class={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg border-2 transition-colors shadow-sm ${
                                         sortByVR()
-                                            ? "bg-blue-600 border-blue-600 text-white hover:bg-blue-700 hover:border-blue-700"
-                                            : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:border-blue-400 dark:hover:border-blue-500"
+                                            ? "bg-gray-900 border-gray-900 text-white hover:bg-gray-800 hover:border-gray-800 dark:bg-white dark:border-white dark:text-gray-900 dark:hover:bg-gray-100 dark:hover:border-gray-100"
+                                            : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:border-gray-400 dark:hover:border-gray-500"
                                     }`}
                                     title={
                                         sortByVR() ? "Sorted by average VR" : "Sort by average VR"
@@ -227,8 +229,8 @@ export default function RoomStatusPage() {
                                     onClick={() => setHidePrivate((v) => !v)}
                                     class={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg border-2 transition-colors shadow-sm ${
                                         hidePrivate()
-                                            ? "bg-blue-600 border-blue-600 text-white hover:bg-blue-700 hover:border-blue-700"
-                                            : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:border-blue-400 dark:hover:border-blue-500"
+                                            ? "bg-gray-900 border-gray-900 text-white hover:bg-gray-800 hover:border-gray-800 dark:bg-white dark:border-white dark:text-gray-900 dark:hover:bg-gray-100 dark:hover:border-gray-100"
+                                            : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:border-gray-400 dark:hover:border-gray-500"
                                     }`}
                                     title={
                                         hidePrivate()
@@ -246,8 +248,8 @@ export default function RoomStatusPage() {
                                     onClick={() => setHideFull((v) => !v)}
                                     class={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg border-2 transition-colors shadow-sm ${
                                         hideFull()
-                                            ? "bg-blue-600 border-blue-600 text-white hover:bg-blue-700 hover:border-blue-700"
-                                            : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:border-blue-400 dark:hover:border-blue-500"
+                                            ? "bg-gray-900 border-gray-900 text-white hover:bg-gray-800 hover:border-gray-800 dark:bg-white dark:border-white dark:text-gray-900 dark:hover:bg-gray-100 dark:hover:border-gray-100"
+                                            : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:border-gray-400 dark:hover:border-gray-500"
                                     }`}
                                     title={hideFull() ? "Hiding full rooms" : "Hide full rooms"}
                                 >
@@ -297,7 +299,7 @@ export default function RoomStatusPage() {
                         </div>
 
                         {/* Bottom row: time jump controls */}
-                        <div class="flex items-center gap-2 flex-wrap">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
                             {/* Quick jump buttons */}
                             {([-60, -1] as const).map((mins) => (
                                 <button
@@ -311,7 +313,7 @@ export default function RoomStatusPage() {
                             ))}
 
                             {/* Datetime picker */}
-                            <div class="relative flex-1 min-w-[200px]">
+                            <div class="relative w-full sm:flex-1 sm:min-w-[200px]">
                                 <input
                                     type="datetime-local"
                                     value={currentDateTimeLocal()}

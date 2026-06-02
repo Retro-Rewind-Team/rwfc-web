@@ -53,8 +53,8 @@ export default function TTPlayerFilters(props: TTPlayerFiltersProps) {
                         size="sm"
                         options={[
                             { value: "all", label: "All" },
-                            { value: "150", label: "150cc", activeClass: "bg-green-600" },
-                            { value: "200", label: "200cc", activeClass: "bg-sky-600" },
+                            { value: "150", label: "150cc", activeClass: "bg-blue-600" },
+                            { value: "200", label: "200cc", activeClass: "bg-blue-600" },
                         ]}
                     />
                 </div>
@@ -73,9 +73,9 @@ export default function TTPlayerFilters(props: TTPlayerFiltersProps) {
                             {
                                 value: "non-glitch",
                                 label: "Non-Glitch",
-                                activeClass: "bg-green-600",
+                                activeClass: "bg-blue-600",
                             },
-                            { value: "glitch", label: "Glitch", activeClass: "bg-purple-600" },
+                            { value: "glitch", label: "Glitch", activeClass: "bg-blue-600" },
                         ]}
                     />
                 </div>
@@ -105,7 +105,7 @@ export default function TTPlayerFilters(props: TTPlayerFiltersProps) {
                     <ToggleGroup<ShroomlessFilter>
                         value={props.shroomlessFilter}
                         onChange={props.onShroomlessFilterChange}
-                        activeClass="bg-amber-600"
+                        activeClass="bg-blue-600"
                         size="sm"
                         options={[
                             { value: "all", label: "All" },

@@ -36,7 +36,7 @@ export default function PlayerDetailPage() {
 
             {/* Loading */}
             <Show when={playerQuery.isLoading}>
-                <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6">
                     <div class="flex justify-center items-center py-12 gap-4">
                         <LoadingSpinner />
                         <p class="text-gray-600 dark:text-gray-300">Loading player data...</p>
@@ -46,7 +46,7 @@ export default function PlayerDetailPage() {
 
             {/* Not Found */}
             <Show when={isPlayerNotFound()}>
-                <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-8">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-8">
                     <div class="text-center space-y-4">
                         <div class="flex justify-center text-gray-300 dark:text-gray-600">
                             <UserX size={56} />
@@ -79,7 +79,7 @@ export default function PlayerDetailPage() {
 
             {/* Error */}
             <Show when={playerQuery.isError && !isPlayerNotFound()}>
-                <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-red-200 dark:border-red-800 p-8">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-red-200 dark:border-red-800 p-8">
                     <div class="text-center space-y-4">
                         <div class="flex justify-center text-red-400">
                             <TriangleAlert size={48} />
@@ -108,7 +108,7 @@ export default function PlayerDetailPage() {
                 {(player) => (
                     <div class="space-y-6">
                         {/* Player Header Card */}
-                        <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6">
                             <div class="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
                                 <div class="flex items-center space-x-6">
                                     <div class="flex flex-col items-center">
@@ -159,9 +159,16 @@ export default function PlayerDetailPage() {
                                                 <span class="font-medium">Friend Code:</span>{" "}
                                                 {player().friendCode}
                                             </p>
-                                            <p>
+                                            <p class="flex items-center gap-1.5">
                                                 <span class="font-medium">Last Seen:</span>{" "}
-                                                {formatLastSeen(player().lastSeen)}
+                                                <Show
+                                                    when={formatLastSeen(player().lastSeen) === "Now Online"}
+                                                    fallback={
+                                                        <span>{formatLastSeen(player().lastSeen)}</span>
+                                                    }
+                                                >
+                                                    <span class="font-bold text-emerald-600 dark:text-emerald-400">Now Online</span>
+                                                </Show>
                                             </p>
                                         </div>
                                     </div>
@@ -198,7 +205,7 @@ export default function PlayerDetailPage() {
                         </div>
 
                         {/* VR Tier Progress */}
-                        <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6">
                             <div class="flex items-center gap-2 mb-4">
                                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
                                     VR Tier Progress
@@ -219,85 +226,6 @@ export default function PlayerDetailPage() {
                             />
                             <VRStatsCard value={player().vrStats.lastWeek} label="Last Week" />
                             <VRStatsCard value={player().vrStats.lastMonth} label="Last Month" />
-                        </div>
-
-                        {/* Player Summary */}
-                        <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
-                            <div class="flex items-center gap-2 mb-4">
-                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-                                    Player Summary
-                                </h2>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                                        Rankings
-                                    </h3>
-                                    <div class="space-y-2">
-                                        <div class="flex justify-between">
-                                            <span class="text-gray-600 dark:text-gray-400">
-                                                Overall Rank:
-                                            </span>
-                                            <span class="font-medium text-gray-900 dark:text-white">
-                                                #{player().rank}
-                                            </span>
-                                        </div>
-                                        <div class="flex justify-between">
-                                            <span class="text-gray-600 dark:text-gray-400">
-                                                Current VR:
-                                            </span>
-                                            <span class="font-medium text-gray-900 dark:text-white">
-                                                {player().vr.toLocaleString()}
-                                            </span>
-                                        </div>
-                                        <Show when={hasLegacyData() && legacyPlayer()}>
-                                            {(legacy) => (
-                                                <>
-                                                    <div class="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
-                                                        <span class="inline-flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
-                                                            <Trophy
-                                                                size={14}
-                                                                class="text-amber-500"
-                                                            />
-                                                            Legacy Rank:
-                                                        </span>
-                                                        <span class="font-medium text-amber-600 dark:text-amber-400">
-                                                            #{legacy().rank}
-                                                        </span>
-                                                    </div>
-                                                    <div class="flex justify-between">
-                                                        <span class="inline-flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
-                                                            <Trophy
-                                                                size={14}
-                                                                class="text-amber-500"
-                                                            />
-                                                            Legacy VR:
-                                                        </span>
-                                                        <span class="font-medium text-amber-600 dark:text-amber-400">
-                                                            {legacy().vr.toLocaleString()}
-                                                        </span>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </Show>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                                        Activity
-                                    </h3>
-                                    <div class="space-y-2">
-                                        <div class="flex justify-between">
-                                            <span class="text-gray-600 dark:text-gray-400">
-                                                Last Online:
-                                            </span>
-                                            <span class="font-medium text-gray-900 dark:text-white">
-                                                {formatLastSeen(player().lastSeen)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                         <VRHistoryChartComponent friendCode={player().friendCode} />

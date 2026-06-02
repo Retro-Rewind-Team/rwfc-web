@@ -1,4 +1,4 @@
-﻿import { A } from "@solidjs/router";
+import { A } from "@solidjs/router";
 import { For, Show } from "solid-js";
 import { ChevronLeft, TriangleAlert, Trophy } from "lucide-solid";
 import { useTTRankings } from "../../hooks/useTTRankings";
@@ -15,8 +15,6 @@ export default function TTRankingsPage() {
     const ccValue = (): CCOption => String(rankings.selectedCC()) as CCOption;
     const glitchValue = (): GlitchOption =>
         rankings.glitchAllowed() ? "unrestricted" : "no-glitch";
-
-    const headerColor = () => (!rankings.glitchAllowed() ? "bg-green-600" : "bg-blue-600");
 
     const filterSummary = () => {
         const parts: string[] = [];
@@ -58,9 +56,9 @@ export default function TTRankingsPage() {
 
             {/* Filters */}
             <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
-                <div class={`px-4 sm:px-6 py-4 ${headerColor()}`}>
-                    <h2 class="text-xl font-bold text-white">Filters</h2>
-                    <p class="text-white/80 text-xs sm:text-sm">{filterSummary()}</p>
+                <div class="px-4 sm:px-6 py-4 bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">Filters</h2>
+                    <p class="text-gray-500 dark:text-white/80 text-xs sm:text-sm">{filterSummary()}</p>
                 </div>
                 <div class="bg-gray-50 dark:bg-gray-700/50 p-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
@@ -75,8 +73,8 @@ export default function TTRankingsPage() {
                                     rankings.handleCCChange(Number(v) as 150 | 200)
                                 }
                                 options={[
-                                    { value: "150", label: "150cc", activeClass: "bg-green-600" },
-                                    { value: "200", label: "200cc", activeClass: "bg-sky-600" },
+                                    { value: "150", label: "150cc" },
+                                    { value: "200", label: "200cc" },
                                 ]}
                             />
                         </div>
@@ -93,11 +91,7 @@ export default function TTRankingsPage() {
                                 }
                                 options={[
                                     { value: "unrestricted", label: "Unrestricted" },
-                                    {
-                                        value: "no-glitch",
-                                        label: "No Glitch",
-                                        activeClass: "bg-green-600",
-                                    },
+                                    { value: "no-glitch", label: "No Glitch" },
                                 ]}
                             />
                         </div>
@@ -126,7 +120,6 @@ export default function TTRankingsPage() {
                             <ToggleGroup<ShroomlessFilter>
                                 value={rankings.shroomlessFilter()}
                                 onChange={rankings.handleShroomlessFilterChange}
-                                activeClass="bg-amber-600"
                                 options={[
                                     { value: "all", label: "All" },
                                     { value: "only", label: "Only" },
@@ -188,9 +181,9 @@ export default function TTRankingsPage() {
                 when={rankings.rankingsQuery.data && !rankings.rankingsQuery.isLoading}
             >
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <div class={`px-4 sm:px-6 py-4 ${headerColor()}`}>
-                        <h2 class="text-xl sm:text-2xl font-bold text-white">Player Rankings</h2>
-                        <p class="text-white/80 text-xs sm:text-sm">
+                    <div class="px-4 sm:px-6 py-4 bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+                        <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Player Rankings</h2>
+                        <p class="text-gray-500 dark:text-white/80 text-xs sm:text-sm">
                             {rankings.rankingsQuery.data!.totalPlayers} player
                             {rankings.rankingsQuery.data!.totalPlayers !== 1 ? "s" : ""} with world records
                         </p>
@@ -214,12 +207,12 @@ export default function TTRankingsPage() {
                     >
                         <div class="overflow-x-auto">
                             <table class="w-full">
-                                <thead class={`text-white ${headerColor()}`}>
+                                <thead class="bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
                                     <tr>
-                                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider w-16">
+                                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-200 w-16">
                                             Rank
                                         </th>
-                                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-200">
                                             Player
                                         </th>
                                         <th class="px-4 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider w-24">

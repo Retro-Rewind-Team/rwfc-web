@@ -76,21 +76,19 @@ export default function LeaderboardPage() {
             </Show>
 
             {/* Control Panel */}
-            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-                        Search & Filter
-                    </h2>
-
-                    <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            <div class="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
+                {/* Header */}
+                <div class="px-6 py-4 bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">Filters</h2>
+                    <div class="flex gap-3 items-center flex-wrap">
                         <Show when={legacyLeaderboard.isAvailable()}>
-                            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-1 flex border border-gray-200 dark:border-gray-600">
+                            <div class="bg-white dark:bg-gray-700/50 rounded-lg p-1 flex border border-gray-300 dark:border-gray-600">
                                 <button
                                     type="button"
                                     onClick={() => setShowLegacy(false)}
-                                    class={`px-4 py-2 rounded-md font-medium transition-all text-sm ${
+                                    class={`px-4 py-1.5 rounded-md font-medium transition-all text-sm ${
                                         !showLegacy()
-                                            ? "bg-blue-600 text-white shadow-sm"
+                                            ? "bg-gray-900 text-white shadow-sm dark:bg-white dark:text-gray-900"
                                             : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                                     }`}
                                 >
@@ -99,9 +97,9 @@ export default function LeaderboardPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowLegacy(true)}
-                                    class={`inline-flex items-center gap-1.5 px-4 py-2 rounded-md font-medium transition-all text-sm ${
+                                    class={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-md font-medium transition-all text-sm ${
                                         showLegacy()
-                                            ? "bg-amber-600 text-white shadow-sm"
+                                            ? "bg-gray-900 text-white shadow-sm dark:bg-white dark:text-gray-900"
                                             : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                                     }`}
                                 >
@@ -110,7 +108,6 @@ export default function LeaderboardPage() {
                                 </button>
                             </div>
                         </Show>
-
                         <button
                             type="button"
                             onClick={activeLeaderboard().refreshLeaderboard}
@@ -122,6 +119,7 @@ export default function LeaderboardPage() {
                     </div>
                 </div>
 
+                <div class="p-6">
                 {/* Legacy Banner */}
                 <Show when={showLegacy()}>
                     <div class="mb-6">
@@ -145,7 +143,7 @@ export default function LeaderboardPage() {
                             placeholder="Search by name or friend code..."
                             value={activeLeaderboard().searchQuery()}
                             onInput={(e) => activeLeaderboard().handleSearchInput(e.target.value)}
-                            class="w-full pl-10 pr-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400"
+                            class="w-full pl-10 pr-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 transition-colors"
                         />
                     </div>
                 </div>
@@ -166,7 +164,7 @@ export default function LeaderboardPage() {
                                 onChange={(e) =>
                                     currentLeaderboard.handleTimePeriodChange(e.target.value)
                                 }
-                                class="w-full px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                class="w-full px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
                             >
                                 <option value="24">Last 24 hours</option>
                                 <option value="week">Last 7 days</option>
@@ -189,7 +187,7 @@ export default function LeaderboardPage() {
                                         val === "" ? null : parseInt(val),
                                     );
                                 }}
-                                class="w-full px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                class="w-full px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
                             >
                                 <option value="">All time</option>
                                 <option value="7">Last 7 days</option>
@@ -211,13 +209,14 @@ export default function LeaderboardPage() {
                             onChange={(e) =>
                                 activeLeaderboard().handlePageSizeChange(parseInt(e.target.value))
                             }
-                            class="w-full px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            class="w-full px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
                         >
                             <option value="10">10 players</option>
                             <option value="25">25 players</option>
                             <option value="50">50 players</option>
                         </select>
                     </div>
+                </div>
                 </div>
             </div>
 
@@ -256,7 +255,7 @@ export default function LeaderboardPage() {
                     !activeLeaderboard().leaderboardQuery.isLoading
                 }
             >
-                <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
                     <LeaderboardTable
                         players={activeLeaderboard().leaderboardQuery.data!.players}
                         showLegacy={showLegacy()}

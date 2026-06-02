@@ -44,7 +44,7 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
         });
 
     return (
-        <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6 space-y-6">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6 space-y-6">
             {/* Header + filters */}
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-2">
@@ -52,7 +52,7 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                 </div>
                 <div class="flex items-center gap-2 flex-wrap justify-end">
                     {/* CC toggle */}
-                    <div class="flex rounded overflow-hidden border border-gray-200 dark:border-gray-600 text-xs">
+                    <div class="flex gap-1 text-xs">
                         {(
                             [
                                 { label: "All", value: undefined },
@@ -63,10 +63,10 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                             <button
                                 type="button"
                                 onClick={() => handleEngineClassChange(opt.value)}
-                                class={`px-3 py-1.5 font-medium transition-colors ${
+                                class={`px-2.5 py-1.5 rounded-lg border-2 font-medium transition-colors ${
                                     engineClassId() === opt.value
-                                        ? "bg-purple-600 text-white"
-                                        : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+                                        ? "bg-gray-900 border-gray-900 text-white dark:bg-white dark:border-white dark:text-gray-900"
+                                        : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500"
                                 }`}
                             >
                                 {opt.label}
@@ -80,10 +80,10 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                 <button
                                     type="button"
                                     onClick={() => handleDaysChange(opt.value)}
-                                    class={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                                    class={`px-2.5 py-1.5 rounded-lg border-2 text-xs font-medium transition-colors ${
                                         days() === opt.value
-                                            ? "bg-blue-600 text-white"
-                                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                            ? "bg-gray-900 border-gray-900 text-white dark:bg-white dark:border-white dark:text-gray-900"
+                                            : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500"
                                     }`}
                                 >
                                     {opt.label}
@@ -131,7 +131,7 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                     </p>
 
                     {/* Summary tiles */}
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
                         <StatTile label="Total Races" value={stats().totalRaces.toLocaleString()} />
                         <StatTile
                             label="Total Frames in 1st"

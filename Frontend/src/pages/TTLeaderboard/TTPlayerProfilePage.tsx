@@ -160,9 +160,9 @@ export default function TTPlayerProfilePage() {
 
                         {/* Submissions Table */}
                         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
-                            <div class="bg-blue-600 px-6 py-4">
-                                <h2 class="text-2xl font-bold text-white">All Submissions</h2>
-                                <p class="text-blue-100 text-sm">
+                            <div class="px-6 py-4 bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">All Submissions</h2>
+                                <p class="text-gray-500 dark:text-white/80 text-sm">
                                     {ttPlayer.computed.totalSubmissions()} submission
                                     {ttPlayer.computed.totalSubmissions() !== 1 ? "s" : ""}
                                 </p>

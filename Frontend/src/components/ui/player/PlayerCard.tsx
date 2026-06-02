@@ -3,6 +3,7 @@ import { Check, CircleQuestionMark, CircleX, Clock, type LucideIcon, TriangleAle
 import { Dynamic } from "solid-js/web";
 import { RoomPlayer } from "../../../types";
 import MiiComponent from "./MiiComponent";
+import Tooltip from "../../common/Tooltip";
 
 interface PlayerCardProps {
     player: RoomPlayer;
@@ -110,41 +111,39 @@ export default function PlayerCard(props: PlayerCardProps) {
                         <span class="text-xs bg-cyan-100 dark:bg-cyan-900/40 border border-cyan-200 dark:border-cyan-800 text-cyan-700 dark:text-cyan-300 px-2 py-0.5 rounded-md font-semibold">
                             BR {props.player.br ?? "??"}
                         </span>
-                        <span
-                            title={natConfig().title}
-                            aria-label={natConfig().title}
-                            class={`inline-flex items-center gap-1 text-xs border px-2 py-0.5 rounded-md font-semibold ${natConfig().classes}`}
-                        >
-                            <Dynamic component={natConfig().icon} size={10} /> NAT
-                        </span>
-                        <Show when={props.showOpenHost}>
+                        <Tooltip text={natConfig().title}>
                             <span
-                                title={
-                                    props.player.isOpenHost
-                                        ? "OpenHost enabled - anyone can add this player's FC and join their rooms immediately."
-                                        : "OpenHost for this player is disabled. Both players will need to add each other to appear online in the friends list."
-                                }
-                                aria-label={
-                                    props.player.isOpenHost
-                                        ? "OpenHost enabled - anyone can add this player's FC and join their rooms immediately."
-                                        : "OpenHost for this player is disabled. Both players will need to add each other to appear online in the friends list."
-                                }
-                                class={`inline-flex items-center gap-1 text-xs border px-2 py-0.5 rounded-md font-semibold ${
-                                    props.player.isOpenHost
-                                        ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300"
-                                        : "bg-red-100 dark:bg-red-900/40 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300"
-                                }`}
+                                class={`inline-flex items-center gap-1 text-xs border px-2 py-0.5 rounded-md font-semibold ${natConfig().classes}`}
                             >
-                                {props.player.isOpenHost ? (
-                                    <>
-                                        <Check size={10} /> OH
-                                    </>
-                                ) : (
-                                    <>
-                                        <X size={10} /> OH
-                                    </>
-                                )}
+                                <Dynamic component={natConfig().icon} size={10} /> NAT
                             </span>
+                        </Tooltip>
+                        <Show when={props.showOpenHost}>
+                            <Tooltip
+                                text={
+                                    props.player.isOpenHost
+                                        ? "OpenHost enabled - anyone can add this player's FC and join their rooms immediately."
+                                        : "OpenHost disabled - both players must add each other to appear online in the friends list."
+                                }
+                            >
+                                <span
+                                    class={`inline-flex items-center gap-1 text-xs border px-2 py-0.5 rounded-md font-semibold ${
+                                        props.player.isOpenHost
+                                            ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300"
+                                            : "bg-red-100 dark:bg-red-900/40 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300"
+                                    }`}
+                                >
+                                    {props.player.isOpenHost ? (
+                                        <>
+                                            <Check size={10} /> OH
+                                        </>
+                                    ) : (
+                                        <>
+                                            <X size={10} /> OH
+                                        </>
+                                    )}
+                                </span>
+                            </Tooltip>
                         </Show>
                     </div>
                 </div>

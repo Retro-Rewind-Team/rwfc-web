@@ -34,14 +34,10 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
     return (
         <div class="overflow-x-auto">
             <table class="w-full table-fixed">
-                <thead
-                    class={props.showLegacy ? "bg-amber-600 text-white" : "bg-blue-600 text-white"}
-                >
+                <thead class="bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
                     <tr>
                         <th
-                            class={`px-6 py-4 text-center cursor-pointer transition-colors ${
-                                props.showLegacy ? "hover:bg-amber-700" : "hover:bg-blue-700"
-                            }`}
+                            class="px-6 py-4 text-center cursor-pointer transition-colors hover:bg-gray-300 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
                             onClick={() => props.onSort("rank")}
                         >
                             <div class="flex items-center justify-center space-x-2">
@@ -55,11 +51,9 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                                 </Show>
                             </div>
                         </th>
-                        <th class="px-6 py-4 text-center font-bold">User</th>
+                        <th class="px-6 py-4 text-center font-bold text-gray-700 dark:text-gray-200">User</th>
                         <th
-                            class={`px-6 py-4 text-center cursor-pointer transition-colors ${
-                                props.showLegacy ? "hover:bg-amber-700" : "hover:bg-blue-700"
-                            }`}
+                            class="px-6 py-4 text-center cursor-pointer transition-colors hover:bg-gray-300 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
                             onClick={() => props.onSort("vr")}
                         >
                             <div class="flex items-center justify-center space-x-2">
@@ -73,13 +67,13 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                                 </Show>
                             </div>
                         </th>
-                        <th class="px-6 py-4 text-center hidden md:table-cell font-bold">
+                        <th class="px-6 py-4 text-center hidden md:table-cell font-bold text-gray-700 dark:text-gray-200">
                             Friend Code
                         </th>
 
                         <Show when={!props.showLegacy}>
                             <th
-                                class="px-6 py-4 text-center cursor-pointer hover:bg-blue-700 transition-colors hidden md:table-cell"
+                                class="px-6 py-4 text-center cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-800 transition-colors hidden md:table-cell text-gray-700 dark:text-gray-200"
                                 onClick={() => props.onSort("lastSeen")}
                             >
                                 <div class="flex items-center justify-center space-x-2">
@@ -95,7 +89,7 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                             </th>
 
                             <th
-                                class="px-6 py-4 text-center cursor-pointer hover:bg-blue-700 transition-colors"
+                                class="px-6 py-4 text-center cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-200"
                                 onClick={() => props.onSort(getVRGainSortField())}
                             >
                                 <div class="flex items-center justify-center space-x-2">

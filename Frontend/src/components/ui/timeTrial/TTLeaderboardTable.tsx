@@ -65,38 +65,36 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
     const primaryTimeDisplay = (submission: GhostSubmission) =>
         props.isFlap ? submission.fastestLapDisplay : submission.finishTimeDisplay;
 
-    const headerColor = () => (props.isFlap ? "bg-orange-500" : "bg-blue-600");
-
     return (
         <div class="overflow-x-auto">
             <table class="w-full">
-                <thead class={`${headerColor()} text-white`}>
+                <thead class="bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
                     <tr>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-200">
                             Rank
                         </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-200">
                             Player
                         </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-200">
                             {props.isFlap ? "Fastest Lap" : "Time"}
                         </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden md:table-cell">
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-200 hidden md:table-cell">
                             {props.isFlap ? "Finish Time" : "Fastest Lap"}
                         </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden lg:table-cell">
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-200 hidden lg:table-cell">
                             Character
                         </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden lg:table-cell">
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-200 hidden lg:table-cell">
                             Vehicle
                         </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-200 hidden xl:table-cell">
                             Controller
                         </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-200 hidden xl:table-cell">
                             Date
                         </th>
-                        <th class="px-2 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
+                        <th class="px-2 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-200">
                             Actions
                         </th>
                     </tr>
@@ -127,7 +125,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                             >
                                                 <div class="flex items-center gap-2">
                                                     <div class="min-w-0">
-                                                        <div class="font-medium text-sm sm:text-base text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                                        <div class="font-medium text-sm sm:text-base text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-300 transition-colors">
                                                             {submission.playerName}
                                                         </div>
                                                         <div class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
@@ -170,12 +168,12 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                 {/* Secondary time inline on mobile */}
                                                 <div class="md:hidden">
                                                     <Show when={props.isFlap}>
-                                                        <span class="font-mono text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                        <span class="font-mono text-xs font-medium text-gray-500 dark:text-gray-400">
                                                             Finish: {submission.finishTimeDisplay}
                                                         </span>
                                                     </Show>
                                                     <Show when={!props.isFlap}>
-                                                        <span class="font-mono text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                        <span class="font-mono text-xs font-medium text-gray-500 dark:text-gray-400">
                                                             FL: {submission.fastestLapDisplay}
                                                         </span>
                                                     </Show>
@@ -192,7 +190,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                         class={`font-mono text-sm font-medium ${
                                                             holdsFLAP
                                                                 ? "text-orange-500 dark:text-orange-400 font-bold"
-                                                                : "text-gray-700 dark:text-gray-300"
+                                                                : "text-gray-300"
                                                         }`}
                                                     >
                                                         {submission.finishTimeDisplay}
@@ -206,7 +204,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                             </Show>
                                             <Show when={!props.isFlap}>
                                                 {/* In regular mode: just show fastest lap, no badge */}
-                                                <span class="font-mono text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                <span class="font-mono text-sm font-medium text-gray-600 dark:text-gray-300">
                                                     {submission.fastestLapDisplay}
                                                 </span>
                                             </Show>
@@ -240,7 +238,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                         </td>
 
                                         {/* Date */}
-                                        <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden xl:table-cell">
+                                        <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-400 hidden xl:table-cell">
                                             {formatDate(submission.dateSet)}
                                         </td>
 
@@ -250,7 +248,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                 <button
                                                     type="button"
                                                     onClick={() => toggleRow(submission.id)}
-                                                    class="inline-flex items-center p-2 sm:px-3 sm:py-1.5 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                                    class="inline-flex items-center p-2 sm:px-3 sm:py-1.5 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded-md text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                                                     aria-label="Toggle details"
                                                 >
                                                     <ChevronDown
@@ -275,7 +273,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
 
                                     {/* Expanded Row */}
                                     <Show when={isExpanded()}>
-                                        <tr class="bg-gray-50 dark:bg-gray-800/50">
+                                        <tr class="bg-gray-50 dark:bg-gray-700/50">
                                             <td colspan="9" class="px-3 sm:px-6 py-4">
                                                 <div class="max-w-2xl">
                                                     <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
@@ -302,7 +300,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                                         );
                                                                     return (
                                                                         <div class="flex items-center justify-between">
-                                                                            <span class="text-sm text-gray-600 dark:text-gray-400">
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">
                                                                                 Lap {lap.index + 1}
                                                                             </span>
                                                                             <div class="flex items-center gap-2">
@@ -312,7 +310,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                                                             ? "text-green-600 dark:text-green-400 font-black"
                                                                                             : isFastestInRun
                                                                                               ? "text-blue-600 dark:text-blue-400 font-bold"
-                                                                                              : "text-gray-700 dark:text-gray-300 font-medium"
+                                                                                              : "text-gray-600 dark:text-gray-300 font-medium"
                                                                                     }`}
                                                                                 >
                                                                                     {lap.time}
@@ -345,7 +343,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                         <div class="space-y-2">
                                                             <div class="space-y-1 text-sm">
                                                                 <div class="flex justify-between">
-                                                                    <span class="text-gray-600 dark:text-gray-400">
+                                                                    <span class="text-gray-500 dark:text-gray-400">
                                                                         Total Laps:
                                                                     </span>
                                                                     <span class="font-medium text-gray-900 dark:text-white">
@@ -353,7 +351,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                                     </span>
                                                                 </div>
                                                                 <div class="flex justify-between">
-                                                                    <span class="text-gray-600 dark:text-gray-400">
+                                                                    <span class="text-gray-500 dark:text-gray-400">
                                                                         Average Lap:
                                                                     </span>
                                                                     <span class="font-mono font-medium text-gray-900 dark:text-white">
@@ -387,7 +385,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                                     </span>
                                                                 </div>
                                                                 <div class="flex justify-between">
-                                                                    <span class="text-gray-600 dark:text-gray-400">
+                                                                    <span class="text-gray-500 dark:text-gray-400">
                                                                         Fastest Lap:
                                                                     </span>
                                                                     <span class="font-mono font-medium text-green-600 dark:text-green-400">
@@ -398,7 +396,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                                 </div>
                                                                 <Show when={props.isFlap}>
                                                                     <div class="flex justify-between">
-                                                                        <span class="text-gray-600 dark:text-gray-400">
+                                                                        <span class="text-gray-500 dark:text-gray-400">
                                                                             Finish Time:
                                                                         </span>
                                                                         <span class="font-mono font-medium text-gray-900 dark:text-white">
@@ -411,7 +409,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                             </div>
                                                             <div class="lg:hidden pt-2 mt-2 border-t border-gray-200 dark:border-gray-600 space-y-1 text-sm">
                                                                 <div class="flex justify-between">
-                                                                    <span class="text-gray-600 dark:text-gray-400">
+                                                                    <span class="text-gray-500 dark:text-gray-400">
                                                                         Character:
                                                                     </span>
                                                                     <span class="font-medium text-gray-900 dark:text-white">
@@ -421,7 +419,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                                     </span>
                                                                 </div>
                                                                 <div class="flex justify-between">
-                                                                    <span class="text-gray-600 dark:text-gray-400">
+                                                                    <span class="text-gray-500 dark:text-gray-400">
                                                                         Vehicle:
                                                                     </span>
                                                                     <span class="font-medium text-gray-900 dark:text-white">
@@ -431,7 +429,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                                     </span>
                                                                 </div>
                                                                 <div class="flex justify-between">
-                                                                    <span class="text-gray-600 dark:text-gray-400">
+                                                                    <span class="text-gray-500 dark:text-gray-400">
                                                                         Drift:
                                                                     </span>
                                                                     <span class="font-medium text-gray-900 dark:text-white">
@@ -442,7 +440,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                                     </span>
                                                                 </div>
                                                                 <div class="xl:hidden flex justify-between">
-                                                                    <span class="text-gray-600 dark:text-gray-400">
+                                                                    <span class="text-gray-500 dark:text-gray-400">
                                                                         Controller:
                                                                     </span>
                                                                     <span class="font-medium text-gray-900 dark:text-white">
@@ -452,7 +450,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                                     </span>
                                                                 </div>
                                                                 <div class="xl:hidden flex justify-between">
-                                                                    <span class="text-gray-600 dark:text-gray-400">
+                                                                    <span class="text-gray-500 dark:text-gray-400">
                                                                         Date Set:
                                                                     </span>
                                                                     <span class="font-medium text-gray-900 dark:text-white">

@@ -59,7 +59,7 @@ export default function TTFilters(props: TTFiltersProps) {
                         )}
                         class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
                             props.currentCC === 150
-                                ? "bg-green-600 text-white shadow-sm"
+                                ? "bg-blue-600 text-white shadow-sm"
                                 : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                         }`}
                     >
@@ -74,7 +74,7 @@ export default function TTFilters(props: TTFiltersProps) {
                         )}
                         class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
                             props.currentCC === 200
-                                ? "bg-sky-600 text-white shadow-sm"
+                                ? "bg-blue-600 text-white shadow-sm"
                                 : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                         }`}
                     >
@@ -114,7 +114,7 @@ export default function TTFilters(props: TTFiltersProps) {
                             )}
                             class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
                                 !props.currentGlitchAllowed
-                                    ? "bg-green-600 text-white shadow-sm"
+                                    ? "bg-blue-600 text-white shadow-sm"
                                     : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                             }`}
                         >
@@ -155,7 +155,7 @@ export default function TTFilters(props: TTFiltersProps) {
                             )}
                             class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm inline-flex items-center justify-center gap-1 ${
                                 props.currentMode === "flap"
-                                    ? "bg-orange-500 text-white shadow-sm"
+                                    ? "bg-blue-600 text-white shadow-sm"
                                     : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                             }`}
                         >
@@ -191,7 +191,7 @@ export default function TTFilters(props: TTFiltersProps) {
                     <ToggleGroup<ShroomlessFilter>
                         value={props.shroomlessFilter}
                         onChange={props.onShroomlessFilterChange}
-                        activeClass="bg-amber-600"
+                        activeClass="bg-blue-600"
                         options={[
                             { value: "all", label: "All" },
                             { value: "only", label: "Only" },
@@ -208,7 +208,7 @@ export default function TTFilters(props: TTFiltersProps) {
                     <ToggleGroup<DriftFilter>
                         value={props.driftFilter}
                         onChange={props.onDriftFilterChange}
-                        activeClass="bg-purple-600"
+                        activeClass="bg-blue-600"
                         options={[
                             { value: "all", label: "All" },
                             { value: "manual", label: "Manual" },
@@ -225,7 +225,7 @@ export default function TTFilters(props: TTFiltersProps) {
                     <ToggleGroup<DriftCategoryFilter>
                         value={props.driftCategoryFilter}
                         onChange={props.onDriftCategoryFilterChange}
-                        activeClass="bg-indigo-600"
+                        activeClass="bg-blue-600"
                         options={[
                             { value: "all", label: "All" },
                             { value: "inside", label: "Inside" },

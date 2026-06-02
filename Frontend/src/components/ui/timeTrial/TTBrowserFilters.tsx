@@ -29,12 +29,12 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* Header */}
             <div
-                class={`px-4 sm:px-6 py-4 ${!props.glitchAllowed ? "bg-gradient-to-r from-green-600 to-emerald-600" : "bg-blue-600"}`}
+                class="px-4 sm:px-6 py-4 bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800"
             >
                 <div class="flex items-center gap-3">
                     <div>
-                        <h2 class="text-xl sm:text-2xl font-bold text-white">Browse Tracks</h2>
-                        <p class="text-blue-100 text-xs sm:text-sm">
+                        <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Browse Tracks</h2>
+                        <p class="text-gray-600 dark:text-white/80 text-xs sm:text-sm">
                             {props.selectedCC}cc •{" "}
                             {!props.glitchAllowed ? "Non-Glitch/Shortcut" : "Unrestricted"} •{" "}
                             {props.vehicleFilter !== "all"
@@ -79,8 +79,8 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                             value={ccValue()}
                             onChange={(v) => props.onCCChange(Number(v) as 150 | 200)}
                             options={[
-                                { value: "150", label: "150cc", activeClass: "bg-green-600" },
-                                { value: "200", label: "200cc", activeClass: "bg-sky-600" },
+                                { value: "150", label: "150cc" },
+                                { value: "200", label: "200cc" },
                             ]}
                         />
                     </div>
@@ -98,7 +98,6 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                                 {
                                     value: "no-glitch",
                                     label: "No Glitch",
-                                    activeClass: "bg-green-600",
                                 },
                             ]}
                         />
@@ -128,7 +127,6 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                         <ToggleGroup<ShroomlessFilter>
                             value={props.shroomlessFilter}
                             onChange={props.onShroomlessFilterChange}
-                            activeClass="bg-amber-600"
                             options={[
                                 { value: "all", label: "All" },
                                 { value: "only", label: "Only" },

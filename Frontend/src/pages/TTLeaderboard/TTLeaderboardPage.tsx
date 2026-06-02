@@ -22,8 +22,6 @@ export default function TTLeaderboardPage() {
             : `/timetrial/no-glitch-${cc}cc/${trackId}`;
     };
 
-    const headerColor = () => (!browser.glitchAllowed() ? "bg-green-600" : "bg-blue-600");
-
     return (
         <div class="space-y-8">
             {/* Page Title */}
@@ -113,13 +111,13 @@ export default function TTLeaderboardPage() {
                 }
             >
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <div class={`px-4 sm:px-6 py-4 ${headerColor()}`}>
-                        <h2 class="text-xl sm:text-2xl font-bold text-white">
+                    <div class="px-4 sm:px-6 py-4 bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+                        <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                             {browser.selectedCategory() === "retro"
                                 ? "Retro Tracks"
                                 : "Custom Tracks"}
                         </h2>
-                        <p class="text-white/80 text-xs sm:text-sm">
+                        <p class="text-gray-500 dark:text-white/80 text-xs sm:text-sm">
                             {browser.filteredTracks().length} track
                             {browser.filteredTracks().length !== 1 ? "s" : ""} •{" "}
                             {browser.selectedCC()}cc •{" "}
@@ -155,16 +153,16 @@ export default function TTLeaderboardPage() {
                     >
                         <div class="overflow-x-auto">
                             <table class="w-full">
-                                <thead class={`text-white ${headerColor()}`}>
+                                <thead class="bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
                                     <tr>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-200">
                                             Track
                                         </th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-200">
                                             <span class="hidden sm:inline">World Record</span>
                                             <span class="sm:hidden">WR</span>
                                         </th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-200">
                                             <span class="hidden sm:inline">Record Holder</span>
                                             <span class="sm:hidden">Holder</span>
                                         </th>

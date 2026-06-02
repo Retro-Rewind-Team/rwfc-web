@@ -1,10 +1,10 @@
 import { A } from "@solidjs/router";
-import { createMemo, createSignal, For, type JSX, Show } from "solid-js";
+import { createMemo, createSignal, For, Show } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { Calendar, ChartBarBig, Clock, Gamepad2, Map, Trophy, Users } from "lucide-solid";
 import { useGlobalRaceStats } from "../../hooks/useGlobalRaceStats";
 import { GlobalRaceStats, SetupEntry } from "../../types/raceStats";
-import { LoadingSpinner } from "../../components/common";
+import { LoadingSpinner, StatCard, Tooltip } from "../../components/common";
 import { timeTrialApi } from "../../services/api";
 import { queryKeys } from "../../constants/queryKeys";
 
@@ -70,40 +70,39 @@ export default function RaceStatsPage() {
     );
 
     return (
-        <div class="space-y-6">
-            {/* Page Title */}
+        <div class="space-y-8">
             <div class="pb-6 border-b border-gray-200 dark:border-gray-700">
-                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                    Race Statistics
-                </h1>
-                <p class="text-xl text-gray-600 dark:text-gray-400">
-                    Global race data across all Retro Rewind tracks and players
-                </p>
-                <Show when={globalStatsQuery.data}>
-                    <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm">
-                        Tracked since {new Date(stats().trackedSince).toLocaleDateString("nl-NL")}
-                    </p>
-                </Show>
-            </div>
-
-            {/* Time filter */}
-            <div class="flex justify-end">
-                <div class="flex items-center gap-1 shrink-0">
-                    <For each={DAY_OPTIONS}>
-                        {(opt) => (
-                            <button
-                                type="button"
-                                onClick={() => handleDaysChange(opt.value)}
-                                class={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                                    days() === opt.value
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                                }`}
-                            >
-                                {opt.label}
-                            </button>
-                        )}
-                    </For>
+                <div class="flex items-start justify-between flex-wrap gap-4">
+                    <div>
+                        <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+                            Race Statistics
+                        </h1>
+                        <p class="text-lg text-gray-600 dark:text-gray-400">
+                            Global race data across all Retro Rewind tracks and players
+                        </p>
+                        <Show when={globalStatsQuery.data}>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                Tracked since {new Date(stats().trackedSince).toLocaleDateString("nl-NL")}
+                            </p>
+                        </Show>
+                    </div>
+                    <div class="flex items-center gap-1 flex-shrink-0 pt-1">
+                        <For each={DAY_OPTIONS}>
+                            {(opt) => (
+                                <button
+                                    type="button"
+                                    onClick={() => handleDaysChange(opt.value)}
+                                    class={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                                        days() === opt.value
+                                            ? "bg-blue-600 text-white"
+                                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                    }`}
+                                >
+                                    {opt.label}
+                                </button>
+                            )}
+                        </For>
+                    </div>
                 </div>
             </div>
 
@@ -118,28 +117,28 @@ export default function RaceStatsPage() {
             <Show when={globalStatsQuery.data}>
                 {/* Overview tiles */}
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <StatTile
+                    <StatCard
                         label="Total Races Tracked"
                         value={stats().totalRacesTracked.toLocaleString()}
+                        colorScheme="blue"
                         icon={<ChartBarBig size={24} />}
-                        iconColor="text-blue-500 dark:text-blue-400"
                     />
-                    <StatTile
+                    <StatCard
                         label="Unique Players"
                         value={stats().uniquePlayersCount.toLocaleString()}
+                        colorScheme="emerald"
                         icon={<Users size={24} />}
-                        iconColor="text-emerald-500 dark:text-emerald-400"
                     />
-                    <StatTile
+                    <StatCard
                         label="Tracks Played"
                         value={stats().allPlayedTracks.length.toLocaleString()}
+                        colorScheme="purple"
                         icon={<Map size={24} />}
-                        iconColor="text-purple-500 dark:text-purple-400"
                     />
                 </div>
 
                 {/* Most popular setup */}
-                <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6">
                     <div class="flex items-center gap-2 mb-4">
                         <Gamepad2 size={20} class="text-blue-500 dark:text-blue-400" />
                         <h2 class="text-xl font-bold text-gray-900 dark:text-white">
@@ -156,14 +155,14 @@ export default function RaceStatsPage() {
                 {/* Most active players + track table */}
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Most active players */}
-                    <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6">
                         <div class="flex items-center gap-2 mb-4">
                             <Trophy size={20} class="text-amber-500 dark:text-amber-400" />
                             <h2 class="text-xl font-bold text-gray-900 dark:text-white">
                                 Most Active Players
                             </h2>
                         </div>
-                        <div class="space-y-2">
+                        <div class="space-y-3">
                             <For each={stats().mostActivePlayers}>
                                 {(player, i) => (
                                     <div class="flex items-center justify-between py-1">
@@ -197,7 +196,7 @@ export default function RaceStatsPage() {
                     </div>
 
                     {/* Track play counts */}
-                    <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
+                    <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                             <div class="flex items-center gap-2">
                                 <Map size={20} class="text-purple-500 dark:text-purple-400" />
@@ -207,7 +206,7 @@ export default function RaceStatsPage() {
                             </div>
                             <div class="flex items-center gap-2 flex-wrap">
                                 {/* Category toggle */}
-                                <div class="flex rounded overflow-hidden border border-gray-200 dark:border-gray-600 text-xs">
+                                <div class="flex gap-1 text-xs">
                                     {(
                                         [
                                             { label: "All", value: "all" },
@@ -218,10 +217,10 @@ export default function RaceStatsPage() {
                                         <button
                                             type="button"
                                             onClick={() => setTrackCategory(opt.value)}
-                                            class={`px-3 py-1.5 font-medium transition-colors ${
+                                            class={`px-3 py-1.5 rounded-lg border-2 font-medium transition-colors ${
                                                 trackCategory() === opt.value
-                                                    ? "bg-purple-600 text-white"
-                                                    : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+                                                    ? "bg-gray-900 border-gray-900 text-white hover:bg-gray-800 hover:border-gray-800 dark:bg-white dark:border-white dark:text-gray-900 dark:hover:bg-gray-100 dark:hover:border-gray-100"
+                                                    : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500"
                                             }`}
                                         >
                                             {opt.label}
@@ -230,14 +229,14 @@ export default function RaceStatsPage() {
                                 </div>
 
                                 {/* Sort toggle */}
-                                <div class="flex rounded overflow-hidden border border-gray-200 dark:border-gray-600 text-xs">
+                                <div class="flex gap-1 text-xs">
                                     <button
                                         type="button"
                                         onClick={() => setTrackSort("plays")}
-                                        class={`px-3 py-1.5 font-medium transition-colors ${
+                                        class={`px-3 py-1.5 rounded-lg border-2 font-medium transition-colors ${
                                             trackSort() === "plays"
-                                                ? "bg-blue-600 text-white"
-                                                : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+                                                ? "bg-gray-900 border-gray-900 text-white hover:bg-gray-800 hover:border-gray-800 dark:bg-white dark:border-white dark:text-gray-900 dark:hover:bg-gray-100 dark:hover:border-gray-100"
+                                                : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500"
                                         }`}
                                     >
                                         By plays
@@ -245,10 +244,10 @@ export default function RaceStatsPage() {
                                     <button
                                         type="button"
                                         onClick={() => setTrackSort("name")}
-                                        class={`px-3 py-1.5 font-medium transition-colors ${
+                                        class={`px-3 py-1.5 rounded-lg border-2 font-medium transition-colors ${
                                             trackSort() === "name"
-                                                ? "bg-blue-600 text-white"
-                                                : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+                                                ? "bg-gray-900 border-gray-900 text-white hover:bg-gray-800 hover:border-gray-800 dark:bg-white dark:border-white dark:text-gray-900 dark:hover:bg-gray-100 dark:hover:border-gray-100"
+                                                : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500"
                                         }`}
                                     >
                                         A-Z
@@ -260,12 +259,12 @@ export default function RaceStatsPage() {
                                     placeholder="Search tracks..."
                                     value={trackSearch()}
                                     onInput={(e) => setTrackSearch(e.currentTarget.value)}
-                                    class="text-sm px-3 py-1.5 border border-gray-200 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-36"
+                                    class="text-sm px-3 py-1.5 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors w-36"
                                 />
                             </div>
                         </div>
 
-                        <div class="overflow-y-auto max-h-80">
+                        <div class="overflow-y-auto max-h-80 overscroll-contain">
                             <table class="w-full text-sm">
                                 <thead class="sticky top-0 bg-white dark:bg-gray-800">
                                     <tr class="text-left text-xs text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-gray-700">
@@ -304,14 +303,14 @@ export default function RaceStatsPage() {
                 {/* Activity charts */}
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* By day of week */}
-                    <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6">
                         <div class="flex items-center gap-2 mb-4">
                             <Calendar size={20} class="text-emerald-500 dark:text-emerald-400" />
                             <h2 class="text-xl font-bold text-gray-900 dark:text-white">
                                 Races by Day of Week
                             </h2>
                         </div>
-                        <div class="space-y-2">
+                        <div class="space-y-3">
                             <For each={stats().racesByDayOfWeek}>
                                 {(day) => (
                                     <div class="flex items-center gap-3">
@@ -336,7 +335,7 @@ export default function RaceStatsPage() {
                     </div>
 
                     {/* By hour */}
-                    <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6">
                         <div class="flex items-center gap-2 mb-4">
                             <Clock size={20} class="text-orange-500 dark:text-orange-400" />
                             <h2 class="text-xl font-bold text-gray-900 dark:text-white">
@@ -347,13 +346,17 @@ export default function RaceStatsPage() {
                             <div class="absolute inset-0 flex items-end gap-px">
                                 <For each={stats().racesByHour}>
                                     {(hour) => (
-                                        <div
-                                            class="flex-1 bg-blue-500 dark:bg-blue-600 rounded-t hover:bg-blue-400 dark:hover:bg-blue-500 transition-colors cursor-default"
-                                            style={{
-                                                height: `${Math.max(2, Math.round((hour.raceCount / maxHourCount()) * 100))}%`,
-                                            }}
-                                            title={`${String(hour.hour).padStart(2, "0")}:00 - ${hour.raceCount.toLocaleString()} races`}
-                                        />
+                                        <Tooltip
+                                            text={`${String(hour.hour).padStart(2, "0")}:00 - ${hour.raceCount.toLocaleString()} races`}
+                                            class="flex-1"
+                                        >
+                                            <div
+                                                class="w-full bg-blue-500 dark:bg-blue-600 rounded-t hover:bg-blue-400 dark:hover:bg-blue-500 transition-colors cursor-default"
+                                                style={{
+                                                    height: `${Math.max(2, Math.round((hour.raceCount / maxHourCount()) * 100))}%`,
+                                                }}
+                                            />
+                                        </Tooltip>
                                     )}
                                 </For>
                             </div>
@@ -384,7 +387,7 @@ function SetupColumn(props: { title: string; entries: SetupEntry[] }) {
             <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
                 {props.title}
             </h3>
-            <div class="space-y-2">
+            <div class="space-y-3">
                 <For each={props.entries}>
                     {(entry, i) => (
                         <div class="flex items-start gap-2">
@@ -402,18 +405,6 @@ function SetupColumn(props: { title: string; entries: SetupEntry[] }) {
                         </div>
                     )}
                 </For>
-            </div>
-        </div>
-    );
-}
-
-function StatTile(props: { label: string; value: string; icon: JSX.Element; iconColor: string }) {
-    return (
-        <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-5 flex items-center gap-4">
-            <div class={`shrink-0 ${props.iconColor}`}>{props.icon}</div>
-            <div>
-                <div class="text-2xl font-bold text-gray-900 dark:text-white">{props.value}</div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">{props.label}</div>
             </div>
         </div>
     );
