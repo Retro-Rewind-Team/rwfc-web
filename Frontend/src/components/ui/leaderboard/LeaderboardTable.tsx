@@ -7,6 +7,7 @@ import PlayerBadges from "../player/PlayerBadges";
 import VRTierNumberPlate from "../vrTier/VRTierNumberplate";
 import { ArrowDown, ArrowUp } from "lucide-solid/icons/index";
 import TriangleAlert from "lucide-solid/icons/triangle-alert";
+import Tooltip from "../../common/Tooltip";
 
 interface LeaderboardTableProps {
     players: Player[];
@@ -160,10 +161,12 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
 
                                                 <div class="hidden sm:flex flex-wrap gap-2 mt-1 justify-center sm:justify-start">
                                                     <Show when={player.isSuspicious}>
-                                                        <span class="inline-flex items-center gap-1 text-xs bg-red-200 dark:bg-red-800 text-red-600 dark:text-red-400 px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap">
-                                                            <TriangleAlert size={12} />
-                                                            Suspicious
-                                                        </span>
+                                                        <Tooltip text="This player has been flagged for suspicious VR activity">
+                                                            <span class="inline-flex items-center gap-1 text-xs bg-red-200 dark:bg-red-800 text-red-600 dark:text-red-400 px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap cursor-help">
+                                                                <TriangleAlert size={12} />
+                                                                Suspicious
+                                                            </span>
+                                                        </Tooltip>
                                                     </Show>
 
                                                     {/*Player Badges */}

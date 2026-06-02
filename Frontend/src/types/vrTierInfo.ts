@@ -7,7 +7,6 @@ export interface VRTierInfo {
     icon: LucideIcon;
     iconColor: string;
     label: string;
-    description: string;
     minVR: number;
     maxVR: number | null;
 }

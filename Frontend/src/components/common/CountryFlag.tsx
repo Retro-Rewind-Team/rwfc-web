@@ -1,4 +1,5 @@
 import { Show } from "solid-js";
+import Tooltip from "./Tooltip";
 
 interface CountryFlagProps {
     countryAlpha2: string | null | undefined;
@@ -20,10 +21,11 @@ export default function CountryFlag(props: CountryFlagProps) {
 
     return (
         <Show when={props.countryAlpha2}>
-            <span
-                class={`fi fi-${props.countryAlpha2?.toLowerCase()} ${sizeClasses()} inline-block rounded shadow-sm`}
-                title={props.countryName || props.countryAlpha2?.toUpperCase()}
-            />
+            <Tooltip text={props.countryName || props.countryAlpha2?.toUpperCase() || ""}>
+                <span
+                    class={`fi fi-${props.countryAlpha2?.toLowerCase()} ${sizeClasses()} inline-block rounded shadow-sm`}
+                />
+            </Tooltip>
         </Show>
     );
 }

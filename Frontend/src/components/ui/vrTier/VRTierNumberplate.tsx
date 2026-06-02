@@ -6,6 +6,7 @@ import {
 } from "../../../utils/vrTierHelpers";
 import { VR_TIER_STYLES } from "../../../utils/vrTiers";
 import { VR_TIER_SIZES, type VRTierSize } from "../../../utils/constants";
+import Tooltip from "../../common/Tooltip";
 
 interface VRTierNumberPlateProps {
     rank: number;
@@ -46,7 +47,7 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
 
         if (isTopThree()) {
             gradient = getSpecialTopThreeGradient(props.rank);
-        } else if (["master", "celestial", "mythic", "transcendent", "god"].includes(tier().tier)) {
+        } else if (["legend", "master", "mythic", "god"].includes(tier().tier)) {
             gradient = getMaximumTierGradient();
         }
 
@@ -85,12 +86,13 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
         return `${baseText} drop-shadow-md`;
     };
 
-    const titlePrefix = isTopThree() ? `#${props.rank} Overall - ` : "";
+    const tooltipText = () =>
+        `${isTopThree() ? `#${props.rank} Overall - ` : ""}${tier().label} Tier (${props.vr.toLocaleString()} VR)`;
 
     return (
+        <Tooltip text={tooltipText()} class={props.className}>
         <div
-            class={`inline-block ${props.className || ""}`}
-            title={`${titlePrefix}${tier().label} Tier (${props.vr.toLocaleString()} VR)`}
+            class="inline-block"
         >
             <div class={`${plateClasses()} ${borderColor()}`}>
                 <div class="absolute inset-1 border border-white/20 rounded-md pointer-events-none"></div>
@@ -119,7 +121,7 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
                 <Show
                     when={
                         isTopThree() ||
-                        ["master", "celestial", "mythic", "transcendent", "god"].includes(
+                        ["legend", "master", "mythic", "god"].includes(
                             tier().tier,
                         )
                     }
@@ -128,5 +130,6 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
                 </Show>
             </div>
         </div>
+        </Tooltip>
     );
 }

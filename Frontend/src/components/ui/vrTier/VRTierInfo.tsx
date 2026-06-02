@@ -31,16 +31,12 @@ export default function VRTierInfo(props: Readonly<VRTierInfoProps>) {
         switch (next.tier) {
             case "god":
                 return "bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500";
-            case "transcendent":
-                return "bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-500";
             case "mythic":
                 return "bg-gradient-to-r from-violet-400 via-purple-500 to-fuchsia-500";
-            case "celestial":
-                return "bg-gradient-to-r from-sky-400 via-indigo-500 to-violet-500";
-            case "master":
-                return "bg-gradient-to-r from-purple-500 via-blue-500 to-green-500";
             case "legend":
                 return "bg-gradient-to-r from-amber-400 to-yellow-500";
+            case "master":
+                return "bg-gradient-to-r from-purple-500 via-blue-500 to-green-500";
             case "elite":
                 return "bg-gradient-to-r from-purple-400 to-pink-500";
             case "veteran":
@@ -66,9 +62,6 @@ export default function VRTierInfo(props: Readonly<VRTierInfoProps>) {
                 <div>
                     <div class="font-semibold text-gray-900 dark:text-white">
                         {currentTier().label} Tier
-                    </div>
-                    <div class="text-sm text-gray-600 dark:text-gray-400">
-                        {currentTier().description}
                     </div>
                 </div>
             </div>

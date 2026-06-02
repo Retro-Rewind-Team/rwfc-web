@@ -13,7 +13,7 @@ import {
     VRTierInfo,
     VRTierNumberPlate,
 } from "../../components/ui";
-import { LoadingSpinner } from "../../components/common";
+import { LoadingSpinner, Tooltip } from "../../components/common";
 
 export default function PlayerDetailPage() {
     const params = useParams();
@@ -142,10 +142,12 @@ export default function PlayerDetailPage() {
                                                 {player().name}
                                             </h1>
                                             <Show when={player().isSuspicious}>
-                                                <span class="inline-flex items-center gap-1.5 bg-red-200 dark:bg-red-900 text-red-600 dark:text-red-300 px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
-                                                    <TriangleAlert size={14} />
-                                                    Suspicious
-                                                </span>
+                                                <Tooltip text="This player has been flagged for suspicious VR activity">
+                                                    <span class="inline-flex items-center gap-1.5 bg-red-200 dark:bg-red-900 text-red-600 dark:text-red-300 px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap cursor-help">
+                                                        <TriangleAlert size={14} />
+                                                        Suspicious
+                                                    </span>
+                                                </Tooltip>
                                             </Show>
                                         </div>
                                         <div class="mb-3">
@@ -205,18 +207,19 @@ export default function PlayerDetailPage() {
                         </div>
 
                         {/* VR Tier Progress */}
-                        <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6">
-                            <div class="flex items-center gap-2 mb-4">
-                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-                                    VR Tier Progress
-                                </h2>
+                        <Show when={!player().isSuspicious}>
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                                        VR Tier Progress
+                                    </h2>
+                                </div>
+                                <VRTierInfo
+                                    vr={player().vr}
+                                    showProgress={true}
+                                />
                             </div>
-                            <VRTierInfo
-                                vr={player().vr}
-                                isSuspicious={player().isSuspicious}
-                                showProgress={true}
-                            />
-                        </div>
+                        </Show>
 
                         {/* VR Stats Cards */}
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
