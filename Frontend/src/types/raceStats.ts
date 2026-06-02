@@ -22,6 +22,13 @@ export interface SetupEntry {
     raceCount: number;
 }
 
+export interface SetupWinRateEntry {
+    name: string;
+    raceCount: number;
+    winCount: number;
+    winRate: number; // percentage, e.g. 34.2 means 34.2%
+}
+
 export interface PlayerRaceStats {
     totalRaces: number;
     trackedSince: string;
@@ -36,6 +43,12 @@ export interface PlayerRaceStats {
     pageSize: number;
     totalPages: number;
     totalRecentRaces: number;
+    topCharactersByWinRate: SetupWinRateEntry[];
+    topVehiclesByWinRate: SetupWinRateEntry[];
+    topCombosByWinRate: SetupWinRateEntry[];
+    topCharactersByWinCount: SetupWinRateEntry[];
+    topVehiclesByWinCount: SetupWinRateEntry[];
+    topCombosByWinCount: SetupWinRateEntry[];
 }
 
 export interface ActivePlayer {
@@ -66,6 +79,12 @@ export interface GlobalRaceStats {
     mostActivePlayers: ActivePlayer[];
     racesByDayOfWeek: DayActivity[];
     racesByHour: HourActivity[];
+    topCharactersByWinRate: SetupWinRateEntry[];
+    topVehiclesByWinRate: SetupWinRateEntry[];
+    topCombosByWinRate: SetupWinRateEntry[];
+    topCharactersByWinCount: SetupWinRateEntry[];
+    topVehiclesByWinCount: SetupWinRateEntry[];
+    topCombosByWinCount: SetupWinRateEntry[];
 }
 
 export interface PositionCount {

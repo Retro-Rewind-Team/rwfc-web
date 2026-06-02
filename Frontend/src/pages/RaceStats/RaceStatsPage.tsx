@@ -3,8 +3,9 @@ import { createMemo, createSignal, For, Show } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { Calendar, ChartBarBig, Clock, Gamepad2, Map, Trophy, Users } from "lucide-solid";
 import { useGlobalRaceStats } from "../../hooks/useGlobalRaceStats";
-import { GlobalRaceStats, SetupEntry } from "../../types/raceStats";
+import { GlobalRaceStats } from "../../types/raceStats";
 import { LoadingSpinner, StatCard, Tooltip } from "../../components/common";
+import { SetupColumn } from "../../components/ui/leaderboard";
 import { timeTrialApi } from "../../services/api";
 import { queryKeys } from "../../constants/queryKeys";
 
@@ -22,6 +23,7 @@ export default function RaceStatsPage() {
     const [trackSearch, setTrackSearch] = createSignal("");
     const [trackSort, setTrackSort] = createSignal<"plays" | "name">("plays");
     const [trackCategory, setTrackCategory] = createSignal<"all" | "retro" | "custom">("all");
+    const [setupMode, setSetupMode] = createSignal<"usage" | "winrate" | "wincount">("usage");
 
     const tracksQuery = useQuery(() => ({
         queryKey: queryKeys.ttTracks,
@@ -139,16 +141,71 @@ export default function RaceStatsPage() {
 
                 {/* Most popular setup */}
                 <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6">
-                    <div class="flex items-center gap-2 mb-4">
-                        <Gamepad2 size={20} class="text-blue-500 dark:text-blue-400" />
-                        <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-                            Most Popular Setup
-                        </h2>
+                    <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+                        <div class="flex items-center gap-2">
+                            <Gamepad2 size={20} class="text-blue-500 dark:text-blue-400" />
+                            <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                                Most Popular Setup
+                            </h2>
+                        </div>
+                        <div class="flex gap-1">
+                            <button
+                                type="button"
+                                onClick={() => setSetupMode("usage")}
+                                class={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                                    setupMode() === "usage"
+                                        ? "bg-blue-600 text-white"
+                                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                }`}
+                            >
+                                Most Used
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setSetupMode("winrate")}
+                                class={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                                    setupMode() === "winrate"
+                                        ? "bg-blue-600 text-white"
+                                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                }`}
+                            >
+                                Win Rate
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setSetupMode("wincount")}
+                                class={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                                    setupMode() === "wincount"
+                                        ? "bg-blue-600 text-white"
+                                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                }`}
+                            >
+                                Total Wins
+                            </button>
+                        </div>
                     </div>
                     <div class="grid grid-cols-3 gap-6">
-                        <SetupColumn title="Characters" entries={stats().topCharacters} />
-                        <SetupColumn title="Vehicles" entries={stats().topVehicles} />
-                        <SetupColumn title="Combos" entries={stats().topCombos} />
+                        <SetupColumn
+                            title="Characters"
+                            mode={setupMode()}
+                            usageEntries={stats().topCharacters}
+                            winRateEntries={stats().topCharactersByWinRate}
+                            winCountEntries={stats().topCharactersByWinCount}
+                        />
+                        <SetupColumn
+                            title="Vehicles"
+                            mode={setupMode()}
+                            usageEntries={stats().topVehicles}
+                            winRateEntries={stats().topVehiclesByWinRate}
+                            winCountEntries={stats().topVehiclesByWinCount}
+                        />
+                        <SetupColumn
+                            title="Combos"
+                            mode={setupMode()}
+                            usageEntries={stats().topCombos}
+                            winRateEntries={stats().topCombosByWinRate}
+                            winCountEntries={stats().topCombosByWinCount}
+                        />
                     </div>
                 </div>
 
@@ -377,35 +434,6 @@ export default function RaceStatsPage() {
                     </div>
                 </div>
             </Show>
-        </div>
-    );
-}
-
-function SetupColumn(props: { title: string; entries: SetupEntry[] }) {
-    return (
-        <div>
-            <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
-                {props.title}
-            </h3>
-            <div class="space-y-3">
-                <For each={props.entries}>
-                    {(entry, i) => (
-                        <div class="flex items-start gap-2">
-                            <span class="text-xs text-gray-400 dark:text-gray-500 shrink-0 mt-0.5 w-4">
-                                {i() + 1}.
-                            </span>
-                            <div class="min-w-0">
-                                <div class="text-sm font-medium text-gray-800 dark:text-gray-200 leading-tight">
-                                    {entry.name}
-                                </div>
-                                <div class="text-xs text-gray-400 dark:text-gray-500">
-                                    {entry.raceCount.toLocaleString()} times
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </For>
-            </div>
         </div>
     );
 }

@@ -46,12 +46,45 @@ public static class RaceStatsMapper
         => [.. raw.Select(x => new SetupEntryDto(MarioKartMappings.GetVehicleName(x.Id), x.Count))];
 
     /// <summary>
+    /// Maps raw vehicle win rate data to named setup win rate entries.
+    /// </summary>
+    public static List<SetupWinRateEntryDto> MapVehicleWinRates(
+        List<(short Id, int RaceCount, int WinCount, double WinRate)> raw)
+        => [.. raw.Select(x => new SetupWinRateEntryDto(
+            MarioKartMappings.GetVehicleName(x.Id),
+            x.RaceCount,
+            x.WinCount,
+            Math.Round(x.WinRate * 100, 1)))];
+
+    /// <summary>
     /// Maps raw character+vehicle combo usage counts to named setup entries.
     /// </summary>
     public static List<SetupEntryDto> MapCombos(List<(short CharacterId, short VehicleId, int Count)> raw)
         => [.. raw.Select(x => new SetupEntryDto(
             MarioKartMappings.GetComboName(x.CharacterId, x.VehicleId),
             x.Count))];
+
+    /// <summary>
+    /// Maps raw character win rate data to named setup win rate entries.
+    /// </summary>
+    public static List<SetupWinRateEntryDto> MapCharacterWinRates(
+        List<(short Id, int RaceCount, int WinCount, double WinRate)> raw)
+        => [.. raw.Select(x => new SetupWinRateEntryDto(
+            MarioKartMappings.GetCharacterName(x.Id),
+            x.RaceCount,
+            x.WinCount,
+            Math.Round(x.WinRate * 100, 1)))];
+
+    /// <summary>
+    /// Maps raw character+vehicle combo win rate data to named setup win rate entries.
+    /// </summary>
+    public static List<SetupWinRateEntryDto> MapComboWinRates(
+        List<(short CharacterId, short VehicleId, int RaceCount, int WinCount, double WinRate)> raw)
+        => [.. raw.Select(x => new SetupWinRateEntryDto(
+            MarioKartMappings.GetComboName(x.CharacterId, x.VehicleId),
+            x.RaceCount,
+            x.WinCount,
+            Math.Round(x.WinRate * 100, 1)))];
 
     /// <summary>
     /// Maps raw track play counts to DTOs, filtering out any course IDs not present in

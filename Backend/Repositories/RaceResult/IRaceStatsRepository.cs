@@ -90,6 +90,27 @@ public interface IRaceStatsRepository
     Task<List<(short CharacterId, short VehicleId, int Count)>> GetTopCombosByPlayerAsync(long profileId, int limit, DateTime? after, short? courseId, short? engineClassId = null);
 
     /// <summary>
+    /// Returns the top characters by win rate for a player, filtered to entries with at
+    /// least <paramref name="minRaces"/> races. Win rate is expressed as a ratio (0.0--1.0).
+    /// </summary>
+    Task<List<(short Id, int RaceCount, int WinCount, double WinRate)>> GetTopCharactersByWinRateByPlayerAsync(
+        long profileId, int minRaces, DateTime? after, short? courseId, short? engineClassId);
+
+    /// <summary>
+    /// Returns all vehicles for a player meeting <paramref name="minRaces"/>, with win count and win rate.
+    /// The caller sorts and limits. Win rate is a ratio (0.0–1.0).
+    /// </summary>
+    Task<List<(short Id, int RaceCount, int WinCount, double WinRate)>> GetTopVehiclesByWinRateByPlayerAsync(
+        long profileId, int minRaces, DateTime? after, short? courseId, short? engineClassId);
+
+    /// <summary>
+    /// Returns all character+vehicle combos for a player meeting <paramref name="minRaces"/>, with win count and win rate.
+    /// The caller sorts and limits. Win rate is a ratio (0.0–1.0).
+    /// </summary>
+    Task<List<(short CharacterId, short VehicleId, int RaceCount, int WinCount, double WinRate)>> GetTopCombosByWinRateByPlayerAsync(
+        long profileId, int minRaces, DateTime? after, short? courseId, short? engineClassId);
+
+    /// <summary>
     /// Asynchronously retrieves the total number of frames in which the specified player finished in first place,
     /// optionally filtered by date and course.
     /// </summary>
@@ -179,6 +200,27 @@ public interface IRaceStatsRepository
     /// a character ID, a vehicle ID, and the count of times the combination was used. The list is ordered by descending
     /// usage count and contains at most the specified number of items.</returns>
     Task<List<(short CharacterId, short VehicleId, int Count)>> GetTopCombosAsync(int limit, DateTime? after);
+
+    /// <summary>
+    /// Returns all characters meeting <paramref name="minRaces"/>, with win count and win rate.
+    /// The caller sorts and limits. Win rate is a ratio (0.0–1.0).
+    /// </summary>
+    Task<List<(short Id, int RaceCount, int WinCount, double WinRate)>> GetTopCharactersByWinRateAsync(
+        int minRaces, DateTime? after);
+
+    /// <summary>
+    /// Returns all vehicles meeting <paramref name="minRaces"/>, with win count and win rate.
+    /// The caller sorts and limits. Win rate is a ratio (0.0–1.0).
+    /// </summary>
+    Task<List<(short Id, int RaceCount, int WinCount, double WinRate)>> GetTopVehiclesByWinRateAsync(
+        int minRaces, DateTime? after);
+
+    /// <summary>
+    /// Returns all character+vehicle combos meeting <paramref name="minRaces"/>, with win count and win rate.
+    /// The caller sorts and limits. Win rate is a ratio (0.0–1.0).
+    /// </summary>
+    Task<List<(short CharacterId, short VehicleId, int RaceCount, int WinCount, double WinRate)>> GetTopCombosByWinRateAsync(
+        int minRaces, DateTime? after);
 
     /// <summary>
     /// Asynchronously retrieves a list of the most active player profiles, ordered by activity count.

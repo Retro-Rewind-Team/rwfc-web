@@ -19,6 +19,8 @@ public class RaceStatsService : IRaceStatsService
     private readonly ILogger<RaceStatsService> _logger;
 
     private const int TopSetupCount = 5;
+    private const int GlobalMinRaces = 50;
+    private const int PlayerMinRaces = 20;
 
     public RaceStatsService(
         IRaceStatsRepository raceStatsRepository,
@@ -63,9 +65,13 @@ public class RaceStatsService : IRaceStatsService
         var topCombosTask = StatsQuery(r => r.GetTopCombosByPlayerAsync(profileId, TopSetupCount, after, courseId, engineClassId));
         var totalFramesIn1stTask = StatsQuery(r => r.GetTotalFramesIn1stByPlayerAsync(profileId, after, courseId, engineClassId));
         var recentTask = StatsQuery(r => r.GetRecentRacesByPlayerAsync(profileId, page, pageSize, after, courseId, engineClassId));
+        var topCharsByWinRateTask = StatsQuery(r => r.GetTopCharactersByWinRateByPlayerAsync(profileId, PlayerMinRaces, after, courseId, engineClassId));
+        var topVehiclesByWinRateTask = StatsQuery(r => r.GetTopVehiclesByWinRateByPlayerAsync(profileId, PlayerMinRaces, after, courseId, engineClassId));
+        var topCombosByWinRateTask = StatsQuery(r => r.GetTopCombosByWinRateByPlayerAsync(profileId, PlayerMinRaces, after, courseId, engineClassId));
 
         await Task.WhenAll(trackedSinceTask, topTracksRawTask, topCharactersTask,
-            topVehiclesTask, topCombosTask, totalFramesIn1stTask, recentTask);
+            topVehiclesTask, topCombosTask, totalFramesIn1stTask, recentTask,
+            topCharsByWinRateTask, topVehiclesByWinRateTask, topCombosByWinRateTask);
 
         var trackedSince = trackedSinceTask.Result ?? DateTime.UtcNow;
         var topTracksRaw = topTracksRawTask.Result;
@@ -98,7 +104,19 @@ public class RaceStatsService : IRaceStatsService
             CurrentPage: page,
             PageSize: pageSize,
             TotalPages: totalPages,
-            TotalRecentRaces: totalRecentCount
+            TotalRecentRaces: totalRecentCount,
+            TopCharactersByWinRate: RaceStatsMapper.MapCharacterWinRates(
+                [.. topCharsByWinRateTask.Result.OrderByDescending(x => x.WinRate).Take(TopSetupCount)]),
+            TopVehiclesByWinRate: RaceStatsMapper.MapVehicleWinRates(
+                [.. topVehiclesByWinRateTask.Result.OrderByDescending(x => x.WinRate).Take(TopSetupCount)]),
+            TopCombosByWinRate: RaceStatsMapper.MapComboWinRates(
+                [.. topCombosByWinRateTask.Result.OrderByDescending(x => x.WinRate).Take(TopSetupCount)]),
+            TopCharactersByWinCount: RaceStatsMapper.MapCharacterWinRates(
+                [.. topCharsByWinRateTask.Result.OrderByDescending(x => x.WinCount).Take(TopSetupCount)]),
+            TopVehiclesByWinCount: RaceStatsMapper.MapVehicleWinRates(
+                [.. topVehiclesByWinRateTask.Result.OrderByDescending(x => x.WinCount).Take(TopSetupCount)]),
+            TopCombosByWinCount: RaceStatsMapper.MapComboWinRates(
+                [.. topCombosByWinRateTask.Result.OrderByDescending(x => x.WinCount).Take(TopSetupCount)])
         );
     }
 
@@ -117,10 +135,14 @@ public class RaceStatsService : IRaceStatsService
         var activePlayersRawTask = StatsQuery(r => r.GetMostActivePlayersAsync(10, after));
         var racesByDayTask = StatsQuery(r => r.GetRaceCountByDayOfWeekAsync(after));
         var racesByHourTask = StatsQuery(r => r.GetRaceCountByHourAsync(after));
+        var topCharsByWinRateTask = StatsQuery(r => r.GetTopCharactersByWinRateAsync(GlobalMinRaces, after));
+        var topVehiclesByWinRateTask = StatsQuery(r => r.GetTopVehiclesByWinRateAsync(GlobalMinRaces, after));
+        var topCombosByWinRateTask = StatsQuery(r => r.GetTopCombosByWinRateAsync(GlobalMinRaces, after));
 
         await Task.WhenAll(totalRacesTask, uniquePlayersTask, trackedSinceTask, allTracksRawTask,
             topCharactersTask, topVehiclesTask, topCombosTask, activePlayersRawTask,
-            racesByDayTask, racesByHourTask);
+            racesByDayTask, racesByHourTask,
+            topCharsByWinRateTask, topVehiclesByWinRateTask, topCombosByWinRateTask);
 
         var allTracksRaw = allTracksRawTask.Result;
         var activePlayersRaw = activePlayersRawTask.Result;
@@ -143,7 +165,19 @@ public class RaceStatsService : IRaceStatsService
             TopCombos: RaceStatsMapper.MapCombos(topCombosTask.Result),
             MostActivePlayers: RaceStatsMapper.MapActivePlayers(activePlayersRaw, playerMap),
             RacesByDayOfWeek: RaceStatsMapper.MapDayActivity(racesByDayTask.Result),
-            RacesByHour: RaceStatsMapper.MapHourActivity(racesByHourTask.Result)
+            RacesByHour: RaceStatsMapper.MapHourActivity(racesByHourTask.Result),
+            TopCharactersByWinRate: RaceStatsMapper.MapCharacterWinRates(
+                [.. topCharsByWinRateTask.Result.OrderByDescending(x => x.WinRate).Take(TopSetupCount)]),
+            TopVehiclesByWinRate: RaceStatsMapper.MapVehicleWinRates(
+                [.. topVehiclesByWinRateTask.Result.OrderByDescending(x => x.WinRate).Take(TopSetupCount)]),
+            TopCombosByWinRate: RaceStatsMapper.MapComboWinRates(
+                [.. topCombosByWinRateTask.Result.OrderByDescending(x => x.WinRate).Take(TopSetupCount)]),
+            TopCharactersByWinCount: RaceStatsMapper.MapCharacterWinRates(
+                [.. topCharsByWinRateTask.Result.OrderByDescending(x => x.WinCount).Take(TopSetupCount)]),
+            TopVehiclesByWinCount: RaceStatsMapper.MapVehicleWinRates(
+                [.. topVehiclesByWinRateTask.Result.OrderByDescending(x => x.WinCount).Take(TopSetupCount)]),
+            TopCombosByWinCount: RaceStatsMapper.MapComboWinRates(
+                [.. topCombosByWinRateTask.Result.OrderByDescending(x => x.WinCount).Take(TopSetupCount)])
         );
     }
 

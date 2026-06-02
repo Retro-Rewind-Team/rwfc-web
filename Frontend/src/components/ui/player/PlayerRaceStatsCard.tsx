@@ -1,10 +1,11 @@
-import { For, Show } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
 import { A } from "@solidjs/router";
 import { ChevronLeft, ChevronRight, ExternalLink, X } from "lucide-solid";
 import { usePlayerRaceStats } from "../../../hooks/usePlayerRaceStats";
-import { PlayerRaceStats, RecentRace, SetupEntry, TrackPlayCount } from "../../../types/raceStats";
+import { PlayerRaceStats, RecentRace, TrackPlayCount } from "../../../types/raceStats";
 import { LoadingSpinner } from "../../../components/common";
 import PositionBadge from "./PositionBadge";
+import { SetupColumn } from "../leaderboard";
 
 interface PlayerRaceStatsCardProps {
     pid: string;
@@ -33,6 +34,7 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
     } = usePlayerRaceStats(props.pid);
 
     const stats = () => raceStatsQuery.data as PlayerRaceStats;
+    const [setupMode, setSetupMode] = createSignal<"usage" | "winrate" | "wincount">("usage");
 
     const formatTimestamp = (ts: string) =>
         new Date(ts).toLocaleString("nl-NL", {
@@ -146,10 +148,65 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                     {/* Setup stats + top tracks */}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Setup columns */}
-                        <div class="grid grid-cols-3 gap-3">
-                            <SetupColumn title="Characters" entries={stats().topCharacters} />
-                            <SetupColumn title="Vehicles" entries={stats().topVehicles} />
-                            <SetupColumn title="Combos" entries={stats().topCombos} />
+                        <div class="space-y-3">
+                            <div class="flex gap-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setSetupMode("usage")}
+                                    class={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
+                                        setupMode() === "usage"
+                                            ? "bg-blue-600 text-white"
+                                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                    }`}
+                                >
+                                    Most Used
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setSetupMode("winrate")}
+                                    class={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
+                                        setupMode() === "winrate"
+                                            ? "bg-blue-600 text-white"
+                                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                    }`}
+                                >
+                                    Win Rate
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setSetupMode("wincount")}
+                                    class={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
+                                        setupMode() === "wincount"
+                                            ? "bg-blue-600 text-white"
+                                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                    }`}
+                                >
+                                    Total Wins
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-3 gap-3">
+                                <SetupColumn
+                                    title="Characters"
+                                    mode={setupMode()}
+                                    usageEntries={stats().topCharacters}
+                                    winRateEntries={stats().topCharactersByWinRate}
+                                    winCountEntries={stats().topCharactersByWinCount}
+                                />
+                                <SetupColumn
+                                    title="Vehicles"
+                                    mode={setupMode()}
+                                    usageEntries={stats().topVehicles}
+                                    winRateEntries={stats().topVehiclesByWinRate}
+                                    winCountEntries={stats().topVehiclesByWinCount}
+                                />
+                                <SetupColumn
+                                    title="Combos"
+                                    mode={setupMode()}
+                                    usageEntries={stats().topCombos}
+                                    winRateEntries={stats().topCombosByWinRate}
+                                    winCountEntries={stats().topCombosByWinCount}
+                                />
+                            </div>
                         </div>
 
                         {/* Top tracks */}
@@ -293,35 +350,6 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                     </div>
                 </div>
             </Show>
-        </div>
-    );
-}
-
-function SetupColumn(props: { title: string; entries: SetupEntry[] }) {
-    return (
-        <div>
-            <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
-                {props.title}
-            </h3>
-            <div class="space-y-1.5">
-                <For each={props.entries}>
-                    {(entry, i) => (
-                        <div class="flex items-start gap-1.5">
-                            <span class="text-xs text-gray-400 dark:text-gray-500 shrink-0 mt-0.5">
-                                {i() + 1}.
-                            </span>
-                            <div class="min-w-0">
-                                <div class="text-xs font-medium text-gray-800 dark:text-gray-200 leading-tight">
-                                    {entry.name}
-                                </div>
-                                <div class="text-xs text-gray-400 dark:text-gray-500">
-                                    {entry.raceCount} races
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </For>
-            </div>
         </div>
     );
 }

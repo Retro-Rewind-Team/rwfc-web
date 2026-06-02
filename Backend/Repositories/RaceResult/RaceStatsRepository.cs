@@ -104,6 +104,54 @@ public class RaceStatsRepository : IRaceStatsRepository
         return [.. rows.Select(x => (x.CharacterId, x.VehicleId, x.Count))];
     }
 
+    public async Task<List<(short Id, int RaceCount, int WinCount, double WinRate)>> GetTopCharactersByWinRateByPlayerAsync(
+        long profileId, int minRaces, DateTime? after, short? courseId, short? engineClassId)
+    {
+        var rows = await BasePlayerQuery(profileId, after, courseId, engineClassId)
+            .GroupBy(r => r.CharacterId)
+            .Select(g => new { Id = g.Key, Total = g.Count(), Wins = g.Count(r => r.FinishPos == 1) })
+            .ToListAsync();
+
+        return rows
+            .Where(x => x.Total >= minRaces)
+            .Select(x => (x.Id, x.Total, x.Wins, (double)x.Wins / x.Total))
+            .ToList();
+    }
+
+    public async Task<List<(short Id, int RaceCount, int WinCount, double WinRate)>> GetTopVehiclesByWinRateByPlayerAsync(
+        long profileId, int minRaces, DateTime? after, short? courseId, short? engineClassId)
+    {
+        var rows = await BasePlayerQuery(profileId, after, courseId, engineClassId)
+            .GroupBy(r => r.VehicleId)
+            .Select(g => new { Id = g.Key, Total = g.Count(), Wins = g.Count(r => r.FinishPos == 1) })
+            .ToListAsync();
+
+        return rows
+            .Where(x => x.Total >= minRaces)
+            .Select(x => (x.Id, x.Total, x.Wins, (double)x.Wins / x.Total))
+            .ToList();
+    }
+
+    public async Task<List<(short CharacterId, short VehicleId, int RaceCount, int WinCount, double WinRate)>> GetTopCombosByWinRateByPlayerAsync(
+        long profileId, int minRaces, DateTime? after, short? courseId, short? engineClassId)
+    {
+        var rows = await BasePlayerQuery(profileId, after, courseId, engineClassId)
+            .GroupBy(r => new { r.CharacterId, r.VehicleId })
+            .Select(g => new
+            {
+                g.Key.CharacterId,
+                g.Key.VehicleId,
+                Total = g.Count(),
+                Wins = g.Count(r => r.FinishPos == 1)
+            })
+            .ToListAsync();
+
+        return rows
+            .Where(x => x.Total >= minRaces)
+            .Select(x => (x.CharacterId, x.VehicleId, x.Total, x.Wins, (double)x.Wins / x.Total))
+            .ToList();
+    }
+
     public async Task<long> GetTotalFramesIn1stByPlayerAsync(long profileId, DateTime? after, short? courseId, short? engineClassId = null) =>
         await BasePlayerQuery(profileId, after, courseId, engineClassId)
             .SumAsync(r => (long)r.FramesIn1st);
@@ -184,6 +232,54 @@ public class RaceStatsRepository : IRaceStatsRepository
             .ToListAsync();
 
         return [.. rows.Select(x => (x.CharacterId, x.VehicleId, x.Count))];
+    }
+
+    public async Task<List<(short Id, int RaceCount, int WinCount, double WinRate)>> GetTopCharactersByWinRateAsync(
+        int minRaces, DateTime? after)
+    {
+        var rows = await BaseGlobalQuery(after)
+            .GroupBy(r => r.CharacterId)
+            .Select(g => new { Id = g.Key, Total = g.Count(), Wins = g.Count(r => r.FinishPos == 1) })
+            .ToListAsync();
+
+        return rows
+            .Where(x => x.Total >= minRaces)
+            .Select(x => (x.Id, x.Total, x.Wins, (double)x.Wins / x.Total))
+            .ToList();
+    }
+
+    public async Task<List<(short Id, int RaceCount, int WinCount, double WinRate)>> GetTopVehiclesByWinRateAsync(
+        int minRaces, DateTime? after)
+    {
+        var rows = await BaseGlobalQuery(after)
+            .GroupBy(r => r.VehicleId)
+            .Select(g => new { Id = g.Key, Total = g.Count(), Wins = g.Count(r => r.FinishPos == 1) })
+            .ToListAsync();
+
+        return rows
+            .Where(x => x.Total >= minRaces)
+            .Select(x => (x.Id, x.Total, x.Wins, (double)x.Wins / x.Total))
+            .ToList();
+    }
+
+    public async Task<List<(short CharacterId, short VehicleId, int RaceCount, int WinCount, double WinRate)>> GetTopCombosByWinRateAsync(
+        int minRaces, DateTime? after)
+    {
+        var rows = await BaseGlobalQuery(after)
+            .GroupBy(r => new { r.CharacterId, r.VehicleId })
+            .Select(g => new
+            {
+                g.Key.CharacterId,
+                g.Key.VehicleId,
+                Total = g.Count(),
+                Wins = g.Count(r => r.FinishPos == 1)
+            })
+            .ToListAsync();
+
+        return rows
+            .Where(x => x.Total >= minRaces)
+            .Select(x => (x.CharacterId, x.VehicleId, x.Total, x.Wins, (double)x.Wins / x.Total))
+            .ToList();
     }
 
     public async Task<List<(long ProfileId, int Count)>> GetMostActivePlayersAsync(int limit, DateTime? after)

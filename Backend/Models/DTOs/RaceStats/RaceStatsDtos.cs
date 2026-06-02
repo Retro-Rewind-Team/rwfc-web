@@ -30,7 +30,13 @@ public record PlayerRaceStatsDto(
     int CurrentPage,
     int PageSize,
     int TotalPages,
-    int TotalRecentRaces
+    int TotalRecentRaces,
+    List<SetupWinRateEntryDto> TopCharactersByWinRate,
+    List<SetupWinRateEntryDto> TopVehiclesByWinRate,
+    List<SetupWinRateEntryDto> TopCombosByWinRate,
+    List<SetupWinRateEntryDto> TopCharactersByWinCount,
+    List<SetupWinRateEntryDto> TopVehiclesByWinCount,
+    List<SetupWinRateEntryDto> TopCombosByWinCount
 );
 
 public record ActivePlayerDto(string Name, string Pid, string Fc, int RaceCount);
@@ -49,5 +55,11 @@ public record GlobalRaceStatsDto(
     List<SetupEntryDto> TopCombos,
     List<ActivePlayerDto> MostActivePlayers,
     List<DayActivityDto> RacesByDayOfWeek,
-    List<HourActivityDto> RacesByHour
+    List<HourActivityDto> RacesByHour,
+    List<SetupWinRateEntryDto> TopCharactersByWinRate,
+    List<SetupWinRateEntryDto> TopVehiclesByWinRate,
+    List<SetupWinRateEntryDto> TopCombosByWinRate,
+    List<SetupWinRateEntryDto> TopCharactersByWinCount,
+    List<SetupWinRateEntryDto> TopVehiclesByWinCount,
+    List<SetupWinRateEntryDto> TopCombosByWinCount
 );
