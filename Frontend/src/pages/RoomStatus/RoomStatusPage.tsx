@@ -1,7 +1,7 @@
 import { createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
 import { useRoomStatus } from "../../hooks/useRoom";
 import { useMiiLoader } from "../../hooks/useMiiLoader";
-import { RoomCard } from "../../components/ui";
+import { RoomCard, ServerActivityChart } from "../../components/ui";
 import { StatCard, Tooltip } from "../../components/common";
 import {
     ChevronLeft,
@@ -453,6 +453,9 @@ export default function RoomStatusPage() {
                     </For>
                 </div>
             </Show>
+
+            {/* Server Activity Chart */}
+            <ServerActivityChart />
         </div>
     );
 }

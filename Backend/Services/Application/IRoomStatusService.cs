@@ -41,6 +41,13 @@ public interface IRoomStatusService
     Task<List<RoomSnapshotDto>> GetSnapshotsByDateRangeAsync(DateTime from, DateTime to);
 
     /// <summary>
+    /// Returns a time-bucketed series of average player and room counts for the requested
+    /// time window. Bucket size scales with the window to return roughly 150–300 points.
+    /// Pass <see langword="null"/> for all available history.
+    /// </summary>
+    Task<List<PlayerCountDataPointDto>> GetPlayerCountSeriesAsync(int? days);
+
+    /// <summary>
     /// Returns the smallest snapshot database ID currently stored.
     /// </summary>
     Task<int> GetMinIdAsync();

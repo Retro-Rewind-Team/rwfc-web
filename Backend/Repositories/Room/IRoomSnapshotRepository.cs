@@ -74,4 +74,12 @@ public interface IRoomSnapshotRepository
     /// <param name="since">The earliest date and time from which to consider player counts. If null, considers all available data.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the peak player count as an integer.</returns>
     Task<int> GetPeakPlayerCountAsync(DateTime? since = null);
+
+    /// <summary>
+    /// Projects snapshots into time buckets of <paramref name="bucketSize"/> and returns the peak
+    /// player and room count per bucket, ordered ascending. Only snapshots on or after
+    /// <paramref name="cutoff"/> are included; pass <see langword="null"/> for all time.
+    /// </summary>
+    Task<List<(DateTime Bucket, int MaxPlayers, int MaxRooms)>> GetPlayerCountSeriesAsync(
+        DateTime? cutoff, TimeSpan bucketSize);
 }

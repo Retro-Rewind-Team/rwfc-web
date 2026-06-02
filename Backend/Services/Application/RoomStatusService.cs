@@ -116,6 +116,26 @@ public class RoomStatusService : IRoomStatusService
         return [.. snapshots.Select(RoomMapper.ToSnapshotDto)];
     }
 
+    public async Task<List<PlayerCountDataPointDto>> GetPlayerCountSeriesAsync(int? days)
+    {
+        var bucketSize = days switch
+        {
+            1  => TimeSpan.FromMinutes(10),
+            7  => TimeSpan.FromHours(1),
+            30 => TimeSpan.FromHours(4),
+            _  => TimeSpan.FromHours(12)
+        };
+
+        var cutoff = days.HasValue ? DateTime.UtcNow.AddDays(-days.Value) : (DateTime?)null;
+
+        using var scope = _serviceScopeFactory.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRoomSnapshotRepository>();
+
+        var raw = await repository.GetPlayerCountSeriesAsync(cutoff, bucketSize);
+
+        return raw.Select(r => new PlayerCountDataPointDto(r.Bucket, r.MaxPlayers, r.MaxRooms)).ToList();
+    }
+
     public async Task<int> GetMinIdAsync()
     {
         using var scope = _serviceScopeFactory.CreateScope();

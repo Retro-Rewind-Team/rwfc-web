@@ -177,6 +177,26 @@ public class RoomStatusController : ControllerBase
         }
     }
 
+    [HttpGet("analytics")]
+    [ProducesResponseType<List<PlayerCountDataPointDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<List<PlayerCountDataPointDto>>> GetAnalytics(
+        [FromQuery] int? days = null)
+    {
+        try
+        {
+            var series = await _roomStatusService.GetPlayerCountSeriesAsync(days);
+            Response.Headers.CacheControl = "public, max-age=120";
+            return Ok(series);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving room analytics");
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while retrieving room analytics");
+        }
+    }
+
     [HttpPost("refresh")]
     [EnableRateLimiting("RefreshPolicy")]
     [ProducesResponseType(StatusCodes.Status200OK)]

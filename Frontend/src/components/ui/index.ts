@@ -13,6 +13,7 @@ export { default as LeaderboardTable } from "./leaderboard/LeaderboardTable";
 
 // Room components
 export { default as RoomCard } from "./room/RoomCard";
+export { default as ServerActivityChart } from "./room/ServerActivityChart";
 
 // Team components
 export { default as TeamMemberCard } from "./team/TeamMemberCard";

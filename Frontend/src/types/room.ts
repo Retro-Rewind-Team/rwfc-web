@@ -83,3 +83,9 @@ export interface PagedResult<T> {
     hasNextPage: boolean;
     hasPreviousPage: boolean;
 }
+
+export interface PlayerCountDataPoint {
+    timestamp: string;
+    players: number;
+    rooms: number;
+}

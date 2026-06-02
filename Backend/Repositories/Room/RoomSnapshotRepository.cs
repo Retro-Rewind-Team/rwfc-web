@@ -91,4 +91,33 @@ public class RoomSnapshotRepository : IRoomSnapshotRepository
 
         return await query.MaxAsync(s => (int?)s.TotalPlayers) ?? 0;
     }
+
+    public async Task<List<(DateTime Bucket, int MaxPlayers, int MaxRooms)>> GetPlayerCountSeriesAsync(
+        DateTime? cutoff, TimeSpan bucketSize)
+    {
+        if (bucketSize <= TimeSpan.Zero)
+            throw new ArgumentException("bucketSize must be positive.", nameof(bucketSize));
+
+        IQueryable<RoomSnapshotEntity> query = _context.RoomSnapshots.AsNoTracking();
+
+        if (cutoff.HasValue)
+            query = query.Where(s => s.Timestamp >= cutoff.Value);
+
+        // Project only the three lightweight columns -- the JSON Rooms column is never loaded.
+        var raw = await query
+            .Select(s => new { s.Timestamp, s.TotalPlayers, s.TotalRooms })
+            .ToListAsync();
+
+        var bucketTicks = bucketSize.Ticks;
+
+        return raw
+            .GroupBy(s => new DateTime(s.Timestamp.Ticks / bucketTicks * bucketTicks, DateTimeKind.Utc))
+            .OrderBy(g => g.Key)
+            .Select(g => (
+                Bucket: g.Key,
+                MaxPlayers: g.Max(s => s.TotalPlayers),
+                MaxRooms: g.Max(s => s.TotalRooms)
+            ))
+            .ToList();
+    }
 }
