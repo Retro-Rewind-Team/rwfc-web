@@ -1,4 +1,4 @@
-﻿namespace RetroRewindWebsite.Models.DTOs.RaceStats;
+namespace RetroRewindWebsite.Models.DTOs.RaceStats;
 
 /// <summary>
 /// All participants in a single race, plus race metadata.

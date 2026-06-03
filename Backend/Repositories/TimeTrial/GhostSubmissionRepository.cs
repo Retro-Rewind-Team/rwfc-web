@@ -616,6 +616,79 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
             .ToDictionary(grp => grp.Key, grp => grp.First());
     }
 
+    public async Task<List<GhostSubmissionEntity>> GetWorldRecordHoldersForRankingsAsync(
+        short cc,
+        bool glitchAllowed,
+        bool? shroomless,
+        short? minVehicleId,
+        short? maxVehicleId,
+        string? trackCategory)
+    {
+        var results = new List<GhostSubmissionEntity>();
+
+        bool includeNonShroomless = shroomless != true;
+        bool includeShroomless = shroomless != false;
+
+        // Karts (VehicleId 0-17, non-shroomless) -- separate category from bikes
+        if (includeNonShroomless)
+        {
+            int kartMin = Math.Max((int)(minVehicleId ?? 0), 0);
+            int kartMax = Math.Min((int)(maxVehicleId ?? 17), 17);
+            if (kartMin <= kartMax)
+            {
+                var q = BuildRankingsBaseQuery(cc, glitchAllowed, trackCategory)
+                    .Where(g => !g.Shroomless && g.VehicleId >= kartMin && g.VehicleId <= kartMax);
+                var data = await q.OrderBy(g => g.FinishTimeMs).ToListAsync();
+                results.AddRange(data.GroupBy(g => (g.TrackId, g.Glitch)).Select(grp => grp.First()));
+            }
+        }
+
+        // Bikes (VehicleId 18-35, non-shroomless) -- separate category from karts
+        if (includeNonShroomless)
+        {
+            int bikeMin = Math.Max((int)(minVehicleId ?? 18), 18);
+            int bikeMax = Math.Min((int)(maxVehicleId ?? 35), 35);
+            if (bikeMin <= bikeMax)
+            {
+                var q = BuildRankingsBaseQuery(cc, glitchAllowed, trackCategory)
+                    .Where(g => !g.Shroomless && g.VehicleId >= bikeMin && g.VehicleId <= bikeMax);
+                var data = await q.OrderBy(g => g.FinishTimeMs).ToListAsync();
+                results.AddRange(data.GroupBy(g => (g.TrackId, g.Glitch)).Select(grp => grp.First()));
+            }
+        }
+
+        // Shroomless (all vehicles unless narrowed by vehicle filter)
+        if (includeShroomless)
+        {
+            var q = BuildRankingsBaseQuery(cc, glitchAllowed, trackCategory)
+                .Where(g => g.Shroomless);
+            if (minVehicleId.HasValue && maxVehicleId.HasValue)
+                q = q.Where(g => g.VehicleId >= minVehicleId.Value && g.VehicleId <= maxVehicleId.Value);
+            var data = await q.OrderBy(g => g.FinishTimeMs).ToListAsync();
+            results.AddRange(data.GroupBy(g => (g.TrackId, g.Glitch)).Select(grp => grp.First()));
+        }
+
+        // Flap (non-shroomless only, matches UpdateWorldRecordCountsAsync definition)
+        // Excluded when shroomless="only" since there is no shroomless flap category
+        if (shroomless != true)
+        {
+            var q = _context.GhostSubmissions
+                .AsNoTracking()
+                .Include(g => g.TTProfile)
+                .Where(g => g.CC == cc && g.IsFlap && !g.Shroomless);
+            if (!glitchAllowed)
+                q = q.Where(g => !g.Glitch);
+            if (minVehicleId.HasValue && maxVehicleId.HasValue)
+                q = q.Where(g => g.VehicleId >= minVehicleId.Value && g.VehicleId <= maxVehicleId.Value);
+            if (trackCategory != null)
+                q = q.Include(g => g.Track).Where(g => g.Track!.Category == trackCategory);
+            var data = await q.OrderBy(g => g.FinishTimeMs).ToListAsync();
+            results.AddRange(data.GroupBy(g => (g.TrackId, g.Glitch)).Select(grp => grp.First()));
+        }
+
+        return results;
+    }
+
     // ===== PRIVATE HELPERS =====
 
     /// <summary>
@@ -658,6 +731,30 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
 
         if (minVehicleId.HasValue && maxVehicleId.HasValue)
             query = query.Where(g => g.VehicleId >= minVehicleId.Value && g.VehicleId <= maxVehicleId.Value);
+
+        return query;
+    }
+
+    /// <summary>
+    /// Base query for <see cref="GetWorldRecordHoldersForRankingsAsync"/> sub-category queries.
+    /// Excludes flap, applies CC and glitch filters; vehicle/shroomless are applied per sub-query.
+    /// Includes TTProfile (required for ranking display) and Track only when needed for category filter.
+    /// </summary>
+    private IQueryable<GhostSubmissionEntity> BuildRankingsBaseQuery(
+        short cc,
+        bool glitchAllowed,
+        string? trackCategory)
+    {
+        var query = _context.GhostSubmissions
+            .AsNoTracking()
+            .Include(g => g.TTProfile)
+            .Where(g => g.CC == cc && !g.IsFlap);
+
+        if (!glitchAllowed)
+            query = query.Where(g => !g.Glitch);
+
+        if (trackCategory != null)
+            query = query.Include(g => g.Track).Where(g => g.Track!.Category == trackCategory);
 
         return query;
     }

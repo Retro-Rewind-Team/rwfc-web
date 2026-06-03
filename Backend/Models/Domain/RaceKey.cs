@@ -1,4 +1,4 @@
-﻿namespace RetroRewindWebsite.Models.Domain;
+namespace RetroRewindWebsite.Models.Domain;
 
 /// <summary>
 /// Identifies a single race uniquely (one room session can contain many races).

@@ -120,10 +120,10 @@ public class RoomStatusService : IRoomStatusService
     {
         var bucketSize = days switch
         {
-            1  => TimeSpan.FromMinutes(10),
-            7  => TimeSpan.FromHours(1),
+            1 => TimeSpan.FromMinutes(10),
+            7 => TimeSpan.FromHours(1),
             30 => TimeSpan.FromHours(4),
-            _  => TimeSpan.FromHours(12)
+            _ => TimeSpan.FromHours(12)
         };
 
         var cutoff = days.HasValue ? DateTime.UtcNow.AddDays(-days.Value) : (DateTime?)null;

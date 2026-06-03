@@ -180,6 +180,20 @@ public interface IGhostSubmissionRepository
         string? trackCategory = null);
 
     /// <summary>
+    /// Returns one WR-holding submission per sub-category slot (karts/bikes/shroomless × glitch/non-glitch),
+    /// matching the same counting logic used by <see cref="UpdateWorldRecordCountsAsync"/>.
+    /// Used for the player rankings page so that WR counts are consistent with profile totals.
+    /// Flap runs are always excluded (no flap filter exists on the rankings page).
+    /// </summary>
+    Task<List<GhostSubmissionEntity>> GetWorldRecordHoldersForRankingsAsync(
+        short cc,
+        bool glitchAllowed,
+        bool? shroomless,
+        short? minVehicleId,
+        short? maxVehicleId,
+        string? trackCategory);
+
+    /// <summary>
     /// Retrieves the history of world record ghost submissions for a specified track and configuration.
     /// </summary>
     /// <param name="trackId">The unique identifier of the track for which to retrieve world record history.</param>

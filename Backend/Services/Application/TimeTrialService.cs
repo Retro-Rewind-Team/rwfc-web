@@ -313,11 +313,11 @@ public class TimeTrialService : ITimeTrialService
         int page,
         int pageSize)
     {
-        var wrByTrack = await _ghostSubmissionRepository.GetAllWorldRecordsAsync(
+        var wrHolders = await _ghostSubmissionRepository.GetWorldRecordHoldersForRankingsAsync(
             cc, glitchAllowed, shroomless, vehicleMin, vehicleMax, trackCategory);
 
         // Group WR submissions by player, count how many WRs each player holds
-        var sorted = wrByTrack.Values
+        var sorted = wrHolders
             .GroupBy(g => g.TTProfileId)
             .Select(grp => (
                 TTProfileId: grp.Key,
