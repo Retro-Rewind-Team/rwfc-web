@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RetroRewindWebsite.Data;
@@ -13,9 +14,11 @@ using RetroRewindWebsite.Models.Entities.Room;
 namespace RetroRewindWebsite.Migrations
 {
     [DbContext(typeof(LeaderboardDbContext))]
-    partial class LeaderboardDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260602210625_AddRoomMetadataToRaceResults")]
+    partial class AddRoomMetadataToRaceResults
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -286,13 +289,9 @@ namespace RetroRewindWebsite.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.HasIndex("IsPublic");
-
                     b.HasIndex("ProfileId");
 
                     b.HasIndex("RaceTimestamp");
-
-                    b.HasIndex("Rk");
 
                     b.HasIndex("VehicleId");
 
@@ -307,14 +306,6 @@ namespace RetroRewindWebsite.Migrations
                     b.HasIndex("ProfileId", "RaceTimestamp");
 
                     b.HasIndex("ProfileId", "VehicleId");
-
-                    b.HasIndex("RoomId", "RaceNumber")
-                        .HasDatabaseName("IX_RaceResults_RoomId_RaceNumber_PlayerId0")
-                        .HasFilter("\"PlayerId\" = 0");
-
-                    b.HasIndex("CourseId", "RoomId", "RaceNumber")
-                        .HasDatabaseName("IX_RaceResults_CourseId_RoomId_RaceNumber_PlayerId0")
-                        .HasFilter("\"PlayerId\" = 0");
 
                     b.HasIndex("RoomId", "RaceNumber", "ProfileId")
                         .IsUnique()

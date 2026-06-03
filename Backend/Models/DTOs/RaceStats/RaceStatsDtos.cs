@@ -12,7 +12,9 @@ public record RecentRaceDto(
     short? FinishPos,
     short PlayerCount,
     string RoomId,
-    int RaceNumber
+    int RaceNumber,
+    string? GameMode,
+    bool? IsPublic
 );
 
 public record SetupEntryDto(string Name, int RaceCount);

@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 import { For, Show } from "solid-js";
-import { X } from "lucide-solid";
+import { Globe, Lock, X } from "lucide-solid";
 import { RACES_PAGE_SIZE, useRaces } from "../../hooks/useRaces";
 import { RaceEntry, RaceResult } from "../../types/raceStats";
 import { InlinePagination, LoadingSpinner } from "../../components/common";
@@ -50,10 +50,23 @@ function RaceCard(props: { race: RaceResult }) {
                     <span class="font-bold text-gray-900 dark:text-white truncate text-base">
                         {props.race.trackName}
                     </span>
-                    <div class="flex items-center gap-2 flex-shrink-0">
+                    <div class="flex items-center gap-2 flex-shrink-0 flex-wrap">
                         <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 dark:bg-blue-500/25 dark:text-blue-200">
                             {props.race.engineClassId === 1 ? "200cc" : "150cc"}
                         </span>
+                        <Show when={props.race.gameMode}>
+                            <span class="text-xs font-medium px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                {props.race.gameMode}
+                            </span>
+                        </Show>
+                        <Show when={props.race.isPublic !== null}>
+                            <span class={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-md ${props.race.isPublic ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300" : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"}`}>
+                                <Show when={props.race.isPublic} fallback={<Lock size={10} />}>
+                                    <Globe size={10} />
+                                </Show>
+                                {props.race.isPublic ? "Public" : "Private"}
+                            </span>
+                        </Show>
                         <span class="text-xs text-gray-500 dark:text-white/60">
                             {props.race.participants.length} players
                         </span>

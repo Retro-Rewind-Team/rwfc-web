@@ -303,4 +303,19 @@ public interface IRaceStatsRepository
     /// Returns all RaceResultEntity rows whose (RoomId, RaceNumber) pair is in the provided list.
     /// </summary>
     Task<List<RaceResultEntity>> GetParticipantsByRaceKeysAsync(List<RaceKey> raceKeys);
+
+    /// <summary>
+    /// Returns the best online race time per player for the given track and cc class,
+    /// ordered by time ascending. All rows are loaded and grouped in memory after
+    /// a projected SQL query. <paramref name="engineClassId"/> null means all cc classes.
+    /// </summary>
+    Task<(List<(long ProfileId, int FinishTime, DateTime AchievedAt, string Rk)> Rows, int TotalCount, float? AverageBestSeconds)>
+        GetTrackOnlineBestsAsync(short courseId, short? engineClassId, int page, int pageSize);
+
+    /// <summary>
+    /// Returns the best online race time per track+cc for a given player, ordered by
+    /// course ID then engine class. Returns an empty list if the player has no recorded times.
+    /// </summary>
+    Task<List<(short CourseId, short EngineClassId, int FinishTime, DateTime AchievedAt, string Rk)>>
+        GetPlayerOnlineBestsAsync(long profileId);
 }

@@ -1,6 +1,7 @@
 using RetroRewindWebsite.Mappers;
 using RetroRewindWebsite.Models.DTOs.Common;
 using RetroRewindWebsite.Models.DTOs.RaceStats;
+using RetroRewindWebsite.Models.DTOs.Room;
 using RetroRewindWebsite.Repositories.Player;
 using RetroRewindWebsite.Repositories.RaceResult;
 using RetroRewindWebsite.Repositories.TimeTrial;
@@ -293,5 +294,72 @@ public class RaceStatsService : IRaceStatsService
 
         var items = RaceStatsMapper.MapRaces(raceKeys, participants, trackNameMap, playerMap);
         return new PagedResult<RaceResultDto>(items, totalCount, page, pageSize);
+    }
+
+    public async Task<TrackOnlineBestsResultDto> GetTrackOnlineBestsAsync(
+        short courseId, short? engineClassId, int page, int pageSize)
+    {
+        var (rows, totalCount, avgSeconds) = await StatsQuery(r =>
+            r.GetTrackOnlineBestsAsync(courseId, engineClassId, page, pageSize));
+
+        var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+        string? avgDisplay = avgSeconds.HasValue
+            ? RaceStatsMapper.FormatFinishTime(BitConverter.SingleToInt32Bits(avgSeconds.Value))
+            : null;
+
+        if (rows.Count == 0)
+            return new TrackOnlineBestsResultDto([], totalCount, page, pageSize, totalPages,
+                page < totalPages, page > 1, avgDisplay);
+
+        var pids = rows.Select(r => r.ProfileId.ToString()).ToList();
+        var players = await PlayerQuery(r => r.GetPlayersByPidsAsync(pids));
+        var playerMap = players.ToDictionary(p => long.Parse(p.Pid), p => (p.Name, p.Fc));
+
+        var items = rows.Select((r, i) =>
+        {
+            var (name, fc) = playerMap.TryGetValue(r.ProfileId, out var info)
+                ? info
+                : ($"Player {r.ProfileId}", "");
+            return new TrackOnlineBestDto(
+                Rank: (page - 1) * pageSize + i + 1,
+                PlayerName: name,
+                Pid: r.ProfileId.ToString(),
+                Fc: fc,
+                FinishTimeDisplay: RaceStatsMapper.FormatFinishTime(r.FinishTime),
+                AchievedAt: r.AchievedAt,
+                GameMode: RoomDtoExtensions.GetRoomModeName(r.Rk)
+            );
+        }).ToList();
+
+        return new TrackOnlineBestsResultDto(items, totalCount, page, pageSize, totalPages,
+            page < totalPages, page > 1, avgDisplay);
+    }
+
+    public async Task<List<PlayerOnlineBestDto>?> GetPlayerOnlineBestsAsync(string pid)
+    {
+        var player = await _playerRepository.GetByPidAsync(pid);
+        if (player == null)
+            return null;
+
+        var profileId = long.Parse(pid);
+        var rows = await StatsQuery(r => r.GetPlayerOnlineBestsAsync(profileId));
+
+        if (rows.Count == 0)
+            return [];
+
+        var courseIds = rows.Select(r => r.CourseId).Distinct().ToList();
+        var trackNameMap = await BuildTrackNameMapAsync(courseIds);
+
+        return rows
+            .Where(r => trackNameMap.ContainsKey(r.CourseId))
+            .Select(r => new PlayerOnlineBestDto(
+                TrackName: trackNameMap[r.CourseId],
+                CourseId: r.CourseId,
+                EngineClassId: r.EngineClassId,
+                FinishTimeDisplay: RaceStatsMapper.FormatFinishTime(r.FinishTime),
+                AchievedAt: r.AchievedAt,
+                GameMode: RoomDtoExtensions.GetRoomModeName(r.Rk)
+            )).ToList();
     }
 }

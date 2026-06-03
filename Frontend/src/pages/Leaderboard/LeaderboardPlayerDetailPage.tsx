@@ -7,6 +7,7 @@ import {
     MiiComponent,
     PlayerAnalyticsCard,
     PlayerBadges,
+    PlayerOnlineBestsCard,
     PlayerRaceStatsCard,
     VRHistoryChartComponent,
     VRStatsCard,
@@ -234,6 +235,7 @@ export default function PlayerDetailPage() {
                         <VRHistoryChartComponent friendCode={player().friendCode} />
                         <PlayerRaceStatsCard pid={player().pid} />
                         <PlayerAnalyticsCard pid={player().pid} />
+                        <PlayerOnlineBestsCard pid={player().pid} />
                     </div>
                 )}
             </Show>

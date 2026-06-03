@@ -15,6 +15,8 @@ export interface RecentRace {
     playerCount: number;
     roomId: string;
     raceNumber: number;
+    gameMode: string | null;
+    isPublic: boolean | null;
 }
 
 export interface SetupEntry {
@@ -136,6 +138,8 @@ export interface RaceResult {
     trackName: string;
     engineClassId: number;
     participants: RaceEntry[];
+    gameMode: string | null;
+    isPublic: boolean | null;
 }
 
 export interface RacesParams {
@@ -148,5 +152,35 @@ export interface RacesParams {
     to?: string;
     page?: number;
     pageSize?: number;
+}
+
+export interface TrackOnlineBest {
+    rank: number;
+    playerName: string;
+    pid: string;
+    fc: string;
+    finishTimeDisplay: string;
+    achievedAt: string;
+    gameMode: string;
+}
+
+export interface TrackOnlineBestsResult {
+    items: TrackOnlineBest[];
+    totalCount: number;
+    currentPage: number;
+    pageSize: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+    averageTimeDisplay: string | null;
+}
+
+export interface PlayerOnlineBest {
+    trackName: string;
+    courseId: number;
+    engineClassId: number;
+    finishTimeDisplay: string;
+    achievedAt: string;
+    gameMode: string;
 }
 

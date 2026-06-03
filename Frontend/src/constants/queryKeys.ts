@@ -96,4 +96,8 @@ export const queryKeys = {
         days: number | undefined,
         engineClassId: number | undefined,
     ) => ["player-analytics", pid, days, engineClassId] as const,
+
+    trackOnlineBests: (courseId: number, engineClassId: number | undefined, page: number) =>
+        ["track-online-bests", courseId, engineClassId, page] as const,
+    playerOnlineBests: (pid: string) => ["player-online-bests", pid] as const,
 } as const;

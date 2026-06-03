@@ -23,4 +23,8 @@ public class RaceResultEntity
     public int FramesIn1st { get; set; }
     public short CourseId { get; set; } // Maps to CourseId in TrackEntity
     public short EngineClassId { get; set; }
+
+    // Room context stamped at collection time. Null for results collected before this field was added.
+    public bool? IsPublic { get; set; }
+    public string? Rk { get; set; } // Room kind/game mode. Null = standard racing.
 }

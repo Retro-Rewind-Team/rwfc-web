@@ -150,4 +150,52 @@ public class RaceStatsController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving races");
         }
     }
+
+    [HttpGet("track/{courseId}/online-bests")]
+    [ProducesResponseType<TrackOnlineBestsResultDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<TrackOnlineBestsResultDto>> GetTrackOnlineBests(
+        int courseId,
+        [FromQuery] short? engineClassId = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = DefaultPageSize)
+    {
+        try
+        {
+            page = Math.Max(1, page);
+            pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
+            var result = await _raceStatsService.GetTrackOnlineBestsAsync(
+                (short)courseId, engineClassId, page, pageSize);
+            Response.Headers.CacheControl = "public, max-age=120";
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving online bests for course {CourseId}", courseId);
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while retrieving online bests");
+        }
+    }
+
+    [HttpGet("player/{pid}/online-bests")]
+    [ProducesResponseType<List<PlayerOnlineBestDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<List<PlayerOnlineBestDto>>> GetPlayerOnlineBests(string pid)
+    {
+        try
+        {
+            var result = await _raceStatsService.GetPlayerOnlineBestsAsync(pid);
+            if (result == null)
+                return NotFound($"Player '{pid}' not found");
+            Response.Headers.CacheControl = "public, max-age=120";
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving online bests for player {Pid}", pid);
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while retrieving player online bests");
+        }
+    }
 }

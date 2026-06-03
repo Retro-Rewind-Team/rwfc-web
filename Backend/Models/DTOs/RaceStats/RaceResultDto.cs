@@ -10,5 +10,7 @@ public record RaceResultDto(
     short CourseId,
     string TrackName,
     short EngineClassId,
-    List<RaceEntryDto> Participants
+    List<RaceEntryDto> Participants,
+    string? GameMode,
+    bool? IsPublic
 );

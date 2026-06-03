@@ -400,15 +400,15 @@ export default function RaceStatsPage() {
                             </h2>
                         </div>
                         <div class="relative h-32">
-                            <div class="absolute inset-0 flex items-end gap-px">
+                            <div class="absolute inset-0 flex gap-px">
                                 <For each={stats().racesByHour}>
                                     {(hour) => (
                                         <Tooltip
                                             text={`${String(hour.hour).padStart(2, "0")}:00 - ${hour.raceCount.toLocaleString()} races`}
-                                            class="flex-1"
+                                            class="flex-1 relative"
                                         >
                                             <div
-                                                class="w-full bg-blue-500 dark:bg-blue-600 rounded-t hover:bg-blue-400 dark:hover:bg-blue-500 transition-colors cursor-default"
+                                                class="absolute bottom-0 w-full bg-blue-500 dark:bg-blue-600 rounded-t hover:bg-blue-400 dark:hover:bg-blue-500 transition-colors cursor-default"
                                                 style={{
                                                     height: `${Math.max(2, Math.round((hour.raceCount / maxHourCount()) * 100))}%`,
                                                 }}

@@ -1,6 +1,7 @@
 using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.Domain;
 using RetroRewindWebsite.Models.DTOs.RaceStats;
+using RetroRewindWebsite.Models.DTOs.Room;
 using RetroRewindWebsite.Models.Entities.Player;
 using RetroRewindWebsite.Models.Entities.RaceResult;
 
@@ -101,15 +102,15 @@ public static class RaceStatsMapper
 
     /// <summary>
     /// Maps raw race result entities to recent race DTOs.
-    /// Course IDs not found in <paramref name="trackNames"/> fall back to "Course {id}".
+    /// Races on course IDs not present in <paramref name="trackNames"/> are silently excluded.
     /// </summary>
     /// <param name="raw">Race result rows from the repository.</param>
     /// <param name="trackNames">Map of CourseId → display name, pre-built from the track repository.</param>
     public static List<RecentRaceDto> MapRecentRaces(
         List<RaceResultEntity> raw,
         Dictionary<short, string> trackNames)
-        => [.. raw.Select(r => new RecentRaceDto(
-            trackNames.TryGetValue(r.CourseId, out var name) ? name : $"Course {r.CourseId}",
+        => [.. raw.Where(r => trackNames.ContainsKey(r.CourseId)).Select(r => new RecentRaceDto(
+            trackNames[r.CourseId],
             r.CourseId,
             FormatFinishTime(r.FinishTime),
             MarioKartMappings.GetCharacterName(r.CharacterId),
@@ -118,7 +119,9 @@ public static class RaceStatsMapper
             r.FinishPos == 0 ? (short?)null : r.FinishPos,
             r.PlayerCount,
             r.RoomId,
-            r.RaceNumber))];
+            r.RaceNumber,
+            r.Rk != null ? RoomDtoExtensions.GetRoomModeName(r.Rk) : null,
+            r.IsPublic))];
 
     /// <summary>
     /// Maps most-active player data to DTOs, resolving names and friend codes from
@@ -195,7 +198,10 @@ public static class RaceStatsMapper
                     p.FramesIn1st);
             }).ToList();
 
-            return new RaceResultDto(k.RoomId, k.RaceNumber, k.RaceTimestamp, k.CourseId, trackName, k.EngineClassId, entries);
+            var first = rows.FirstOrDefault();
+            var gameMode = first?.Rk != null ? RoomDtoExtensions.GetRoomModeName(first.Rk) : null;
+
+            return new RaceResultDto(k.RoomId, k.RaceNumber, k.RaceTimestamp, k.CourseId, trackName, k.EngineClassId, entries, gameMode, first?.IsPublic);
         })];
     }
 

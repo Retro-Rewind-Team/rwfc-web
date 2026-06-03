@@ -98,7 +98,9 @@ public class RaceResultService : IRaceResultService
                                 FinishPos = correctedPositions.TryGetValue(result.ProfileID, out var pos) ? pos : (short)0,
                                 FramesIn1st = result.FramesIn1st,
                                 CourseId = result.CourseID,
-                                EngineClassId = result.EngineClassID
+                                EngineClassId = result.EngineClassID,
+                                IsPublic = group.Type == "anybody",
+                                Rk = group.Rk
                             });
                         }
                     }

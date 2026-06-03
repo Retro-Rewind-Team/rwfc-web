@@ -287,6 +287,18 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                                     >
                                                         {race.trackName}
                                                     </span>
+                                                    <div class="flex items-center gap-1 mt-0.5 flex-wrap">
+                                                        <Show when={race.gameMode}>
+                                                            <span class="text-[10px] font-medium px-1.5 py-0 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                                                                {race.gameMode}
+                                                            </span>
+                                                        </Show>
+                                                        <Show when={race.isPublic !== null}>
+                                                            <span class={`text-[10px] font-medium px-1.5 py-0 rounded ${race.isPublic ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400" : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"}`}>
+                                                                {race.isPublic ? "Public" : "Private"}
+                                                            </span>
+                                                        </Show>
+                                                    </div>
                                                 </td>
                                                 <td class="py-2 pr-3 font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
                                                     {race.finishTimeDisplay}

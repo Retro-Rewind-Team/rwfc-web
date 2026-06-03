@@ -3,10 +3,12 @@ import { PagedResult } from "../../types/room";
 import {
     GlobalRaceStats,
     PlayerAnalytics,
+    PlayerOnlineBest,
     PlayerRaceStats,
     PlayerRaceStatsParams,
     RaceResult,
     RacesParams,
+    TrackOnlineBestsResult,
 } from "../../types/raceStats";
 
 export const raceStatsApi = {
@@ -60,5 +62,24 @@ export const raceStatsApi = {
         if (params.pageSize !== undefined) searchParams.append("pageSize", params.pageSize.toString());
         const query = searchParams.toString();
         return apiRequest<PagedResult<RaceResult>>(`/racestats/races${query ? `?${query}` : ""}`);
+    },
+
+    async getTrackOnlineBests(
+        courseId: number,
+        engineClassId?: number,
+        page = 1,
+        pageSize = 25,
+    ): Promise<TrackOnlineBestsResult> {
+        const params = new URLSearchParams();
+        if (engineClassId !== undefined) params.append("engineClassId", engineClassId.toString());
+        params.append("page", page.toString());
+        params.append("pageSize", pageSize.toString());
+        return apiRequest<TrackOnlineBestsResult>(
+            `/racestats/track/${courseId}/online-bests?${params.toString()}`,
+        );
+    },
+
+    async getPlayerOnlineBests(pid: string): Promise<PlayerOnlineBest[]> {
+        return apiRequest<PlayerOnlineBest[]>(`/racestats/player/${pid}/online-bests`);
     },
 };

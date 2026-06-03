@@ -49,5 +49,19 @@ namespace RetroRewindWebsite.Services.Application
             DateTime? to,
             int page,
             int pageSize);
+
+        /// <summary>
+        /// Returns a paged list of the fastest online race times per player for a given track,
+        /// ordered fastest first. <paramref name="engineClassId"/> null means all cc classes.
+        /// </summary>
+        Task<TrackOnlineBestsResultDto> GetTrackOnlineBestsAsync(
+            short courseId, short? engineClassId, int page, int pageSize);
+
+        /// <summary>
+        /// Returns the best online race time per track+cc for a given player.
+        /// Returns <c>null</c> if the player does not exist.
+        /// Returns an empty list if the player exists but has no recorded online times.
+        /// </summary>
+        Task<List<PlayerOnlineBestDto>?> GetPlayerOnlineBestsAsync(string pid);
     }
 }

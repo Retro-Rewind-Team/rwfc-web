@@ -9,6 +9,20 @@ public class RaceStatsRepository : IRaceStatsRepository
 {
     private readonly LeaderboardDbContext _context;
 
+    // Rk values accepted for online best times — standard racing modes only.
+    private static readonly HashSet<string> AllowedRkValues =
+    [
+        "vs_10",  // Retro Tracks
+        "vs_11",  // Online TT
+        "vs_12",  // 200cc
+        "vs_20",  // Custom Tracks
+        "vs_21",  // Vanilla Tracks
+        "vs_22",  // CT 200cc
+        "vs_751", // Versus
+        "vs_-1",  // Regular
+        "vs",     // Regular (alternate key)
+    ];
+
     public RaceStatsRepository(LeaderboardDbContext context)
     {
         _context = context;
@@ -462,5 +476,129 @@ public class RaceStatsRepository : IRaceStatsRepository
             .ToListAsync();
 
         return rows.Where(r => raceKeySet.Contains((r.RoomId, r.RaceNumber))).ToList();
+    }
+
+    public async Task<(List<(long ProfileId, int FinishTime, DateTime AchievedAt, string Rk)> Rows, int TotalCount, float? AverageBestSeconds)>
+        GetTrackOnlineBestsAsync(short courseId, short? engineClassId, int page, int pageSize)
+    {
+        var allowed = AllowedRkValues;
+        IQueryable<RaceResultEntity> query = _context.RaceResults
+            .AsNoTracking()
+            .Where(r => r.CourseId == courseId && r.PlayerId == 0 && r.FinishPos != 0
+                     && r.IsPublic == true && r.Rk != null && allowed.Contains(r.Rk));
+
+        if (engineClassId.HasValue)
+            query = query.Where(r => r.EngineClassId == engineClassId.Value);
+
+        // BKT floor: non-glitch/non-shroomless world record minus 2 seconds for the cc class.
+        float floorSeconds = 0f;
+        if (engineClassId.HasValue)
+        {
+            short ccValue = engineClassId.Value == 1 ? (short)200 : (short)150;
+            var bktMs = await _context.GhostSubmissions
+                .AsNoTracking()
+                .Join(_context.Tracks, g => g.TrackId, t => t.Id,
+                    (g, t) => new { g.CC, g.FinishTimeMs, g.Glitch, g.Shroomless, t.CourseId })
+                .Where(x => x.CourseId == courseId && x.CC == ccValue && !x.Glitch && !x.Shroomless)
+                .MinAsync(x => (int?)x.FinishTimeMs);
+
+            if (bktMs.HasValue)
+                floorSeconds = Math.Max(0f, (bktMs.Value - 2000) / 1000f);
+        }
+
+        const float CapSeconds = 330f; // online races end by default after 5:30
+
+        // Project only 4 fields before materializing so the query stays lightweight.
+        var allRows = await query
+            .Select(r => new { r.ProfileId, r.FinishTime, r.RaceTimestamp, r.Rk })
+            .ToListAsync();
+
+        // Filter impossible times before grouping so a player with one bad time
+        // can still appear with their next-best valid time.
+        var validRows = allRows.Where(r =>
+        {
+            float secs = BitConverter.Int32BitsToSingle(r.FinishTime);
+            return secs >= floorSeconds && secs <= CapSeconds;
+        }).ToList();
+
+        // Group and find the best time per player in memory.
+        var bestPerPlayer = validRows
+            .GroupBy(r => r.ProfileId)
+            .Select(g =>
+            {
+                var best = g.OrderBy(r => r.FinishTime).First();
+                return (ProfileId: g.Key, FinishTime: best.FinishTime, AchievedAt: best.RaceTimestamp, Rk: best.Rk!);
+            })
+            .OrderBy(x => x.FinishTime)
+            .ToList();
+
+        var totalCount = bestPerPlayer.Count;
+
+        // Average of per-player personal bests (convert IEEE 754 int bit patterns to seconds).
+        float? avgBestSeconds = totalCount > 0
+            ? (float)bestPerPlayer.Average(r => (double)BitConverter.Int32BitsToSingle(r.FinishTime))
+            : null;
+
+        var pageRows = bestPerPlayer
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return (pageRows, totalCount, avgBestSeconds);
+    }
+
+    public async Task<List<(short CourseId, short EngineClassId, int FinishTime, DateTime AchievedAt, string Rk)>>
+        GetPlayerOnlineBestsAsync(long profileId)
+    {
+        var allowed = AllowedRkValues;
+        var allRows = await _context.RaceResults
+            .AsNoTracking()
+            .Where(r => r.ProfileId == profileId && r.PlayerId == 0 && r.FinishPos != 0
+                     && r.IsPublic == true && r.Rk != null && allowed.Contains(r.Rk))
+            .Select(r => new { r.CourseId, r.EngineClassId, r.FinishTime, r.RaceTimestamp, r.Rk })
+            .ToListAsync();
+
+        // Fetch BKT floors for all relevant (courseId, cc) combos in one query.
+        var courseIds = allRows.Select(r => r.CourseId).Distinct().ToList();
+        var bktData = await _context.GhostSubmissions
+            .AsNoTracking()
+            .Join(_context.Tracks, g => g.TrackId, t => t.Id,
+                (g, t) => new { g.CC, g.FinishTimeMs, g.Glitch, g.Shroomless, t.CourseId })
+            .Where(x => courseIds.Contains(x.CourseId) && !x.Glitch && !x.Shroomless)
+            .GroupBy(x => new { x.CourseId, x.CC })
+            .Select(g => new { g.Key.CourseId, g.Key.CC, MinMs = g.Min(x => x.FinishTimeMs) })
+            .ToListAsync();
+
+        // (courseId, engineClassId) → floor in seconds (BKT - 2s). engineClassId: 1=200cc, 2=150cc.
+        var floors = bktData.ToDictionary(
+            x => (x.CourseId, (short)(x.CC == 200 ? 1 : 2)),
+            x => Math.Max(0f, (x.MinMs - 2000) / 1000f));
+
+        const float CapSeconds = 330f;
+
+        var validRows = allRows.Where(r =>
+        {
+            float secs = BitConverter.Int32BitsToSingle(r.FinishTime);
+            if (secs > CapSeconds) return false;
+            if (floors.TryGetValue((r.CourseId, r.EngineClassId), out var floor) && secs < floor) return false;
+            return true;
+        }).ToList();
+
+        return validRows
+            .GroupBy(r => (r.CourseId, r.EngineClassId))
+            .Select(g =>
+            {
+                var best = g.OrderBy(r => r.FinishTime).First();
+                return (
+                    CourseId: g.Key.CourseId,
+                    EngineClassId: g.Key.EngineClassId,
+                    FinishTime: best.FinishTime,
+                    AchievedAt: best.RaceTimestamp,
+                    Rk: best.Rk!
+                );
+            })
+            .OrderBy(x => x.CourseId)
+            .ThenBy(x => x.EngineClassId)
+            .ToList();
     }
 }

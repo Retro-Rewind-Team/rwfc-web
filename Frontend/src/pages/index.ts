@@ -18,3 +18,4 @@ export { VRCalculatorPage } from "./Tools";
 export { RankHelperPage } from "./Tools";
 export { RaceStatsPage } from "./RaceStats";
 export { RacesPage } from "./Races";
+export { OnlineBestsPage } from "./OnlineBests";
