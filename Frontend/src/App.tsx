@@ -9,7 +9,6 @@ import {
     LeaderboardPage,
     LeaderboardPlayerDetailPage,
     NotFoundPage,
-    OnlineBestsPage,
     PrivacyPage,
     RacesPage,
     RaceStatsPage,
@@ -85,8 +84,6 @@ function App() {
                     <Route path="/team" component={TeamPage} />
                     <Route path="/stats" component={RaceStatsPage} />
                     <Route path="/races" component={RacesPage} />
-                    <Route path="/online-bests" component={OnlineBestsPage} />
-
                     {/* Tools Pages */}
                     <Route path="/tools" component={ToolsPage} />
                     <Route path="tools/font-patcher" component={FontPatcherPage} />

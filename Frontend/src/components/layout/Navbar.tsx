@@ -14,7 +14,6 @@ const navLinks = [
     { href: "/privacy", label: "Privacy" },
     { href: "/stats", label: "Stats" },
     { href: "/races", label: "Races" },
-    { href: "/online-bests", label: "Online Bests" },
 ];
 
 export default function Navbar() {
