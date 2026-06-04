@@ -8,6 +8,7 @@ export interface Player {
     isSuspicious: boolean;
     vrStats: VRStats;
     miiImageBase64?: string;
+    miiData?: string;
 }
 
 export interface VRStats {
