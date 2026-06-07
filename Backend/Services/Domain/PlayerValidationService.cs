@@ -13,7 +13,7 @@ public class PlayerValidationService : IPlayerValidationService
     private const int SuspiciousNewPlayerVR = 20000; // A brand-new account at 20 000+ VR has no prior history
     private const int HighVRThreshold = 20000; // At this VR level a 5 000-point jump should not be tolerated
     private const int LargeVRJumpThreshold = 5000;
-    private const int MaxVRJumpPerRace = 529; // 529 = maximum VR gain achievable in a single race (12-player room, first place, VR multiplier)
+    private const int MaxVRJumpPerRace = 793; // 793 = maximum VR gain achievable in a single race (12-player room, first place, VR multiplier)
     private const int SuspiciousJumpCountThreshold = 5; // Flag after 5 over-max jumps; allows for one-off API glitches
 
     public PlayerValidationService(ILogger<PlayerValidationService> logger)

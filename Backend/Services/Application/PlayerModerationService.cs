@@ -16,7 +16,7 @@ public class PlayerModerationService : IPlayerModerationService
     private readonly LeaderboardDbContext _context;
     private readonly ILogger<PlayerModerationService> _logger;
 
-    private const int SuspiciousJumpThreshold = 529; // Matches PlayerValidationService.MaxVRJumpPerRace
+    private const int SuspiciousJumpThreshold = 793; // Matches PlayerValidationService.MaxVRJumpPerRace
 
     public PlayerModerationService(
         IPlayerRepository playerRepository,

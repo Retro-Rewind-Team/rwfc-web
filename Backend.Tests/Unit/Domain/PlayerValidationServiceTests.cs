@@ -25,11 +25,11 @@ public class PlayerValidationServiceTests
     // ===== IsSuspiciousVRJump =====
 
     [Theory]
-    [InlineData(530, 20000, true)]  // exceeds per-race max (529), so true regardless of high-VR path
-    [InlineData(529, 20000, false)] // at per-race max -- not suspicious (not strictly greater)
-    [InlineData(5000, 20000, true)] // both conditions true: high VR + large jump, and also > 529
-    [InlineData(5000, 19999, true)] // below high-VR threshold, but 5000 > MaxVRJumpPerRace (529)
-    [InlineData(529, 19999, false)] // below high-VR threshold AND at per-race max -- not suspicious
+    [InlineData(794, 20000, true)]  // exceeds per-race max (793), so true regardless of high-VR path
+    [InlineData(793, 20000, false)] // at per-race max -- not suspicious (not strictly greater)
+    [InlineData(5000, 20000, true)] // both conditions true: high VR + large jump, and also > 793
+    [InlineData(5000, 19999, true)] // below high-VR threshold, but 5000 > MaxVRJumpPerRace (793)
+    [InlineData(793, 19999, false)] // below high-VR threshold AND at per-race max -- not suspicious
     public void IsSuspiciousVRJump_VariousInputs(int vrChange, int currentVR, bool expected)
     {
         _sut.IsSuspiciousVRJump(vrChange, currentVR).ShouldBe(expected);
@@ -63,8 +63,8 @@ public class PlayerValidationServiceTests
     [Fact]
     public void CheckSuspiciousStatus_OverMaxJump_BelowCountThreshold_AccumulatesWithoutFlagging()
     {
-        // jump = 5530 - 5000 = 530 > MaxVRJumpPerRace(529), count goes 0 -> 1 (threshold is 5)
-        var player = new PlayerEntity { Pid = "p1", Name = "Test", Fc = "0000-0000-0000", MiiData = "", Ev = 5530, SuspiciousVRJumps = 0, IsSuspicious = false };
+        // jump = 5794 - 5000 = 794 > MaxVRJumpPerRace(793), count goes 0 -> 1 (threshold is 5)
+        var player = new PlayerEntity { Pid = "p1", Name = "Test", Fc = "0000-0000-0000", MiiData = "", Ev = 5794, SuspiciousVRJumps = 0, IsSuspicious = false };
 
         var result = _sut.CheckSuspiciousStatus(player, previousVR: 5000);
 
@@ -79,7 +79,7 @@ public class PlayerValidationServiceTests
     public void CheckSuspiciousStatus_OverMaxJump_ReachesCountThreshold_Flags()
     {
         // SuspiciousVRJumps = 4, one more jump hits threshold (5)
-        var player = new PlayerEntity { Pid = "p1", Name = "Test", Fc = "0000-0000-0000", MiiData = "", Ev = 5530, SuspiciousVRJumps = 4, IsSuspicious = false };
+        var player = new PlayerEntity { Pid = "p1", Name = "Test", Fc = "0000-0000-0000", MiiData = "", Ev = 5794, SuspiciousVRJumps = 4, IsSuspicious = false };
 
         var result = _sut.CheckSuspiciousStatus(player, previousVR: 5000);
 
