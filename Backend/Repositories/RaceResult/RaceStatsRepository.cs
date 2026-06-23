@@ -34,7 +34,8 @@ public class RaceStatsRepository : IRaceStatsRepository
     {
         var query = _context.RaceResults
             .AsNoTracking()
-            .Where(r => r.ProfileId == profileId && r.PlayerId == 0);
+            .Where(r => r.ProfileId == profileId && r.PlayerId == 0
+                     && (r.Rk == null || AllowedRkValues.Contains(r.Rk)));
 
         if (after.HasValue)
             query = query.Where(r => r.RaceTimestamp >= after.Value);
@@ -52,7 +53,7 @@ public class RaceStatsRepository : IRaceStatsRepository
     {
         var query = _context.RaceResults
             .AsNoTracking()
-            .Where(r => r.PlayerId == 0);
+            .Where(r => r.PlayerId == 0 && (r.Rk == null || AllowedRkValues.Contains(r.Rk)));
 
         if (after.HasValue)
             query = query.Where(r => r.RaceTimestamp >= after.Value);
@@ -421,7 +422,7 @@ public class RaceStatsRepository : IRaceStatsRepository
     {
         IQueryable<RaceResultEntity> query = _context.RaceResults
             .AsNoTracking()
-            .Where(r => r.PlayerId == 0);
+            .Where(r => r.PlayerId == 0 && (r.Rk == null || AllowedRkValues.Contains(r.Rk)));
 
         if (!string.IsNullOrEmpty(roomId))
             query = query.Where(r => r.RoomId == roomId);
