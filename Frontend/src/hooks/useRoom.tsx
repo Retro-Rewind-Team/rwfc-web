@@ -1,4 +1,5 @@
-import { createMemo, createSignal } from "solid-js";
+import { createMemo, createSignal, onMount } from "solid-js";
+import { useSearchParams } from "@solidjs/router";
 import { useQuery } from "@tanstack/solid-query";
 import { roomStatusApi } from "../services/api";
 import { queryKeys } from "../constants/queryKeys";
@@ -6,8 +7,12 @@ import { queryKeys } from "../constants/queryKeys";
 /**
  * Manages room status browsing: live polling, historical snapshot navigation
  * (forward/backward/jump), datetime seeking, and friend code collection.
+ * Reads a `time` (unix seconds) URL search param once on mount to deep-link
+ * into a specific historical snapshot.
  */
 export function useRoomStatus() {
+    const [searchParams] = useSearchParams();
+
     // undefined = live (latest), number = specific DB snapshot ID
     const [currentId, setCurrentId] = createSignal<number | undefined>(undefined);
     const [minId, setMinId] = createSignal<number>(0);
@@ -118,6 +123,15 @@ export function useRoomStatus() {
             setIsJumping(false);
         }
     };
+
+    // Deep-link: jump to a shared timestamp once on mount, e.g. ?time=1719440400
+    onMount(() => {
+        const time = searchParams.time;
+        const seconds = typeof time === "string" && /^\d+$/.test(time) ? Number(time) : NaN;
+        if (Number.isFinite(seconds) && seconds > 0) {
+            goToDateTime(new Date(seconds * 1000));
+        }
+    });
 
     const currentDateTimeLocal = createMemo(() => {
         const data = roomStatusQuery.data;
