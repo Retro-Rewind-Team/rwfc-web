@@ -150,8 +150,7 @@ export default function RulesPage() {
                         <strong>Allowed:</strong> Stop trolling (coming to a stop with a power item)
                         is allowed as long as it is not being used to troll/target players. Playing
                         like a douchebag is allowed as long as you prioritize actually racing.
-                        Playing with the sole intent to troll/disrupt is unwanted and
-                        <strong>will</strong> result in punishment.
+                        Playing with the sole intent to troll/disrupt is unwanted and <strong>will</strong> result in punishment.
                     </p>
                 </AlertBox>
 
@@ -327,6 +326,7 @@ export default function RulesPage() {
                 </div>
             </div>
 
+            {/* Game-Breaking Shortcuts Section */}
             <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                     Game-Breaking Shortcuts
@@ -341,8 +341,8 @@ export default function RulesPage() {
                 <ul class="space-y-1 text-gray-600 dark:text-gray-300">
                     <li class="flex items-start">
                         <span class="text-yellow-600 mr-2 mt-1">•</span>
-                            <strong>Wii Coconut Mall:</strong> Out of Bounds shortcuts
                         <span>
+                            <strong>Wii Coconut Mall:</strong> Out of Bounds shortcuts
                         </span>
                     </li>
                     <li class="flex items-start">
