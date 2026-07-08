@@ -150,8 +150,7 @@ export default function RulesPage() {
                         <strong>Allowed:</strong> Stop trolling (coming to a stop with a power item)
                         is allowed as long as it is not being used to troll/target players. Playing
                         like a douchebag is allowed as long as you prioritize actually racing.
-                        Playing with the sole intent to troll/disrupt is unwanted and 
-                        <strong>will</strong> result in punishment.
+                        Playing with the sole intent to troll/disrupt is unwanted and <strong>will</strong> result in punishment.
                     </p>
                 </AlertBox>
 
@@ -302,16 +301,75 @@ export default function RulesPage() {
                     and will be flagged by staff.
                 </p>
 
-                <p class="text-gray-600 dark:text-gray-300">
+                <p class="text-gray-600 dark:text-gray-300 mb-3">
+                    Organizing rooms with the intent to boost VR is prohibited and will result in a
+                    flag as well. This includes having high VR players intentionally lose to boost
+                    lower VR players. In such cases, both players will be impacted with a flag.
+                </p>
+
+                <p class="text-gray-600 dark:text-gray-300 mb-3">
+                    Using game-breaking shortcuts or violating the Intent of Play rule may result in a flag.
+                </p>
+
+                <p class="text-gray-600 dark:text-gray-300 mb-3">
                     Leaderboard flags can be appealed through a ticket just like bans can. Flags can
                     be lifted, on staff discretion, by either reverting the illegitimate VR gains
                     or, especially in case of general VR manipulation, resetting the VR on the
                     license.
                 </p>
 
-                <p class="text-gray-600 dark:text-gray-300">
-                    Leaderboard flagging can also be a result of the Discord Enforcement rule above.
+                <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                    <p class="text-gray-700 dark:text-gray-300">
+                        <strong>Note:</strong> Leaderboard flagging can also be a result of the
+                        Discord Enforcement rule above.
+                    </p>
+                </div>
+            </div>
+
+            {/* Game-Breaking Shortcuts Section */}
+            <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                    Game-Breaking Shortcuts
+                </h2>
+
+                <p class="text-gray-600 dark:text-gray-300 mb-3">
+                    Certain shortcuts that cause position tracker issues or skip significant parts
+                    of a track are prohibited and will result in a kick or temporary ban in addition
+                    to a flag.
                 </p>
+
+                <ul class="space-y-1 text-gray-600 dark:text-gray-300">
+                    <li class="flex items-start">
+                        <span class="text-yellow-600 mr-2 mt-1">•</span>
+                        <span>
+                            <strong>Wii Coconut Mall:</strong> Out of Bounds shortcuts
+                        </span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-yellow-600 mr-2 mt-1">•</span>
+                        <span>
+                            <strong>N64 DK Jungle Parkway:</strong> Turnskip shortcut
+                        </span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-yellow-600 mr-2 mt-1">•</span>
+                        <span>
+                            <strong>GBA Broken Pier:</strong> Respawn shortcut
+                        </span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-yellow-600 mr-2 mt-1">•</span>
+                        <span>
+                            <strong>Tour Snow Land:</strong> Glitch
+                        </span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-yellow-600 mr-2 mt-1">•</span>
+                        <span>
+                            <strong>SW2 Faraway Oasis:</strong> Cave skip shortcut
+                        </span>
+                    </li>
+                </ul>
             </div>
 
             {/* Other WFC Servers */}
