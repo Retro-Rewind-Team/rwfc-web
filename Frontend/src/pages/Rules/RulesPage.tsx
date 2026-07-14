@@ -366,6 +366,18 @@ export default function RulesPage() {
                     <li class="flex items-start">
                         <span class="text-yellow-600 mr-2 mt-1">•</span>
                         <span>
+                            <strong>SW2 Cheep Cheep Falls:</strong> Backwards reroute shortcut
+                        </span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-yellow-600 mr-2 mt-1">•</span>
+                        <span>
+                            <strong>SW2 DK Spaceport:</strong> Out of bounds shortcuts
+                        </span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-yellow-600 mr-2 mt-1">•</span>
+                        <span>
                             <strong>SW2 Faraway Oasis:</strong> Cave skip shortcut
                         </span>
                     </li>
