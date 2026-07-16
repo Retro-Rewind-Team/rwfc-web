@@ -8,8 +8,8 @@ public class RetroWFCApiClient : IRetroWFCApiClient
     private readonly HttpClient _httpClient;
     private readonly ILogger<RetroWFCApiClient> _logger;
 
-    private const string GroupsApiUrl = "http://rwfc.net/api/groups";
-    private const string RaceResultsApiUrl = "http://rwfc.net/api/mkw_rr?id=";
+    private const string GroupsApiUrl = "https://rwfc.net/api/wfc/groups";
+    private const string RaceResultsApiUrl = "https://rwfc.net/api/wfc/mkw_rr?id=";
 
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
