@@ -212,6 +212,8 @@ The integration tests connect to `rr_test` using the same PostgreSQL credentials
 | `WfcSecret` | `appsettings.Development.json` | Bearer token for moderation endpoints (development) |
 | `WFC_SECRET` | Environment variable | Bearer token for moderation endpoints (production) |
 | `GhostStoragePath` | `appsettings.json` | Directory where ghost files are saved (defaults to `ghosts/`) |
+| `WFC_GROUPS_ENDPOINT` | Environment Variable | The endpoint to query groups data from. Should be a full URL (http://...) |
+| `WFC_RACE_RESULTS_ENDPOINT` | Environment Variable | The endpoint to query race data from. Should be a full URL (http://...) |
 
 ### Frontend
 

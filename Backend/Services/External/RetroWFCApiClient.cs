@@ -8,8 +8,10 @@ public class RetroWFCApiClient : IRetroWFCApiClient
     private readonly HttpClient _httpClient;
     private readonly ILogger<RetroWFCApiClient> _logger;
 
-    private const string GroupsApiUrl = "https://rwfc.net/api/wfc/groups";
-    private const string RaceResultsApiUrl = "https://rwfc.net/api/wfc/mkw_rr?id=";
+    private readonly string _groupsApiUrl = Environment.GetEnvironmentVariable("WFC_GROUPS_ENDPOINT")
+        ?? "https://rwfc.net/api/wfc/groups";
+    private readonly string _raceResultsApiUrl = Environment.GetEnvironmentVariable("WFC_RACE_RESULTS_ENDPOINT")
+        ?? "https://rwfc.net/api/wfc/mkw_rr?id=";
 
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
@@ -28,7 +30,7 @@ public class RetroWFCApiClient : IRetroWFCApiClient
         {
             _logger.LogDebug("Fetching active groups from Retro WFC API");
 
-            var response = await _httpClient.GetStringAsync(GroupsApiUrl);
+            var response = await _httpClient.GetStringAsync(_groupsApiUrl);
             var groups = JsonSerializer.Deserialize<List<Group>>(response, _jsonOptions);
 
             if (groups == null)
@@ -63,7 +65,7 @@ public class RetroWFCApiClient : IRetroWFCApiClient
         {
             _logger.LogDebug("Fetching race results for room {RoomId}", roomId);
 
-            var response = await _httpClient.GetStringAsync($"{RaceResultsApiUrl}{roomId}");
+            var response = await _httpClient.GetStringAsync($"{_raceResultsApiUrl}{roomId}");
             var raceResponse = JsonSerializer.Deserialize<RoomRaceResponse>(response, _jsonOptions);
 
             if (raceResponse?.Results == null || raceResponse.Results.Count == 0)
