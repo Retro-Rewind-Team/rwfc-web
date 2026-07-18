@@ -68,6 +68,23 @@ public class BadgeController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError,
                 "An error occurred while querying the players");
         }
+    }
 
+    [HttpGet("all")]
+    [ProducesResponseType<BatchBadgeDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<BatchBadgeDto>> AllBadges()
+    {
+        try
+        {
+            var badges = await _playerRepository.GetAllBadgedPlayersAsync();
+            return Ok(new BatchBadgeDto(badges));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error querying all badged players");
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while querying the badges");
+        }
     }
 }

@@ -116,6 +116,11 @@ public interface IPlayerRepository
     Task<List<string>> GetPlayerPidsBatchAsync(int skip, int take);
 
     /// <summary>
+    /// Retrieves every player with badges. Returned as a dictionary of pids to badges.
+    /// </summary>
+    Task<Dictionary<string, ICollection<int>>> GetAllBadgedPlayersAsync();
+
+    /// <summary>
     /// Updates the VR gains for multiple players asynchronously in batch.
     /// </summary>
     /// <param name="vrGains">A dictionary containing player identifiers as keys and tuples representing VR gains for 24 hours, 7 days, and 30

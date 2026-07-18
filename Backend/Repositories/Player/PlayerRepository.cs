@@ -177,6 +177,14 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
             .Select(p => p.Pid)
             .ToListAsync();
 
+    public async Task<Dictionary<string, ICollection<int>>> GetAllBadgedPlayersAsync() =>
+        await _context.Players
+            .AsNoTracking()
+            .OrderBy(p => p.Id)
+            .Where(p => p.Badges != null && p.Badges.Count > 0)
+            .Select(p => new { p.Pid, p.Badges })
+            .ToDictionaryAsync(p => p.Pid, p => p.Badges!);
+
     public async Task UpdatePlayerVRGainsBatchAsync(
         Dictionary<string, (int gain24h, int gain7d, int gain30d)> vrGains)
     {
