@@ -57,10 +57,15 @@ builder.Services.AddCors(options =>
 });
 
 // ===== DATABASE =====
+#if DEBUG
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? Environment.GetEnvironmentVariable("CONNECTION_STRING");
+#else
 var connectionString = builder.Environment.IsDevelopment()
     ? builder.Configuration.GetConnectionString("DefaultConnection")
     : Environment.GetEnvironmentVariable("CONNECTION_STRING")
-      ?? builder.Configuration.GetConnectionString("Production");
+    ?? builder.Configuration.GetConnectionString("Production");
+#endif
 
 if (string.IsNullOrEmpty(connectionString))
 {
