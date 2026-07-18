@@ -132,5 +132,4 @@ public interface IPlayerRepository
     /// Updates multiple player entities in a single database round-trip.
     /// </summary>
     Task UpdateRangeAsync(IEnumerable<PlayerEntity> players);
-
 }

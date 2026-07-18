@@ -21,7 +21,8 @@ public static class PlayerMapper
             entity.VRGainLastWeek,
             entity.VRGainLastMonth),
         MiiImageBase64: entity.MiiCache?.MiiImageBase64,
-        MiiData: entity.MiiData
+        MiiData: entity.MiiData,
+        Badges: entity.Badges
     );
 
     /// <summary>
@@ -40,7 +41,8 @@ public static class PlayerMapper
             entity.VRGainLastWeek,
             entity.VRGainLastMonth),
         MiiImageBase64: null,
-        MiiData: entity.MiiData
+        MiiData: entity.MiiData,
+        Badges: entity.Badges
     );
 
     /// <summary>
@@ -57,7 +59,8 @@ public static class PlayerMapper
         IsSuspicious: entity.IsSuspicious,
         VRStats: new VRStatsDto(0, 0, 0),
         MiiImageBase64: entity.MiiImageBase64,
-        MiiData: entity.MiiData
+        MiiData: entity.MiiData,
+        Badges: null
     );
 
     /// <summary>

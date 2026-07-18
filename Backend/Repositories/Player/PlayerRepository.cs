@@ -207,7 +207,7 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
 
             await _context.Database.ExecuteSqlRawAsync(@"
                 UPDATE ""Players"" p
-                SET 
+                SET
                     ""VRGainLast24Hours"" = t.gain24h,
                     ""VRGainLastWeek"" = t.gain7d,
                     ""VRGainLastMonth"" = t.gain30d

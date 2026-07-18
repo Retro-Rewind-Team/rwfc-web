@@ -10,7 +10,8 @@ public record PlayerDto(
     bool IsSuspicious,
     VRStatsDto VRStats,
     string? MiiImageBase64,
-    string? MiiData
+    string? MiiData,
+    ICollection<int>? Badges
 );
 
 public record PlayerMiiDownloadDto(string Name, string? MiiData);

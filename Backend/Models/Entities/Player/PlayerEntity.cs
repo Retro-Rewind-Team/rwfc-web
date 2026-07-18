@@ -32,4 +32,6 @@ public class PlayerEntity
 
     public virtual PlayerMiiCacheEntity? MiiCache { get; set; }
     public virtual ICollection<VRHistoryEntity> VRHistory { get; set; } = [];
+
+    public ICollection<int>? Badges { get; set; }
 }

@@ -174,4 +174,56 @@ public class PlayerModerationController : ControllerBase
 
         return Ok(new CountryListResultDto(true, countries.Count, countries));
     }
+
+    [HttpPost("badges/add")]
+    [ProducesResponseType<ModerationActionResultDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ModerationActionResultDto>> AddBadge([FromBody] BadgeManagementRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.Pid))
+                return BadRequest("A player ID (PID) is required");
+
+            var result = await _moderationService.AddBadgeAsync(request.Pid, request.Badge);
+            if (result == null)
+                return NotFound($"Player with pid '{request.Pid}' not found");
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing badge from player with pid {Pid}", request.Pid);
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while adding a badge to the player");
+        }
+    }
+
+    [HttpPost("badges/remove")]
+    [ProducesResponseType<ModerationActionResultDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ModerationActionResultDto>> RemoveBadge([FromBody] BadgeManagementRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.Pid))
+                return BadRequest("A player ID (PID) is required");
+
+            var result = await _moderationService.RemoveBadgeAsync(request.Pid, request.Badge);
+            if (result == null)
+                return NotFound($"Player with pid '{request.Pid}' not found");
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing badge from player with pid {Pid}", request.Pid);
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while removing a badge from the player");
+        }
+    }
 }
