@@ -294,6 +294,7 @@ public class PlayerModerationService : IPlayerModerationService
         }
 
         player.Badges.Remove(badge);
+        await _playerRepository.UpdateAsync(player);
 
         _logger.LogWarning(
             "Badge removed from player: {Name} ({FriendCode}) - PID: {Pid} - Badge: {Badge}",
