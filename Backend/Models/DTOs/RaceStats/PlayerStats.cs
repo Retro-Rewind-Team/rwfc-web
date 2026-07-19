@@ -12,5 +12,6 @@ public record PlayerStatsDto(
     int VrGain7d,
     int VrGain30d,
 
-    PlayerRaceStatsDto? RaceStats
+    PlayerRaceStatsDto? RaceStats,
+    ICollection<int>? Badges
 );

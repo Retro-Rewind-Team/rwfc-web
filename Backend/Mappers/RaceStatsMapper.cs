@@ -31,7 +31,8 @@ public static class RaceStatsMapper
         VrGain24h: player.VRGainLast24Hours,
         VrGain7d: player.VRGainLastWeek,
         VrGain30d: player.VRGainLastMonth,
-        RaceStats: raceStats
+        RaceStats: raceStats,
+        Badges: player.Badges
     );
 
     /// <summary>
