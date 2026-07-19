@@ -180,7 +180,7 @@ public class PlayerModerationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<ModerationActionResultDto>> AddBadge([FromBody] BadgeManagementRequest request)
+    public async Task<ActionResult<BadgeModerationActionResultDto>> AddBadge([FromBody] BadgeManagementRequest request)
     {
         try
         {
@@ -206,7 +206,7 @@ public class PlayerModerationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<ModerationActionResultDto>> RemoveBadge([FromBody] BadgeManagementRequest request)
+    public async Task<ActionResult<BadgeModerationActionResultDto>> RemoveBadge([FromBody] BadgeManagementRequest request)
     {
         try
         {

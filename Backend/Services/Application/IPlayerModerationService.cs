@@ -52,7 +52,7 @@ public interface IPlayerModerationService
     /// or <see langword="null"/> if either PID does not exist.</returns>
     Task<SwapResultDto?> SwapPlayerStatsAsync(string sourcePid, string targetPid, string reason);
 
-    Task<ModerationActionResultDto?> AddBadgeAsync(string pid, int badge);
+    Task<BadgeModerationActionResultDto?> AddBadgeAsync(string pid, int badge);
 
-    Task<ModerationActionResultDto?> RemoveBadgeAsync(string pid, int badge);
+    Task<BadgeModerationActionResultDto?> RemoveBadgeAsync(string pid, int badge);
 }

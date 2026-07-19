@@ -9,3 +9,5 @@ public record SuspiciousJumpsResultDto(
 );
 
 public record ModerationActionResultDto(bool Success, string Message, PlayerDto? Player = null);
+
+public record BadgeModerationActionResultDto(bool Success, string Message, ICollection<int> Badges);

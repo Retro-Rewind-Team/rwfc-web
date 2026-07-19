@@ -249,7 +249,7 @@ public class PlayerModerationService : IPlayerModerationService
         );
     }
 
-    public async Task<ModerationActionResultDto?> AddBadgeAsync(string pid, int badge)
+    public async Task<BadgeModerationActionResultDto?> AddBadgeAsync(string pid, int badge)
     {
         var player = await _playerRepository.GetByPidAsync(pid);
         if (player == null)
@@ -259,9 +259,10 @@ public class PlayerModerationService : IPlayerModerationService
 
         if (player.Badges.Contains(badge))
         {
-            return new ModerationActionResultDto(
+            return new BadgeModerationActionResultDto(
                 false,
-                $"Player '${player.Name}' already has this badge"
+                $"Player '${player.Name}' already has this badge",
+                player.Badges
             );
         }
 
@@ -272,14 +273,14 @@ public class PlayerModerationService : IPlayerModerationService
             "Badge added to player: {Name} ({FriendCode}) - PID: {Pid} - Badge: {Badge}",
             player.Name, player.Fc, player.Pid);
 
-        return new ModerationActionResultDto(
+        return new BadgeModerationActionResultDto(
             true,
             $"Player '${player.Name}' has been given a badge",
-            PlayerMapper.ToDto(player)
+            player.Badges
         );
     }
 
-    public async Task<ModerationActionResultDto?> RemoveBadgeAsync(string pid, int badge)
+    public async Task<BadgeModerationActionResultDto?> RemoveBadgeAsync(string pid, int badge)
     {
         var player = await _playerRepository.GetByPidAsync(pid);
         if (player == null)
@@ -287,9 +288,10 @@ public class PlayerModerationService : IPlayerModerationService
 
         if (player.Badges == null || player.Badges.Count == 0 || !player.Badges.Contains(badge))
         {
-            return new ModerationActionResultDto(
+            return new BadgeModerationActionResultDto(
                 false,
-                $"Player '{player.Name}' does not have this badge"
+                $"Player '{player.Name}' does not have this badge",
+                player.Badges ?? []
             );
         }
 
@@ -300,10 +302,10 @@ public class PlayerModerationService : IPlayerModerationService
             "Badge removed from player: {Name} ({FriendCode}) - PID: {Pid} - Badge: {Badge}",
             player.Name, player.Fc, player.Pid, badge);
 
-        return new ModerationActionResultDto(
+        return new BadgeModerationActionResultDto(
             true,
             $"Player '${player.Name}' has had a badge removed",
-            PlayerMapper.ToDto(player)
+            player.Badges
         );
     }
 }
