@@ -18,26 +18,23 @@ public class BadgeController : ControllerBase
         _logger = logger;
     }
 
-    [HttpPost("by_pid")]
+    [HttpGet("by_pid/{pid}")]
     [ProducesResponseType<BadgeDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<BadgeDto>> BadgesByPid([FromBody] BadgeRequest request)
+    public async Task<ActionResult<BadgeDto>> BadgesByPid(string pid)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(request.Pid))
-                return BadRequest("Player ID (Pid) is required");
-
-            var player = await _playerRepository.GetByPidAsync(request.Pid);
+            var player = await _playerRepository.GetByPidAsync(pid);
             if (player == null)
-                return NotFound($"Player with PID '${request.Pid}' not found");
+                return NotFound($"Player with PID '${pid}' not found");
 
             return Ok(new BadgeDto(player.Badges ?? []));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error querying badges for player with PID {Pid}", request.Pid);
+            _logger.LogError(ex, "Error querying badges for player with PID {Pid}", pid);
             return StatusCode(StatusCodes.Status500InternalServerError,
                 "An error occurred while querying the player");
         }
