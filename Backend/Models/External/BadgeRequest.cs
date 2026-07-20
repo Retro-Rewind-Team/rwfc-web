@@ -13,5 +13,5 @@ public class BatchBadgeRequest
 public class BadgeManagementRequest
 {
     public string Pid { get; set; } = string.Empty;
-    public int Badge; // The badge to add or remove
+    public int Badge { get; set; } // The badge to add or remove
 }
