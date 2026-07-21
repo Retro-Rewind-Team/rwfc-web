@@ -6,8 +6,8 @@ import {
     Shield,
     Sparkles,
     Star,
-    Trophy,
     TriangleAlert,
+    Trophy,
     Zap,
 } from "lucide-solid";
 import { VRTierInfo } from "../types";
