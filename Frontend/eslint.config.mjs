@@ -32,6 +32,11 @@ export default tseslint.config({
             },
         ],
         "no-duplicate-imports": "error",
+
+        // Whitespace formatting
+        indent: ["error", 4, {
+            "SwitchCase": 1,
+        }],
         "no-trailing-spaces": "error",
     },
 });

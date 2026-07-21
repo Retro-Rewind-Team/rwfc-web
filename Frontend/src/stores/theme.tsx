@@ -11,12 +11,12 @@ const ThemeContext = createContext<{
     resolvedTheme: () => "light" | "dark";
     setTheme: (theme: Theme) => void;
     toggleTheme: () => void;
-}>({
-    theme,
-    resolvedTheme,
-    setTheme,
-    toggleTheme: () => {},
-});
+        }>({
+            theme,
+            resolvedTheme,
+            setTheme,
+            toggleTheme: () => {},
+        });
 
 export function ThemeProvider(props: Readonly<{ children: JSX.Element }>) {
     const getSystemTheme = (): "light" | "dark" => {
