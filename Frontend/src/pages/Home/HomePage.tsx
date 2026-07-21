@@ -15,6 +15,7 @@ import { timeTrialApi } from "../../services/api/timeTrial";
 import { queryKeys } from "../../constants/queryKeys";
 import { StatCard } from "../../components/common";
 import { A } from "@solidjs/router";
+import { rwfcApi } from "../../services/api/rwfc";
 
 const staticFeatureCards = [
     {
@@ -62,10 +63,10 @@ const aboutCards = [
 ];
 
 export default function HomePage() {
-    const statsQuery = useQuery(() => ({
-        queryKey: queryKeys.stats,
-        queryFn: () => leaderboardApi.getStats(),
-        refetchInterval: 300000,
+    const pcountQuery = useQuery(() => ({
+        queryKey: queryKeys.pcount,
+        queryFn: () => rwfcApi.getPCount(),
+            refetchInterval: 300000,
     }));
 
     const discordQuery = useQuery(() => ({
@@ -121,10 +122,10 @@ export default function HomePage() {
                         </p>
                     </div>
 
-                    <Show when={statsQuery.data}>
+                    <Show when={pcountQuery.data}>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                             <StatCard
-                                value={statsQuery.data!.totalPlayers.toLocaleString()}
+                                value={pcountQuery.data!.Count.toLocaleString()}
                                 label="Registered Licenses"
                                 colorScheme="emerald"
                             />
