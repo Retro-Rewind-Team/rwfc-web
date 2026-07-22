@@ -357,8 +357,8 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                             customRange()
                                 ? "bg-blue-600 text-white"
                                 : showCustomRange()
-                                  ? "bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300"
-                                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                    ? "bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300"
+                                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                         }`}
                     >
                         Custom

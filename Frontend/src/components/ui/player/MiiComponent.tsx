@@ -28,10 +28,10 @@ export default function MiiComponent(props: Readonly<MiiComponentProps>) {
     const { miiImage, isLoading, loadMii } = shouldLoadProgressively()
         ? useMiiImage(props.friendCode)
         : {
-              miiImage: () => props.miiImageBase64,
-              isLoading: () => false,
-              loadMii: () => {},
-          };
+            miiImage: () => props.miiImageBase64,
+            isLoading: () => false,
+            loadMii: () => {},
+        };
 
     const observeElement = useIntersectionObserver(() => {
         if (shouldLoadProgressively() && !miiImage() && !isLoading()) {

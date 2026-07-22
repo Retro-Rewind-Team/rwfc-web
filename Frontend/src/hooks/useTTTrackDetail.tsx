@@ -80,23 +80,23 @@ export function useTTTrackDetail(
         queryFn: () =>
             mode() === "flap"
                 ? timeTrialApi.getFlapLeaderboard(
-                      trackId(),
-                      cc(),
-                      glitchAllowed(),
-                      shroomlessFilter(),
-                      vehicleFilter(),
-                      currentPage(),
-                      pageSize(),
-                  )
+                    trackId(),
+                    cc(),
+                    glitchAllowed(),
+                    shroomlessFilter(),
+                    vehicleFilter(),
+                    currentPage(),
+                    pageSize(),
+                )
                 : timeTrialApi.getLeaderboard(
-                      trackId(),
-                      cc(),
-                      glitchAllowed(),
-                      shroomlessFilter(),
-                      vehicleFilter(),
-                      currentPage(),
-                      pageSize(),
-                  ),
+                    trackId(),
+                    cc(),
+                    glitchAllowed(),
+                    shroomlessFilter(),
+                    vehicleFilter(),
+                    currentPage(),
+                    pageSize(),
+                ),
     }));
 
     // FLAP stat - only in regular mode

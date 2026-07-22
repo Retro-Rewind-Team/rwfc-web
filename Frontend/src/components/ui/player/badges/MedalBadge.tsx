@@ -13,21 +13,21 @@ export default function MedalBadge(props: MedalBadgeProps) {
     const colors = () =>
         isGold()
             ? {
-                  outer: ["#FEF08A", "#FBBF24", "#D97706"],
-                  glow: "rgba(253, 224, 71, 0.3)",
-                  inner: "#92400E",
-                  border: "#78350F",
-                  bright: "#FDE047",
-              }
+                outer: ["#FEF08A", "#FBBF24", "#D97706"],
+                glow: "rgba(253, 224, 71, 0.3)",
+                inner: "#92400E",
+                border: "#78350F",
+                bright: "#FDE047",
+            }
             : isSilver()
-              ? {
+                ? {
                     outer: ["#F3F4F6", "#9CA3AF", "#6B7280"],
                     glow: "rgba(229, 231, 235, 0.3)",
                     inner: "#4B5563",
                     border: "#374151",
                     bright: "#E5E7EB",
                 }
-              : {
+                : {
                     outer: ["#FDBA74", "#FB923C", "#EA580C"],
                     glow: "rgba(253, 186, 116, 0.3)",
                     inner: "#9A3412",
