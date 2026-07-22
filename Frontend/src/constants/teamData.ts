@@ -433,7 +433,7 @@ export const teamData: Record<string, TeamMember[]> = {
     ],
     "Team Retro WFC": [
         team.Ppeb.withRole("Retro WFC & Bot Developer, Server Administrator").withDonation("https://ko-fi.com/ppebb"),
-        team.Jacher.withRole("Server Administrator & Host\nChannel Developer").withDonation("https://ko-fi.com/jacherr"),
+        team.Jacher.withRole("Server Administrator & Host, Channel Developer").withDonation("https://ko-fi.com/jacherr"),
         team.Renverse.withRole("Server Co-Host").withDonation("https://streamlabs.com/renverse64/tip"),
         team.Gab.withRole("Lead Retro WFC and Discord Administrator"),
         team.Lami.withRole("Retro WFC & Bot Developer").withDonation("https://ko-fi.com/lilousky"),
