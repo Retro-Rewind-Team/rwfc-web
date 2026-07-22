@@ -469,14 +469,14 @@ export const teamData: Record<string, TeamMember[]> = {
     "RWFC Moderators": [
         team.Fen.withRole("Lead RWFC Moderator"),
         team.Jacher.withRole("Lead RWFC Moderator"),
+        team.Dynohack.withRole("Lead RWFC Moderator"),
+        team.Wrkus.withRole("Lead RWFC Moderator"),
         team.Eppe.withRole("RWFC Moderator"),
         team.Roshi.withRole("RWFC Moderator"),
         team.DarkChaos.withRole("RWFC Moderator"),
-        team.Dynohack.withRole("RWFC Moderator"),
         team.Patchzy.withRole("RWFC Moderator"),
         team.QSahab.withRole("RWFC Moderator"),
         team.Sasuke.withRole("RWFC Moderator"),
-        team.Wrkus.withRole("RWFC Moderator"),
         team.TheBeefBai.withRole("RWFC Moderator"),
         team.Ppeb.withRole("RWFC Moderator")
 
