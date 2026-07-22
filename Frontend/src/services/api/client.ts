@@ -1,4 +1,7 @@
+import { RWFCResponse } from "../../types/rwfc";
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+const RWFC_API_BASE_URL = import.meta.env.VITE_RWFC_API_URL || "/api/wfc";
 
 export class ApiError extends Error {
     constructor(
@@ -53,5 +56,36 @@ export async function apiBlobRequest(endpoint: string, options: RequestInit = {}
             `Network error: ${error instanceof Error ? error.message : "Unknown error"}`,
             { cause: error },
         );
+    }
+}
+
+export async function rwfcAPIRequest<T extends RWFCResponse>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const url = `${RWFC_API_BASE_URL}${endpoint}`;
+
+    try {
+        const response = await fetch(url, {
+            headers: {
+                "Content-Type": "application/json",
+                ...options.headers,
+            },
+            ...options,
+        });
+
+        const rjson = await response.json() as RWFCResponse;
+
+        if (response.ok && !rjson.Error)
+            return rjson as T;
+        else
+            throw new ApiError(response.status, `HTTP ${response.status}: ${rjson.Error ?? response.statusText}`);
+
+    }
+    catch (error) {
+        if (error instanceof ApiError)
+            throw error;
+
+        throw new Error(
+            `Network error: ${error instanceof Error ? error.message : "Unknown error"}`,
+            { cause: error },
+        )
     }
 }
