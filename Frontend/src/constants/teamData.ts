@@ -424,6 +424,7 @@ const team = {
         name: "LuigiTime202",
         discord: "luigitime202",
         image: "/profiles/luigitime202.png",
+        fc: "4810-3637-9371",
     }),
 }
 
