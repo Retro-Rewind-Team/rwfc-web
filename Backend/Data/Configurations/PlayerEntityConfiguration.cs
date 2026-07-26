@@ -14,7 +14,7 @@ public class PlayerEntityConfiguration : IEntityTypeConfiguration<PlayerEntity>
         entity.HasIndex(e => e.IsSuspicious);
         entity.HasIndex(e => e.LastSeen);
 
-        entity.HasIndex(e => new { e.IsSuspicious, e.Ev, e.LastSeen });
+        entity.HasIndex(e => new { e.IsBanned, e.IsSuspicious, e.Ev, e.LastSeen });
 
         entity.HasIndex(e => e.VRGainLast24Hours);
         entity.HasIndex(e => e.VRGainLastWeek);

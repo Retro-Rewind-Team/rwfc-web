@@ -141,7 +141,8 @@ public class RaceStatsController : ControllerBase
             pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
 
             var result = await _raceStatsService.GetRacesAsync(
-                roomId, raceNumber, courseId, engineClassId, friendCode, from, to, page, pageSize);
+                roomId, raceNumber, courseId, engineClassId, friendCode,
+                AsUtc(from), AsUtc(to), page, pageSize);
             return Ok(result);
         }
         catch (Exception ex)
@@ -198,4 +199,11 @@ public class RaceStatsController : ControllerBase
                 "An error occurred while retrieving player online bests");
         }
     }
+
+    /// <summary>
+    /// Query-string DateTimes bind with Kind=Unspecified, which Npgsql rejects against
+    /// timestamptz columns. RaceTimestamp is always UTC, so treat caller-supplied bounds as UTC.
+    /// </summary>
+    private static DateTime? AsUtc(DateTime? value) =>
+        value.HasValue ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc) : null;
 }
