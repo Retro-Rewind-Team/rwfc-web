@@ -271,7 +271,7 @@ public class PlayerModerationService : IPlayerModerationService
 
         _logger.LogWarning(
             "Badge added to player: {Name} ({FriendCode}) - PID: {Pid} - Badge: {Badge}",
-            player.Name, player.Fc, player.Pid);
+            player.Name, player.Fc, player.Pid, badge);
 
         return new BadgeModerationActionResultDto(
             true,
