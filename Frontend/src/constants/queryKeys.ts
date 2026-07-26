@@ -4,6 +4,7 @@
  */
 export const queryKeys = {
     stats: ["stats"] as const,
+    pcount: ["pcount"] as const,
     discordMembers: ["discord-members"] as const,
     rrVersion: ["rr-version"] as const,
 

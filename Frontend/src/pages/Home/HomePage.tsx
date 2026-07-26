@@ -11,6 +11,7 @@ import {
     Zap,
 } from "lucide-solid";
 import { leaderboardApi } from "../../services/api/leaderboard";
+import { roomStatusApi } from "../../services/api/room";
 import { timeTrialApi } from "../../services/api/timeTrial";
 import { queryKeys } from "../../constants/queryKeys";
 import { StatCard } from "../../components/common";
@@ -62,9 +63,9 @@ const aboutCards = [
 ];
 
 export default function HomePage() {
-    const statsQuery = useQuery(() => ({
-        queryKey: queryKeys.stats,
-        queryFn: () => leaderboardApi.getStats(),
+    const pcountQuery = useQuery(() => ({
+        queryKey: queryKeys.pcount,
+        queryFn: () => roomStatusApi.getPlayerCount(),
         refetchInterval: 300000,
     }));
 
@@ -121,11 +122,11 @@ export default function HomePage() {
                         </p>
                     </div>
 
-                    <Show when={statsQuery.data}>
+                    <Show when={pcountQuery.data}>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                             <StatCard
-                                value={statsQuery.data!.totalPlayers.toLocaleString()}
-                                label="Registered Licenses"
+                                value={pcountQuery.data!.count.toLocaleString()}
+                                label="Total Players"
                                 colorScheme="emerald"
                             />
                             <StatCard

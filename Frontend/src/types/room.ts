@@ -89,3 +89,7 @@ export interface PlayerCountDataPoint {
     players: number;
     rooms: number;
 }
+
+export interface PlayerCount {
+    count: number;
+}
