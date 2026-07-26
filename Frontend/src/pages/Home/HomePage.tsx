@@ -11,11 +11,11 @@ import {
     Zap,
 } from "lucide-solid";
 import { leaderboardApi } from "../../services/api/leaderboard";
+import { roomStatusApi } from "../../services/api/room";
 import { timeTrialApi } from "../../services/api/timeTrial";
 import { queryKeys } from "../../constants/queryKeys";
 import { StatCard } from "../../components/common";
 import { A } from "@solidjs/router";
-import { rwfcApi } from "../../services/api/rwfc";
 
 const staticFeatureCards = [
     {
@@ -65,8 +65,8 @@ const aboutCards = [
 export default function HomePage() {
     const pcountQuery = useQuery(() => ({
         queryKey: queryKeys.pcount,
-        queryFn: () => rwfcApi.getPCount(),
-            refetchInterval: 300000,
+        queryFn: () => roomStatusApi.getPlayerCount(),
+        refetchInterval: 300000,
     }));
 
     const discordQuery = useQuery(() => ({
@@ -125,8 +125,8 @@ export default function HomePage() {
                     <Show when={pcountQuery.data}>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                             <StatCard
-                                value={pcountQuery.data!.Count.toLocaleString()}
-                                label="Registered Licenses"
+                                value={pcountQuery.data!.count.toLocaleString()}
+                                label="Total Players"
                                 colorScheme="emerald"
                             />
                             <StatCard

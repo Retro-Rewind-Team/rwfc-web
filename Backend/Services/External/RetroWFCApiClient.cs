@@ -12,6 +12,8 @@ public class RetroWFCApiClient : IRetroWFCApiClient
         ?? "https://rwfc.net/api/wfc/groups";
     private readonly string _raceResultsApiUrl = Environment.GetEnvironmentVariable("WFC_RACE_RESULTS_ENDPOINT")
         ?? "https://rwfc.net/api/wfc/mkw_rr?id=";
+    private readonly string _pcountApiUrl = Environment.GetEnvironmentVariable("WFC_PCOUNT_ENDPOINT")
+        ?? "https://rwfc.net/api/wfc/pcount";
 
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
@@ -101,6 +103,40 @@ public class RetroWFCApiClient : IRetroWFCApiClient
         {
             _logger.LogError(ex, "Unexpected error while fetching race results for room {RoomId}", roomId);
             return [];
+        }
+    }
+
+    public async Task<int?> GetPlayerCountAsync()
+    {
+        try
+        {
+            _logger.LogDebug("Fetching player count from Retro WFC API");
+
+            var response = await _httpClient.GetStringAsync(_pcountApiUrl);
+            var pcount = JsonSerializer.Deserialize<PCountResponse>(response, _jsonOptions);
+
+            if (pcount is not { Success: true })
+            {
+                _logger.LogWarning("Received unsuccessful player count response from Retro WFC API: {Error}", pcount?.Error);
+                return null;
+            }
+
+            return pcount.Count;
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "HTTP error while fetching player count from Retro WFC API");
+            return null;
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON deserialization error while parsing player count response");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while fetching player count from Retro WFC API");
+            return null;
         }
     }
 }

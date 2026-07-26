@@ -1,6 +1,6 @@
 import { apiRequest } from "./client";
 import { batchMiis } from "./miiHelpers";
-import { PagedResult, PlayerCountDataPoint, RoomSnapshot, RoomStatusResponse, RoomStatusStats } from "../../types";
+import { PagedResult, PlayerCount, PlayerCountDataPoint, RoomSnapshot, RoomStatusResponse, RoomStatusStats } from "../../types";
 
 export const roomStatusApi = {
     async getLatestRoomStatus(): Promise<RoomStatusResponse> {
@@ -19,6 +19,10 @@ export const roomStatusApi = {
 
     async getStats(): Promise<RoomStatusStats> {
         return apiRequest<RoomStatusStats>("/roomstatus/stats");
+    },
+
+    async getPlayerCount(): Promise<PlayerCount> {
+        return apiRequest<PlayerCount>("/roomstatus/pcount");
     },
 
     async getSnapshotHistory(page: number, pageSize: number): Promise<PagedResult<RoomSnapshot>> {

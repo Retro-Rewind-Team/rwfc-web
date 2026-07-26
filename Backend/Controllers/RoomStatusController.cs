@@ -4,6 +4,7 @@ using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs.Player;
 using RetroRewindWebsite.Models.DTOs.Room;
 using RetroRewindWebsite.Services.Application;
+using RetroRewindWebsite.Services.External;
 using System.Security.Cryptography;
 
 namespace RetroRewindWebsite.Controllers;
@@ -17,13 +18,16 @@ namespace RetroRewindWebsite.Controllers;
 public class RoomStatusController : ControllerBase
 {
     private readonly IRoomStatusService _roomStatusService;
+    private readonly IRetroWFCApiClient _retroWFCApiClient;
     private readonly ILogger<RoomStatusController> _logger;
 
     public RoomStatusController(
         IRoomStatusService roomStatusService,
+        IRetroWFCApiClient retroWFCApiClient,
         ILogger<RoomStatusController> logger)
     {
         _roomStatusService = roomStatusService;
+        _retroWFCApiClient = retroWFCApiClient;
         _logger = logger;
     }
 
@@ -112,6 +116,19 @@ public class RoomStatusController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError,
                 "An error occurred while retrieving stats");
         }
+    }
+
+    [HttpGet("pcount")]
+    [ProducesResponseType<PlayerCountDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+    public async Task<ActionResult<PlayerCountDto>> GetPlayerCount()
+    {
+        var count = await _retroWFCApiClient.GetPlayerCountAsync();
+
+        if (count == null)
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, "Player count is currently unavailable");
+
+        return Ok(new PlayerCountDto(count.Value));
     }
 
     [HttpGet("nearest")]

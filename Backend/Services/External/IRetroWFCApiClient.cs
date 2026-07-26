@@ -17,4 +17,10 @@ public interface IRetroWFCApiClient
     /// <returns>A task that represents the asynchronous operation. The task result contains a dictionary mapping race IDs to
     /// lists of race results. The dictionary will be empty if no races are found for the specified room.</returns>
     Task<Dictionary<int, List<RaceResult>>> GetRoomRaceResultsAsync(string roomId);
+    /// <summary>
+    /// Asynchronously retrieves the total connected player count from the Retro WFC API.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the player count, or null if the
+    /// request failed.</returns>
+    Task<int?> GetPlayerCountAsync();
 }

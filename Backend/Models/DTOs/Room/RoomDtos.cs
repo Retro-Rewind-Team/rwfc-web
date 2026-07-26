@@ -53,3 +53,5 @@ public record RoomStatusStatsDto(
     int PeakPlayersToday,
     int PeakPlayersAllTime
 );
+
+public record PlayerCountDto(int Count);
