@@ -309,8 +309,8 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                                                         isOverallFlap
                                                                                             ? "text-green-600 dark:text-green-400 font-black"
                                                                                             : isFastestInRun
-                                                                                              ? "text-blue-600 dark:text-blue-400 font-bold"
-                                                                                              : "text-gray-600 dark:text-gray-300 font-medium"
+                                                                                                ? "text-blue-600 dark:text-blue-400 font-bold"
+                                                                                                : "text-gray-600 dark:text-gray-300 font-medium"
                                                                                     }`}
                                                                                 >
                                                                                     {lap.time}
@@ -357,7 +357,7 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                                     <span class="font-mono font-medium text-gray-900 dark:text-white">
                                                                         {validLaps().length > 0
                                                                             ? (() => {
-                                                                                  const avg =
+                                                                                const avg =
                                                                                       validLaps().reduce(
                                                                                           (
                                                                                               sum,
@@ -369,18 +369,18 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                                                       ) /
                                                                                       validLaps()
                                                                                           .length;
-                                                                                  const mins =
+                                                                                const mins =
                                                                                       Math.floor(
                                                                                           avg /
                                                                                               60000,
                                                                                       );
-                                                                                  const secs = (
-                                                                                      (avg %
+                                                                                const secs = (
+                                                                                    (avg %
                                                                                           60000) /
                                                                                       1000
-                                                                                  ).toFixed(3);
-                                                                                  return `${mins}:${secs.padStart(6, "0")}`;
-                                                                              })()
+                                                                                ).toFixed(3);
+                                                                                return `${mins}:${secs.padStart(6, "0")}`;
+                                                                            })()
                                                                             : "N/A"}
                                                                     </span>
                                                                 </div>

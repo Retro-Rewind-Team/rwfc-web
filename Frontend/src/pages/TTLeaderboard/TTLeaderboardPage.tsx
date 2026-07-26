@@ -130,8 +130,8 @@ export default function TTLeaderboardPage() {
                             {browser.shroomlessFilter() === "only"
                                 ? "Shroomless"
                                 : browser.shroomlessFilter() === "exclude"
-                                  ? "No Shroomless"
-                                  : "All Categories"}
+                                    ? "No Shroomless"
+                                    : "All Categories"}
                         </p>
                     </div>
 

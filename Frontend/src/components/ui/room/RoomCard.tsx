@@ -73,8 +73,8 @@ export default function RoomCard(props: RoomCardProps) {
                                     isVoting()
                                         ? "bg-purple-500/90 text-white"
                                         : isJoinable()
-                                          ? "bg-emerald-500/90 text-white"
-                                          : "bg-gray-500/90 text-white"
+                                            ? "bg-emerald-500/90 text-white"
+                                            : "bg-gray-500/90 text-white"
                                 }`}
                             >
                                 {isVoting() ? (
@@ -88,10 +88,10 @@ export default function RoomCard(props: RoomCardProps) {
                                     {isVoting()
                                         ? "Voting"
                                         : isJoinable()
-                                          ? "Joinable"
-                                          : playerCount() >= 12
-                                            ? "Full"
-                                            : "Not Joinable"}
+                                            ? "Joinable"
+                                            : playerCount() >= 12
+                                                ? "Full"
+                                                : "Not Joinable"}
                                 </span>
                             </div>
 
@@ -173,9 +173,9 @@ export default function RoomCard(props: RoomCardProps) {
                                     const avgVr =
                                         withVr.length > 0
                                             ? Math.round(
-                                                  withVr.reduce((sum, p) => sum + p.vr!, 0) /
+                                                withVr.reduce((sum, p) => sum + p.vr!, 0) /
                                                       withVr.length
-                                              )
+                                            )
                                             : null;
                                     return (
                                         <div>

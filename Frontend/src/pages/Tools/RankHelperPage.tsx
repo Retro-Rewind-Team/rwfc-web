@@ -96,10 +96,10 @@ function ScoreGauge(props: { score: number; rank: number }) {
                             props.rank >= 9
                                 ? "linear-gradient(90deg, #3b82f6, #a855f7, #eab308)"
                                 : props.rank >= 7
-                                  ? "linear-gradient(90deg, #3b82f6, #a855f7)"
-                                  : props.rank >= 4
-                                    ? "linear-gradient(90deg, #3b82f6, #6366f1)"
-                                    : "#3b82f6",
+                                    ? "linear-gradient(90deg, #3b82f6, #a855f7)"
+                                    : props.rank >= 4
+                                        ? "linear-gradient(90deg, #3b82f6, #6366f1)"
+                                        : "#3b82f6",
                     }}
                 />
             </div>
@@ -531,14 +531,14 @@ export default function RankHelperPage() {
                 <div
                     class={`rounded-xl border-2 border-dashed p-6 text-center transition-all
                         ${
-                            dragging() === "rksys"
-                                ? "border-blue-500 bg-blue-500/5"
-                                : rksysData()
-                                  ? "border-green-500/60 bg-green-500/5"
-                                  : fileError()
-                                    ? "border-red-500/60 bg-red-500/5"
-                                    : "border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500"
-                        }`}
+        dragging() === "rksys"
+            ? "border-blue-500 bg-blue-500/5"
+            : rksysData()
+                ? "border-green-500/60 bg-green-500/5"
+                : fileError()
+                    ? "border-red-500/60 bg-red-500/5"
+                    : "border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500"
+        }`}
                     onDragOver={(e) => {
                         e.preventDefault();
                         setDragging("rksys");
@@ -629,14 +629,14 @@ export default function RankHelperPage() {
                 <div
                     class={`rounded-xl border-2 border-dashed p-6 text-center transition-all
                         ${
-                            dragging() === "pul"
-                                ? "border-blue-500 bg-blue-500/5"
-                                : ratingData()
-                                  ? "border-green-500/60 bg-green-500/5"
-                                  : pulError()
-                                    ? "border-red-500/60 bg-red-500/5"
-                                    : "border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500"
-                        }`}
+        dragging() === "pul"
+            ? "border-blue-500 bg-blue-500/5"
+            : ratingData()
+                ? "border-green-500/60 bg-green-500/5"
+                : pulError()
+                    ? "border-red-500/60 bg-red-500/5"
+                    : "border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500"
+        }`}
                     onDragOver={(e) => {
                         e.preventDefault();
                         setDragging("pul");
@@ -738,10 +738,10 @@ export default function RankHelperPage() {
                                             onClick={() => setActiveTab(i)}
                                             class={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors truncate
                                                 ${
-                                                    activeTab() === i
-                                                        ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
-                                                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                                                }`}
+                                        activeTab() === i
+                                            ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                                            : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                                        }`}
                                         >
                                             {l.miiName || `License ${i + 1}`}
                                         </button>

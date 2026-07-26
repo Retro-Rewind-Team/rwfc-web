@@ -120,103 +120,103 @@ export default function LeaderboardPage() {
                 </div>
 
                 <div class="p-6">
-                {/* Legacy Banner */}
-                <Show when={showLegacy()}>
-                    <div class="mb-6">
-                        <AlertBox type="warning" title="Viewing Legacy Leaderboard">
-                            <p class="text-sm">Snapshot from before the VR cap expansion</p>
-                        </AlertBox>
-                    </div>
-                </Show>
-
-                {/* Search */}
-                <div class="mb-5">
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Search Players
-                    </label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Search size={18} class="text-gray-400" />
+                    {/* Legacy Banner */}
+                    <Show when={showLegacy()}>
+                        <div class="mb-6">
+                            <AlertBox type="warning" title="Viewing Legacy Leaderboard">
+                                <p class="text-sm">Snapshot from before the VR cap expansion</p>
+                            </AlertBox>
                         </div>
-                        <input
-                            type="text"
-                            placeholder="Search by name or friend code..."
-                            value={activeLeaderboard().searchQuery()}
-                            onInput={(e) => activeLeaderboard().handleSearchInput(e.target.value)}
-                            class="w-full pl-10 pr-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 transition-colors"
-                        />
-                    </div>
-                </div>
+                    </Show>
 
-                {/* Filters */}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Show when={!showLegacy()}>
+                    {/* Search */}
+                    <div class="mb-5">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        Search Players
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Search size={18} class="text-gray-400" />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Search by name or friend code..."
+                                value={activeLeaderboard().searchQuery()}
+                                onInput={(e) => activeLeaderboard().handleSearchInput(e.target.value)}
+                                class="w-full pl-10 pr-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 transition-colors"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Filters */}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Show when={!showLegacy()}>
+                            <div>
+                                <label
+                                    for="time-period-select"
+                                    class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+                                >
+                                VR Change Period
+                                </label>
+                                <select
+                                    id="time-period-select"
+                                    value={currentLeaderboard.timePeriod()}
+                                    onChange={(e) =>
+                                        currentLeaderboard.handleTimePeriodChange(e.target.value)
+                                    }
+                                    class="w-full px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+                                >
+                                    <option value="24">Last 24 hours</option>
+                                    <option value="week">Last 7 days</option>
+                                    <option value="month">Last 30 days</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label
+                                    for="active-players-select"
+                                    class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+                                >
+                                Active Players
+                                </label>
+                                <select
+                                    id="active-players-select"
+                                    value={currentLeaderboard.activeDays() ?? ""}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        currentLeaderboard.handleActiveDaysChange(
+                                            val === "" ? null : parseInt(val),
+                                        );
+                                    }}
+                                    class="w-full px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+                                >
+                                    <option value="">All time</option>
+                                    <option value="7">Last 7 days</option>
+                                    <option value="14">Last 14 days</option>
+                                    <option value="30">Last 30 days</option>
+                                </select>
+                            </div>
+                        </Show>
                         <div>
                             <label
-                                for="time-period-select"
+                                for="page-size-select"
                                 class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
                             >
-                                VR Change Period
+                            Results Per Page
                             </label>
                             <select
-                                id="time-period-select"
-                                value={currentLeaderboard.timePeriod()}
+                                id="page-size-select"
+                                value={activeLeaderboard().pageSize()}
                                 onChange={(e) =>
-                                    currentLeaderboard.handleTimePeriodChange(e.target.value)
+                                    activeLeaderboard().handlePageSizeChange(parseInt(e.target.value))
                                 }
                                 class="w-full px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
                             >
-                                <option value="24">Last 24 hours</option>
-                                <option value="week">Last 7 days</option>
-                                <option value="month">Last 30 days</option>
+                                <option value="10">10 players</option>
+                                <option value="25">25 players</option>
+                                <option value="50">50 players</option>
                             </select>
                         </div>
-                        <div>
-                            <label
-                                for="active-players-select"
-                                class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
-                            >
-                                Active Players
-                            </label>
-                            <select
-                                id="active-players-select"
-                                value={currentLeaderboard.activeDays() ?? ""}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    currentLeaderboard.handleActiveDaysChange(
-                                        val === "" ? null : parseInt(val),
-                                    );
-                                }}
-                                class="w-full px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
-                            >
-                                <option value="">All time</option>
-                                <option value="7">Last 7 days</option>
-                                <option value="14">Last 14 days</option>
-                                <option value="30">Last 30 days</option>
-                            </select>
-                        </div>
-                    </Show>
-                    <div>
-                        <label
-                            for="page-size-select"
-                            class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
-                        >
-                            Results Per Page
-                        </label>
-                        <select
-                            id="page-size-select"
-                            value={activeLeaderboard().pageSize()}
-                            onChange={(e) =>
-                                activeLeaderboard().handlePageSizeChange(parseInt(e.target.value))
-                            }
-                            class="w-full px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
-                        >
-                            <option value="10">10 players</option>
-                            <option value="25">25 players</option>
-                            <option value="50">50 players</option>
-                        </select>
                     </div>
-                </div>
                 </div>
             </div>
 

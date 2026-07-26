@@ -45,8 +45,8 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                             {props.shroomlessFilter === "only"
                                 ? "Shroomless"
                                 : props.shroomlessFilter === "exclude"
-                                  ? "No Shroomless"
-                                  : "All Categories"}
+                                    ? "No Shroomless"
+                                    : "All Categories"}
                         </p>
                     </div>
                 </div>

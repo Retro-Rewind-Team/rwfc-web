@@ -1,4 +1,4 @@
-﻿import { Show } from "solid-js";
+import { Show } from "solid-js";
 import {
     getVRTierInfo,
     isTopThreeRank,
@@ -91,45 +91,45 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
 
     return (
         <Tooltip text={tooltipText()} class={props.className}>
-        <div
-            class="inline-block"
-        >
-            <div class={`${plateClasses()} ${borderColor()}`}>
-                <div class="absolute inset-1 border border-white/20 rounded-md pointer-events-none"></div>
+            <div
+                class="inline-block"
+            >
+                <div class={`${plateClasses()} ${borderColor()}`}>
+                    <div class="absolute inset-1 border border-white/20 rounded-md pointer-events-none"></div>
 
-                {/* Enhanced Rank Number */}
-                <span class={getTextStyling()}>
-                    <Show when={props.isSuspicious} fallback={`#${props.rank}`}>
+                    {/* Enhanced Rank Number */}
+                    <span class={getTextStyling()}>
+                        <Show when={props.isSuspicious} fallback={`#${props.rank}`}>
                         ?
-                    </Show>
-                </span>
+                        </Show>
+                    </span>
 
-                {/* Special Glow Effects */}
-                <Show when={tierHasGlow(tier().tier) || isTopThree()}>
+                    {/* Special Glow Effects */}
+                    <Show when={tierHasGlow(tier().tier) || isTopThree()}>
+                        <Show
+                            when={tier().tier === "master"}
+                            fallback={
+                                <div class="absolute inset-0 rounded-lg bg-gradient-to-br from-white/5 via-white/10 to-white/5 animate-pulse pointer-events-none"></div>
+                            }
+                        >
+                            {/* Rainbow glow for master tier */}
+                            <div class="absolute inset-0 rounded-lg bg-gradient-to-br from-red-400/10 via-yellow-400/10 via-green-400/10 via-blue-400/10 to-purple-400/10 animate-pulse pointer-events-none"></div>
+                        </Show>
+                    </Show>
+
+                    {/* Premium shine effect for top tiers */}
                     <Show
-                        when={tier().tier === "master"}
-                        fallback={
-                            <div class="absolute inset-0 rounded-lg bg-gradient-to-br from-white/5 via-white/10 to-white/5 animate-pulse pointer-events-none"></div>
-                        }
-                    >
-                        {/* Rainbow glow for master tier */}
-                        <div class="absolute inset-0 rounded-lg bg-gradient-to-br from-red-400/10 via-yellow-400/10 via-green-400/10 via-blue-400/10 to-purple-400/10 animate-pulse pointer-events-none"></div>
-                    </Show>
-                </Show>
-
-                {/* Premium shine effect for top tiers */}
-                <Show
-                    when={
-                        isTopThree() ||
+                        when={
+                            isTopThree() ||
                         ["legend", "master", "mythic", "god"].includes(
                             tier().tier,
                         )
-                    }
-                >
-                    <div class="absolute inset-0 rounded-lg bg-gradient-to-tr from-transparent via-white/15 to-transparent pointer-events-none"></div>
-                </Show>
+                        }
+                    >
+                        <div class="absolute inset-0 rounded-lg bg-gradient-to-tr from-transparent via-white/15 to-transparent pointer-events-none"></div>
+                    </Show>
+                </div>
             </div>
-        </div>
         </Tooltip>
     );
 }

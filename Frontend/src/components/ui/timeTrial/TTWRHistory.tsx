@@ -111,8 +111,8 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                         isLatest
                                                             ? "bg-yellow-400 border-yellow-300 shadow-lg shadow-yellow-400/50 animate-pulse"
                                                             : isTied
-                                                              ? "bg-gray-400 border-gray-300"
-                                                              : "bg-amber-500 border-amber-400"
+                                                                ? "bg-gray-400 border-gray-300"
+                                                                : "bg-amber-500 border-amber-400"
                                                     }`}
                                                 />
 
@@ -122,8 +122,8 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                         isLatest
                                                             ? "border-yellow-400 shadow-md"
                                                             : isTied
-                                                              ? "border-gray-300 dark:border-gray-500"
-                                                              : "border-gray-200 dark:border-gray-600"
+                                                                ? "border-gray-300 dark:border-gray-500"
+                                                                : "border-gray-200 dark:border-gray-600"
                                                     }`}
                                                 >
                                                     {/* Header */}

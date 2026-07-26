@@ -186,10 +186,10 @@ export default function FontPatcherPage() {
                     <span
                         class={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors
                         ${
-                            ok()
-                                ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50"
-                                : "bg-blue-600 hover:bg-blue-700 text-white"
-                        }`}
+            ok()
+                ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
+            }`}
                     >
                         {ok() ? "Replace file" : "Choose file"}
                     </span>
