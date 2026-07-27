@@ -28,7 +28,7 @@ public class BadgeController : ControllerBase
         {
             var player = await _playerRepository.GetByPidAsync(pid);
             if (player == null)
-                return NotFound($"Player with PID '${pid}' not found");
+                return NotFound($"Player with PID '{pid}' not found");
 
             return Ok(new BadgeDto(player.Badges ?? []));
         }
