@@ -59,49 +59,55 @@ public class RaceResultService : IRaceResultService
 
                     foreach (var (raceNumber, raceResults) in raceResultsByRace)
                     {
-                        // Build a ProfileID -> correct 1-based position map from FinishTime ordering.
-                        // PlayerID != 0 is a co-op guest (never stored); FinishTime == 0 is a DNF.
-                        // Duplicate ProfileIDs (API quirk) are deduplicated by taking the fastest time.
-                        // All-DNF races produce an empty map; every row falls back to FinishPos = 0.
-                        var correctedPositions = raceResults
-                            .Where(r => r.PlayerID == 0 && r.FinishTime != 0)
-                            .Select(r => (r.ProfileID, Time: BitConverter.Int32BitsToSingle(r.FinishTime)))
-                            .Where(x => x.Time > 0f && !float.IsNaN(x.Time) && !float.IsInfinity(x.Time))
-                            .GroupBy(x => x.ProfileID)
-                            .Select(g => (ProfileID: g.Key, Time: g.Min(x => x.Time)))
-                            .OrderBy(x => x.Time)
-                            .Select((x, i) => (x.ProfileID, Pos: (short)(i + 1)))
-                            .ToDictionary(x => x.ProfileID, x => x.Pos);
-
-                        foreach (var result in raceResults)
+                        // A split room (WFC connectivity split) shares one RoomId and RaceNumber across
+                        // its independent sub-races, distinguished only by PlayerCount. Rank each
+                        // sub-race separately so positions aren't computed across unrelated races.
+                        foreach (var subRace in raceResults.GroupBy(r => r.PlayerCount))
                         {
-                            if (result.PlayerID != 0)
-                                continue;
+                            // Build a ProfileID -> correct 1-based position map from FinishTime ordering.
+                            // PlayerID != 0 is a co-op guest (never stored); FinishTime == 0 is a DNF.
+                            // Duplicate ProfileIDs (API quirk) are deduplicated by taking the fastest time.
+                            // All-DNF races produce an empty map; every row falls back to FinishPos = 0.
+                            var correctedPositions = subRace
+                                .Where(r => r.PlayerID == 0 && r.FinishTime != 0)
+                                .Select(r => (r.ProfileID, Time: BitConverter.Int32BitsToSingle(r.FinishTime)))
+                                .Where(x => x.Time > 0f && !float.IsNaN(x.Time) && !float.IsInfinity(x.Time))
+                                .GroupBy(x => x.ProfileID)
+                                .Select(g => (ProfileID: g.Key, Time: g.Min(x => x.Time)))
+                                .OrderBy(x => x.Time)
+                                .Select((x, i) => (x.ProfileID, Pos: (short)(i + 1)))
+                                .ToDictionary(x => x.ProfileID, x => x.Pos);
 
-                            if (existingKeys.Contains((group.Id, raceNumber, result.ProfileID)))
+                            foreach (var result in subRace)
                             {
-                                totalSkippedResults++;
-                                continue;
+                                if (result.PlayerID != 0)
+                                    continue;
+
+                                if (existingKeys.Contains((group.Id, raceNumber, result.ProfileID)))
+                                {
+                                    totalSkippedResults++;
+                                    continue;
+                                }
+
+                                allNewResults.Add(new RaceResultEntity
+                                {
+                                    RoomId = group.Id,
+                                    RaceNumber = raceNumber,
+                                    RaceTimestamp = timestamp,
+                                    ProfileId = result.ProfileID,
+                                    PlayerId = result.PlayerID,
+                                    FinishTime = result.FinishTime,
+                                    CharacterId = result.CharacterID,
+                                    VehicleId = result.VehicleID,
+                                    PlayerCount = result.PlayerCount,
+                                    FinishPos = correctedPositions.TryGetValue(result.ProfileID, out var pos) ? pos : (short)0,
+                                    FramesIn1st = result.FramesIn1st,
+                                    CourseId = result.CourseID,
+                                    EngineClassId = result.EngineClassID,
+                                    IsPublic = group.Type == "anybody",
+                                    Rk = group.Rk
+                                });
                             }
-
-                            allNewResults.Add(new RaceResultEntity
-                            {
-                                RoomId = group.Id,
-                                RaceNumber = raceNumber,
-                                RaceTimestamp = timestamp,
-                                ProfileId = result.ProfileID,
-                                PlayerId = result.PlayerID,
-                                FinishTime = result.FinishTime,
-                                CharacterId = result.CharacterID,
-                                VehicleId = result.VehicleID,
-                                PlayerCount = result.PlayerCount,
-                                FinishPos = correctedPositions.TryGetValue(result.ProfileID, out var pos) ? pos : (short)0,
-                                FramesIn1st = result.FramesIn1st,
-                                CourseId = result.CourseID,
-                                EngineClassId = result.EngineClassID,
-                                IsPublic = group.Type == "anybody",
-                                Rk = group.Rk
-                            });
                         }
                     }
 

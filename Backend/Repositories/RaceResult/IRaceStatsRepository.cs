@@ -300,7 +300,7 @@ public interface IRaceStatsRepository
         int pageSize);
 
     /// <summary>
-    /// Returns all RaceResultEntity rows whose (RoomId, RaceNumber) pair is in the provided list.
+    /// Returns all RaceResultEntity rows whose (RoomId, RaceNumber, PlayerCount) triple is in the provided list.
     /// </summary>
     Task<List<RaceResultEntity>> GetParticipantsByRaceKeysAsync(List<RaceKey> raceKeys);
 

@@ -190,7 +190,7 @@ public class RaceStatsRepository : IRaceStatsRepository
 
     public async Task<int> GetTotalRaceCountAsync(DateTime? after) =>
         await BaseGlobalQuery(after)
-            .Select(r => new { r.RoomId, r.RaceNumber })
+            .Select(r => new { r.RoomId, r.RaceNumber, r.PlayerCount })
             .Distinct()
             .CountAsync();
 
@@ -203,7 +203,7 @@ public class RaceStatsRepository : IRaceStatsRepository
     public async Task<List<(short CourseId, int Count)>> GetAllPlayedTracksAsync(DateTime? after)
     {
         var rows = await BaseGlobalQuery(after)
-            .Select(r => new { r.CourseId, r.RoomId, r.RaceNumber })
+            .Select(r => new { r.CourseId, r.RoomId, r.RaceNumber, r.PlayerCount })
             .Distinct()
             .GroupBy(r => r.CourseId)
             .Select(g => new { CourseId = g.Key, Count = g.Count() })
@@ -312,7 +312,7 @@ public class RaceStatsRepository : IRaceStatsRepository
     public async Task<List<(int DayOfWeek, int Count)>> GetRaceCountByDayOfWeekAsync(DateTime? after)
     {
         var distinctTimestamps = await BaseGlobalQuery(after)
-            .GroupBy(r => new { r.RoomId, r.RaceNumber })
+            .GroupBy(r => new { r.RoomId, r.RaceNumber, r.PlayerCount })
             .Select(g => g.Min(r => r.RaceTimestamp))
             .ToListAsync();
 
@@ -326,7 +326,7 @@ public class RaceStatsRepository : IRaceStatsRepository
     public async Task<List<(int Hour, int Count)>> GetRaceCountByHourAsync(DateTime? after)
     {
         var distinctTimestamps = await BaseGlobalQuery(after)
-            .GroupBy(r => new { r.RoomId, r.RaceNumber })
+            .GroupBy(r => new { r.RoomId, r.RaceNumber, r.PlayerCount })
             .Select(g => g.Min(r => r.RaceTimestamp))
             .ToListAsync();
 
@@ -440,11 +440,12 @@ public class RaceStatsRepository : IRaceStatsRepository
             query = query.Where(r => r.RaceTimestamp <= to.Value);
 
         var distinctQuery = query
-            .GroupBy(r => new { r.RoomId, r.RaceNumber })
+            .GroupBy(r => new { r.RoomId, r.RaceNumber, r.PlayerCount })
             .Select(g => new
             {
                 g.Key.RoomId,
                 g.Key.RaceNumber,
+                g.Key.PlayerCount,
                 RaceTimestamp = g.Min(r => r.RaceTimestamp),
                 CourseId = g.Min(r => r.CourseId),
                 EngineClassId = g.Min(r => r.EngineClassId),
@@ -458,7 +459,7 @@ public class RaceStatsRepository : IRaceStatsRepository
             .ToListAsync();
 
         var races = pageRows
-            .Select(r => new RaceKey(r.RoomId, r.RaceNumber, r.RaceTimestamp, r.CourseId, r.EngineClassId))
+            .Select(r => new RaceKey(r.RoomId, r.RaceNumber, r.RaceTimestamp, r.CourseId, r.EngineClassId, r.PlayerCount))
             .ToList();
 
         return (races, totalCount);
@@ -469,14 +470,14 @@ public class RaceStatsRepository : IRaceStatsRepository
         if (raceKeys.Count == 0) return [];
 
         var roomIds = raceKeys.Select(k => k.RoomId).Distinct().ToList();
-        var raceKeySet = raceKeys.Select(k => (k.RoomId, k.RaceNumber)).ToHashSet();
+        var raceKeySet = raceKeys.Select(k => (k.RoomId, k.RaceNumber, k.PlayerCount)).ToHashSet();
 
         var rows = await _context.RaceResults
             .AsNoTracking()
             .Where(r => roomIds.Contains(r.RoomId) && r.PlayerId == 0)
             .ToListAsync();
 
-        return rows.Where(r => raceKeySet.Contains((r.RoomId, r.RaceNumber))).ToList();
+        return rows.Where(r => raceKeySet.Contains((r.RoomId, r.RaceNumber, r.PlayerCount))).ToList();
     }
 
     public async Task<(List<(long ProfileId, int FinishTime, DateTime AchievedAt, string Rk)> Rows, int TotalCount, float? AverageBestSeconds)>

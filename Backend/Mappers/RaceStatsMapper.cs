@@ -175,12 +175,12 @@ public static class RaceStatsMapper
         Dictionary<string, (string Name, string Fc)> playerMap)
     {
         var byRace = participants
-            .GroupBy(r => (r.RoomId, r.RaceNumber))
+            .GroupBy(r => (r.RoomId, r.RaceNumber, r.PlayerCount))
             .ToDictionary(g => g.Key, g => g.OrderBy(r => r.FinishPos).ToList());
 
         return [.. raceKeys.Select(k =>
         {
-            var rows = byRace.GetValueOrDefault((k.RoomId, k.RaceNumber), []);
+            var rows = byRace.GetValueOrDefault((k.RoomId, k.RaceNumber, k.PlayerCount), []);
             var trackName = trackNames.TryGetValue(k.CourseId, out var tn) ? tn : $"Course {k.CourseId}";
 
             var entries = rows.Select(p =>
