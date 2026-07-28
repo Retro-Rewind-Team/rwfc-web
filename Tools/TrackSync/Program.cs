@@ -105,7 +105,9 @@ class Program
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Error applying changes (transaction rolled back): {ex.Message}");
+            Console.Error.WriteLine("Error applying changes (transaction rolled back):");
+            for (var e = ex; e is not null; e = e.InnerException)
+                Console.Error.WriteLine($"  [{e.GetType().Name}] {e.Message}");
             Console.Error.WriteLine($"Backup preserved at: {backupPath}");
             return 1;
         }

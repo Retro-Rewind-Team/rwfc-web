@@ -80,6 +80,7 @@ public class DbClient(string connectionString)
                 sb.Append($"""END WHERE "CourseId" IN ({inList}) AND "RaceTimestamp"<@cutoff""");
                 p.Add(new NpgsqlParameter("cutoff", NpgsqlDbType.TimestampTz) { Value = cutoff });
                 await using var cmd = new NpgsqlCommand(sb.ToString(), conn, tx);
+                cmd.CommandTimeout = 0; // no timeout; bulk RaceResults update can run long on large tables
                 cmd.Parameters.AddRange(p.ToArray());
                 await cmd.ExecuteNonQueryAsync();
             }

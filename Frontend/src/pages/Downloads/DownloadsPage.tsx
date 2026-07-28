@@ -65,8 +65,8 @@ export default function DownloadsPage() {
         {
             title: "(v)Wii Setup Guide",
             description: "Complete setup walkthrough for Wii and vWii consoles",
-            thumbnailUrl: "https://img.youtube.com/vi/qH4ou21r8ic/maxresdefault.jpg",
-            videoUrl: "https://youtu.be/qH4ou21r8ic?si=m7OMOFRn95-ZtVzo",
+            thumbnailUrl: "https://img.youtube.com/vi/8AHuddFN2wk/maxresdefault.jpg",
+            videoUrl: "https://www.youtube.com/watch?v=8AHuddFN2wk",
         },
         {
             title: "Dolphin Emulator Guide",
