@@ -5,6 +5,8 @@ import { replaceBrfntInU8 } from "../../utils/u8Parser";
 import { validateBrfnt, validateFileName, validateFontSzs } from "../../utils/fileValidator";
 import { triggerBlobDownload } from "../../utils/downloadHelpers";
 import { AlertBox } from "../../components/common";
+import { Meta, Title } from "@solidjs/meta";
+import { FONT_PATCHER_META } from "../../constants/pageMeta";
 
 const logClass = (line: string) => {
     if (line.startsWith("[OK]") || line.startsWith("[DONE]")) return "text-green-400";
@@ -215,6 +217,8 @@ export default function FontPatcherPage() {
 
     return (
         <div class="max-w-3xl mx-auto space-y-6">
+            <Title>{FONT_PATCHER_META.title}</Title>
+            <Meta name="description" content={FONT_PATCHER_META.description} />
             <div class="border-b border-gray-200 dark:border-gray-700 pb-6">
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-1">Font Patcher</h1>
                 <p class="text-gray-500 dark:text-gray-400 text-sm">

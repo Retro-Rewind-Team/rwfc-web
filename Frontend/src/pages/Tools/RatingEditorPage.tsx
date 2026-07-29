@@ -7,6 +7,8 @@ import type { RatingEntry, RatingFile } from "../../types/tools";
 import { AlertBox } from "../../components/common";
 import { leaderboardApi } from "../../services/api/leaderboard";
 import { Download, TriangleAlert } from "lucide-solid";
+import { Meta, Title } from "@solidjs/meta";
+import { RATING_EDITOR_META } from "../../constants/pageMeta";
 
 export default function RatingEditorPage() {
     const [ratingFile, setRatingFile] = createSignal<RatingFile | null>(null);
@@ -154,6 +156,8 @@ export default function RatingEditorPage() {
 
     return (
         <div class="max-w-7xl mx-auto space-y-6">
+            <Title>{RATING_EDITOR_META.title}</Title>
+            <Meta name="description" content={RATING_EDITOR_META.description} />
             <div class="border-b border-gray-200 dark:border-gray-700 pb-6">
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-1">Rating Editor</h1>
                 <p class="text-gray-500 dark:text-gray-400 text-sm">

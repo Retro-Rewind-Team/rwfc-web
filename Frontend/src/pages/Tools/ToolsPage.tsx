@@ -1,7 +1,9 @@
 import { A } from "@solidjs/router";
 import { Calculator, PenTool, Settings, Trophy } from "lucide-solid";
+import { Meta, Title } from "@solidjs/meta";
 import { AlertBox } from "../../components/common";
 import { JSX } from "solid-js";
+import { TOOLS_META } from "../../constants/pageMeta";
 
 const tools: {
     id: string;
@@ -47,6 +49,8 @@ const tools: {
 export default function ToolsPage() {
     return (
         <div class="max-w-6xl mx-auto space-y-8">
+            <Title>{TOOLS_META.title}</Title>
+            <Meta name="description" content={TOOLS_META.description} />
             {/* Header */}
             <div class="text-center py-8 border-b border-gray-200 dark:border-gray-700">
                 <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">

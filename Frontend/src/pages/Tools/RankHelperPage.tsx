@@ -19,6 +19,8 @@ import {
 import { parseRatingFile } from "../../utils/ratingParser";
 import type { RatingFile } from "../../types/tools";
 import { AlertBox } from "../../components/common";
+import { Meta, Title } from "@solidjs/meta";
+import { RANK_HELPER_META } from "../../constants/pageMeta";
 
 const RANK_COLORS = [
     "",
@@ -514,6 +516,8 @@ export default function RankHelperPage() {
 
     return (
         <div class="max-w-3xl mx-auto space-y-6">
+            <Title>{RANK_HELPER_META.title}</Title>
+            <Meta name="description" content={RANK_HELPER_META.description} />
             <div class="border-b border-gray-200 dark:border-gray-700 pb-6">
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-1">Rank Helper</h1>
                 <p class="text-gray-500 dark:text-gray-400 text-sm">

@@ -1,10 +1,14 @@
 import { A } from "@solidjs/router";
 import { Home } from "lucide-solid";
+import { Meta, Title } from "@solidjs/meta";
 import { AlertBox } from "../../components/common";
+import { NOT_FOUND_META } from "../../constants/pageMeta";
 
 export default function NotFoundPage() {
     return (
         <div class="max-w-4xl mx-auto">
+            <Title>{NOT_FOUND_META.title}</Title>
+            <Meta name="description" content={NOT_FOUND_META.description} />
             <div class="min-h-[60vh] flex items-center justify-center">
                 <div class="text-center space-y-6">
                     <div class="text-9xl font-bold text-gray-200 dark:text-gray-700">404</div>

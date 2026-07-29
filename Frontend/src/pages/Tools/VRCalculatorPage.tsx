@@ -14,6 +14,8 @@ import {
     type VRModifiers,
 } from "../../utils/vrCalculator";
 import { AlertBox } from "../../components/common";
+import { Meta, Title } from "@solidjs/meta";
+import { VR_CALCULATOR_META } from "../../constants/pageMeta";
 
 const PLAYER_LIMIT = { min: 2, max: 12 };
 
@@ -113,6 +115,8 @@ export default function VRCalculatorPage() {
 
     return (
         <div class="max-w-6xl mx-auto space-y-5">
+            <Title>{VR_CALCULATOR_META.title}</Title>
+            <Meta name="description" content={VR_CALCULATOR_META.description} />
             <div class="border-b border-gray-200 dark:border-gray-700 pb-5">
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-1">VR Calculator</h1>
                 <p class="text-gray-500 dark:text-gray-400 text-sm">
