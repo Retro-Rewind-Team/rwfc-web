@@ -1,4 +1,5 @@
 import { Route, Router } from "@solidjs/router";
+import { MetaProvider } from "@solidjs/meta";
 import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
 import { ThemeProvider } from "./stores/theme";
 import Layout from "./components/layout/Layout";
@@ -44,58 +45,66 @@ const queryClient = new QueryClient({
 
 function App() {
     return (
-        <ThemeProvider>
-            <QueryClientProvider client={queryClient}>
-                <Router root={Layout}>
-                    {/* Home Page */}
-                    <Route path="/" component={HomePage} />
+        <MetaProvider>
+            <ThemeProvider>
+                <QueryClientProvider client={queryClient}>
+                    <Router root={Layout}>
+                        {/* Home Page */}
+                        <Route path="/" component={HomePage} />
 
-                    {/* VR Leaderboard Routes */}
-                    <Route path="/vr" component={LeaderboardPage} />
-                    <Route path="/leaderboard" component={LeaderboardPage} />
-                    <Route path="/vr/player/:friendCode" component={LeaderboardPlayerDetailPage} />
-                    <Route path="/player/:friendCode" component={LeaderboardPlayerDetailPage} />
+                        {/* VR Leaderboard Routes */}
+                        <Route path="/vr" component={LeaderboardPage} />
+                        <Route path="/leaderboard" component={LeaderboardPage} />
+                        <Route
+                            path="/vr/player/:friendCode"
+                            component={LeaderboardPlayerDetailPage}
+                        />
+                        <Route path="/player/:friendCode" component={LeaderboardPlayerDetailPage} />
 
-                    {/* Time Trial Routes */}
-                    <Route path="/tt-leaderboard" component={TTLeaderboardPage} />
-                    <Route path="/tt" component={TTLeaderboardPage} />
-                    <Route path="/timetrial" component={TTLeaderboardPage} />
+                        {/* Time Trial Routes */}
+                        <Route path="/tt-leaderboard" component={TTLeaderboardPage} />
+                        <Route path="/tt" component={TTLeaderboardPage} />
+                        <Route path="/timetrial" component={TTLeaderboardPage} />
 
-                    {/* TT Player Rankings */}
-                    <Route path="/timetrial/rankings" component={TTRankingsPage} />
-                    <Route path="/tt/rankings" component={TTRankingsPage} />
+                        {/* TT Player Rankings */}
+                        <Route path="/timetrial/rankings" component={TTRankingsPage} />
+                        <Route path="/tt/rankings" component={TTRankingsPage} />
 
-                    {/* Individual Track Pages */}
-                    <Route path="/timetrial/:cc/:trackId" component={TTTrackDetailPage} />
-                    <Route path="/tt/:cc/:trackId" component={TTTrackDetailPage} />
+                        {/* Individual Track Pages */}
+                        <Route path="/timetrial/:cc/:trackId" component={TTTrackDetailPage} />
+                        <Route path="/tt/:cc/:trackId" component={TTTrackDetailPage} />
 
-                    {/* TT Player Profile */}
-                    <Route path="/tt/player/:ttProfileId" component={TTPlayerProfilePage} />
-                    <Route path="/timetrial/player/:ttProfileId" component={TTPlayerProfilePage} />
+                        {/* TT Player Profile */}
+                        <Route path="/tt/player/:ttProfileId" component={TTPlayerProfilePage} />
+                        <Route
+                            path="/timetrial/player/:ttProfileId"
+                            component={TTPlayerProfilePage}
+                        />
 
-                    {/* Room Browser Routes */}
-                    <Route path="/room-browser" component={RoomStatusPage} />
-                    <Route path="/rooms" component={RoomStatusPage} />
+                        {/* Room Browser Routes */}
+                        <Route path="/room-browser" component={RoomStatusPage} />
+                        <Route path="/rooms" component={RoomStatusPage} />
 
-                    {/* Community Pages */}
-                    <Route path="/downloads" component={DownloadsPage} />
-                    <Route path="/rules" component={RulesPage} />
-                    <Route path="/privacy" component={PrivacyPage} />
-                    <Route path="/team" component={TeamPage} />
-                    <Route path="/stats" component={RaceStatsPage} />
-                    <Route path="/races" component={RacesPage} />
-                    {/* Tools Pages */}
-                    <Route path="/tools" component={ToolsPage} />
-                    <Route path="tools/font-patcher" component={FontPatcherPage} />
-                    <Route path="tools/rating-editor" component={RatingEditorPage} />
-                    <Route path="tools/vr-calculator" component={VRCalculatorPage} />
-                    <Route path="tools/rank-helper" component={RankHelperPage} />
+                        {/* Community Pages */}
+                        <Route path="/downloads" component={DownloadsPage} />
+                        <Route path="/rules" component={RulesPage} />
+                        <Route path="/privacy" component={PrivacyPage} />
+                        <Route path="/team" component={TeamPage} />
+                        <Route path="/stats" component={RaceStatsPage} />
+                        <Route path="/races" component={RacesPage} />
+                        {/* Tools Pages */}
+                        <Route path="/tools" component={ToolsPage} />
+                        <Route path="tools/font-patcher" component={FontPatcherPage} />
+                        <Route path="tools/rating-editor" component={RatingEditorPage} />
+                        <Route path="tools/vr-calculator" component={VRCalculatorPage} />
+                        <Route path="tools/rank-helper" component={RankHelperPage} />
 
-                    {/* 404 Catch-All */}
-                    <Route path="*" component={NotFoundPage} />
-                </Router>
-            </QueryClientProvider>
-        </ThemeProvider>
+                        {/* 404 Catch-All */}
+                        <Route path="*" component={NotFoundPage} />
+                    </Router>
+                </QueryClientProvider>
+            </ThemeProvider>
+        </MetaProvider>
     );
 }
 
