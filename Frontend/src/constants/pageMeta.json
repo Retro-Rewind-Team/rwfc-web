@@ -1,0 +1,112 @@
+{
+    "siteName": "Retro Rewind",
+    "domain": "https://rwfc.net",
+    "imagePath": "/og-image.png",
+    "routes": [
+        {
+            "path": "/",
+            "title": "Retro Rewind | Mario Kart Wii Custom Tracks & Online Racing",
+            "description": "A custom track distribution for Mario Kart Wii with every retro track plus tracks from Mario Kart 8, Tour, Arcade GP and Mario Kart World, connected to Retro WFC servers."
+        },
+        {
+            "path": "/vr",
+            "title": "VR Leaderboard | Retro Rewind",
+            "description": "Track the best racers competing on RWFC servers worldwide. See who's dominating the ladder with up to 1,000,000 VR."
+        },
+        {
+            "path": "/tt",
+            "title": "Time Trial Leaderboards | Retro Rewind",
+            "description": "Browse world records for all Retro Rewind tracks across every CC and category."
+        },
+        {
+            "path": "/timetrial/rankings",
+            "title": "TT Player Rankings | Retro Rewind",
+            "description": "See players ranked by the number of time trial world records they hold."
+        },
+        {
+            "path": "/rooms",
+            "title": "Room Browser | Retro Rewind",
+            "description": "Find and join active rooms with game modes including 200cc, TTs Online, and Item Rain/Storm across all Retro WFC packs."
+        },
+        {
+            "path": "/downloads",
+            "title": "Downloads & Tutorials | Retro Rewind",
+            "description": "Get everything you need to start racing on Retro Rewind, including the track pack, tools, and setup guides."
+        },
+        {
+            "path": "/team",
+            "title": "The Retro Rewind Team | Retro Rewind",
+            "description": "Meet the people who make Retro Rewind possible."
+        },
+        {
+            "path": "/rules",
+            "title": "Rules | Retro Rewind",
+            "description": "Read and follow the Retro WFC rules to ensure a fair and enjoyable racing experience."
+        },
+        {
+            "path": "/privacy",
+            "title": "Privacy Policy | Retro Rewind",
+            "description": "What data Retro WFC collects and how it's used."
+        },
+        {
+            "path": "/stats",
+            "title": "Race Statistics | Retro Rewind",
+            "description": "Global race data across all Retro Rewind tracks and players, including track popularity and setup trends."
+        },
+        {
+            "path": "/races",
+            "title": "Race Browser | Retro Rewind",
+            "description": "Browse recent online races and results from across the Retro WFC servers."
+        },
+        {
+            "path": "/tools",
+            "title": "Community Tools | Retro Rewind",
+            "description": "Helpful utilities created by the Retro Rewind community, including a font patcher, rating editor, VR calculator, and rank helper."
+        },
+        {
+            "path": "/tools/font-patcher",
+            "title": "Font Patcher | Retro Rewind Tools",
+            "description": "Patch Font.szs files to replace tt_kart_extension_font.brfnt with custom fonts."
+        },
+        {
+            "path": "/tools/rating-editor",
+            "title": "Rating Editor | Retro Rewind Tools",
+            "description": "Edit your RRRating.pul file to modify VR and BR values across your license slots."
+        },
+        {
+            "path": "/tools/vr-calculator",
+            "title": "VR Calculator | Retro Rewind Tools",
+            "description": "Simulate a race with 2-12 players to see exact VR deltas, with modifier support."
+        },
+        {
+            "path": "/tools/rank-helper",
+            "title": "Rank Helper | Retro Rewind Tools",
+            "description": "Load your rksys.dat to see your rank score and what stats you need for the next rank."
+        }
+    ],
+    "aliases": [
+        { "path": "/leaderboard", "canonicalPath": "/vr" },
+        { "path": "/tt-leaderboard", "canonicalPath": "/tt" },
+        { "path": "/timetrial", "canonicalPath": "/tt" },
+        { "path": "/tt/rankings", "canonicalPath": "/timetrial/rankings" },
+        { "path": "/room-browser", "canonicalPath": "/rooms" }
+    ],
+    "notFound": {
+        "title": "Page Not Found | Retro Rewind",
+        "description": "The page you're looking for doesn't exist."
+    },
+    "dynamicDefaults": {
+        "leaderboardPlayer": {
+            "title": "Player Profile | Retro Rewind",
+            "description": "View this player's VR leaderboard stats on Retro Rewind."
+        },
+        "ttPlayerProfile": {
+            "title": "TT Player Profile | Retro Rewind",
+            "description": "View this player's time trial world records on Retro Rewind."
+        },
+        "ttTrackDetail": {
+            "title": "Track Details | Retro Rewind",
+            "description": "View time trial world records for this track on Retro Rewind."
+        }
+    }
+}
