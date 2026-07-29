@@ -1,9 +1,13 @@
 import { Scale } from "lucide-solid/icons/index";
+import { Meta, Title } from "@solidjs/meta";
 import { AlertBox } from "../../components/common";
+import { RULES_META } from "../../constants/pageMeta";
 
 export default function RulesPage() {
     return (
         <div class="max-w-4xl mx-auto space-y-8">
+            <Title>{RULES_META.title}</Title>
+            <Meta name="description" content={RULES_META.description} />
             {/* Header */}
             <div class="text-center">
                 <div class="py-4">

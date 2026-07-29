@@ -8,6 +8,8 @@ import { queryKeys } from "../../constants/queryKeys";
 import { useQuery } from "@tanstack/solid-query";
 import { timeTrialApi } from "../../services/api";
 import PositionBadge from "../../components/ui/player/PositionBadge";
+import { Meta, Title } from "@solidjs/meta";
+import { RACES_META } from "../../constants/pageMeta";
 
 function parseFinishTimeMs(display: string): number {
     const colonIdx = display.indexOf(":");
@@ -163,6 +165,8 @@ export default function RacesPage() {
 
     return (
         <div class="space-y-8">
+            <Title>{RACES_META.title}</Title>
+            <Meta name="description" content={RACES_META.description} />
             <section class="py-12">
                 <div class="max-w-5xl mx-auto text-center">
                     <h1 class="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4">

@@ -1,16 +1,20 @@
 import { For } from "solid-js";
+import { Meta, Title } from "@solidjs/meta";
 import { teamData } from "../../constants/teamData";
 import { SECTION_COLORS } from "../../utils/constants";
 import { useClipboard } from "../../hooks/useClipboard";
 import { TeamMemberCard } from "../../components/ui";
 import type { TeamMember } from "../../types/team";
 import { Check, Heart } from "lucide-solid/icons/index";
+import { TEAM_META } from "../../constants/pageMeta";
 
 export default function TeamPage() {
     const { copiedText, copiedPosition, isVisible, copyToClipboard } = useClipboard();
 
     return (
         <div class="max-w-7xl mx-auto space-y-12">
+            <Title>{TEAM_META.title}</Title>
+            <Meta name="description" content={TEAM_META.description} />
             {/* Copied notification */}
             {copiedText() && (
                 <div

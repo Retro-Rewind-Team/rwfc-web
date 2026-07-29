@@ -3,9 +3,11 @@ import { useQuery } from "@tanstack/solid-query";
 import { leaderboardApi } from "../../services/api/leaderboard";
 import { timeTrialApi } from "../../services/api/timeTrial";
 import { queryKeys } from "../../constants/queryKeys";
+import { Meta, Title } from "@solidjs/meta";
 import { AlertBox } from "../../components/common";
 import { TutorialCard } from "../../components/ui/";
 import { BookOpen, ChevronRight, ExternalLink, List, Wrench } from "lucide-solid/icons/index";
+import { DOWNLOADS_META } from "../../constants/pageMeta";
 
 const resourceCards = [
     {
@@ -116,6 +118,8 @@ export default function DownloadsPage() {
         <div class="max-w-4xl mx-auto space-y-8">
             {/* Header */}
             <div class="text-center py-4">
+                <Title>{DOWNLOADS_META.title}</Title>
+                <Meta name="description" content={DOWNLOADS_META.description} />
                 <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
                     Downloads & Tutorials
                 </h1>

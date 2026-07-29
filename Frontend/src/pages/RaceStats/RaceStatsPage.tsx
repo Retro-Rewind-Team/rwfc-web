@@ -5,9 +5,11 @@ import { Calendar, ChartBarBig, Clock, Gamepad2, Map, Trophy, Users } from "luci
 import { useGlobalRaceStats } from "../../hooks/useGlobalRaceStats";
 import { GlobalRaceStats } from "../../types/raceStats";
 import { LoadingSpinner, StatCard, Tooltip } from "../../components/common";
+import { Meta, Title } from "@solidjs/meta";
 import { SetupColumn } from "../../components/ui/leaderboard";
 import { timeTrialApi } from "../../services/api";
 import { queryKeys } from "../../constants/queryKeys";
+import { RACE_STATS_META } from "../../constants/pageMeta";
 
 const DAY_OPTIONS = [
     { label: "7d", value: 7 },
@@ -73,6 +75,8 @@ export default function RaceStatsPage() {
 
     return (
         <div class="space-y-8">
+            <Title>{RACE_STATS_META.title}</Title>
+            <Meta name="description" content={RACE_STATS_META.description} />
             <div class="pb-6 border-b border-gray-200 dark:border-gray-700">
                 <div class="flex items-start justify-between flex-wrap gap-4">
                     <div>
