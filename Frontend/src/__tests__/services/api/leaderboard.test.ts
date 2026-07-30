@@ -21,7 +21,10 @@ describe("getChannelDownloadUrl", () => {
             ok: true,
             json: async () => ({
                 assets: [
-                    { name: "RetroRewindChannel.zip", browser_download_url: "https://example.com/RetroRewindChannel.zip" },
+                    {
+                        name: "RetroRewindChannel.zip",
+                        browser_download_url: "https://example.com/RetroRewindChannel.zip",
+                    },
                 ],
             }),
         });
@@ -37,8 +40,14 @@ describe("getChannelDownloadUrl", () => {
             ok: true,
             json: async () => ({
                 assets: [
-                    { name: "checksums.txt", browser_download_url: "https://example.com/checksums.txt" },
-                    { name: "RetroRewindChannel.zip", browser_download_url: "https://example.com/RetroRewindChannel.zip" },
+                    {
+                        name: "checksums.txt",
+                        browser_download_url: "https://example.com/checksums.txt",
+                    },
+                    {
+                        name: "RetroRewindChannel.zip",
+                        browser_download_url: "https://example.com/RetroRewindChannel.zip",
+                    },
                 ],
             }),
         });
@@ -59,7 +68,24 @@ describe("getChannelDownloadUrl", () => {
     it("falls back to the releases page when no .zip asset exists", async () => {
         fetchMock.mockResolvedValueOnce({
             ok: true,
-            json: async () => ({ assets: [{ name: "readme.txt", browser_download_url: "https://example.com/readme.txt" }] }),
+            json: async () => ({
+                assets: [
+                    { name: "readme.txt", browser_download_url: "https://example.com/readme.txt" },
+                ],
+            }),
+        });
+
+        const url = await leaderboardApi.getChannelDownloadUrl();
+
+        expect(url).toBe(FALLBACK_URL);
+    });
+
+    it("falls back to the releases page when the .zip asset has no browser_download_url", async () => {
+        fetchMock.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                assets: [{ name: "RetroRewindChannel.zip", browser_download_url: "" }],
+            }),
         });
 
         const url = await leaderboardApi.getChannelDownloadUrl();

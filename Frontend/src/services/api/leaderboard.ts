@@ -140,7 +140,13 @@ export const leaderboardApi = {
             }
 
             const data = await response.json();
-            const asset = data.assets?.find((a: { name: string }) => a.name.endsWith(".zip"));
+            const asset = data.assets?.find(
+                (a: { name?: string; browser_download_url?: string }) =>
+                    typeof a?.name === "string" &&
+                    a.name.endsWith(".zip") &&
+                    typeof a.browser_download_url === "string" &&
+                    a.browser_download_url.length > 0,
+            );
 
             if (!asset) {
                 throw new Error("No zip asset found in latest release");
