@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "postbuild": "node scripts/generate-meta.mjs",
+    "postbuild": "node scripts/generate-meta.mjs && node scripts/verify-meta.mjs",
     "preview": "vite preview",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
