@@ -20,7 +20,7 @@ function escapeHtml(value) {
         .replace(/"/g, "&quot;");
 }
 
-function checkFile(routePath, expectedTitle, expectedCanonical) {
+function checkFile(routePath, expectedTitle, expectedDescription, expectedCanonical) {
     const filePath =
         routePath === "/" ? path.join(distDir, "index.html") : path.join(distDir, routePath, "index.html");
 
@@ -28,30 +28,37 @@ function checkFile(routePath, expectedTitle, expectedCanonical) {
 
     const html = readFileSync(filePath, "utf-8");
     const escapedTitle = escapeHtml(expectedTitle); // Compare against the escaped form
+    const escapedDescription = escapeHtml(expectedDescription);
 
     assert.ok(
-        html.includes(`<title>${escapedTitle}</title>`),
-        `"${routePath}": expected <title>${escapedTitle}</title>`,
+        html.includes(`<title data-sm="pre">${escapedTitle}</title>`),
+        `"${routePath}": expected <title data-sm="pre">${escapedTitle}</title>`,
+    );
+    assert.ok(
+        html.includes(`<meta data-sm="pre-desc" name="description" content="${escapedDescription}" />`),
+        `"${routePath}": expected description "${escapedDescription}"`,
     );
     assert.ok(
         html.includes(`property="og:title" content="${escapedTitle}"`),
         `"${routePath}": expected og:title "${escapedTitle}"`,
     );
-    assert.ok(
-        html.includes(`rel="canonical" href="${expectedCanonical}"`),
-        `"${routePath}": expected canonical "${expectedCanonical}"`,
-    );
+    if (expectedCanonical) {
+        assert.ok(
+            html.includes(`rel="canonical" href="${expectedCanonical}"`),
+            `"${routePath}": expected canonical "${expectedCanonical}"`,
+        );
+    }
 }
 
 for (const route of routes) {
-    const canonicalUrl = route.path === "/" ? `${domain}/` : `${domain}${route.path}`;
-    checkFile(route.path, route.title, canonicalUrl);
+    const canonicalUrl = route.path === "/" ? null : `${domain}${route.path}`;
+    checkFile(route.path, route.title, route.description, canonicalUrl);
 }
 
 for (const alias of aliases) {
     const canonical = routes.find((route) => route.path === alias.canonicalPath);
     assert.ok(canonical, `Alias "${alias.path}" points to unknown canonicalPath "${alias.canonicalPath}"`);
-    checkFile(alias.path, canonical.title, `${domain}${alias.canonicalPath}`);
+    checkFile(alias.path, canonical.title, canonical.description, `${domain}${alias.canonicalPath}`);
 }
 
 console.log(`All page metadata checks passed (${routes.length} routes, ${aliases.length} aliases).`);

@@ -19,12 +19,14 @@ export function buildPageHtml(templateHtml, { title, description, canonicalUrl, 
     const safeTitle = escapeHtml(title);
     const safeDescription = escapeHtml(description);
 
-    let html = templateHtml.replace(/<title>.*?<\/title>/s, `<title>${safeTitle}</title>`);
+    let html = templateHtml
+        .replace(/<title[^>]*>.*?<\/title>/s, `<title data-sm="pre">${safeTitle}</title>`)
+        .replace(/\s*<meta[^>]*name="description"[^>]*\/?>/s, "");
 
     const canonicalTag = canonicalUrl ? `    <link rel="canonical" href="${canonicalUrl}" />\n` : "";
     const ogUrlTag = canonicalUrl ? `    <meta property="og:url" content="${canonicalUrl}" />\n` : "";
 
-    const metaBlock = `${canonicalTag}    <meta name="description" content="${safeDescription}" />
+    const metaBlock = `${canonicalTag}    <meta data-sm="pre-desc" name="description" content="${safeDescription}" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="${escapeHtml(siteName)}" />
     <meta property="og:title" content="${safeTitle}" />
@@ -72,7 +74,7 @@ function main() {
         console.log(`Wrote ${path.relative(distDir, outPath) || "index.html"}`);
     }
 
-    writeRouteFile("/", homeRoute, `${domain}/`);
+    writeRouteFile("/", homeRoute, null);
 
     for (const route of routes) {
         if (route.path === "/") continue;
