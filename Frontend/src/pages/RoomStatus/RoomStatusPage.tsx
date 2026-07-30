@@ -309,17 +309,19 @@ export default function RoomStatusPage() {
 
                         {/* Bottom row: time jump controls */}
                         <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-                            {/* Quick jump buttons */}
-                            {([-60, -1] as const).map((mins) => (
-                                <button
-                                    type="button"
-                                    onClick={() => handleJump(mins)}
-                                    disabled={isJumping() || !canGoBackward()}
-                                    class="px-3 py-2 text-xs font-bold bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm border border-gray-200 dark:border-gray-600"
-                                >
-                                    {mins === -60 ? "-1h" : "-1m"}
-                                </button>
-                            ))}
+                            {/* Quick jump buttons (backward) */}
+                            <div class="flex gap-2">
+                                {([-60, -1] as const).map((mins) => (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleJump(mins)}
+                                        disabled={isJumping() || !canGoBackward()}
+                                        class="flex-1 sm:flex-none px-3 py-2 text-xs font-bold bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm border border-gray-200 dark:border-gray-600"
+                                    >
+                                        {mins === -60 ? "-1h" : "-1m"}
+                                    </button>
+                                ))}
+                            </div>
 
                             {/* Datetime picker */}
                             <div class="relative w-full sm:flex-1 sm:min-w-[200px]">
@@ -337,17 +339,19 @@ export default function RoomStatusPage() {
                                 </Show>
                             </div>
 
-                            {/* Quick jump buttons */}
-                            {([1, 60] as const).map((mins) => (
-                                <button
-                                    type="button"
-                                    onClick={() => handleJump(mins)}
-                                    disabled={isJumping() || !canGoForward()}
-                                    class="px-3 py-2 text-xs font-bold bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm border border-gray-200 dark:border-gray-600"
-                                >
-                                    {mins === 60 ? "+1h" : "+1m"}
-                                </button>
-                            ))}
+                            {/* Quick jump buttons (forward) */}
+                            <div class="flex gap-2">
+                                {([1, 60] as const).map((mins) => (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleJump(mins)}
+                                        disabled={isJumping() || !canGoForward()}
+                                        class="flex-1 sm:flex-none px-3 py-2 text-xs font-bold bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm border border-gray-200 dark:border-gray-600"
+                                    >
+                                        {mins === 60 ? "+1h" : "+1m"}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
