@@ -16,6 +16,8 @@ import {
     Users,
     X,
 } from "lucide-solid/icons/index";
+import { Meta, Title } from "@solidjs/meta";
+import { ROOM_BROWSER_META } from "../../constants/pageMeta";
 
 export default function RoomStatusPage() {
     const {
@@ -104,6 +106,8 @@ export default function RoomStatusPage() {
 
     return (
         <div class="space-y-8">
+            <Title>{ROOM_BROWSER_META.title}</Title>
+            <Meta name="description" content={ROOM_BROWSER_META.description} />
             {/* Hero Header */}
             <section class="py-12">
                 <div class="max-w-5xl mx-auto text-center">

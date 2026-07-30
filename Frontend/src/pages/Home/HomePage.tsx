@@ -14,8 +14,10 @@ import { leaderboardApi } from "../../services/api/leaderboard";
 import { roomStatusApi } from "../../services/api/room";
 import { timeTrialApi } from "../../services/api/timeTrial";
 import { queryKeys } from "../../constants/queryKeys";
+import { HOME_META } from "../../constants/pageMeta";
 import { StatCard } from "../../components/common";
 import { A } from "@solidjs/router";
+import { Meta, Title } from "@solidjs/meta";
 
 const staticFeatureCards = [
     {
@@ -107,6 +109,8 @@ export default function HomePage() {
 
     return (
         <div class="space-y-12">
+            <Title>{HOME_META.title}</Title>
+            <Meta name="description" content={HOME_META.description} />
             {/* Hero Section */}
             <section class="py-12">
                 <div class="max-w-4xl mx-auto text-center">

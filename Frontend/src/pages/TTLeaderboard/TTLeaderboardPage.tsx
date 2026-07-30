@@ -1,5 +1,6 @@
 import { createMemo, For, Show } from "solid-js";
 import { A } from "@solidjs/router";
+import { Meta, Title } from "@solidjs/meta";
 import { Search, TriangleAlert, Trophy, Zap } from "lucide-solid";
 import { useTTTrackBrowser } from "../../hooks/useTTTrackBrowser";
 import { CountryFlag, LoadingSpinner } from "../../components/common";
@@ -10,6 +11,7 @@ import {
     getVehicleName,
 } from "../../constants/marioKartMappings";
 import { formatDate, getDriftInfo } from "../../utils/formatter";
+import { TT_LEADERBOARD_META } from "../../constants/pageMeta";
 
 export default function TTLeaderboardPage() {
     const browser = useTTTrackBrowser();
@@ -24,6 +26,8 @@ export default function TTLeaderboardPage() {
 
     return (
         <div class="space-y-8">
+            <Title>{TT_LEADERBOARD_META.title}</Title>
+            <Meta name="description" content={TT_LEADERBOARD_META.description} />
             {/* Page Title */}
             <div class="pb-6 border-b border-gray-200 dark:border-gray-700">
                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">

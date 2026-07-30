@@ -1,10 +1,12 @@
 import { A } from "@solidjs/router";
 import { For, Show } from "solid-js";
+import { Meta, Title } from "@solidjs/meta";
 import { ChevronLeft, TriangleAlert, Trophy } from "lucide-solid";
 import { useTTRankings } from "../../hooks/useTTRankings";
 import { CountryFlag, InlinePagination, LoadingSpinner } from "../../components/common";
 import ToggleGroup from "../../components/common/ToggleGroup";
 import { ShroomlessFilter, TrackCategoryFilter, VehicleFilter } from "../../types/timeTrial";
+import { TT_RANKINGS_META } from "../../constants/pageMeta";
 
 type CCOption = "150" | "200";
 type GlitchOption = "unrestricted" | "no-glitch";
@@ -33,6 +35,8 @@ export default function TTRankingsPage() {
 
     return (
         <div class="space-y-6">
+            <Title>{TT_RANKINGS_META.title}</Title>
+            <Meta name="description" content={TT_RANKINGS_META.description} />
             {/* Back Button */}
             <div>
                 <A

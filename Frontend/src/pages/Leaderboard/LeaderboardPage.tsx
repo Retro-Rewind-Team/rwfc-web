@@ -1,9 +1,11 @@
 import { createSignal, Show } from "solid-js";
 import { RefreshCw, Search, Star, Trophy } from "lucide-solid";
+import { Meta, Title } from "@solidjs/meta";
 import { useLeaderboard } from "../../hooks";
 import { useLegacyLeaderboard } from "../../hooks/useLegacyLeaderboard";
 import { AlertBox, InlinePagination, LoadingSpinner } from "../../components/common";
 import { LeaderboardTable } from "../../components/ui";
+import { VR_LEADERBOARD_META } from "../../constants/pageMeta";
 
 function isVRMultiplierActive(): boolean {
     const now = new Date();
@@ -37,6 +39,8 @@ export default function LeaderboardPage() {
 
     return (
         <div class="space-y-8">
+            <Title>{VR_LEADERBOARD_META.title}</Title>
+            <Meta name="description" content={VR_LEADERBOARD_META.description} />
             {/* Page Title */}
             <div class="pb-6 border-b border-gray-200 dark:border-gray-700">
                 <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
