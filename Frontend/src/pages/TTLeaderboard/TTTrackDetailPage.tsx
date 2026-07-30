@@ -1,10 +1,12 @@
 import { A, useNavigate, useParams } from "@solidjs/router";
 import { createEffect, createMemo, Show } from "solid-js";
 import { ChevronLeft, TriangleAlert, Trophy, Zap } from "lucide-solid";
+import { Meta, Title } from "@solidjs/meta";
 import { useTTTrackDetail } from "../../hooks/useTTTrackDetail";
 import { AlertBox, InlinePagination, LoadingSpinner } from "../../components/common";
 import { TTFilters, TTLeaderboardTable, TTWRHistory } from "../../components/ui";
 import { LeaderboardMode } from "../../types/timeTrial";
+import { DYNAMIC_META_DEFAULTS } from "../../constants/pageMeta";
 
 function parseRouteCC(ccParam: string): {
     cc: 150 | 200;
@@ -67,6 +69,12 @@ export default function TTTrackDetailPage() {
 
     return (
         <div class="space-y-6">
+            <Title>
+                {queries.trackQuery.data
+                    ? `${queries.trackQuery.data.name} | Retro Rewind`
+                    : DYNAMIC_META_DEFAULTS.ttTrackDetail.title}
+            </Title>
+            <Meta name="description" content={DYNAMIC_META_DEFAULTS.ttTrackDetail.description} />
             {/* Back Button */}
             <div>
                 <A

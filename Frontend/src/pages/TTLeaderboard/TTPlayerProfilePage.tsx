@@ -1,9 +1,11 @@
 import { A, useParams } from "@solidjs/router";
 import { Show } from "solid-js";
 import { Car, ChevronLeft, Flag, TriangleAlert, UserX } from "lucide-solid";
+import { Meta, Title } from "@solidjs/meta";
 import { useTTPlayer } from "../../hooks/useTTPlayer";
 import { CountryFlag, InlinePagination, LoadingSpinner } from "../../components/common";
 import { TTPlayerFilters, TTPlayerStatsCard, TTPlayerSubmissionsTable } from "../../components/ui";
+import { DYNAMIC_META_DEFAULTS } from "../../constants/pageMeta";
 
 export default function TTPlayerProfilePage() {
     const params = useParams();
@@ -11,6 +13,12 @@ export default function TTPlayerProfilePage() {
 
     return (
         <div class="space-y-6">
+            <Title>
+                {ttPlayer.queries.profileQuery.data
+                    ? `${ttPlayer.queries.profileQuery.data.displayName} | Retro Rewind`
+                    : DYNAMIC_META_DEFAULTS.ttPlayerProfile.title}
+            </Title>
+            <Meta name="description" content={DYNAMIC_META_DEFAULTS.ttPlayerProfile.description} />
             {/* Back Button */}
             <div>
                 <A

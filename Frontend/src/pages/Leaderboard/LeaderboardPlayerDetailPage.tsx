@@ -1,7 +1,9 @@
 import { A, useParams } from "@solidjs/router";
 import { Show } from "solid-js";
 import { ChartBar, ChevronLeft, Download, TriangleAlert, Trophy, UserX } from "lucide-solid";
+import { Meta, Title } from "@solidjs/meta";
 import { usePlayer } from "../../hooks";
+import { DYNAMIC_META_DEFAULTS } from "../../constants/pageMeta";
 import { formatLastSeen } from "../../utils";
 import {
     MiiComponent,
@@ -23,6 +25,12 @@ export default function PlayerDetailPage() {
 
     return (
         <div class="space-y-6">
+            <Title>
+                {playerQuery.data
+                    ? `${playerQuery.data.name} | Retro Rewind`
+                    : DYNAMIC_META_DEFAULTS.leaderboardPlayer.title}
+            </Title>
+            <Meta name="description" content={DYNAMIC_META_DEFAULTS.leaderboardPlayer.description} />
             {/* Back Button */}
             <div>
                 <A
