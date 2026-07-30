@@ -126,6 +126,32 @@ export const leaderboardApi = {
             throw error;
         }
     },
+
+    async getChannelDownloadUrl(): Promise<string> {
+        const fallbackUrl = "https://github.com/Jacherr/RR-Launcher/releases/latest";
+
+        try {
+            const response = await fetch(
+                "https://api.github.com/repos/Jacherr/RR-Launcher/releases/latest",
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch channel release");
+            }
+
+            const data = await response.json();
+            const asset = data.assets?.find((a: { name: string }) => a.name.endsWith(".zip"));
+
+            if (!asset) {
+                throw new Error("No zip asset found in latest release");
+            }
+
+            return asset.browser_download_url;
+        } catch (error) {
+            console.warn("Failed to load channel download URL:", error);
+            return fallbackUrl;
+        }
+    },
 };
 
 export const legacyLeaderboardApi = {
