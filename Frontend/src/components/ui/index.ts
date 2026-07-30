@@ -21,6 +21,7 @@ export { default as TeamMemberCard } from "./team/TeamMemberCard";
 
 // Downloads components
 export { default as TutorialCard } from "./downloads/TutorialCard";
+export { default as DistributionCard } from "./downloads/DistributionCard";
 
 // VR tier components
 export { default as VRTierNumberPlate } from "./vrTier/VRTierNumberplate";

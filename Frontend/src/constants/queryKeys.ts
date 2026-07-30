@@ -8,6 +8,7 @@ export const queryKeys = {
     discordMembers: ["discord-members"] as const,
     rrVersion: ["rr-version"] as const,
     channelDownload: ["channel-download"] as const,
+    discordInviteIcon: (inviteUrl: string) => ["discord-invite-icon", inviteUrl] as const,
 
     leaderboard: (request: object) => ["leaderboard", request] as const,
     legacyAvailable: ["legacyAvailable"] as const,

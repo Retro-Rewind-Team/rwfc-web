@@ -5,7 +5,7 @@ import { timeTrialApi } from "../../services/api/timeTrial";
 import { queryKeys } from "../../constants/queryKeys";
 import { Meta, Title } from "@solidjs/meta";
 import { AlertBox } from "../../components/common";
-import { TutorialCard } from "../../components/ui/";
+import { DistributionCard, TutorialCard } from "../../components/ui/";
 import { BookOpen, ChevronRight, ExternalLink, List, Wrench } from "lucide-solid/icons/index";
 import { DOWNLOADS_META } from "../../constants/pageMeta";
 
@@ -323,55 +323,13 @@ export default function DownloadsPage() {
                     {[
                         {
                             name: "Wack Track Pack",
-                            videoId: "SaqpXDXpydE",
-                            discord: "https://discord.com/invite/XB6YmGhyNA",
-                            thumb: "maxresdefault",
+                            discordUrl: "https://discord.com/invite/XB6YmGhyNA",
                         },
-                        {
-                            name: "OptPack",
-                            videoId: "FYk-CdbDrok",
-                            discord: "https://discord.gg/37p93TtZHZ",
-                            thumb: "hqdefault",
-                            thumbDomain: "i.ytimg.com",
-                        },
-                        {
-                            name: "Luminous",
-                            videoId: "lJXAeXQb0Bc",
-                            discord: "https://discord.gg/ZCuny29DQk",
-                            thumb: "maxresdefault",
-                        },
+                        { name: "OptPack", discordUrl: "https://discord.gg/37p93TtZHZ" },
+                        { name: "Luminous Redux", discordUrl: "https://discord.gg/ZCuny29DQk" },
+                        { name: "CTGP Classic", discordUrl: "https://discord.gg/ztuhWaWnkh" },
                     ].map((pack) => (
-                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
-                            <a
-                                href={`https://www.youtube.com/watch?v=${pack.videoId}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                <img
-                                    src={
-                                        pack.thumbDomain
-                                            ? `https://${pack.thumbDomain}/vi/${pack.videoId}/${pack.thumb}.jpg`
-                                            : `https://img.youtube.com/vi/${pack.videoId}/${pack.thumb}.jpg`
-                                    }
-                                    alt={pack.name}
-                                    class="w-full aspect-video object-cover"
-                                />
-                            </a>
-                            <div class="p-4">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                                    {pack.name}
-                                </h3>
-                                <a
-                                    href={pack.discord}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium text-sm transition-colors"
-                                >
-                                    Join Discord
-                                    <ExternalLink size={14} />
-                                </a>
-                            </div>
-                        </div>
+                        <DistributionCard name={pack.name} discordUrl={pack.discordUrl} />
                     ))}
                 </div>
             </div>

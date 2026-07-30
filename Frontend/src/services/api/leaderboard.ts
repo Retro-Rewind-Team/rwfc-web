@@ -158,6 +158,31 @@ export const leaderboardApi = {
             return fallbackUrl;
         }
     },
+
+    async getDiscordInviteIcon(inviteUrl: string): Promise<string | null> {
+        try {
+            const code = inviteUrl.split("/").filter(Boolean).pop();
+            const response = await fetch(`https://discord.com/api/v10/invites/${code}`);
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch Discord invite");
+            }
+
+            const data = await response.json();
+            const icon: string | undefined = data.guild?.icon;
+            const guildId: string | undefined = data.guild?.id;
+
+            if (!icon || !guildId) {
+                return null;
+            }
+
+            const extension = icon.startsWith("a_") ? "gif" : "png";
+            return `https://cdn.discordapp.com/icons/${guildId}/${icon}.${extension}`;
+        } catch (error) {
+            console.warn("Failed to load Discord invite icon:", error);
+            return null;
+        }
+    },
 };
 
 export const legacyLeaderboardApi = {

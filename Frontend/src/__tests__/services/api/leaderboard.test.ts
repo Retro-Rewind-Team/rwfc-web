@@ -101,3 +101,85 @@ describe("getChannelDownloadUrl", () => {
         expect(url).toBe(FALLBACK_URL);
     });
 });
+
+describe("getDiscordInviteIcon", () => {
+    let fetchMock: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+        fetchMock = vi.fn();
+        vi.stubGlobal("fetch", fetchMock);
+    });
+
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
+    it("returns the CDN icon URL when the guild has a static icon", async () => {
+        fetchMock.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                guild: { id: "123456789", icon: "abcdef1234567890abcdef1234567890" },
+            }),
+        });
+
+        const url = await leaderboardApi.getDiscordInviteIcon("https://discord.gg/ztuhWaWnkh");
+
+        expect(url).toBe(
+            "https://cdn.discordapp.com/icons/123456789/abcdef1234567890abcdef1234567890.png",
+        );
+        expect(fetchMock).toHaveBeenCalledWith("https://discord.com/api/v10/invites/ztuhWaWnkh");
+    });
+
+    it("uses the .gif extension for animated icons (hash starting with a_)", async () => {
+        fetchMock.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                guild: { id: "999", icon: "a_abcdef1234567890abcdef1234567890" },
+            }),
+        });
+
+        const url = await leaderboardApi.getDiscordInviteIcon("https://discord.gg/somecode");
+
+        expect(url).toBe(
+            "https://cdn.discordapp.com/icons/999/a_abcdef1234567890abcdef1234567890.gif",
+        );
+    });
+
+    it("extracts the invite code correctly from a discord.com/invite/ URL", async () => {
+        fetchMock.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ guild: { id: "1", icon: "hash" } }),
+        });
+
+        await leaderboardApi.getDiscordInviteIcon("https://discord.com/invite/XB6YmGhyNA");
+
+        expect(fetchMock).toHaveBeenCalledWith("https://discord.com/api/v10/invites/XB6YmGhyNA");
+    });
+
+    it("returns null when the guild has no icon", async () => {
+        fetchMock.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ guild: { id: "123", icon: null } }),
+        });
+
+        const url = await leaderboardApi.getDiscordInviteIcon("https://discord.gg/somecode");
+
+        expect(url).toBeNull();
+    });
+
+    it("returns null when the response is not ok", async () => {
+        fetchMock.mockResolvedValueOnce({ ok: false });
+
+        const url = await leaderboardApi.getDiscordInviteIcon("https://discord.gg/somecode");
+
+        expect(url).toBeNull();
+    });
+
+    it("returns null when fetch throws", async () => {
+        fetchMock.mockRejectedValueOnce(new Error("network error"));
+
+        const url = await leaderboardApi.getDiscordInviteIcon("https://discord.gg/somecode");
+
+        expect(url).toBeNull();
+    });
+});
