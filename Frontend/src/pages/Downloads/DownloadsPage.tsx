@@ -54,6 +54,12 @@ export default function DownloadsPage() {
         staleTime: 1000 * 60 * 60,
     }));
 
+    const channelQuery = useQuery(() => ({
+        queryKey: queryKeys.channelDownload,
+        queryFn: leaderboardApi.getChannelDownloadUrl,
+        staleTime: 1000 * 60 * 60,
+    }));
+
     const retroTrackCount = createMemo(
         () => tracksQuery.data?.filter((t) => t.category === "retro" && !t.isHidden).length ?? null,
     );
@@ -172,6 +178,23 @@ export default function DownloadsPage() {
                     >
                         WheelWizard (PC Launcher)
                     </a>
+                    <Show
+                        when={channelQuery.data}
+                        fallback={
+                            <span class="bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg text-center opacity-50">
+                                Wii Channel (loading...)
+                            </span>
+                        }
+                    >
+                        <a
+                            href={channelQuery.data!}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-center"
+                        >
+                            Wii Channel
+                        </a>
+                    </Show>
                 </div>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-3">
                     Playing online on Retro WFC involves data collection.{" "}

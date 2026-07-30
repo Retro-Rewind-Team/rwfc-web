@@ -7,6 +7,7 @@ export const queryKeys = {
     pcount: ["pcount"] as const,
     discordMembers: ["discord-members"] as const,
     rrVersion: ["rr-version"] as const,
+    channelDownload: ["channel-download"] as const,
 
     leaderboard: (request: object) => ["leaderboard", request] as const,
     legacyAvailable: ["legacyAvailable"] as const,
