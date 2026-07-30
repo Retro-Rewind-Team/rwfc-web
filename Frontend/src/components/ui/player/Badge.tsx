@@ -1,29 +1,47 @@
 import { createSignal, Show } from "solid-js";
-import { badgeInfo, type BadgeType } from "../../../constants/badgeData";
+import { BadgeId, badgeInfo } from "../../../constants/badgeData";
 import WhWzDevBadge from "./badges/WhWzDevBadge";
 import RrDevBadge from "./badges/RrDevBadge";
 import TranslatorBadge from "./badges/TranslatorBadge";
 import TranslatorLeadBadge from "./badges/TranslatorLeadBadge";
+import ContributorBadge from "./badges/ContributorBadge";
+import RWFCModeratorBadge from "./badges/RWFCModeratorBadge";
+import DiscordStaffBadge from "./badges/DiscordStaffBadge";
+import SupporterBadge from "./badges/SupporterBadge";
+import BetaTesterBadge from "./badges/BetaTesterBadge";
+import HeartBadge from "./badges/HeartBadge";
 import MedalBadge from "./badges/MedalBadge";
 
 interface BadgeProps {
-    variant: BadgeType;
+    variant: number;
     size?: "sm" | "md" | "lg";
     showLabel?: boolean;
 }
 
-function BadgeSVG(props: { variant: BadgeType }) {
+function BadgeSVG(props: { variant: number }) {
     switch (props.variant) {
-        case "WhWzDev":
+        case BadgeId.WheelWizardDeveloper:
             return <WhWzDevBadge />;
-        case "RrDev":
+        case BadgeId.RetroRewindDeveloper:
             return <RrDevBadge />;
-        case "Translator":
+        case BadgeId.Translator:
             return <TranslatorBadge />;
-        case "TranslatorLead":
+        case BadgeId.TranslatorLead:
             return <TranslatorLeadBadge />;
+        case BadgeId.Contributor:
+            return <ContributorBadge />;
+        case BadgeId.RWFCModerator:
+            return <RWFCModeratorBadge />;
+        case BadgeId.DiscordStaff:
+            return <DiscordStaffBadge />;
+        case BadgeId.Supporter:
+            return <SupporterBadge />;
+        case BadgeId.BetaTester:
+            return <BetaTesterBadge />;
+        case BadgeId.Heart:
+            return <HeartBadge />;
         default:
-            return <MedalBadge variant={props.variant} />;
+            return <MedalBadge tier={badgeInfo[props.variant].tier!} />;
     }
 }
 

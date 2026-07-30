@@ -173,7 +173,7 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
 
                                                     {/*Player Badges */}
                                                     <PlayerBadges
-                                                        friendCode={player.friendCode}
+                                                        badges={player.badges}
                                                         size="sm"
                                                     />
                                                 </div>

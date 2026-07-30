@@ -163,7 +163,7 @@ export default function PlayerDetailPage() {
                                         </div>
                                         <div class="mb-3">
                                             <PlayerBadges
-                                                friendCode={player().friendCode}
+                                                badges={player().badges}
                                                 size="md"
                                             />
                                         </div>

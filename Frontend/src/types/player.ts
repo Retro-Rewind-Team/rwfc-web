@@ -9,6 +9,7 @@ export interface Player {
     vrStats: VRStats;
     miiImageBase64?: string;
     miiData?: string;
+    badges: number[] | null;
 }
 
 export interface VRStats {

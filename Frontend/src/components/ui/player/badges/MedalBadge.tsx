@@ -1,17 +1,10 @@
-import type { BadgeType } from "../../../../constants/badgeData";
-
-type MedalVariant = Exclude<BadgeType, "WhWzDev" | "RrDev" | "Translator" | "TranslatorLead">;
-
 interface MedalBadgeProps {
-    variant: MedalVariant;
+    tier: "gold" | "silver" | "bronze";
 }
 
 export default function MedalBadge(props: MedalBadgeProps) {
-    const isGold = () => props.variant.includes("Gold");
-    const isSilver = () => props.variant.includes("Silver");
-
     const colors = () =>
-        isGold()
+        props.tier === "gold"
             ? {
                 outer: ["#FEF08A", "#FBBF24", "#D97706"],
                 glow: "rgba(253, 224, 71, 0.3)",
@@ -19,7 +12,7 @@ export default function MedalBadge(props: MedalBadgeProps) {
                 border: "#78350F",
                 bright: "#FDE047",
             }
-            : isSilver()
+            : props.tier === "silver"
                 ? {
                     outer: ["#F3F4F6", "#9CA3AF", "#6B7280"],
                     glow: "rgba(229, 231, 235, 0.3)",
@@ -39,7 +32,7 @@ export default function MedalBadge(props: MedalBadgeProps) {
         <svg viewBox="0 0 16 16" class="w-full h-full drop-shadow-xl">
             <defs>
                 <linearGradient
-                    id={`medal-grad-${props.variant}`}
+                    id={`medal-grad-${props.tier}`}
                     x1="0%"
                     y1="0%"
                     x2="0%"
@@ -54,7 +47,7 @@ export default function MedalBadge(props: MedalBadgeProps) {
             <g transform="rotate(21 8 8)">
                 <path
                     d="M6 3 L6 9.5 L8 8 L10 9.5 L10 3 Z"
-                    fill={`url(#medal-grad-${props.variant})`}
+                    fill={`url(#medal-grad-${props.tier})`}
                     stroke={colors().border}
                     stroke-width="0.4"
                 />
@@ -62,7 +55,7 @@ export default function MedalBadge(props: MedalBadgeProps) {
                     cx="8"
                     cy="10.5"
                     r="3.5"
-                    fill={`url(#medal-grad-${props.variant})`}
+                    fill={`url(#medal-grad-${props.tier})`}
                     stroke={colors().border}
                     stroke-width="0.4"
                 />
