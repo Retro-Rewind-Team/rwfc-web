@@ -154,7 +154,8 @@ export default function RulesPage() {
                         <strong>Allowed:</strong> Stop trolling (coming to a stop with a power item)
                         is allowed as long as it is not being used to troll/target players. Playing
                         like a douchebag is allowed as long as you prioritize actually racing.
-                        Playing with the sole intent to troll/disrupt is unwanted and <strong>will</strong> result in punishment.
+                        Playing with the sole intent to troll/disrupt is unwanted and{" "}
+                        <strong>will</strong> result in punishment.
                     </p>
                 </AlertBox>
 
@@ -312,7 +313,8 @@ export default function RulesPage() {
                 </p>
 
                 <p class="text-gray-600 dark:text-gray-300 mb-3">
-                    Using game-breaking shortcuts or violating the Intent of Play rule may result in a flag.
+                    Using game-breaking shortcuts or violating the Intent of Play rule may result in
+                    a flag.
                 </p>
 
                 <p class="text-gray-600 dark:text-gray-300 mb-3">

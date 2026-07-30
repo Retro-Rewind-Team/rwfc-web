@@ -62,7 +62,9 @@ function RaceCard(props: { race: RaceResult }) {
                             </span>
                         </Show>
                         <Show when={props.race.isPublic !== null}>
-                            <span class={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-md ${props.race.isPublic ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300" : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"}`}>
+                            <span
+                                class={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-md ${props.race.isPublic ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300" : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"}`}
+                            >
                                 <Show when={props.race.isPublic} fallback={<Lock size={10} />}>
                                     <Globe size={10} />
                                 </Show>
@@ -216,7 +218,9 @@ export default function RacesPage() {
                                     <option value="">All tracks</option>
                                     <For each={tracksQuery.data ?? []}>
                                         {(track) => (
-                                            <option value={track.courseId.toString()}>{track.name}</option>
+                                            <option value={track.courseId.toString()}>
+                                                {track.name}
+                                            </option>
                                         )}
                                     </For>
                                 </select>
@@ -232,7 +236,10 @@ export default function RacesPage() {
                                 <div class="flex gap-1">
                                     {(
                                         [
-                                            { label: "All", value: undefined as number | undefined },
+                                            {
+                                                label: "All",
+                                                value: undefined as number | undefined,
+                                            },
                                             { label: "150cc", value: 2 },
                                             { label: "200cc", value: 1 },
                                         ] as const
@@ -333,9 +340,7 @@ export default function RacesPage() {
                             </p>
                         </Show>
 
-                        <For each={data().items}>
-                            {(race) => <RaceCard race={race} />}
-                        </For>
+                        <For each={data().items}>{(race) => <RaceCard race={race} />}</For>
 
                         <Show when={data().totalPages > 1}>
                             <InlinePagination

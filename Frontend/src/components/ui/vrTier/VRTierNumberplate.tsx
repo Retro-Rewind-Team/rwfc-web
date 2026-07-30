@@ -1,9 +1,5 @@
 import { Show } from "solid-js";
-import {
-    getVRTierInfo,
-    isTopThreeRank,
-    tierHasGlow,
-} from "../../../utils/vrTierHelpers";
+import { getVRTierInfo, isTopThreeRank, tierHasGlow } from "../../../utils/vrTierHelpers";
 import { VR_TIER_STYLES } from "../../../utils/vrTiers";
 import { VR_TIER_SIZES, type VRTierSize } from "../../../utils/constants";
 import Tooltip from "../../common/Tooltip";
@@ -91,16 +87,14 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
 
     return (
         <Tooltip text={tooltipText()} class={props.className}>
-            <div
-                class="inline-block"
-            >
+            <div class="inline-block">
                 <div class={`${plateClasses()} ${borderColor()}`}>
                     <div class="absolute inset-1 border border-white/20 rounded-md pointer-events-none"></div>
 
                     {/* Enhanced Rank Number */}
                     <span class={getTextStyling()}>
                         <Show when={props.isSuspicious} fallback={`#${props.rank}`}>
-                        ?
+                            ?
                         </Show>
                     </span>
 
@@ -121,9 +115,7 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
                     <Show
                         when={
                             isTopThree() ||
-                        ["legend", "master", "mythic", "god"].includes(
-                            tier().tier,
-                        )
+                            ["legend", "master", "mythic", "god"].includes(tier().tier)
                         }
                     >
                         <div class="absolute inset-0 rounded-lg bg-gradient-to-tr from-transparent via-white/15 to-transparent pointer-events-none"></div>

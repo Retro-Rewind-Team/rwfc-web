@@ -30,7 +30,10 @@ export default function PlayerDetailPage() {
                     ? `${playerQuery.data.name} | Retro Rewind`
                     : DYNAMIC_META_DEFAULTS.leaderboardPlayer.title}
             </Title>
-            <Meta name="description" content={DYNAMIC_META_DEFAULTS.leaderboardPlayer.description} />
+            <Meta
+                name="description"
+                content={DYNAMIC_META_DEFAULTS.leaderboardPlayer.description}
+            />
             {/* Back Button */}
             <div>
                 <A
@@ -172,12 +175,19 @@ export default function PlayerDetailPage() {
                                             <p class="flex items-center gap-1.5">
                                                 <span class="font-medium">Last Seen:</span>{" "}
                                                 <Show
-                                                    when={formatLastSeen(player().lastSeen) === "Now Online"}
+                                                    when={
+                                                        formatLastSeen(player().lastSeen) ===
+                                                        "Now Online"
+                                                    }
                                                     fallback={
-                                                        <span>{formatLastSeen(player().lastSeen)}</span>
+                                                        <span>
+                                                            {formatLastSeen(player().lastSeen)}
+                                                        </span>
                                                     }
                                                 >
-                                                    <span class="font-bold text-emerald-600 dark:text-emerald-400">Now Online</span>
+                                                    <span class="font-bold text-emerald-600 dark:text-emerald-400">
+                                                        Now Online
+                                                    </span>
                                                 </Show>
                                             </p>
                                         </div>
@@ -222,10 +232,7 @@ export default function PlayerDetailPage() {
                                         VR Tier Progress
                                     </h2>
                                 </div>
-                                <VRTierInfo
-                                    vr={player().vr}
-                                    showProgress={true}
-                                />
+                                <VRTierInfo vr={player().vr} showProgress={true} />
                             </div>
                         </Show>
 

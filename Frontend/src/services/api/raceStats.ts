@@ -52,14 +52,18 @@ export const raceStatsApi = {
     async getRaces(params: RacesParams = {}): Promise<PagedResult<RaceResult>> {
         const searchParams = new URLSearchParams();
         if (params.roomId) searchParams.append("roomId", params.roomId);
-        if (params.raceNumber !== undefined) searchParams.append("raceNumber", params.raceNumber.toString());
-        if (params.courseId !== undefined) searchParams.append("courseId", params.courseId.toString());
-        if (params.engineClassId !== undefined) searchParams.append("engineClassId", params.engineClassId.toString());
+        if (params.raceNumber !== undefined)
+            searchParams.append("raceNumber", params.raceNumber.toString());
+        if (params.courseId !== undefined)
+            searchParams.append("courseId", params.courseId.toString());
+        if (params.engineClassId !== undefined)
+            searchParams.append("engineClassId", params.engineClassId.toString());
         if (params.friendCode) searchParams.append("friendCode", params.friendCode);
         if (params.from) searchParams.append("from", params.from);
         if (params.to) searchParams.append("to", params.to);
         if (params.page !== undefined) searchParams.append("page", params.page.toString());
-        if (params.pageSize !== undefined) searchParams.append("pageSize", params.pageSize.toString());
+        if (params.pageSize !== undefined)
+            searchParams.append("pageSize", params.pageSize.toString());
         const query = searchParams.toString();
         return apiRequest<PagedResult<RaceResult>>(`/racestats/races${query ? `?${query}` : ""}`);
     },

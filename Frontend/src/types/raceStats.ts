@@ -183,4 +183,3 @@ export interface PlayerOnlineBest {
     achievedAt: string;
     gameMode: string;
 }
-

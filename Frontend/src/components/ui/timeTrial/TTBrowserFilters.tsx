@@ -28,12 +28,12 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
     return (
         <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* Header */}
-            <div
-                class="px-4 sm:px-6 py-4 bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800"
-            >
+            <div class="px-4 sm:px-6 py-4 bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
                 <div class="flex items-center gap-3">
                     <div>
-                        <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Browse Tracks</h2>
+                        <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                            Browse Tracks
+                        </h2>
                         <p class="text-gray-600 dark:text-white/80 text-xs sm:text-sm">
                             {props.selectedCC}cc •{" "}
                             {!props.glitchAllowed ? "Non-Glitch/Shortcut" : "Unrestricted"} •{" "}

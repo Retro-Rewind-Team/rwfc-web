@@ -28,11 +28,13 @@ export function useRaces() {
     const [engineClassId, setEngineClassId] = createSignal<number | undefined>(undefined);
     const [from, setFrom] = createSignal<string | undefined>(undefined);
     const [to, setTo] = createSignal<string | undefined>(undefined);
-    const { searchQuery: fcQuery, search: fc, handleSearchInput: handleFcInput } =
-        useDebouncedSearch(500);
+    const {
+        searchQuery: fcQuery,
+        search: fc,
+        handleSearchInput: handleFcInput,
+    } = useDebouncedSearch(500);
 
-    const hasFilters = () =>
-        !!courseId() || !!engineClassId() || !!fc() || !!from() || !!to();
+    const hasFilters = () => !!courseId() || !!engineClassId() || !!fc() || !!from() || !!to();
 
     const clearFilters = () => {
         batch(() => {

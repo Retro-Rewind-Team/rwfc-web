@@ -136,7 +136,7 @@ export default function LeaderboardPage() {
                     {/* Search */}
                     <div class="mb-5">
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Search Players
+                            Search Players
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -146,7 +146,9 @@ export default function LeaderboardPage() {
                                 type="text"
                                 placeholder="Search by name or friend code..."
                                 value={activeLeaderboard().searchQuery()}
-                                onInput={(e) => activeLeaderboard().handleSearchInput(e.target.value)}
+                                onInput={(e) =>
+                                    activeLeaderboard().handleSearchInput(e.target.value)
+                                }
                                 class="w-full pl-10 pr-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 transition-colors"
                             />
                         </div>
@@ -160,7 +162,7 @@ export default function LeaderboardPage() {
                                     for="time-period-select"
                                     class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
                                 >
-                                VR Change Period
+                                    VR Change Period
                                 </label>
                                 <select
                                     id="time-period-select"
@@ -180,7 +182,7 @@ export default function LeaderboardPage() {
                                     for="active-players-select"
                                     class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
                                 >
-                                Active Players
+                                    Active Players
                                 </label>
                                 <select
                                     id="active-players-select"
@@ -205,13 +207,15 @@ export default function LeaderboardPage() {
                                 for="page-size-select"
                                 class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
                             >
-                            Results Per Page
+                                Results Per Page
                             </label>
                             <select
                                 id="page-size-select"
                                 value={activeLeaderboard().pageSize()}
                                 onChange={(e) =>
-                                    activeLeaderboard().handlePageSizeChange(parseInt(e.target.value))
+                                    activeLeaderboard().handlePageSizeChange(
+                                        parseInt(e.target.value),
+                                    )
                                 }
                                 class="w-full px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
                             >

@@ -174,7 +174,7 @@ export default function RoomCard(props: RoomCardProps) {
                                         withVr.length > 0
                                             ? Math.round(
                                                 withVr.reduce((sum, p) => sum + p.vr!, 0) /
-                                                      withVr.length
+                                                      withVr.length,
                                             )
                                             : null;
                                     return (
@@ -184,8 +184,11 @@ export default function RoomCard(props: RoomCardProps) {
                                                 {/* Groups label A–Z; clamped defensively (rooms hold max 12 players in practice) */}
                                                 <div class="flex items-center gap-2 flex-wrap justify-center">
                                                     <span class="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wide">
-                                                        Group {String.fromCharCode(65 + Math.min(i(), 25))} &mdash;{" "}
-                                                        {group.length}{" "}
+                                                        Group{" "}
+                                                        {String.fromCharCode(
+                                                            65 + Math.min(i(), 25),
+                                                        )}{" "}
+                                                        &mdash; {group.length}{" "}
                                                         {group.length === 1 ? "player" : "players"}
                                                     </span>
                                                     <Show when={avgVr !== null}>

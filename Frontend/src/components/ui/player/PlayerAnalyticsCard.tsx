@@ -58,16 +58,20 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
     const sortedTracks = () => {
         const tracks = analytics()?.trackPerformance ?? [];
         if (trackSort() === "winRate") return [...tracks].sort((a, b) => b.winRate - a.winRate);
-        if (trackSort() === "avgPos") return [...tracks].sort((a, b) => a.avgFinishPos - b.avgFinishPos);
+        if (trackSort() === "avgPos")
+            return [...tracks].sort((a, b) => a.avgFinishPos - b.avgFinishPos);
         return tracks;
     };
 
     const totalRaces = () =>
         analytics()?.finishPositionDistribution.reduce((s, p) => s + p.count, 0) ?? 0;
 
-    const maxPosCount = () => Math.max(1, ...(analytics()?.finishPositionDistribution.map(d => d.count) ?? [1]));
-    const maxDayCount = () => Math.max(1, ...(analytics()?.racesByDayOfWeek.map(d => d.raceCount) ?? [1]));
-    const maxHourCount = () => Math.max(1, ...(analytics()?.racesByHour.map(h => h.raceCount) ?? [1]));
+    const maxPosCount = () =>
+        Math.max(1, ...(analytics()?.finishPositionDistribution.map((d) => d.count) ?? [1]));
+    const maxDayCount = () =>
+        Math.max(1, ...(analytics()?.racesByDayOfWeek.map((d) => d.raceCount) ?? [1]));
+    const maxHourCount = () =>
+        Math.max(1, ...(analytics()?.racesByHour.map((h) => h.raceCount) ?? [1]));
 
     return (
         <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700">
@@ -151,19 +155,25 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
                                 <div class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
                                     {analytics()!.winRate.toFixed(1)}%
                                 </div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">Win Rate</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                    Win Rate
+                                </div>
                             </div>
                             <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-center">
                                 <div class="text-3xl font-bold text-gray-900 dark:text-white">
                                     {totalRaces().toLocaleString()}
                                 </div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">Races Analyzed</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                    Races Analyzed
+                                </div>
                             </div>
                             <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-center">
                                 <div class="text-3xl font-bold text-gray-900 dark:text-white">
                                     {analytics()!.trackPerformance.length}
                                 </div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">Tracks Played</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                    Tracks Played
+                                </div>
                             </div>
                         </div>
 
@@ -312,7 +322,10 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
                                                     style={{
                                                         height: `${Math.max(
                                                             2,
-                                                            Math.round((hour.raceCount / maxHourCount()) * 100),
+                                                            Math.round(
+                                                                (hour.raceCount / maxHourCount()) *
+                                                                    100,
+                                                            ),
                                                         )}%`,
                                                     }}
                                                     title={`${String(hour.hour).padStart(2, "0")}:00 — ${hour.raceCount} races`}

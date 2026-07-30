@@ -28,7 +28,12 @@ export default function OnlineBestsPage() {
     const bestsQuery = useQuery(() => ({
         queryKey: queryKeys.trackOnlineBests(selectedCourseId() ?? 0, engineClassId(), page()),
         queryFn: () =>
-            raceStatsApi.getTrackOnlineBests(selectedCourseId()!, engineClassId(), page(), PAGE_SIZE),
+            raceStatsApi.getTrackOnlineBests(
+                selectedCourseId()!,
+                engineClassId(),
+                page(),
+                PAGE_SIZE,
+            ),
         enabled: selectedCourseId() !== null,
         staleTime: 2 * 60 * 1000,
     }));
@@ -91,7 +96,9 @@ export default function OnlineBestsPage() {
                                             {(track) => (
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleTrackSelect(track.courseId)}
+                                                    onClick={() =>
+                                                        handleTrackSelect(track.courseId)
+                                                    }
                                                     class={`w-full text-left text-sm px-2 py-1.5 rounded-lg transition-colors ${
                                                         selectedCourseId() === track.courseId
                                                             ? "bg-blue-600 text-white"
@@ -113,7 +120,9 @@ export default function OnlineBestsPage() {
                                             {(track) => (
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleTrackSelect(track.courseId)}
+                                                    onClick={() =>
+                                                        handleTrackSelect(track.courseId)
+                                                    }
                                                     class={`w-full text-left text-sm px-2 py-1.5 rounded-lg transition-colors ${
                                                         selectedCourseId() === track.courseId
                                                             ? "bg-blue-600 text-white"
@@ -137,7 +146,9 @@ export default function OnlineBestsPage() {
                         <Show when={selectedCourseId() === null}>
                             <div class="flex flex-col items-center justify-center py-24 gap-3 text-gray-400 dark:text-gray-500">
                                 <Clock size={48} />
-                                <p class="text-lg font-medium">Select a track to see online best times</p>
+                                <p class="text-lg font-medium">
+                                    Select a track to see online best times
+                                </p>
                             </div>
                         </Show>
 
@@ -208,7 +219,9 @@ export default function OnlineBestsPage() {
                                                 <th class="pb-2 font-medium w-10">#</th>
                                                 <th class="pb-2 font-medium">Player</th>
                                                 <th class="pb-2 font-medium">Time</th>
-                                                <th class="pb-2 font-medium hidden sm:table-cell">Mode</th>
+                                                <th class="pb-2 font-medium hidden sm:table-cell">
+                                                    Mode
+                                                </th>
                                                 <th class="pb-2 font-medium text-right">Date</th>
                                             </tr>
                                         </thead>
@@ -245,9 +258,9 @@ export default function OnlineBestsPage() {
                                                             </span>
                                                         </td>
                                                         <td class="py-2 text-right text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                                                            {new Date(entry.achievedAt).toLocaleDateString(
-                                                                "nl-NL",
-                                                            )}
+                                                            {new Date(
+                                                                entry.achievedAt,
+                                                            ).toLocaleDateString("nl-NL")}
                                                         </td>
                                                     </tr>
                                                 )}
@@ -277,14 +290,30 @@ export default function OnlineBestsPage() {
                                                     value={page()}
                                                     onKeyDown={(e) => {
                                                         if (e.key === "Enter") {
-                                                            const v = parseInt((e.target as HTMLInputElement).value);
-                                                            if (!isNaN(v) && v >= 1 && v <= bestsQuery.data!.totalPages) setPage(v);
-                                                            else (e.target as HTMLInputElement).value = String(page());
+                                                            const v = parseInt(
+                                                                (e.target as HTMLInputElement)
+                                                                    .value,
+                                                            );
+                                                            if (
+                                                                !isNaN(v) &&
+                                                                v >= 1 &&
+                                                                v <= bestsQuery.data!.totalPages
+                                                            )
+                                                                setPage(v);
+                                                            else
+                                                                (
+                                                                    e.target as HTMLInputElement
+                                                                ).value = String(page());
                                                         }
                                                     }}
                                                     onBlur={(e) => {
                                                         const v = parseInt(e.target.value);
-                                                        if (!isNaN(v) && v >= 1 && v <= bestsQuery.data!.totalPages) setPage(v);
+                                                        if (
+                                                            !isNaN(v) &&
+                                                            v >= 1 &&
+                                                            v <= bestsQuery.data!.totalPages
+                                                        )
+                                                            setPage(v);
                                                         else e.target.value = String(page());
                                                     }}
                                                     class="w-14 px-2 py-1 text-center text-sm border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -293,7 +322,14 @@ export default function OnlineBestsPage() {
                                             </span>
                                             <button
                                                 type="button"
-                                                onClick={() => setPage((p) => Math.min(bestsQuery.data!.totalPages, p + 1))}
+                                                onClick={() =>
+                                                    setPage((p) =>
+                                                        Math.min(
+                                                            bestsQuery.data!.totalPages,
+                                                            p + 1,
+                                                        ),
+                                                    )
+                                                }
                                                 disabled={page() === bestsQuery.data!.totalPages}
                                                 class="px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                             >

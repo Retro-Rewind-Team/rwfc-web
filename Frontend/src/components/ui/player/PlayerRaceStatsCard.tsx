@@ -265,9 +265,15 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                         <th class="pb-2 font-medium w-8">Pos</th>
                                         <th class="pb-2 font-medium">Track</th>
                                         <th class="pb-2 font-medium">Time</th>
-                                        <th class="pb-2 font-medium hidden sm:table-cell">Character</th>
-                                        <th class="pb-2 font-medium hidden md:table-cell">Vehicle</th>
-                                        <th class="pb-2 font-medium hidden lg:table-cell text-center">Players</th>
+                                        <th class="pb-2 font-medium hidden sm:table-cell">
+                                            Character
+                                        </th>
+                                        <th class="pb-2 font-medium hidden md:table-cell">
+                                            Vehicle
+                                        </th>
+                                        <th class="pb-2 font-medium hidden lg:table-cell text-center">
+                                            Players
+                                        </th>
                                         <th class="pb-2 font-medium text-right">Date</th>
                                         <th class="pb-2 font-medium w-6"></th>
                                     </tr>
@@ -283,7 +289,12 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                                     <span
                                                         class="text-gray-800 dark:text-gray-200 truncate block cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                                                         title={`Filter by ${race.trackName}`}
-                                                        onClick={() => handleCourseIdChange(race.courseId, race.trackName)}
+                                                        onClick={() =>
+                                                            handleCourseIdChange(
+                                                                race.courseId,
+                                                                race.trackName,
+                                                            )
+                                                        }
                                                     >
                                                         {race.trackName}
                                                     </span>
@@ -294,8 +305,12 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                                             </span>
                                                         </Show>
                                                         <Show when={race.isPublic !== null}>
-                                                            <span class={`text-[10px] font-medium px-1.5 py-0 rounded ${race.isPublic ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400" : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"}`}>
-                                                                {race.isPublic ? "Public" : "Private"}
+                                                            <span
+                                                                class={`text-[10px] font-medium px-1.5 py-0 rounded ${race.isPublic ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400" : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"}`}
+                                                            >
+                                                                {race.isPublic
+                                                                    ? "Public"
+                                                                    : "Private"}
                                                             </span>
                                                         </Show>
                                                     </div>

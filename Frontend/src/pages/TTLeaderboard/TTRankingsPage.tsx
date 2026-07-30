@@ -62,7 +62,9 @@ export default function TTRankingsPage() {
             <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
                 <div class="px-4 sm:px-6 py-4 bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
                     <h2 class="text-xl font-bold text-gray-900 dark:text-white">Filters</h2>
-                    <p class="text-gray-500 dark:text-white/80 text-xs sm:text-sm">{filterSummary()}</p>
+                    <p class="text-gray-500 dark:text-white/80 text-xs sm:text-sm">
+                        {filterSummary()}
+                    </p>
                 </div>
                 <div class="bg-gray-50 dark:bg-gray-700/50 p-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
@@ -73,9 +75,7 @@ export default function TTRankingsPage() {
                             </label>
                             <ToggleGroup<CCOption>
                                 value={ccValue()}
-                                onChange={(v) =>
-                                    rankings.handleCCChange(Number(v) as 150 | 200)
-                                }
+                                onChange={(v) => rankings.handleCCChange(Number(v) as 150 | 200)}
                                 options={[
                                     { value: "150", label: "150cc" },
                                     { value: "200", label: "200cc" },
@@ -181,15 +181,16 @@ export default function TTRankingsPage() {
             </Show>
 
             {/* Rankings Table */}
-            <Show
-                when={rankings.rankingsQuery.data && !rankings.rankingsQuery.isLoading}
-            >
+            <Show when={rankings.rankingsQuery.data && !rankings.rankingsQuery.isLoading}>
                 <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
                     <div class="px-4 sm:px-6 py-4 bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-                        <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Player Rankings</h2>
+                        <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                            Player Rankings
+                        </h2>
                         <p class="text-gray-500 dark:text-white/80 text-xs sm:text-sm">
                             {rankings.rankingsQuery.data!.totalPlayers} player
-                            {rankings.rankingsQuery.data!.totalPlayers !== 1 ? "s" : ""} with world records
+                            {rankings.rankingsQuery.data!.totalPlayers !== 1 ? "s" : ""} with world
+                            records
                         </p>
                     </div>
 

@@ -296,11 +296,23 @@ export default function ServerActivityChart() {
                         }}
                     >
                         <defs>
-                            <linearGradient id={`serverLineGrad-${chartId}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                            <linearGradient
+                                id={`serverLineGrad-${chartId}`}
+                                x1="0%"
+                                y1="0%"
+                                x2="100%"
+                                y2="0%"
+                            >
                                 <stop offset="0%" stop-color="#3B82F6" />
                                 <stop offset="100%" stop-color="#8B5CF6" />
                             </linearGradient>
-                            <linearGradient id={`serverAreaGrad-${chartId}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                            <linearGradient
+                                id={`serverAreaGrad-${chartId}`}
+                                x1="0%"
+                                y1="0%"
+                                x2="0%"
+                                y2="100%"
+                            >
                                 <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.25" />
                                 <stop offset="100%" stop-color="#3B82F6" stop-opacity="0.02" />
                             </linearGradient>
@@ -437,8 +449,7 @@ export default function ServerActivityChart() {
                                 const pos = hoveredPos()!;
                                 const W = 140;
                                 const H = 58;
-                                let tx =
-                                    pos.x > CHART_WIDTH / 2 ? pos.x - W - 10 : pos.x + 10;
+                                let tx = pos.x > CHART_WIDTH / 2 ? pos.x - W - 10 : pos.x + 10;
                                 if (tx < getPad().left) tx = getPad().left;
                                 if (tx + W > CHART_WIDTH - getPad().right)
                                     tx = CHART_WIDTH - getPad().right - W;

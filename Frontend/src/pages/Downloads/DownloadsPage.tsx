@@ -58,7 +58,8 @@ export default function DownloadsPage() {
         () => tracksQuery.data?.filter((t) => t.category === "retro" && !t.isHidden).length ?? null,
     );
     const customTrackCount = createMemo(
-        () => tracksQuery.data?.filter((t) => t.category === "custom" && !t.isHidden).length ?? null,
+        () =>
+            tracksQuery.data?.filter((t) => t.category === "custom" && !t.isHidden).length ?? null,
     );
 
     const v = () => versionQuery.data ?? null;

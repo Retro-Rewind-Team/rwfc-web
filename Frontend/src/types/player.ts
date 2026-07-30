@@ -16,4 +16,3 @@ export interface VRStats {
     lastWeek: number;
     lastMonth: number;
 }
-

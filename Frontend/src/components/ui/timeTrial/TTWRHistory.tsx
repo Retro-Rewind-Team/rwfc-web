@@ -204,7 +204,9 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                             <Show when={record.glitch}>
                                                                 <span class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 whitespace-nowrap">
                                                                     <Zap size={12} />
-                                                                    <span class="hidden sm:inline">Glitch/Shortcut</span>
+                                                                    <span class="hidden sm:inline">
+                                                                        Glitch/Shortcut
+                                                                    </span>
                                                                 </span>
                                                             </Show>
                                                         </div>

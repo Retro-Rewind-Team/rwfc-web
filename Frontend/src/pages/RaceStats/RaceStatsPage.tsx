@@ -88,7 +88,8 @@ export default function RaceStatsPage() {
                         </p>
                         <Show when={globalStatsQuery.data}>
                             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                Tracked since {new Date(stats().trackedSince).toLocaleDateString("nl-NL")}
+                                Tracked since{" "}
+                                {new Date(stats().trackedSince).toLocaleDateString("nl-NL")}
                             </p>
                         </Show>
                     </div>

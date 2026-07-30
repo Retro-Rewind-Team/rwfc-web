@@ -168,22 +168,9 @@ export const ELITE_TIERS = [
     "rising",
 ] as const;
 
-export const GLOW_TIERS = [
-    "god",
-    "mythic",
-    "legend",
-    "master",
-    "elite",
-] as const;
+export const GLOW_TIERS = ["god", "mythic", "legend", "master", "elite"] as const;
 
-export const ICON_TIERS = [
-    "god",
-    "mythic",
-    "legend",
-    "master",
-    "elite",
-    "suspicious",
-] as const;
+export const ICON_TIERS = ["god", "mythic", "legend", "master", "elite", "suspicious"] as const;
 
 export const TROPHY_RANKS = {
     FIRST: 1,

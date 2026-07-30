@@ -327,7 +327,7 @@ const team = {
     Mosgis: new TeamMember({
         name: "Mosgis",
         discord: "tkmt_aniki",
-        image: "/profiles/tkmt_aniki.png"
+        image: "/profiles/tkmt_aniki.png",
     }),
     OrangeCake: new TeamMember({
         name: "OrangeCake_",
@@ -426,16 +426,22 @@ const team = {
         image: "/profiles/luigitime202.png",
         fc: "4810-3637-9371",
     }),
-}
+};
 
 export const teamData: Record<string, TeamMember[]> = {
     "Project Leader": [
-        team.ZPL.withRole("Creator & Project Leader").withDonation("https://ko-fi.com/zpl__")
+        team.ZPL.withRole("Creator & Project Leader").withDonation("https://ko-fi.com/zpl__"),
     ],
     "Team Retro WFC": [
-        team.Ppeb.withRole("Retro WFC & Bot Developer, Server Administrator").withDonation("https://ko-fi.com/ppebb"),
-        team.Jacher.withRole("Server Administrator & Host, Channel Developer").withDonation("https://ko-fi.com/jacherr"),
-        team.Renverse.withRole("Server Co-Host").withDonation("https://streamlabs.com/renverse64/tip"),
+        team.Ppeb.withRole("Retro WFC & Bot Developer, Server Administrator").withDonation(
+            "https://ko-fi.com/ppebb",
+        ),
+        team.Jacher.withRole("Server Administrator & Host, Channel Developer").withDonation(
+            "https://ko-fi.com/jacherr",
+        ),
+        team.Renverse.withRole("Server Co-Host").withDonation(
+            "https://streamlabs.com/renverse64/tip",
+        ),
         team.Gab.withRole("Lead Retro WFC and Discord Administrator"),
         team.Lami.withRole("Retro WFC & Bot Developer").withDonation("https://ko-fi.com/lilousky"),
     ],
@@ -445,9 +451,7 @@ export const teamData: Record<string, TeamMember[]> = {
         team.Lasagna.withRole("WheelWizard Contributor"),
         team.Matellush.withRole("WheelWizard Contributor"),
     ],
-    "Website Creator": [
-        team.Noel.withRole("Website Developer"),
-    ],
+    "Website Creator": [team.Noel.withRole("Website Developer")],
     "Discord Community Administrators": [
         team.Gab.withRole("Lead Discord Administrator"),
         team.Jonny.withRole("Discord Administrator"),
@@ -479,8 +483,7 @@ export const teamData: Record<string, TeamMember[]> = {
         team.QSahab.withRole("RWFC Moderator"),
         team.Sasuke.withRole("RWFC Moderator"),
         team.TheBeefBai.withRole("RWFC Moderator"),
-        team.Ppeb.withRole("RWFC Moderator")
-
+        team.Ppeb.withRole("RWFC Moderator"),
     ],
     Developers: [
         team.ZPL.withRole("Retro Rewind Developer"),

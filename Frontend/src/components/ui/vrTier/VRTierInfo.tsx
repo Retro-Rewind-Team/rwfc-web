@@ -58,7 +58,12 @@ export default function VRTierInfo(props: Readonly<VRTierInfoProps>) {
         <div class={`${props.className || ""}`}>
             {/* Current Tier Info */}
             <div class="flex items-center space-x-2 mb-2">
-                <Dynamic component={currentTier().icon} size={22} class={currentTier().iconColor} stroke-width={2.5} />
+                <Dynamic
+                    component={currentTier().icon}
+                    size={22}
+                    class={currentTier().iconColor}
+                    stroke-width={2.5}
+                />
                 <div>
                     <div class="font-semibold text-gray-900 dark:text-white">
                         {currentTier().label} Tier

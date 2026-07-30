@@ -14,8 +14,7 @@ export function useTTRankings() {
     const [glitchAllowed, setGlitchAllowed] = createSignal<boolean>(true);
     const [shroomlessFilter, setShroomlessFilter] = createSignal<ShroomlessFilter>("all");
     const [vehicleFilter, setVehicleFilter] = createSignal<VehicleFilter>("all");
-    const [trackCategoryFilter, setTrackCategoryFilter] =
-        createSignal<TrackCategoryFilter>("all");
+    const [trackCategoryFilter, setTrackCategoryFilter] = createSignal<TrackCategoryFilter>("all");
     const [currentPage, setCurrentPage] = createSignal(1);
     const pageSize = () => 25;
 

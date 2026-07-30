@@ -33,10 +33,12 @@ export const queryKeys = {
         from: string | undefined,
         to: string | undefined,
         page: number,
-    ) => ["races", roomId, raceNumber, courseId, engineClassId, friendCode, from, to, page] as const,
+    ) =>
+        ["races", roomId, raceNumber, courseId, engineClassId, friendCode, from, to, page] as const,
 
     roomStats: ["roomStatus", "stats"] as const,
-    roomPlayerCountSeries: (days: number | undefined) => ["roomStatus", "playerCountSeries", days] as const,
+    roomPlayerCountSeries: (days: number | undefined) =>
+        ["roomStatus", "playerCountSeries", days] as const,
     room: (id: number | undefined) => ["roomStatus", id] as const,
 
     ttTracks: ["tt-tracks"] as const,
@@ -89,8 +91,7 @@ export const queryKeys = {
         trackCategory: string,
         page: number,
         pageSize: number,
-    ) =>
-        ["tt-rankings", cc, glitch, shroomless, vehicle, trackCategory, page, pageSize] as const,
+    ) => ["tt-rankings", cc, glitch, shroomless, vehicle, trackCategory, page, pageSize] as const,
 
     playerAnalytics: (
         pid: string | undefined,

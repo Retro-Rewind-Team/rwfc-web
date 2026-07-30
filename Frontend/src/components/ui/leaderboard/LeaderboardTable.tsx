@@ -52,7 +52,9 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                                 </Show>
                             </div>
                         </th>
-                        <th class="px-6 py-4 text-center font-bold text-gray-700 dark:text-gray-200">User</th>
+                        <th class="px-6 py-4 text-center font-bold text-gray-700 dark:text-gray-200">
+                            User
+                        </th>
                         <th
                             class="px-6 py-4 text-center cursor-pointer transition-colors hover:bg-gray-300 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
                             onClick={() => props.onSort("vr")}

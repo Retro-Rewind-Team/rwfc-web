@@ -208,7 +208,10 @@ export default function TTLeaderboardPage() {
                                                             <div class="font-semibold text-sm sm:text-base text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                                                                 {track.name}
                                                                 <Show when={track.supportsGlitch}>
-                                                                    <Zap size={14} class="ml-2 inline-block text-purple-600 dark:text-purple-400" />
+                                                                    <Zap
+                                                                        size={14}
+                                                                        class="ml-2 inline-block text-purple-600 dark:text-purple-400"
+                                                                    />
                                                                 </Show>
                                                             </div>
                                                             <div class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
