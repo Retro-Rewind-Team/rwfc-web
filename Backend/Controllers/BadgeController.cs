@@ -5,6 +5,9 @@ using RetroRewindWebsite.Repositories.Player;
 
 namespace RetroRewindWebsite.Controllers;
 
+/// <summary>
+/// Exposes public read endpoints for player badges: single player, batch, and all badged players.
+/// </summary>
 [ApiController]
 [Route("api/badges")]
 public class BadgeController : ControllerBase
@@ -18,7 +21,7 @@ public class BadgeController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet("by_pid/{pid}")]
+    [HttpGet("by-pid/{pid}")]
     [ProducesResponseType<BadgeDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -40,7 +43,7 @@ public class BadgeController : ControllerBase
         }
     }
 
-    [HttpPost("by_pids")]
+    [HttpPost("by-pids")]
     [ProducesResponseType<BatchBadgeDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]

@@ -52,7 +52,19 @@ public interface IPlayerModerationService
     /// or <see langword="null"/> if either PID does not exist.</returns>
     Task<SwapResultDto?> SwapPlayerStatsAsync(string sourcePid, string targetPid, string reason);
 
+    /// <summary>
+    /// Grants a badge to a player, if they do not already have it.
+    /// </summary>
+    /// <param name="pid">The player's unique identifier.</param>
+    /// <param name="badge">The badge to add.</param>
+    /// <returns>The moderation result, or <see langword="null"/> if no player with the given PID exists.</returns>
     Task<BadgeModerationActionResultDto?> AddBadgeAsync(string pid, int badge);
 
+    /// <summary>
+    /// Removes a badge from a player, if they have it.
+    /// </summary>
+    /// <param name="pid">The player's unique identifier.</param>
+    /// <param name="badge">The badge to remove.</param>
+    /// <returns>The moderation result, or <see langword="null"/> if no player with the given PID exists.</returns>
     Task<BadgeModerationActionResultDto?> RemoveBadgeAsync(string pid, int badge);
 }

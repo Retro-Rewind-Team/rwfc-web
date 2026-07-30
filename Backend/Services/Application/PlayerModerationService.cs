@@ -261,7 +261,7 @@ public class PlayerModerationService : IPlayerModerationService
         {
             return new BadgeModerationActionResultDto(
                 false,
-                $"Player '${player.Name}' already has this badge",
+                $"Player '{player.Name}' already has this badge",
                 player.Badges
             );
         }
@@ -275,7 +275,7 @@ public class PlayerModerationService : IPlayerModerationService
 
         return new BadgeModerationActionResultDto(
             true,
-            $"Player '${player.Name}' has been given a badge",
+            $"Player '{player.Name}' has been given a badge",
             player.Badges
         );
     }
@@ -304,7 +304,7 @@ public class PlayerModerationService : IPlayerModerationService
 
         return new BadgeModerationActionResultDto(
             true,
-            $"Player '${player.Name}' has had a badge removed",
+            $"Player '{player.Name}' has had a badge removed",
             player.Badges
         );
     }
