@@ -108,6 +108,16 @@ public class RaceStatsControllerTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task GetRaces_FilterByDateRange_ReturnsOk()
+    {
+        var response = await _client.GetAsync(
+            "/api/racestats/races?from=2026-05-01&to=2026-05-02&page=1&pageSize=20",
+            TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK, body);
+    }
+
+    [Fact]
     public async Task GetRaces_ParticipantsOrderedByFinishPos()
     {
         var response = await _client.GetAsync("/api/racestats/races?roomId=room-001", TestContext.Current.CancellationToken);
