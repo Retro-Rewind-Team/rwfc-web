@@ -254,7 +254,7 @@ Authorization: Bearer <WfcSecret>
 
 | Policy | Limit | Applied to |
 |---|---|---|
-| Global | 300 req / min | All endpoints |
+| Global | 2000 req / min | All endpoints |
 | `RefreshPolicy` | 5 req / min | `POST /api/roomstatus/refresh` |
 | `DownloadPolicy` | 3 req / min | Mii image downloads |
 | `GhostDownloadPolicy` | 10 req / min | Ghost file downloads |
