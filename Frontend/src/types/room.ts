@@ -42,6 +42,7 @@ export interface RoomStatusResponse {
     id: number;
     minimumId: number;
     maximumId: number;
+    totalPlayers: number;
 }
 
 export interface RoomStatusStats {

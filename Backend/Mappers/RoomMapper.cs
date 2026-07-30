@@ -53,7 +53,8 @@ public static class RoomMapper
             Timestamp: entity.Timestamp,
             Id: entity.Id,
             MinimumId: 0,
-            MaximumId: 0
+            MaximumId: 0,
+            TotalPlayers: entity.TotalPlayers
         );
 
     /// <summary>
@@ -66,7 +67,8 @@ public static class RoomMapper
             Timestamp: timestamp,
             Id: id,
             MinimumId: 0,
-            MaximumId: 0
+            MaximumId: 0,
+            TotalPlayers: rooms.Sum(r => r.Players.Count)
         );
 
     /// <summary>

@@ -40,6 +40,11 @@ export default function RoomStatusPage() {
         return /^\d{4}-\d{4}-\d{4}$/.test(fc) ? fc : undefined;
     });
 
+    const playersOnlineValue = createMemo(() =>
+        isLatest() ? (statsQuery.data?.totalPlayers ?? 0) : (roomStatusQuery.data?.totalPlayers ?? 0),
+    );
+    const playersOnlineLabel = createMemo(() => (isLatest() ? "Players Online" : "Players at this time"));
+
     const visibleRooms = createMemo(() => {
         let rooms = roomStatusQuery.data?.rooms ?? [];
         const fc = activeFc();
@@ -125,8 +130,8 @@ export default function RoomStatusPage() {
                     <Show when={statsQuery.data}>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
                             <StatCard
-                                value={statsQuery.data!.totalPlayers}
-                                label="Players Online"
+                                value={playersOnlineValue()}
+                                label={playersOnlineLabel()}
                                 colorScheme="emerald"
                             />
                             <StatCard

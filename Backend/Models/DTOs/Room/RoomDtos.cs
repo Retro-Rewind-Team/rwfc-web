@@ -8,7 +8,8 @@ public record RoomStatusResponseDto(
     DateTime Timestamp,
     int Id,
     int MinimumId,
-    int MaximumId
+    int MaximumId,
+    int TotalPlayers
 );
 
 public record RoomDto(
