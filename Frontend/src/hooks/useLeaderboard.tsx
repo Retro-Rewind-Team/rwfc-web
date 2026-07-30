@@ -19,6 +19,9 @@ export function useLeaderboard() {
     const [ascending, setAscending] = createSignal(true);
     const [timePeriod, setTimePeriod] = createSignal("24");
     const [activeDays, setActiveDays] = createSignal<number | null>(null);
+    const [vehicleFilter, setVehicleFilter] = createSignal<"kart" | "bike" | undefined>(
+        undefined,
+    );
 
     const miiLoader = useMiiLoader();
 
@@ -38,6 +41,7 @@ export function useLeaderboard() {
             ascending: ascending(),
             timePeriod: timePeriod(),
             activeDays: activeDays() ?? undefined,
+            vehicleFilter: vehicleFilter(),
         }),
     );
 
@@ -111,6 +115,13 @@ export function useLeaderboard() {
         });
     };
 
+    const handleVehicleFilterChange = (filter: "kart" | "bike" | undefined) => {
+        batch(() => {
+            setVehicleFilter(filter);
+            setCurrentPage(1);
+        });
+    };
+
     const getVRGain = (player: Player) => {
         switch (timePeriod()) {
             case "week":
@@ -137,6 +148,7 @@ export function useLeaderboard() {
         searchQuery,
         timePeriod,
         activeDays,
+        vehicleFilter,
 
         // Queries
         statsQuery,
@@ -147,6 +159,7 @@ export function useLeaderboard() {
         handleSort,
         handleTimePeriodChange,
         handleActiveDaysChange,
+        handleVehicleFilterChange,
         handlePageSizeChange,
         getVRGain,
         refreshLeaderboard,

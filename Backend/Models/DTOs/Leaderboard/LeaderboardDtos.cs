@@ -44,6 +44,9 @@ public class LeaderboardRequest
     public string TimePeriod { get; set; } = "24";
 
     public int? ActiveDays { get; set; } = null;
+
+    [RegularExpression("^(kart|bike)$", ErrorMessage = "Invalid vehicle filter")]
+    public string? VehicleFilter { get; set; }
 }
 
 public record LeaderboardInGameResponseDto(

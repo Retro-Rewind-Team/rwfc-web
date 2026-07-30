@@ -201,6 +201,54 @@ export default function LeaderboardPage() {
                                     <option value="30">Last 30 days</option>
                                 </select>
                             </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    Vehicle
+                                </label>
+                                <div class="bg-white dark:bg-gray-700/50 rounded-lg p-1 flex border border-gray-300 dark:border-gray-600">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            currentLeaderboard.handleVehicleFilterChange(
+                                                undefined,
+                                            )
+                                        }
+                                        class={`flex-1 px-4 py-1.5 rounded-md font-medium transition-all text-sm ${
+                                            currentLeaderboard.vehicleFilter() === undefined
+                                                ? "bg-gray-900 text-white shadow-sm dark:bg-white dark:text-gray-900"
+                                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                                        }`}
+                                    >
+                                        All
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            currentLeaderboard.handleVehicleFilterChange("kart")
+                                        }
+                                        class={`flex-1 px-4 py-1.5 rounded-md font-medium transition-all text-sm ${
+                                            currentLeaderboard.vehicleFilter() === "kart"
+                                                ? "bg-gray-900 text-white shadow-sm dark:bg-white dark:text-gray-900"
+                                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                                        }`}
+                                    >
+                                        Kart
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            currentLeaderboard.handleVehicleFilterChange("bike")
+                                        }
+                                        class={`flex-1 px-4 py-1.5 rounded-md font-medium transition-all text-sm ${
+                                            currentLeaderboard.vehicleFilter() === "bike"
+                                                ? "bg-gray-900 text-white shadow-sm dark:bg-white dark:text-gray-900"
+                                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                                        }`}
+                                    >
+                                        Bike
+                                    </button>
+                                </div>
+                            </div>
                         </Show>
                         <div>
                             <label

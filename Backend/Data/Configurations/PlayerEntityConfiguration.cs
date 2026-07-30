@@ -20,6 +20,8 @@ public class PlayerEntityConfiguration : IEntityTypeConfiguration<PlayerEntity>
         entity.HasIndex(e => e.VRGainLastWeek);
         entity.HasIndex(e => e.VRGainLastMonth);
 
+        entity.HasIndex(e => e.VehiclePreference);
+
         entity.Property(e => e.Name).HasMaxLength(100);
         entity.Property(e => e.Fc).HasMaxLength(20);
         entity.Property(e => e.Pid).HasMaxLength(50);

@@ -30,6 +30,10 @@ public class PlayerEntity
 
     public bool IsBanned { get; set; }
 
+    // Recomputed periodically from RaceResults; null when the player has no races yet
+    // or is exactly tied between kart and bike usage.
+    public VehicleType? VehiclePreference { get; set; }
+
     public virtual PlayerMiiCacheEntity? MiiCache { get; set; }
     public virtual ICollection<VRHistoryEntity> VRHistory { get; set; } = [];
 

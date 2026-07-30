@@ -63,7 +63,8 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
         string? search,
         string sortBy,
         bool ascending,
-        int? activeDays = null)
+        int? activeDays = null,
+        string? vehicleFilter = null)
     {
         var query = _context.Players.AsNoTracking().Where(p => !p.IsBanned);
 
@@ -79,6 +80,15 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
         {
             var cutoff = DateTime.UtcNow.AddDays(-activeDays.Value);
             query = query.Where(p => p.LastSeen >= cutoff);
+        }
+
+        if (vehicleFilter == "kart")
+        {
+            query = query.Where(p => p.VehiclePreference == VehicleType.Kart);
+        }
+        else if (vehicleFilter == "bike")
+        {
+            query = query.Where(p => p.VehiclePreference == VehicleType.Bike);
         }
 
         query = ApplySorting(query, sortBy, ascending);
@@ -150,6 +160,46 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating player ranks");
+            throw;
+        }
+    }
+
+    public async Task UpdatePlayerVehiclePreferencesAsync()
+    {
+        try
+        {
+            _logger.LogInformation("Updating player vehicle preferences");
+
+            await _context.Database.ExecuteSqlRawAsync(@"
+                WITH VehicleCounts AS (
+                    SELECT
+                        ""ProfileId"",
+                        COUNT(*) FILTER (WHERE ""VehicleId"" <= 17) AS ""KartCount"",
+                        COUNT(*) FILTER (WHERE ""VehicleId"" >= 18) AS ""BikeCount""
+                    FROM ""RaceResults""
+                    GROUP BY ""ProfileId""
+                ),
+                Classified AS (
+                    SELECT
+                        ""ProfileId"",
+                        CASE
+                            WHEN ""KartCount"" > ""BikeCount"" THEN 0
+                            WHEN ""BikeCount"" > ""KartCount"" THEN 1
+                            ELSE NULL
+                        END AS ""VehicleTypeValue""
+                    FROM VehicleCounts
+                )
+                UPDATE ""Players"" p
+                SET ""VehiclePreference"" = c.""VehicleTypeValue""
+                FROM Classified c
+                WHERE p.""Pid"" = c.""ProfileId""::text
+            ");
+
+            _logger.LogInformation("Successfully updated player vehicle preferences");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating player vehicle preferences");
             throw;
         }
     }

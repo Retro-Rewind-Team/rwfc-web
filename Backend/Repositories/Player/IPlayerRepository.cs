@@ -52,9 +52,11 @@ public interface IPlayerRepository
     /// ascending; otherwise, results are sorted in descending order.</param>
     /// <param name="activeDays">An optional filter to include only players active within the specified number of days (7, 14, or 30). If null or
     /// an invalid value, no activity filtering is applied.</param>
+    /// <param name="vehicleFilter">An optional filter for kart-majority ("kart") or bike-majority ("bike") players. If null, no
+    /// vehicle filtering is applied.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a paged collection of player
     /// entities matching the specified criteria. The collection may be empty if no players match.</returns>
-    Task<PagedResult<PlayerEntity>> GetLeaderboardPageAsync(int page, int pageSize, string? search, string sortBy, bool ascending, int? activeDays = null);
+    Task<PagedResult<PlayerEntity>> GetLeaderboardPageAsync(int page, int pageSize, string? search, string sortBy, bool ascending, int? activeDays = null, string? vehicleFilter = null);
 
     /// <summary>
     /// Asynchronously retrieves a list of the top players ranked by performance.
@@ -103,6 +105,14 @@ public interface IPlayerRepository
     /// </summary>
     /// <returns>A task that represents the asynchronous operation. The task completes when all player ranks have been updated.</returns>
     Task UpdatePlayerRanksAsync();
+
+    /// <summary>
+    /// Recomputes each player's kart-vs-bike vehicle preference from their RaceResults history.
+    /// A player is classified as Kart or Bike only if they have a strict majority of races in that
+    /// category; ties or players with zero races are left null.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    Task UpdatePlayerVehiclePreferencesAsync();
 
     // ===== BATCH OPERATIONS =====
 

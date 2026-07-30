@@ -23,4 +23,5 @@ export interface LeaderboardRequest {
     ascending?: boolean;
     timePeriod?: string;
     activeDays?: number;
+    vehicleFilter?: "kart" | "bike";
 }

@@ -43,7 +43,8 @@ public class LeaderboardService : ILeaderboardService
             request.Search,
             request.SortBy,
             request.Ascending,
-            request.ActiveDays);
+            request.ActiveDays,
+            request.VehicleFilter);
 
         var stats = await GetStatsAsync();
         var playerDtos = pagedResult.Items.Select(PlayerMapper.ToDto).ToList();

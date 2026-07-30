@@ -179,6 +179,7 @@ public class LeaderboardSyncService : ILeaderboardSyncService
         try
         {
             await _playerRepository.UpdatePlayerRanksAsync();
+            await _playerRepository.UpdatePlayerVehiclePreferencesAsync();
             _logger.LogInformation("Player rankings refreshed successfully");
         }
         catch (Exception ex)

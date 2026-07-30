@@ -1,4 +1,4 @@
-﻿using RetroRewindWebsite.Tests.Integration.Fixtures;
+using RetroRewindWebsite.Tests.Integration.Fixtures;
 using Shouldly;
 using System.Net;
 using System.Text.Json;
@@ -42,5 +42,23 @@ public class LeaderboardControllerTests
         using var doc = JsonDocument.Parse(json);
         doc.RootElement.TryGetProperty("players", out var playersEl).ShouldBeTrue("response should contain a 'players' array");
         playersEl.GetArrayLength().ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task GetLeaderboard_VehicleFilterKart_ExcludesPlayersWithNoPreference()
+    {
+        var response = await _client.GetAsync("/api/leaderboard?vehicleFilter=kart", TestContext.Current.CancellationToken);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var doc = JsonDocument.Parse(json);
+        doc.RootElement.GetProperty("players").GetArrayLength().ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task GetLeaderboard_InvalidVehicleFilter_ReturnsBadRequest()
+    {
+        var response = await _client.GetAsync("/api/leaderboard?vehicleFilter=moped", TestContext.Current.CancellationToken);
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 }
