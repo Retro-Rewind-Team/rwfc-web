@@ -1,3 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using RetroRewindWebsite.Data;
+using RetroRewindWebsite.Models.Entities.Player;
 using RetroRewindWebsite.Tests.Integration.Fixtures;
 using Shouldly;
 using System.Net;
@@ -10,10 +14,12 @@ namespace RetroRewindWebsite.Tests.Integration.Controllers;
 [Trait("Category", "Integration")]
 public class LeaderboardControllerTests
 {
+    private readonly DatabaseFixture _fixture;
     private readonly HttpClient _client;
 
     public LeaderboardControllerTests(DatabaseFixture fixture)
     {
+        _fixture = fixture;
         _client = fixture.Client;
     }
 
@@ -60,5 +66,51 @@ public class LeaderboardControllerTests
     {
         var response = await _client.GetAsync("/api/leaderboard?vehicleFilter=moped", TestContext.Current.CancellationToken);
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetLeaderboard_VehicleFilterKart_ReturnsKartScopedRank()
+    {
+        const string pid = "kart-rank-test";
+
+        using (var scope = _fixture.Factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<LeaderboardDbContext>();
+            db.Players.Add(new PlayerEntity
+            {
+                Pid = pid,
+                Name = "KartRankTest",
+                Fc = "9999-9999-0001",
+                Ev = 500,
+                Rank = 999,
+                MiiData = "",
+                LastSeen = DateTime.UtcNow,
+                LastUpdated = DateTime.UtcNow,
+                IsSuspicious = false,
+                SuspiciousVRJumps = 0,
+                VRGainLast24Hours = 0,
+                VRGainLastWeek = 0,
+                VRGainLastMonth = 0,
+                VehiclePreference = VehicleType.Kart,
+                KartRank = 3
+            });
+            await db.SaveChangesAsync();
+        }
+
+        try
+        {
+            var response = await _client.GetAsync("/api/leaderboard?vehicleFilter=kart", TestContext.Current.CancellationToken);
+            var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+            using var doc = JsonDocument.Parse(json);
+            var players = doc.RootElement.GetProperty("players");
+            players.GetArrayLength().ShouldBe(1);
+            players[0].GetProperty("rank").GetInt32().ShouldBe(3);
+        }
+        finally
+        {
+            using var scope = _fixture.Factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<LeaderboardDbContext>();
+            await db.Players.Where(p => p.Pid == pid).ExecuteDeleteAsync();
+        }
     }
 }

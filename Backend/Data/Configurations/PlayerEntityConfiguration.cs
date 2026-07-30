@@ -21,6 +21,8 @@ public class PlayerEntityConfiguration : IEntityTypeConfiguration<PlayerEntity>
         entity.HasIndex(e => e.VRGainLastMonth);
 
         entity.HasIndex(e => e.VehiclePreference);
+        entity.HasIndex(e => e.KartRank);
+        entity.HasIndex(e => e.BikeRank);
 
         entity.Property(e => e.Name).HasMaxLength(100);
         entity.Property(e => e.Fc).HasMaxLength(20);

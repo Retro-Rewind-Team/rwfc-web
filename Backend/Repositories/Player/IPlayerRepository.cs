@@ -114,6 +114,14 @@ public interface IPlayerRepository
     /// <returns>A task that represents the asynchronous operation.</returns>
     Task UpdatePlayerVehiclePreferencesAsync();
 
+    /// <summary>
+    /// Recomputes each player's rank within their kart-majority and bike-majority groups (KartRank/BikeRank).
+    /// Must run after <see cref="UpdatePlayerVehiclePreferencesAsync"/> so classification is current. Players no
+    /// longer in a category get that rank reset to null.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    Task UpdatePlayerVehicleRanksAsync();
+
     // ===== BATCH OPERATIONS =====
 
     /// <summary>

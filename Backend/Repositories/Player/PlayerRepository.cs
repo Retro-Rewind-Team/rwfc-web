@@ -91,7 +91,7 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
             query = query.Where(p => p.VehiclePreference == VehicleType.Bike);
         }
 
-        query = ApplySorting(query, sortBy, ascending);
+        query = ApplySorting(query, sortBy, ascending, vehicleFilter);
 
         return await PagedResult<PlayerEntity>.CreateAsync(query, page, pageSize);
     }
@@ -200,6 +200,67 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating player vehicle preferences");
+            throw;
+        }
+    }
+
+    public async Task UpdatePlayerVehicleRanksAsync()
+    {
+        try
+        {
+            _logger.LogInformation("Updating player vehicle ranks");
+
+            await _context.Database.ExecuteSqlRawAsync(@"
+                UPDATE ""Players""
+                SET ""KartRank"" = NULL
+                WHERE ""VehiclePreference"" IS DISTINCT FROM 0 AND ""KartRank"" IS NOT NULL;
+
+                WITH RankedKart AS (
+                    SELECT
+                        ""Id"",
+                        ROW_NUMBER() OVER (
+                            ORDER BY
+                                CASE WHEN ""IsSuspicious"" = false THEN 0 ELSE 1 END,
+                                ""Ev"" DESC,
+                                ""LastSeen"" DESC
+                        ) as NewRank
+                    FROM ""Players""
+                    WHERE ""IsBanned"" = false AND ""VehiclePreference"" = 0
+                )
+                UPDATE ""Players"" p
+                SET ""KartRank"" = rk.NewRank
+                FROM RankedKart rk
+                WHERE p.""Id"" = rk.""Id"";
+            ");
+
+            await _context.Database.ExecuteSqlRawAsync(@"
+                UPDATE ""Players""
+                SET ""BikeRank"" = NULL
+                WHERE ""VehiclePreference"" IS DISTINCT FROM 1 AND ""BikeRank"" IS NOT NULL;
+
+                WITH RankedBike AS (
+                    SELECT
+                        ""Id"",
+                        ROW_NUMBER() OVER (
+                            ORDER BY
+                                CASE WHEN ""IsSuspicious"" = false THEN 0 ELSE 1 END,
+                                ""Ev"" DESC,
+                                ""LastSeen"" DESC
+                        ) as NewRank
+                    FROM ""Players""
+                    WHERE ""IsBanned"" = false AND ""VehiclePreference"" = 1
+                )
+                UPDATE ""Players"" p
+                SET ""BikeRank"" = rk.NewRank
+                FROM RankedBike rk
+                WHERE p.""Id"" = rk.""Id"";
+            ");
+
+            _logger.LogInformation("Successfully updated player vehicle ranks");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating player vehicle ranks");
             throw;
         }
     }
@@ -403,18 +464,28 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
     private static IQueryable<PlayerEntity> ApplySorting(
         IQueryable<PlayerEntity> query,
         string sortBy,
-        bool ascending) =>
-        sortBy.ToLower() switch
+        bool ascending,
+        string? vehicleFilter = null)
+    {
+        IOrderedQueryable<PlayerEntity> orderByRank() => vehicleFilter switch
         {
-            "rank" => ascending ? query.OrderBy(p => p.Rank) : query.OrderByDescending(p => p.Rank),
+            "kart" => ascending ? query.OrderBy(p => p.KartRank) : query.OrderByDescending(p => p.KartRank),
+            "bike" => ascending ? query.OrderBy(p => p.BikeRank) : query.OrderByDescending(p => p.BikeRank),
+            _ => ascending ? query.OrderBy(p => p.Rank) : query.OrderByDescending(p => p.Rank)
+        };
+
+        return sortBy.ToLower() switch
+        {
+            "rank" => orderByRank(),
             "name" => ascending ? query.OrderBy(p => p.Name) : query.OrderByDescending(p => p.Name),
             "vr" => ascending ? query.OrderBy(p => p.Ev) : query.OrderByDescending(p => p.Ev),
             "lastseen" => ascending ? query.OrderBy(p => p.LastSeen) : query.OrderByDescending(p => p.LastSeen),
             "vrgain24" => ascending ? query.OrderBy(p => p.VRGainLast24Hours) : query.OrderByDescending(p => p.VRGainLast24Hours),
             "vrgain7" => ascending ? query.OrderBy(p => p.VRGainLastWeek) : query.OrderByDescending(p => p.VRGainLastWeek),
             "vrgain30" => ascending ? query.OrderBy(p => p.VRGainLastMonth) : query.OrderByDescending(p => p.VRGainLastMonth),
-            _ => query.OrderBy(p => p.Rank)
+            _ => orderByRank()
         };
+    }
 
     private static bool IsValidActiveDaysFilter(int days) =>
         days == 7 || days == 14 || days == 30;

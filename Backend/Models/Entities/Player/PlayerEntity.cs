@@ -34,6 +34,11 @@ public class PlayerEntity
     // or is exactly tied between kart and bike usage.
     public VehicleType? VehiclePreference { get; set; }
 
+    // Rank within VehiclePreference == Kart / Bike respectively; null when the player isn't
+    // currently classified into that category.
+    public int? KartRank { get; set; }
+    public int? BikeRank { get; set; }
+
     public virtual PlayerMiiCacheEntity? MiiCache { get; set; }
     public virtual ICollection<VRHistoryEntity> VRHistory { get; set; } = [];
 

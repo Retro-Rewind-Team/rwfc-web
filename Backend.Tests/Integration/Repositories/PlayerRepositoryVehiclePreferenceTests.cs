@@ -71,6 +71,59 @@ public class PlayerRepositoryVehiclePreferenceTests : IAsyncLifetime
         tiedPlayer!.VehiclePreference.ShouldBeNull();
     }
 
+    [Fact]
+    public async Task UpdatePlayerVehicleRanksAsync_RanksWithinCategoryOnly()
+    {
+        using var scope = _fixture.Factory.Services.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IPlayerRepository>();
+
+        await repository.UpdatePlayerVehiclePreferencesAsync();
+        await repository.UpdatePlayerVehicleRanksAsync();
+
+        var kartPlayer = await repository.GetByPidAsync("9001");
+        var bikePlayer = await repository.GetByPidAsync("9002");
+        var tiedPlayer = await repository.GetByPidAsync("9003");
+
+        kartPlayer!.KartRank.ShouldBe(1);
+        kartPlayer.BikeRank.ShouldBeNull();
+
+        bikePlayer!.BikeRank.ShouldBe(1);
+        bikePlayer.KartRank.ShouldBeNull();
+
+        tiedPlayer!.KartRank.ShouldBeNull();
+        tiedPlayer.BikeRank.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task UpdatePlayerVehicleRanksAsync_ResetsRankWhenPlayerNoLongerInCategory()
+    {
+        using var scope = _fixture.Factory.Services.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IPlayerRepository>();
+        var db = scope.ServiceProvider.GetRequiredService<LeaderboardDbContext>();
+
+        await repository.UpdatePlayerVehiclePreferencesAsync();
+        await repository.UpdatePlayerVehicleRanksAsync();
+
+        var kartPlayerBefore = await repository.GetByPidAsync("9001");
+        kartPlayerBefore!.KartRank.ShouldNotBeNull();
+        kartPlayerBefore.BikeRank.ShouldBeNull();
+
+        // Tip player 9001 from kart-majority (3 kart, 1 bike) to bike-majority by adding 3 more bike races
+        db.RaceResults.AddRange(
+            RaceResult(9001, 5, vehicleId: 18),
+            RaceResult(9001, 6, vehicleId: 18),
+            RaceResult(9001, 7, vehicleId: 18));
+        await db.SaveChangesAsync();
+
+        await repository.UpdatePlayerVehiclePreferencesAsync();
+        await repository.UpdatePlayerVehicleRanksAsync();
+
+        var kartPlayerAfter = await repository.GetByPidAsync("9001");
+        kartPlayerAfter!.VehiclePreference.ShouldBe(VehicleType.Bike);
+        kartPlayerAfter.KartRank.ShouldBeNull();
+        kartPlayerAfter.BikeRank.ShouldNotBeNull();
+    }
+
     private static PlayerEntity NewPlayer(string name, long profileId) => new()
     {
         Pid = profileId.ToString(),

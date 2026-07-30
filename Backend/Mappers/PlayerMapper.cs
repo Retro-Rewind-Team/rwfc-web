@@ -8,12 +8,17 @@ namespace RetroRewindWebsite.Mappers;
 /// </summary>
 public static class PlayerMapper
 {
-    public static PlayerDto ToDto(PlayerEntity entity) => new(
+    /// <summary>
+    /// Maps a player entity to <see cref="PlayerDto"/>. When <paramref name="vehicleFilter"/> is "kart" or "bike",
+    /// the DTO's Rank reflects the player's rank within that vehicle category (KartRank/BikeRank) instead of their
+    /// global rank, matching what the caller filtered the leaderboard to.
+    /// </summary>
+    public static PlayerDto ToDto(PlayerEntity entity, string? vehicleFilter = null) => new(
         Pid: entity.Pid,
         Name: entity.Name,
         FriendCode: entity.Fc,
         VR: entity.Ev,
-        Rank: entity.Rank,
+        Rank: RankFor(entity, vehicleFilter),
         LastSeen: entity.LastSeen,
         IsSuspicious: entity.IsSuspicious,
         VRStats: new VRStatsDto(
@@ -24,6 +29,13 @@ public static class PlayerMapper
         MiiData: entity.MiiData,
         Badges: entity.Badges
     );
+
+    private static int RankFor(PlayerEntity entity, string? vehicleFilter) => vehicleFilter switch
+    {
+        "kart" => entity.KartRank ?? entity.Rank,
+        "bike" => entity.BikeRank ?? entity.Rank,
+        _ => entity.Rank
+    };
 
     /// <summary>
     /// Maps a player entity to <see cref="PlayerDto"/> with <c>MiiImageBase64</c> stripped out (saves bandwidth on list endpoints).

@@ -47,7 +47,7 @@ public class LeaderboardService : ILeaderboardService
             request.VehicleFilter);
 
         var stats = await GetStatsAsync();
-        var playerDtos = pagedResult.Items.Select(PlayerMapper.ToDto).ToList();
+        var playerDtos = pagedResult.Items.Select(p => PlayerMapper.ToDto(p, request.VehicleFilter)).ToList();
 
         return new LeaderboardResponseDto(
             Players: playerDtos,
@@ -75,7 +75,7 @@ public class LeaderboardService : ILeaderboardService
     public async Task<List<PlayerDto>> GetTopPlayersAsync(int count)
     {
         var players = await _playerRepository.GetTopPlayersAsync(count);
-        return [.. players.Select(PlayerMapper.ToDto)];
+        return [.. players.Select(p => PlayerMapper.ToDto(p))];
     }
 
     public async Task<List<InGamePlayerDto>> GetTopPlayersInGameAsync(int count)
