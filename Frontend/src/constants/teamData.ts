@@ -6,7 +6,7 @@ const team = {
         name: "ZPL",
         discord: "zapple__",
         image: "/profiles/ZPL.png",
-        fc: "2877-6281-0055",
+        fc: "0089-0607-2005",
     }),
     Renverse: new TeamMember({
         name: "Renverse",
