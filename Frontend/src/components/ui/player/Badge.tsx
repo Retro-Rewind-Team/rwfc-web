@@ -3,8 +3,8 @@ import { BadgeId, badgeInfo } from "../../../constants/badgeData";
 import WhWzDevBadge from "./badges/WhWzDevBadge";
 import RrDevBadge from "./badges/RrDevBadge";
 import TranslatorBadge from "./badges/TranslatorBadge";
-import TranslatorLeadBadge from "./badges/TranslatorLeadBadge";
 import ContributorBadge from "./badges/ContributorBadge";
+import MajorContributorBadge from "./badges/MajorContributorBadge";
 import RWFCModeratorBadge from "./badges/RWFCModeratorBadge";
 import DiscordStaffBadge from "./badges/DiscordStaffBadge";
 import SupporterBadge from "./badges/SupporterBadge";
@@ -26,10 +26,10 @@ function BadgeSVG(props: { variant: number }) {
             return <RrDevBadge />;
         case BadgeId.Translator:
             return <TranslatorBadge />;
-        case BadgeId.TranslatorLead:
-            return <TranslatorLeadBadge />;
         case BadgeId.Contributor:
             return <ContributorBadge />;
+        case BadgeId.MajorContributor:
+            return <MajorContributorBadge />;
         case BadgeId.RWFCModerator:
             return <RWFCModeratorBadge />;
         case BadgeId.DiscordStaff:
