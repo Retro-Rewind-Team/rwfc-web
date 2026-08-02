@@ -125,10 +125,10 @@ public interface ITimeTrialService
     // ===== GHOST DOWNLOAD =====
 
     /// <summary>
-    /// Returns the file path and suggested download filename for a ghost submission, or
-    /// <see langword="null"/> if the submission does not exist or the file is missing on disk.
+    /// Returns the ghost file bytes and suggested download filename for a ghost submission, or
+    /// <see langword="null"/> if the submission does not exist or no ghost data is stored for it.
     /// </summary>
-    Task<(string FilePath, string FileName)?> GetGhostDownloadInfoAsync(int id);
+    Task<(byte[] Data, string FileName)?> GetGhostDownloadInfoAsync(int id);
 
     // ===== PROFILES =====
 

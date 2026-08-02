@@ -365,8 +365,7 @@ public class TimeTrialController : ControllerBase
             if (info == null)
                 return NotFound("Ghost file not found");
 
-            var fileStream = new FileStream(info.Value.FilePath, FileMode.Open, FileAccess.Read);
-            return File(fileStream, "application/octet-stream", info.Value.FileName);
+            return File(info.Value.Data, "application/octet-stream", info.Value.FileName);
         }
         catch (Exception ex)
         {

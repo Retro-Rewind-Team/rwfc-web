@@ -229,20 +229,17 @@ public class TimeTrialService : ITimeTrialService
 
     // ===== GHOST DOWNLOAD =====
 
-    public async Task<(string FilePath, string FileName)?> GetGhostDownloadInfoAsync(int id)
+    public async Task<(byte[] Data, string FileName)?> GetGhostDownloadInfoAsync(int id)
     {
         var submission = await _ghostSubmissionRepository.GetByIdAsync(id);
-        if (submission == null)
-            return null;
-
-        if (!File.Exists(submission.GhostFilePath))
+        if (submission?.GhostFile == null)
         {
-            _logger.LogWarning("Ghost file not found on disk: {FilePath}", submission.GhostFilePath);
+            _logger.LogWarning("Ghost data not found for submission {SubmissionId}", id);
             return null;
         }
 
         var fileName = $"{submission.FinishTimeDisplay.Replace(":", "m").Replace(".", "s")}.rkg";
-        return (submission.GhostFilePath, fileName);
+        return (submission.GhostFile.Data, fileName);
     }
 
     // ===== PROFILES =====
