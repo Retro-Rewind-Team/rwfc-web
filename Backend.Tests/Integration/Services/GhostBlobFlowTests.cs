@@ -134,7 +134,6 @@ public class GhostBlobFlowTests : IAsyncLifetime
             MiiName = "Test",
             LapCount = 3,
             LapSplitsMs = [30000, 30000, 30000],
-            GhostFilePath = string.Empty,
             DateSet = DateOnly.FromDateTime(DateTime.UtcNow)
         };
         db.GhostSubmissions.Add(submission);

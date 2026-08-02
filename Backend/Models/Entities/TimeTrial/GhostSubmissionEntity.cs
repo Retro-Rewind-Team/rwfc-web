@@ -30,7 +30,6 @@ public class GhostSubmissionEntity
     public bool IsFlap { get; set; } = false;
     public short DriftCategory { get; set; } // Drift category used, stored as short for compactness, mapped to name via MarioKartMappings
 
-    public required string GhostFilePath { get; set; }
     public DateOnly DateSet { get; set; }
     public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
 

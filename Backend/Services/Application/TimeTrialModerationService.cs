@@ -82,7 +82,6 @@ public class TimeTrialModerationService : ITimeTrialModerationService
                 MiiName = ghostData.MiiName,
                 LapCount = ghostData.LapCount,
                 LapSplitsMs = ghostData.LapSplitsMs,
-                GhostFilePath = string.Empty,
                 GhostFile = new GhostFileBlobEntity { Data = memoryStream.ToArray() },
                 DateSet = ghostData.DateSet,
                 SubmittedAt = DateTime.UtcNow,

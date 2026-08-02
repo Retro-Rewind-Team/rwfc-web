@@ -226,10 +226,10 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
                         FROM RankedSubmissions
                         WHERE ""FinishTimeMs"" = BestSoFar
                     )
-                    SELECT 
+                    SELECT
                         ""Id"", ""TrackId"", ""TTProfileId"", ""CC"", ""FinishTimeMs"", ""FinishTimeDisplay"",
                         ""VehicleId"", ""CharacterId"", ""ControllerType"", ""DriftType"", ""MiiName"",
-                        ""LapCount"", ""LapSplitsMs"", ""GhostFilePath"", ""DateSet"", ""SubmittedAt"",
+                        ""LapCount"", ""LapSplitsMs"", ""DateSet"", ""SubmittedAt"",
                         ""Shroomless"", ""Glitch"", ""DriftCategory"", ""IsFlap""
                     FROM WorldRecords
                     WHERE PreviousBest IS NULL OR ""FinishTimeMs"" <= PreviousBest
@@ -292,7 +292,7 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
                     SELECT
                         ""Id"", ""TrackId"", ""TTProfileId"", ""CC"", ""FinishTimeMs"", ""FinishTimeDisplay"",
                         ""VehicleId"", ""CharacterId"", ""ControllerType"", ""DriftType"", ""MiiName"",
-                        ""LapCount"", ""LapSplitsMs"", ""GhostFilePath"", ""DateSet"", ""SubmittedAt"",
+                        ""LapCount"", ""LapSplitsMs"", ""DateSet"", ""SubmittedAt"",
                         ""Shroomless"", ""Glitch"", ""DriftCategory"", ""IsFlap""
                     FROM FlapRecords
                     WHERE PreviousBest IS NULL OR FastestLap <= PreviousBest

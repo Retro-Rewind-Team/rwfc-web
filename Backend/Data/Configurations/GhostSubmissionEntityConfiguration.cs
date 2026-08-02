@@ -22,7 +22,6 @@ public class GhostSubmissionEntityConfiguration : IEntityTypeConfiguration<Ghost
 
         entity.Property(e => e.FinishTimeDisplay).HasMaxLength(20).IsRequired();
         entity.Property(e => e.MiiName).HasMaxLength(10).IsRequired();
-        entity.Property(e => e.GhostFilePath).HasMaxLength(255).IsRequired();
 
         entity.Property(e => e.LapSplitsMs).HasColumnType("jsonb").IsRequired();
 
