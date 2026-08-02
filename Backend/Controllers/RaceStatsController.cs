@@ -46,6 +46,7 @@ public class RaceStatsController : ControllerBase
             if (stats == null)
                 return NotFound($"No race data found for player '{pid}'");
 
+            Response.Headers.CacheControl = "public, max-age=60";
             return Ok(stats);
         }
         catch (Exception ex)
@@ -68,6 +69,7 @@ public class RaceStatsController : ControllerBase
             if (stats == null)
                 return NotFound($"Player '{pid}' not found");
 
+            Response.Headers.CacheControl = "public, max-age=60";
             return Ok(stats);
         }
         catch (Exception ex)
@@ -92,6 +94,7 @@ public class RaceStatsController : ControllerBase
             var analytics = await _raceStatsService.GetPlayerAnalyticsAsync(pid, days, engineClassId);
             if (analytics == null)
                 return NotFound($"No race data found for player '{pid}'");
+            Response.Headers.CacheControl = "public, max-age=60";
             return Ok(analytics);
         }
         catch (Exception ex)
@@ -111,6 +114,7 @@ public class RaceStatsController : ControllerBase
         try
         {
             var stats = await _raceStatsService.GetGlobalRaceStatsAsync(days);
+            Response.Headers.CacheControl = "public, max-age=60";
             return Ok(stats);
         }
         catch (Exception ex)
@@ -143,6 +147,7 @@ public class RaceStatsController : ControllerBase
             var result = await _raceStatsService.GetRacesAsync(
                 roomId, raceNumber, courseId, engineClassId, friendCode,
                 AsUtc(from), AsUtc(to), page, pageSize);
+            Response.Headers.CacheControl = "public, max-age=60";
             return Ok(result);
         }
         catch (Exception ex)

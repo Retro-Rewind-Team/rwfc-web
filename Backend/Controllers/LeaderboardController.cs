@@ -39,6 +39,7 @@ public class LeaderboardController : ControllerBase
         try
         {
             var response = await _leaderboardService.GetLeaderboardAsync(request);
+            Response.Headers.CacheControl = "public, max-age=60";
             return Ok(response);
         }
         catch (Exception ex)
@@ -58,6 +59,7 @@ public class LeaderboardController : ControllerBase
         try
         {
             var response = await _leaderboardService.GetLeaderboardInGameAsync(page);
+            Response.Headers.CacheControl = "public, max-age=60";
             return Ok(response);
         }
         catch (Exception ex)
@@ -77,6 +79,7 @@ public class LeaderboardController : ControllerBase
         {
             count = Math.Clamp(count, MinTopPlayersCount, MaxTopPlayersCount);
             var players = await _leaderboardService.GetTopPlayersAsync(count);
+            Response.Headers.CacheControl = "public, max-age=60";
             return Ok(players);
         }
         catch (Exception ex)
@@ -96,6 +99,7 @@ public class LeaderboardController : ControllerBase
         {
             count = Math.Clamp(count, MinTopPlayersCount, MaxTopPlayersCount);
             var players = await _leaderboardService.GetTopPlayersInGameAsync(count);
+            Response.Headers.CacheControl = "public, max-age=60";
             return Ok(players);
         }
         catch (Exception ex)
@@ -114,6 +118,7 @@ public class LeaderboardController : ControllerBase
         try
         {
             var stats = await _leaderboardService.GetStatsAsync();
+            Response.Headers.CacheControl = "public, max-age=60";
             return Ok(stats);
         }
         catch (Exception ex)
@@ -134,6 +139,7 @@ public class LeaderboardController : ControllerBase
         try
         {
             var hasSnapshot = await _leaderboardService.HasLegacySnapshotAsync();
+            Response.Headers.CacheControl = "public, max-age=300";
             return Ok(hasSnapshot);
         }
         catch (Exception ex)
@@ -154,6 +160,7 @@ public class LeaderboardController : ControllerBase
         try
         {
             var response = await _leaderboardService.GetLegacyLeaderboardAsync(request);
+            Response.Headers.CacheControl = "public, max-age=300";
             return Ok(response);
         }
         catch (Exception ex)

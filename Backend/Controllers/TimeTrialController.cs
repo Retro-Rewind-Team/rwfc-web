@@ -40,6 +40,7 @@ public class TimeTrialController : ControllerBase
     {
         try
         {
+            Response.Headers.CacheControl = "public, max-age=3600";
             return Ok(await _timeTrialService.GetAllTracksAsync());
         }
         catch (Exception ex)
@@ -62,6 +63,7 @@ public class TimeTrialController : ControllerBase
             if (track == null)
                 return NotFound($"Track with ID {id} not found");
 
+            Response.Headers.CacheControl = "public, max-age=3600";
             return Ok(track);
         }
         catch (Exception ex)
@@ -104,6 +106,7 @@ public class TimeTrialController : ControllerBase
             if (result == null)
                 return NotFound($"Track with ID {trackId} not found");
 
+            Response.Headers.CacheControl = "public, max-age=30";
             return Ok(result);
         }
         catch (Exception ex)
@@ -144,6 +147,7 @@ public class TimeTrialController : ControllerBase
             if (result == null)
                 return NotFound($"Track with ID {trackId} not found");
 
+            Response.Headers.CacheControl = "public, max-age=30";
             return Ok(result);
         }
         catch (Exception ex)
@@ -175,6 +179,7 @@ public class TimeTrialController : ControllerBase
 
             var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
 
+            Response.Headers.CacheControl = "public, max-age=30";
             return Ok(await _timeTrialService.GetTopTimesAsync(
                 trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax, count));
         }
@@ -213,6 +218,7 @@ public class TimeTrialController : ControllerBase
             if (result == null)
                 return NotFound($"No world record found for track {trackId} at {cc}cc");
 
+            Response.Headers.CacheControl = "public, max-age=30";
             return Ok(result);
         }
         catch (Exception ex)
@@ -241,6 +247,7 @@ public class TimeTrialController : ControllerBase
 
             var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
 
+            Response.Headers.CacheControl = "public, max-age=30";
             return Ok(await _timeTrialService.GetWorldRecordHistoryAsync(
                 trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax));
         }
@@ -270,6 +277,7 @@ public class TimeTrialController : ControllerBase
 
             var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
 
+            Response.Headers.CacheControl = "public, max-age=30";
             return Ok(await _timeTrialService.GetFlapWorldRecordHistoryAsync(
                 trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax));
         }
@@ -298,6 +306,7 @@ public class TimeTrialController : ControllerBase
 
             var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
 
+            Response.Headers.CacheControl = "public, max-age=30";
             return Ok(await _timeTrialService.GetAllWorldRecordsAsync(
                 cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax));
         }
@@ -340,6 +349,7 @@ public class TimeTrialController : ControllerBase
             if (result == null)
                 return NotFound("No lap times found for the specified category");
 
+            Response.Headers.CacheControl = "public, max-age=30";
             return Ok(result);
         }
         catch (Exception ex)
@@ -389,6 +399,7 @@ public class TimeTrialController : ControllerBase
             if (profile == null)
                 return NotFound($"Profile not found for ID {ttProfileId}");
 
+            Response.Headers.CacheControl = "public, max-age=30";
             return Ok(profile);
         }
         catch (Exception ex)
@@ -433,6 +444,7 @@ public class TimeTrialController : ControllerBase
             if (result == null)
                 return NotFound($"Profile not found for ID {ttProfileId}");
 
+            Response.Headers.CacheControl = "public, max-age=30";
             return Ok(result);
         }
         catch (Exception ex)
@@ -455,6 +467,7 @@ public class TimeTrialController : ControllerBase
             if (stats == null)
                 return NotFound($"Profile not found for ID {ttProfileId}");
 
+            Response.Headers.CacheControl = "public, max-age=30";
             return Ok(stats);
         }
         catch (Exception ex)
@@ -491,6 +504,7 @@ public class TimeTrialController : ControllerBase
 
             var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
 
+            Response.Headers.CacheControl = "public, max-age=30";
             return Ok(await _timeTrialService.GetPlayerRankingsAsync(
                 cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax, trackCategory, page, pageSize));
         }

@@ -50,9 +50,7 @@ public class RoomStatusController : ControllerBase
             var maxId = await _roomStatusService.GetMaxIdAsync();
             response = response with { MinimumId = minId, MaximumId = maxId };
 
-            Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
-            Response.Headers.Pragma = "no-cache";
-            Response.Headers.Expires = "0";
+            Response.Headers.CacheControl = "public, max-age=10";
 
             return Ok(response);
         }
@@ -108,6 +106,7 @@ public class RoomStatusController : ControllerBase
         try
         {
             var stats = await _roomStatusService.GetStatsAsync();
+            Response.Headers.CacheControl = "public, max-age=10";
             return Ok(stats);
         }
         catch (Exception ex)
@@ -128,6 +127,7 @@ public class RoomStatusController : ControllerBase
         if (count == null)
             return StatusCode(StatusCodes.Status503ServiceUnavailable, "Player count is currently unavailable");
 
+        Response.Headers.CacheControl = "public, max-age=10";
         return Ok(new PlayerCountDto(count.Value));
     }
 
@@ -149,6 +149,7 @@ public class RoomStatusController : ControllerBase
 
             response = response with { MinimumId = minId, MaximumId = maxId };
 
+            Response.Headers.CacheControl = "public, max-age=60";
             return Ok(response);
         }
         catch (Exception ex)
@@ -180,10 +181,12 @@ public class RoomStatusController : ControllerBase
                     return BadRequest("'from' must be earlier than 'to'.");
 
                 var range = await _roomStatusService.GetSnapshotsByDateRangeAsync(from.Value, to.Value);
+                Response.Headers.CacheControl = "public, max-age=60";
                 return Ok(range);
             }
 
             var result = await _roomStatusService.GetSnapshotHistoryAsync(page, pageSize);
+            Response.Headers.CacheControl = "public, max-age=60";
             return Ok(result);
         }
         catch (Exception ex)
