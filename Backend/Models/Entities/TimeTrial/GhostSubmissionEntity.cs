@@ -36,4 +36,5 @@ public class GhostSubmissionEntity
 
     public virtual TrackEntity? Track { get; set; }
     public virtual TTProfileEntity? TTProfile { get; set; }
+    public virtual GhostFileBlobEntity? GhostFile { get; set; }
 }

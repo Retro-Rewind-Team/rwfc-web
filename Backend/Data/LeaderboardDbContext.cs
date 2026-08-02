@@ -22,6 +22,7 @@ public class LeaderboardDbContext : DbContext
     public DbSet<TrackEntity> Tracks { get; set; }
     public DbSet<TTProfileEntity> TTProfiles { get; set; }
     public DbSet<GhostSubmissionEntity> GhostSubmissions { get; set; }
+    public DbSet<GhostFileBlobEntity> GhostFileBlobs { get; set; }
     public DbSet<RaceResultEntity> RaceResults { get; set; }
     public DbSet<RoomSnapshotEntity> RoomSnapshots { get; set; }
     // ===== MODEL CONFIGURATION =====
