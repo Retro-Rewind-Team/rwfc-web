@@ -1,24 +1,26 @@
-export const BadgeId = {
-    RetroRewindDeveloper: 0,
-    WheelWizardDeveloper: 1,
-    Contributor: 2,
-    RWFCModerator: 3,
-    DiscordStaff: 4,
-    TranslatorLead: 5,
-    Translator: 6,
-    Supporter: 7,
-    BetaTester: 8,
-    Heart: 9,
-    FireStarterGold: 10,
-    FireStarterSilver: 11,
-    FireStarterBronze: 12,
-    LeafStruckGold: 13,
-    LeafStruckSilver: 14,
-    LeafStruckBronze: 15,
-    SummitShowdownGold: 16,
-    SummitShowdownSilver: 17,
-    SummitShowdownBronze: 18,
-} as const;
+// NOTE: The order of these should not be modified. Badges should only be added
+// onto the end. Keep in sync with wfc-bot's BadgeType.
+export enum BadgeId {
+    RetroRewindDeveloper,
+    WheelWizardDeveloper,
+    Contributor,
+    RWFCModerator,
+    DiscordStaff,
+    TranslatorLead,
+    Translator,
+    Supporter,
+    BetaTester,
+    Heart,
+    FireStarterGold,
+    FireStarterSilver,
+    FireStarterBronze,
+    LeafStruckGold,
+    LeafStruckSilver,
+    LeafStruckBronze,
+    SummitShowdownGold,
+    SummitShowdownSilver,
+    SummitShowdownBronze,
+}
 
 export interface BadgeInfo {
     label: string;

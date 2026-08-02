@@ -25,7 +25,7 @@ describe("badgeData", () => {
     });
 
     it("has a badgeInfo entry for every BadgeId value", () => {
-        for (const id of Object.values(BadgeId)) {
+        for (const id of Object.values(BadgeId).filter((v): v is number => typeof v === "number")) {
             expect(badgeInfo[id], `badgeInfo[${id}]`).toBeDefined();
         }
     });
@@ -47,7 +47,9 @@ describe("badgeData", () => {
             expect(badgeInfo[id].tier, `badgeInfo[${id}].tier`).toBeDefined();
         }
 
-        const nonTournamentIds = Object.values(BadgeId).filter((id) => !tournamentIds.includes(id));
+        const nonTournamentIds = Object.values(BadgeId)
+            .filter((v): v is number => typeof v === "number")
+            .filter((id) => !tournamentIds.includes(id));
         for (const id of nonTournamentIds) {
             expect(badgeInfo[id].tier, `badgeInfo[${id}].tier`).toBeUndefined();
         }
