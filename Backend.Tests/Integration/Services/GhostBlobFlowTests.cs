@@ -83,23 +83,37 @@ public class GhostBlobFlowTests : IAsyncLifetime
     [Fact]
     public async Task DeleteGhostAsync_CascadesBlobDeletion()
     {
-        using var scope = _fixture.Factory.Services.CreateScope();
-        var moderationService = scope.ServiceProvider.GetRequiredService<ITimeTrialModerationService>();
-        var db = scope.ServiceProvider.GetRequiredService<LeaderboardDbContext>();
+        // Submit and delete each use their own DI scope (and therefore their own DbContext),
+        // mirroring how these calls are always in separate HTTP requests in production. Sharing
+        // one scope across both calls trips an unrelated EF Core identity-tracking conflict in
+        // TTProfileRepository.UpdateAsync (AsNoTracking reads combined with Update() writes).
+        int submissionId;
+        using (var submitScope = _fixture.Factory.Services.CreateScope())
+        {
+            var moderationService = submitScope.ServiceProvider.GetRequiredService<ITimeTrialModerationService>();
 
-        var rkgBytes = RkgTestData.BuildValidRkg(trackId: 5, lapCount: 3);
-        using var stream = new MemoryStream(rkgBytes);
-        IFormFile file = new FormFile(stream, 0, stream.Length, "ghostFile", "test.rkg");
+            var rkgBytes = RkgTestData.BuildValidRkg(trackId: 5, lapCount: 3);
+            using var stream = new MemoryStream(rkgBytes);
+            IFormFile file = new FormFile(stream, 0, stream.Length, "ghostFile", "test.rkg");
 
-        var submitResult = await moderationService.SubmitGhostAsync(
-            file, _trackId, cc: 150, ttProfileId: _profileId,
-            shroomless: false, glitch: false, isFlap: false);
-        var submissionId = submitResult.Submission!.Id;
+            var submitResult = await moderationService.SubmitGhostAsync(
+                file, _trackId, cc: 150, ttProfileId: _profileId,
+                shroomless: false, glitch: false, isFlap: false);
+            submissionId = submitResult.Submission!.Id;
+        }
 
-        await moderationService.DeleteGhostAsync(submissionId);
+        using (var deleteScope = _fixture.Factory.Services.CreateScope())
+        {
+            var moderationService = deleteScope.ServiceProvider.GetRequiredService<ITimeTrialModerationService>();
+            await moderationService.DeleteGhostAsync(submissionId);
+        }
 
-        var blob = await db.GhostFileBlobs.FirstOrDefaultAsync(b => b.Id == submissionId);
-        blob.ShouldBeNull();
+        using (var verifyScope = _fixture.Factory.Services.CreateScope())
+        {
+            var db = verifyScope.ServiceProvider.GetRequiredService<LeaderboardDbContext>();
+            var blob = await db.GhostFileBlobs.FirstOrDefaultAsync(b => b.Id == submissionId);
+            blob.ShouldBeNull();
+        }
     }
 
     [Fact]
