@@ -4,7 +4,7 @@ using System.Text;
 namespace RetroRewindWebsite.Services.Domain;
 
 /// <summary>
-/// Reads, validates, and stores Mario Kart Wii RKG ghost files, parsing binary headers to extract lap splits and metadata.
+/// Reads and validates Mario Kart Wii RKG ghost files, parsing binary headers to extract lap splits and metadata.
 /// </summary>
 public class GhostFileService : IGhostFileService
 {
@@ -374,5 +374,4 @@ public class GhostFileService : IGhostFileService
 
         return (ushort)((bytes[offset] << 8) | bytes[offset + 1]);
     }
-
 }

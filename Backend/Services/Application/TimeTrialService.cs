@@ -232,9 +232,12 @@ public class TimeTrialService : ITimeTrialService
     public async Task<(byte[] Data, string FileName)?> GetGhostDownloadInfoAsync(int id)
     {
         var submission = await _ghostSubmissionRepository.GetByIdAsync(id);
-        if (submission?.GhostFile == null)
+        if (submission == null)
+            return null;
+
+        if (submission.GhostFile == null)
         {
-            _logger.LogWarning("Ghost data not found for submission {SubmissionId}", id);
+            _logger.LogWarning("No ghost data stored for submission {SubmissionId}", id);
             return null;
         }
 
