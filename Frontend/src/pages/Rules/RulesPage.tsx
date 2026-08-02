@@ -107,10 +107,10 @@ export default function RulesPage() {
                 </div>
             </div>
 
-            {/* Cheating/Hacking/Bug Abusing Section */}
+            {/* Cheating, Bug Abuse, and Exploits Section */}
             <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                    Cheating/Hacking/Bug Abusing
+                    Cheating, Bug Abuse, and Exploits
                 </h2>
 
                 <ul class="space-y-3 text-gray-600 dark:text-gray-300">
@@ -160,8 +160,8 @@ export default function RulesPage() {
                 </AlertBox>
 
                 <p class="text-gray-600 dark:text-gray-300 mb-3 mt-4">
-                    Continued trolling or targeting of a single/group of players will result in the
-                    following lengths:
+                    Continued trolling, going backwards, or targeting of a single/group of players
+                    will result in the following lengths:
                 </p>
 
                 <ul class="space-y-2 text-gray-600 dark:text-gray-300 ml-6">
