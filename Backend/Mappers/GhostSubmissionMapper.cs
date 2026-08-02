@@ -9,7 +9,7 @@ public static class GhostSubmissionMapper
     /// <summary>
     /// Maps a single entity without rank context.
     /// </summary>
-    public static GhostSubmissionDetailDto ToDto(GhostSubmissionEntity entity, int? rank = null)
+    public static GhostSubmissionDetailDto ToDto(GhostSubmissionEntity entity, bool hasGhostFile, int? rank = null)
     {
         var lapSplitsMs = entity.LapSplitsMs;
 
@@ -53,7 +53,8 @@ public static class GhostSubmissionMapper
             ControllerName = MarioKartMappings.GetControllerName(entity.ControllerType),
             DriftTypeName = MarioKartMappings.GetDriftTypeName(entity.DriftType),
             DriftCategoryName = MarioKartMappings.GetDriftCategoryName(entity.DriftCategory),
-            Rank = rank
+            Rank = rank,
+            HasGhostFile = hasGhostFile
         };
     }
 
@@ -64,7 +65,8 @@ public static class GhostSubmissionMapper
     /// </summary>
     public static List<GhostSubmissionDetailDto> ToLeaderboardDtos(
         IList<GhostSubmissionEntity> entities,
-        int pageOffset)
+        int pageOffset,
+        ISet<int> ghostFileIds)
     {
         var result = new List<GhostSubmissionDetailDto>(entities.Count);
 
@@ -84,7 +86,7 @@ public static class GhostSubmissionMapper
                     : globalIndex + 1;
             }
 
-            result.Add(ToDto(entities[i], rank));
+            result.Add(ToDto(entities[i], ghostFileIds.Contains(entities[i].Id), rank));
         }
 
         return result;
@@ -97,7 +99,8 @@ public static class GhostSubmissionMapper
     /// </summary>
     public static List<GhostSubmissionDetailDto> ToFlapLeaderboardDtos(
         IList<GhostSubmissionEntity> entities,
-        int pageOffset)
+        int pageOffset,
+        ISet<int> ghostFileIds)
     {
         var result = new List<GhostSubmissionDetailDto>(entities.Count);
 
@@ -118,7 +121,7 @@ public static class GhostSubmissionMapper
                     : globalIndex + 1;
             }
 
-            result.Add(ToDto(entities[i], rank));
+            result.Add(ToDto(entities[i], ghostFileIds.Contains(entities[i].Id), rank));
         }
 
         return result;

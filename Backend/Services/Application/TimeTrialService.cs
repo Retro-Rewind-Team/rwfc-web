@@ -68,7 +68,9 @@ public class TimeTrialService : ITimeTrialService
             trackId, cc, glitchAllowed, shroomless, vehicleMin, vehicleMax);
 
         var pageOffset = (page - 1) * pageSize;
-        var submissions = GhostSubmissionMapper.ToLeaderboardDtos(pagedResult.Items, pageOffset);
+        var ghostFileIds = await _ghostSubmissionRepository.GetExistingGhostFileIdsAsync(
+            pagedResult.Items.Select(g => g.Id));
+        var submissions = GhostSubmissionMapper.ToLeaderboardDtos(pagedResult.Items, pageOffset, ghostFileIds);
 
         return new TrackLeaderboardDto(
             TrackMapper.ToDto(track),
@@ -109,7 +111,9 @@ public class TimeTrialService : ITimeTrialService
             trackId, cc, glitchAllowed, shroomless, vehicleMin, vehicleMax);
 
         var pageOffset = (page - 1) * pageSize;
-        var submissions = GhostSubmissionMapper.ToFlapLeaderboardDtos(pagedResult.Items, pageOffset);
+        var ghostFileIds = await _ghostSubmissionRepository.GetExistingGhostFileIdsAsync(
+            pagedResult.Items.Select(g => g.Id));
+        var submissions = GhostSubmissionMapper.ToFlapLeaderboardDtos(pagedResult.Items, pageOffset, ghostFileIds);
 
         return new TrackLeaderboardDto(
             TrackMapper.ToDto(track),
@@ -140,7 +144,9 @@ public class TimeTrialService : ITimeTrialService
         var submissions = await _ghostSubmissionRepository.GetTopTimesForTrackAsync(
             trackId, cc, glitchAllowed, shroomless, vehicleMin, vehicleMax, count);
 
-        return GhostSubmissionMapper.ToLeaderboardDtos(submissions, 0).Cast<GhostSubmissionDto>().ToList();
+        var ghostFileIds = await _ghostSubmissionRepository.GetExistingGhostFileIdsAsync(
+            submissions.Select(g => g.Id));
+        return GhostSubmissionMapper.ToLeaderboardDtos(submissions, 0, ghostFileIds).Cast<GhostSubmissionDto>().ToList();
     }
 
     // ===== WORLD RECORDS =====
@@ -156,7 +162,11 @@ public class TimeTrialService : ITimeTrialService
         var wr = await _ghostSubmissionRepository.GetWorldRecordAsync(
             trackId, cc, glitchAllowed, shroomless, vehicleMin, vehicleMax);
 
-        return wr == null ? null : GhostSubmissionMapper.ToDto(wr, rank: 1);
+        if (wr == null)
+            return null;
+
+        var ghostFileIds = await _ghostSubmissionRepository.GetExistingGhostFileIdsAsync([wr.Id]);
+        return GhostSubmissionMapper.ToDto(wr, ghostFileIds.Contains(wr.Id), rank: 1);
     }
 
     public async Task<List<GhostSubmissionDto>> GetWorldRecordHistoryAsync(
@@ -170,7 +180,9 @@ public class TimeTrialService : ITimeTrialService
         var history = await _ghostSubmissionRepository.GetWorldRecordHistoryAsync(
             trackId, cc, glitchAllowed, shroomless, vehicleMin, vehicleMax);
 
-        return history.Select(g => GhostSubmissionMapper.ToDto(g)).ToList<GhostSubmissionDto>();
+        var ghostFileIds = await _ghostSubmissionRepository.GetExistingGhostFileIdsAsync(
+            history.Select(g => g.Id));
+        return history.Select(g => GhostSubmissionMapper.ToDto(g, ghostFileIds.Contains(g.Id))).ToList<GhostSubmissionDto>();
     }
 
     public async Task<List<GhostSubmissionDto>> GetFlapWorldRecordHistoryAsync(
@@ -184,7 +196,9 @@ public class TimeTrialService : ITimeTrialService
         var history = await _ghostSubmissionRepository.GetFlapWorldRecordHistoryAsync(
             trackId, cc, glitchAllowed, shroomless, vehicleMin, vehicleMax);
 
-        return history.Select(g => GhostSubmissionMapper.ToDto(g)).ToList<GhostSubmissionDto>();
+        var ghostFileIds = await _ghostSubmissionRepository.GetExistingGhostFileIdsAsync(
+            history.Select(g => g.Id));
+        return history.Select(g => GhostSubmissionMapper.ToDto(g, ghostFileIds.Contains(g.Id))).ToList<GhostSubmissionDto>();
     }
 
     public async Task<List<TrackWorldRecordsDto>> GetAllWorldRecordsAsync(
@@ -198,13 +212,16 @@ public class TimeTrialService : ITimeTrialService
         var wrByTrack = await _ghostSubmissionRepository.GetAllWorldRecordsAsync(
             cc, glitchAllowed, shroomless, vehicleMin, vehicleMax);
 
+        var ghostFileIds = await _ghostSubmissionRepository.GetExistingGhostFileIdsAsync(
+            wrByTrack.Values.Select(wr => wr.Id));
+
         return tracks.Select(track =>
         {
             wrByTrack.TryGetValue(track.Id, out var wr);
             return new TrackWorldRecordsDto(
                 track.Id,
                 track.Name,
-                wr != null ? GhostSubmissionMapper.ToDto(wr, rank: 1) : null
+                wr != null ? GhostSubmissionMapper.ToDto(wr, ghostFileIds.Contains(wr.Id), rank: 1) : null
             );
         }).ToList();
     }
@@ -271,8 +288,10 @@ public class TimeTrialService : ITimeTrialService
         var pagedResult = await _ghostSubmissionRepository.GetPlayerSubmissionsAsync(
             profile.Id, page, pageSize, trackId, cc, glitch, shroomless, vehicleMin, vehicleMax);
 
+        var ghostFileIds = await _ghostSubmissionRepository.GetExistingGhostFileIdsAsync(
+            pagedResult.Items.Select(g => g.Id));
         var submissions = pagedResult.Items
-            .Select(g => GhostSubmissionMapper.ToDto(g))
+            .Select(g => GhostSubmissionMapper.ToDto(g, ghostFileIds.Contains(g.Id)))
             .ToList<GhostSubmissionDto>();
 
         return new PagedSubmissionsDto(

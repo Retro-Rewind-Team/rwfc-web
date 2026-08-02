@@ -258,11 +258,21 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                 </button>
                                                 <button
                                                     type="button"
+                                                    disabled={!submission.hasGhostFile}
                                                     onClick={() =>
                                                         props.onDownloadGhost(submission)
                                                     }
-                                                    class="inline-flex items-center p-2 sm:px-3 sm:py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+                                                    class={`inline-flex items-center p-2 sm:px-3 sm:py-1.5 border border-transparent text-xs font-medium rounded-md transition-colors ${
+                                                        submission.hasGhostFile
+                                                            ? "text-white bg-blue-600 hover:bg-blue-700"
+                                                            : "text-gray-400 dark:text-gray-500 bg-gray-200 dark:bg-gray-700 cursor-not-allowed"
+                                                    }`}
                                                     aria-label="Download ghost"
+                                                    title={
+                                                        submission.hasGhostFile
+                                                            ? undefined
+                                                            : "Ghost file not available for this submission"
+                                                    }
                                                 >
                                                     <Download size={16} class="sm:mr-1" />
                                                     <span class="hidden sm:inline">Ghost</span>

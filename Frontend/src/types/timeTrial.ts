@@ -48,6 +48,7 @@ export interface GhostSubmission {
     dateSet: string;
     submittedAt: string;
     rank: number | null;
+    hasGhostFile: boolean;
 }
 
 export interface TrackLeaderboard {

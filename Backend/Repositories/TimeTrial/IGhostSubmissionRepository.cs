@@ -14,6 +14,15 @@ public interface IGhostSubmissionRepository
     Task<GhostSubmissionEntity?> GetByIdAsync(int id);
 
     /// <summary>
+    /// Returns the subset of the given submission IDs that have a stored ghost file blob.
+    /// A cheap primary-key existence check against GhostFileBlobs — never loads the blob bytes themselves.
+    /// </summary>
+    /// <param name="submissionIds">The submission IDs to check.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the set of IDs (a subset of
+    /// <paramref name="submissionIds"/>) that have a corresponding <c>GhostFileBlobs</c> row.</returns>
+    Task<HashSet<int>> GetExistingGhostFileIdsAsync(IEnumerable<int> submissionIds);
+
+    /// <summary>
     /// Asynchronously adds a new ghost submission entity to the data store.
     /// </summary>
     /// <param name="submission">The ghost submission entity to add. Cannot be null.</param>

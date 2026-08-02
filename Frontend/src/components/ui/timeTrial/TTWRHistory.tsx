@@ -268,10 +268,20 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                         </div>
                                                         <button
                                                             type="button"
+                                                            disabled={!record.hasGhostFile}
                                                             onClick={() =>
                                                                 props.onDownloadGhost(record)
                                                             }
-                                                            class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors w-full sm:w-auto"
+                                                            title={
+                                                                record.hasGhostFile
+                                                                    ? undefined
+                                                                    : "Ghost file not available for this submission"
+                                                            }
+                                                            class={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-transparent text-xs font-medium rounded-md transition-colors w-full sm:w-auto ${
+                                                                record.hasGhostFile
+                                                                    ? "text-white bg-blue-600 hover:bg-blue-700"
+                                                                    : "text-gray-400 dark:text-gray-500 bg-gray-200 dark:bg-gray-700 cursor-not-allowed"
+                                                            }`}
                                                         >
                                                             <Download size={14} />
                                                             Download Ghost

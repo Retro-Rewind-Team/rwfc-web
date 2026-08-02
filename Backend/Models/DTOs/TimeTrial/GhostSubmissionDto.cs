@@ -30,6 +30,7 @@ public record GhostSubmissionDto
     public required DateOnly DateSet { get; init; }
     public required DateTime SubmittedAt { get; init; }
     public int? Rank { get; init; }
+    public required bool HasGhostFile { get; init; }
 }
 
 public record GhostSubmissionDetailDto : GhostSubmissionDto

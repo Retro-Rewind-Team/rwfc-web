@@ -107,7 +107,7 @@ public class TimeTrialModerationService : ITimeTrialModerationService
             return new GhostSubmissionResultDto(
                 true,
                 "Ghost submitted successfully",
-                GhostSubmissionMapper.ToDto(saved!));
+                GhostSubmissionMapper.ToDto(saved!, hasGhostFile: true));
         }
     }
 
@@ -155,7 +155,11 @@ public class TimeTrialModerationService : ITimeTrialModerationService
         var submissions = await _ghostSubmissionRepository.SearchAsync(
             ttProfileId, trackId, cc, glitch, shroomless, isFlap, driftCategory, limit);
 
-        var submissionDtos = submissions.Select(s => GhostSubmissionMapper.ToDto(s)).ToList();
+        var ghostFileIds = await _ghostSubmissionRepository.GetExistingGhostFileIdsAsync(
+            submissions.Select(s => s.Id));
+        var submissionDtos = submissions
+            .Select(s => GhostSubmissionMapper.ToDto(s, ghostFileIds.Contains(s.Id)))
+            .ToList();
 
         return new GhostSubmissionSearchResultDto(true, submissionDtos.Count, submissionDtos);
     }
@@ -180,7 +184,11 @@ public class TimeTrialModerationService : ITimeTrialModerationService
             trackId, cc, glitchFilter, shroomless,
             vehicleMin, vehicleMax, driftType, driftCategory);
 
-        return bkt == null ? null : GhostSubmissionMapper.ToDto(bkt);
+        if (bkt == null)
+            return null;
+
+        var ghostFileIds = await _ghostSubmissionRepository.GetExistingGhostFileIdsAsync([bkt.Id]);
+        return GhostSubmissionMapper.ToDto(bkt, ghostFileIds.Contains(bkt.Id));
     }
 
     // ===== TT PROFILE MANAGEMENT =====

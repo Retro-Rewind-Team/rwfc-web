@@ -24,6 +24,13 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
             .Include(g => g.GhostFile)
             .FirstOrDefaultAsync(g => g.Id == id);
 
+    public async Task<HashSet<int>> GetExistingGhostFileIdsAsync(IEnumerable<int> submissionIds) =>
+        (await _context.GhostFileBlobs
+            .Where(b => submissionIds.Contains(b.Id))
+            .Select(b => b.Id)
+            .ToListAsync())
+        .ToHashSet();
+
     public async Task AddAsync(GhostSubmissionEntity submission)
     {
         await _context.GhostSubmissions.AddAsync(submission);
