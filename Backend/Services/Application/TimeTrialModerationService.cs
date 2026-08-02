@@ -67,9 +67,6 @@ public class TimeTrialModerationService : ITimeTrialModerationService
             if (parseResult is not GhostFileParseResult.Success ghostData)
                 return new GhostSubmissionResultDto(false, ((GhostFileParseResult.Failure)parseResult).ErrorMessage);
 
-            memoryStream.Position = 0;
-            var ghostFilePath = await _ghostFileService.SaveGhostFileAsync(memoryStream, trackId, cc, ttProfile.DisplayName);
-
             var submission = new GhostSubmissionEntity
             {
                 TrackId = trackId,
@@ -85,7 +82,8 @@ public class TimeTrialModerationService : ITimeTrialModerationService
                 MiiName = ghostData.MiiName,
                 LapCount = ghostData.LapCount,
                 LapSplitsMs = ghostData.LapSplitsMs,
-                GhostFilePath = ghostFilePath,
+                GhostFilePath = string.Empty,
+                GhostFile = new GhostFileBlobEntity { Data = memoryStream.ToArray() },
                 DateSet = ghostData.DateSet,
                 SubmittedAt = DateTime.UtcNow,
                 Shroomless = shroomless,
@@ -93,20 +91,12 @@ public class TimeTrialModerationService : ITimeTrialModerationService
                 IsFlap = isFlap
             };
 
-            try
-            {
-                await _ghostSubmissionRepository.AddAsync(submission);
+            await _ghostSubmissionRepository.AddAsync(submission);
 
-                ttProfile.TotalSubmissions =
-                    await _ghostSubmissionRepository.GetProfileSubmissionsCountAsync(ttProfile.Id);
-                await _ttProfileRepository.UpdateAsync(ttProfile);
-                await _ghostSubmissionRepository.UpdateWorldRecordCountsAsync();
-            }
-            catch
-            {
-                TryDeleteGhostFile(ghostFilePath);
-                throw;
-            }
+            ttProfile.TotalSubmissions =
+                await _ghostSubmissionRepository.GetProfileSubmissionsCountAsync(ttProfile.Id);
+            await _ttProfileRepository.UpdateAsync(ttProfile);
+            await _ghostSubmissionRepository.UpdateWorldRecordCountsAsync();
 
             _logger.LogInformation(
                 "Ghost submitted: Track {TrackId}, Player {PlayerName} (ID: {ProfileId}), Time {Time}ms, DriftCategory {DriftCategory}",
@@ -127,8 +117,6 @@ public class TimeTrialModerationService : ITimeTrialModerationService
         var submission = await _ghostSubmissionRepository.GetByIdAsync(id);
         if (submission == null)
             return null;
-
-        TryDeleteGhostFile(submission.GhostFilePath);
 
         await _ghostSubmissionRepository.DeleteAsync(submission.Id);
 
@@ -305,22 +293,5 @@ public class TimeTrialModerationService : ITimeTrialModerationService
         return new ProfileDeletionResultDto(
             true,
             $"Profile '{profile.DisplayName}' deleted successfully");
-    }
-
-    // ===== PRIVATE HELPERS =====
-
-    private void TryDeleteGhostFile(string? filePath)
-    {
-        if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
-            return;
-
-        try
-        {
-            File.Delete(filePath);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to delete ghost file: {FilePath}", filePath);
-        }
     }
 }

@@ -1,6 +1,4 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
-using NSubstitute;
 using RetroRewindWebsite.Models.Domain;
 using RetroRewindWebsite.Services.Domain;
 using Shouldly;
@@ -16,9 +14,7 @@ public class GhostFileServiceTests
 
     public GhostFileServiceTests()
     {
-        var config = Substitute.For<IConfiguration>();
-        config["GhostStoragePath"].Returns(Path.GetTempPath());
-        _sut = new GhostFileService(config, NullLogger<GhostFileService>.Instance);
+        _sut = new GhostFileService(NullLogger<GhostFileService>.Instance);
     }
 
     [Fact]

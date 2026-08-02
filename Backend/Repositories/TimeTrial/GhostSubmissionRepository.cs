@@ -21,6 +21,7 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
             .AsNoTracking()
             .Include(g => g.Track)
             .Include(g => g.TTProfile)
+            .Include(g => g.GhostFile)
             .FirstOrDefaultAsync(g => g.Id == id);
 
     public async Task AddAsync(GhostSubmissionEntity submission)

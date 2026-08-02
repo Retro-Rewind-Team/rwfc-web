@@ -8,10 +8,7 @@ namespace RetroRewindWebsite.Services.Domain;
 /// </summary>
 public class GhostFileService : IGhostFileService
 {
-    private readonly string _ghostStoragePath;
     private readonly ILogger<GhostFileService> _logger;
-
-    private const string DefaultGhostPath = "ghosts";
     private const int MinRkgFileSize = 0x88;
     private const string RkgMagic = "RKGD";
     private const int MaxLapSplitsStored = 5;
@@ -24,13 +21,9 @@ public class GhostFileService : IGhostFileService
     private const int OffsetLapSplits = 0x11;
     private const int OffsetMiiName = 0x3E;
 
-    public GhostFileService(IConfiguration configuration, ILogger<GhostFileService> logger)
+    public GhostFileService(ILogger<GhostFileService> logger)
     {
-        _ghostStoragePath = configuration["GhostStoragePath"] ?? DefaultGhostPath;
         _logger = logger;
-
-        if (!Directory.Exists(_ghostStoragePath))
-            Directory.CreateDirectory(_ghostStoragePath);
     }
 
     public async Task<GhostFileParseResult> ParseGhostFileAsync(Stream fileStream)
@@ -46,31 +39,6 @@ public class GhostFileService : IGhostFileService
             _logger.LogError(ex, "Failed to parse ghost file");
             return new GhostFileParseResult.Failure($"Failed to parse ghost file: {ex.Message}");
         }
-    }
-
-    public async Task<string> SaveGhostFileAsync(
-        Stream fileStream,
-        int trackId,
-        short cc,
-        string playerDisplayName)
-    {
-        string ccDir = Path.Combine(_ghostStoragePath, $"track-{trackId}", $"{cc}cc");
-        Directory.CreateDirectory(ccDir);
-
-        string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-        string safeDisplayName = SanitizeFileName(playerDisplayName);
-        string filePath = Path.Combine(ccDir, $"{timestamp}_{safeDisplayName}.rkg");
-
-        using (var fileStreamOut = new FileStream(filePath, FileMode.Create, FileAccess.Write))
-        {
-            fileStream.Position = 0;
-            await fileStream.CopyToAsync(fileStreamOut);
-        }
-
-        _logger.LogInformation("Ghost file saved: {FilePath} for player {PlayerName}",
-            filePath, playerDisplayName);
-
-        return filePath;
     }
 
     // ===== PRIVATE PARSING METHODS =====
@@ -407,19 +375,4 @@ public class GhostFileService : IGhostFileService
         return (ushort)((bytes[offset] << 8) | bytes[offset + 1]);
     }
 
-    /// <summary>
-    /// Removes invalid characters from a file name and replaces spaces with underscores.
-    /// </summary>
-    /// <remarks>The returned file name may be shorter than the input if invalid characters are removed or if
-    /// the input exceeds 50 characters. This method does not guarantee uniqueness or check for reserved file
-    /// names.</remarks>
-    /// <param name="fileName">The file name to sanitize. Cannot be null. Any invalid file name characters will be removed.</param>
-    /// <returns>A sanitized string suitable for use as a file name, with invalid characters removed, spaces replaced by
-    /// underscores, and truncated to a maximum of 50 characters.</returns>
-    private static string SanitizeFileName(string fileName)
-    {
-        var invalidChars = Path.GetInvalidFileNameChars();
-        var sanitized = new string([.. fileName.Where(c => !invalidChars.Contains(c))]);
-        return sanitized.Replace(" ", "_")[..Math.Min(sanitized.Length, 50)];
-    }
 }
