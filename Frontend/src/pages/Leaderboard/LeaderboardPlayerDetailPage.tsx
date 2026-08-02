@@ -10,6 +10,7 @@ import {
     PlayerAnalyticsCard,
     PlayerBadges,
     PlayerRaceStatsCard,
+    VehiclePreferenceBadge,
     VRHistoryChartComponent,
     VRStatsCard,
     VRTierInfo,
@@ -152,6 +153,10 @@ export default function PlayerDetailPage() {
                                             <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
                                                 {player().name}
                                             </h1>
+                                            <VehiclePreferenceBadge
+                                                vehiclePreference={player().vehiclePreference}
+                                                vehicleRank={player().vehicleRank}
+                                            />
                                             <Show when={player().isSuspicious}>
                                                 <Tooltip text="This player has been flagged for suspicious VR activity">
                                                     <span class="inline-flex items-center gap-1.5 bg-red-200 dark:bg-red-900 text-red-600 dark:text-red-300 px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap cursor-help">

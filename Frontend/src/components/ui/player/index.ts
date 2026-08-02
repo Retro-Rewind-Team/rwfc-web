@@ -7,3 +7,4 @@ export { default as PlayerRaceStatsCard } from "./PlayerRaceStatsCard";
 export { default as PlayerCard } from "./PlayerCard";
 export { default as PositionBadge } from "./PositionBadge";
 export { default as PlayerOnlineBestsCard } from "./PlayerOnlineBestsCard";
+export { default as VehiclePreferenceBadge } from "./VehiclePreferenceBadge";

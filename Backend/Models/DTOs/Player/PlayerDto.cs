@@ -11,7 +11,9 @@ public record PlayerDto(
     VRStatsDto VRStats,
     string? MiiImageBase64,
     string? MiiData,
-    ICollection<int>? Badges
+    ICollection<int>? Badges,
+    string? VehiclePreference = null,
+    int? VehicleRank = null
 );
 
 public record PlayerMiiDownloadDto(string Name, string? MiiData);

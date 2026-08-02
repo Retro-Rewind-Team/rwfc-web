@@ -8,6 +8,7 @@ export { default as VRStatsCard } from "./player/VRStatsCard";
 export { default as Badge } from "./player/Badge";
 export { default as PositionBadge } from "./player/PositionBadge";
 export { default as PlayerOnlineBestsCard } from "./player/PlayerOnlineBestsCard";
+export { default as VehiclePreferenceBadge } from "./player/VehiclePreferenceBadge";
 
 // Leaderboard components
 export { default as LeaderboardTable } from "./leaderboard/LeaderboardTable";

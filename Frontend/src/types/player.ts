@@ -10,6 +10,8 @@ export interface Player {
     miiImageBase64?: string;
     miiData?: string;
     badges: number[] | null;
+    vehiclePreference: "kart" | "bike" | null;
+    vehicleRank: number | null;
 }
 
 export interface VRStats {

@@ -27,7 +27,9 @@ public static class PlayerMapper
             entity.VRGainLastMonth),
         MiiImageBase64: entity.MiiCache?.MiiImageBase64,
         MiiData: entity.MiiData,
-        Badges: entity.Badges
+        Badges: entity.Badges,
+        VehiclePreference: VehiclePreferenceFor(entity),
+        VehicleRank: VehicleRankFor(entity)
     );
 
     private static int RankFor(PlayerEntity entity, string? vehicleFilter) => vehicleFilter switch
@@ -35,6 +37,20 @@ public static class PlayerMapper
         "kart" => entity.KartRank ?? entity.Rank,
         "bike" => entity.BikeRank ?? entity.Rank,
         _ => entity.Rank
+    };
+
+    private static string? VehiclePreferenceFor(PlayerEntity entity) => entity.VehiclePreference switch
+    {
+        VehicleType.Kart => "kart",
+        VehicleType.Bike => "bike",
+        _ => null
+    };
+
+    private static int? VehicleRankFor(PlayerEntity entity) => entity.VehiclePreference switch
+    {
+        VehicleType.Kart => entity.KartRank,
+        VehicleType.Bike => entity.BikeRank,
+        _ => null
     };
 
     /// <summary>
