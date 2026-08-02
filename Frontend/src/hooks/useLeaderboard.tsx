@@ -19,9 +19,7 @@ export function useLeaderboard() {
     const [ascending, setAscending] = createSignal(true);
     const [timePeriod, setTimePeriod] = createSignal("24");
     const [activeDays, setActiveDays] = createSignal<number | null>(null);
-    const [vehicleFilter, setVehicleFilter] = createSignal<"kart" | "bike" | undefined>(
-        undefined,
-    );
+    const [vehicleFilter, setVehicleFilter] = createSignal<"kart" | "bike" | undefined>(undefined);
 
     const miiLoader = useMiiLoader();
 

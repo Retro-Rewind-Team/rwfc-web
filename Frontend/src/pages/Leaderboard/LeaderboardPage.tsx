@@ -209,9 +209,7 @@ export default function LeaderboardPage() {
                                     <button
                                         type="button"
                                         onClick={() =>
-                                            currentLeaderboard.handleVehicleFilterChange(
-                                                undefined,
-                                            )
+                                            currentLeaderboard.handleVehicleFilterChange(undefined)
                                         }
                                         class={`flex-1 px-4 py-1.5 rounded-md font-medium transition-all text-sm ${
                                             currentLeaderboard.vehicleFilter() === undefined

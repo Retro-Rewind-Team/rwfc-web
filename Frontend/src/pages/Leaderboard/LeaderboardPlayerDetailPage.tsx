@@ -162,10 +162,7 @@ export default function PlayerDetailPage() {
                                             </Show>
                                         </div>
                                         <div class="mb-3">
-                                            <PlayerBadges
-                                                badges={player().badges}
-                                                size="md"
-                                            />
+                                            <PlayerBadges badges={player().badges} size="md" />
                                         </div>
                                         <div class="space-y-1 text-gray-600 dark:text-gray-300">
                                             <p>

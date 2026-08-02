@@ -32,9 +32,15 @@ describe("badgeData", () => {
 
     it("assigns a tier to every tournament badge and no tier to non-tournament badges", () => {
         const tournamentIds: number[] = [
-            BadgeId.FireStarterGold, BadgeId.FireStarterSilver, BadgeId.FireStarterBronze,
-            BadgeId.LeafStruckGold, BadgeId.LeafStruckSilver, BadgeId.LeafStruckBronze,
-            BadgeId.SummitShowdownGold, BadgeId.SummitShowdownSilver, BadgeId.SummitShowdownBronze,
+            BadgeId.FireStarterGold,
+            BadgeId.FireStarterSilver,
+            BadgeId.FireStarterBronze,
+            BadgeId.LeafStruckGold,
+            BadgeId.LeafStruckSilver,
+            BadgeId.LeafStruckBronze,
+            BadgeId.SummitShowdownGold,
+            BadgeId.SummitShowdownSilver,
+            BadgeId.SummitShowdownBronze,
         ];
 
         for (const id of tournamentIds) {

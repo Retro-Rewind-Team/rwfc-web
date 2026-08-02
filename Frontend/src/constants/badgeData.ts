@@ -38,30 +38,48 @@ export const badgeInfo: Record<number, BadgeInfo> = {
     [BadgeId.BetaTester]: { label: "Beta Tester", tooltip: "Beta Tester" },
     [BadgeId.Heart]: { label: "Heart", tooltip: "Given a Heart by the Team" },
     [BadgeId.FireStarterGold]: {
-        label: "Firestarter", tooltip: "Firestarter Tournament - Gold Winner", tier: "gold",
+        label: "Firestarter",
+        tooltip: "Firestarter Tournament - Gold Winner",
+        tier: "gold",
     },
     [BadgeId.FireStarterSilver]: {
-        label: "Firestarter", tooltip: "Firestarter Tournament - Silver Winner", tier: "silver",
+        label: "Firestarter",
+        tooltip: "Firestarter Tournament - Silver Winner",
+        tier: "silver",
     },
     [BadgeId.FireStarterBronze]: {
-        label: "Firestarter", tooltip: "Firestarter Tournament - Bronze Winner", tier: "bronze",
+        label: "Firestarter",
+        tooltip: "Firestarter Tournament - Bronze Winner",
+        tier: "bronze",
     },
     [BadgeId.LeafStruckGold]: {
-        label: "Leafstruck", tooltip: "Leafstruck Tournament - Gold Winner", tier: "gold",
+        label: "Leafstruck",
+        tooltip: "Leafstruck Tournament - Gold Winner",
+        tier: "gold",
     },
     [BadgeId.LeafStruckSilver]: {
-        label: "Leafstruck", tooltip: "Leafstruck Tournament - Silver Winner", tier: "silver",
+        label: "Leafstruck",
+        tooltip: "Leafstruck Tournament - Silver Winner",
+        tier: "silver",
     },
     [BadgeId.LeafStruckBronze]: {
-        label: "Leafstruck", tooltip: "Leafstruck Tournament - Bronze Winner", tier: "bronze",
+        label: "Leafstruck",
+        tooltip: "Leafstruck Tournament - Bronze Winner",
+        tier: "bronze",
     },
     [BadgeId.SummitShowdownGold]: {
-        label: "Summit", tooltip: "Summit Showdown Tournament - Gold Winner", tier: "gold",
+        label: "Summit",
+        tooltip: "Summit Showdown Tournament - Gold Winner",
+        tier: "gold",
     },
     [BadgeId.SummitShowdownSilver]: {
-        label: "Summit", tooltip: "Summit Showdown Tournament - Silver Winner", tier: "silver",
+        label: "Summit",
+        tooltip: "Summit Showdown Tournament - Silver Winner",
+        tier: "silver",
     },
     [BadgeId.SummitShowdownBronze]: {
-        label: "Summit", tooltip: "Summit Showdown Tournament - Bronze Winner", tier: "bronze",
+        label: "Summit",
+        tooltip: "Summit Showdown Tournament - Bronze Winner",
+        tier: "bronze",
     },
 };

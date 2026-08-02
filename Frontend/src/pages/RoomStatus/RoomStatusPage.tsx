@@ -41,9 +41,13 @@ export default function RoomStatusPage() {
     });
 
     const playersOnlineValue = createMemo(() =>
-        isLatest() ? (statsQuery.data?.totalPlayers ?? 0) : (roomStatusQuery.data?.totalPlayers ?? 0),
+        isLatest()
+            ? (statsQuery.data?.totalPlayers ?? 0)
+            : (roomStatusQuery.data?.totalPlayers ?? 0),
     );
-    const playersOnlineLabel = createMemo(() => (isLatest() ? "Players Online" : "Players at this time"));
+    const playersOnlineLabel = createMemo(() =>
+        isLatest() ? "Players Online" : "Players at this time",
+    );
 
     const visibleRooms = createMemo(() => {
         let rooms = roomStatusQuery.data?.rooms ?? [];
