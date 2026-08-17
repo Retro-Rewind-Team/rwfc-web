@@ -94,7 +94,7 @@ public class LeaderboardControllerTests
                 VehiclePreference = VehicleType.Kart,
                 KartRank = 3
             });
-            await db.SaveChangesAsync();
+            await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         }
 
         try
@@ -110,7 +110,7 @@ public class LeaderboardControllerTests
         {
             using var scope = _fixture.Factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<LeaderboardDbContext>();
-            await db.Players.Where(p => p.Pid == pid).ExecuteDeleteAsync();
+            await db.Players.Where(p => p.Pid == pid).ExecuteDeleteAsync(TestContext.Current.CancellationToken);
         }
     }
 }
