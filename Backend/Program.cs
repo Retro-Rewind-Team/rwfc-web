@@ -6,6 +6,7 @@ using Microsoft.OpenApi;
 using Npgsql;
 using RetroRewindWebsite.Data;
 using RetroRewindWebsite.HealthChecks;
+using RetroRewindWebsite.Repositories.Multiplier;
 using RetroRewindWebsite.Repositories.Player;
 using RetroRewindWebsite.Repositories.RaceResult;
 using RetroRewindWebsite.Repositories.Room;
@@ -97,6 +98,7 @@ builder.Services.AddScoped<IGhostSubmissionRepository, GhostSubmissionRepository
 builder.Services.AddScoped<IRaceResultRepository, RaceResultRepository>();
 builder.Services.AddScoped<IRoomSnapshotRepository, RoomSnapshotRepository>();
 builder.Services.AddScoped<IRaceStatsRepository, RaceStatsRepository>();
+builder.Services.AddScoped<IMultiplierRepository, MultiplierRepository>();
 
 // ===== EXTERNAL SERVICES =====
 builder.Services.AddScoped<IRetroWFCApiClient, RetroWFCApiClient>();
@@ -116,6 +118,7 @@ builder.Services.AddScoped<IPlayerService, PlayerService>();
 builder.Services.AddScoped<IPlayerModerationService, PlayerModerationService>();
 builder.Services.AddScoped<ITimeTrialService, TimeTrialService>();
 builder.Services.AddScoped<ITimeTrialModerationService, TimeTrialModerationService>();
+builder.Services.AddScoped<IMultiplierService, MultiplierService>();
 builder.Services.AddSingleton<IRoomStatusService, RoomStatusService>();
 builder.Services.AddScoped<IRaceResultService, RaceResultService>();
 builder.Services.AddScoped<IRaceStatsService, RaceStatsService>();
