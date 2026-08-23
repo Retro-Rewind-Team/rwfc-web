@@ -127,7 +127,7 @@ public class RoomStatusController : ControllerBase
         if (count == null)
             return StatusCode(StatusCodes.Status503ServiceUnavailable, "Player count is currently unavailable");
 
-        Response.Headers.CacheControl = "public, max-age=10";
+        Response.Headers.CacheControl = "public, max-age=300";
         return Ok(new PlayerCountDto(count.Value));
     }
 
