@@ -1,5 +1,6 @@
-import { createSignal, Show } from "solid-js";
+import { Show } from "solid-js";
 import { BadgeId, badgeInfo } from "../../../constants/badgeData";
+import Tooltip from "../../common/Tooltip";
 import WhWzDevBadge from "./badges/WhWzDevBadge";
 import RrDevBadge from "./badges/RrDevBadge";
 import TranslatorBadge from "./badges/TranslatorBadge";
@@ -49,13 +50,6 @@ export default function Badge(props: BadgeProps) {
     const size = () => props.size || "sm";
     const info = () => badgeInfo[props.variant];
 
-    const [showTooltip, setShowTooltip] = createSignal(false);
-
-    const isMobile = () => {
-        if (typeof window === "undefined") return false;
-        return window.innerWidth < 768 || "ontouchstart" in window || navigator.maxTouchPoints > 0;
-    };
-
     const sizeClass = () => {
         switch (size()) {
             case "sm":
@@ -67,42 +61,15 @@ export default function Badge(props: BadgeProps) {
         }
     };
 
-    const handleClick = (e: MouseEvent) => {
-        if (isMobile()) {
-            e.stopPropagation();
-            setShowTooltip(!showTooltip());
-        }
-    };
-
-    const handleMouseEnter = () => {
-        if (!isMobile()) setShowTooltip(true);
-    };
-    const handleMouseLeave = () => {
-        if (!isMobile()) setShowTooltip(false);
-    };
-
     return (
-        <div class="relative inline-flex items-center gap-2 group">
-            <div
-                class={`${sizeClass()} flex-shrink-0 transition-all duration-300 ease-out group-hover:scale-105 group-hover:-translate-y-0.5 hover:shadow-xl cursor-pointer`}
-                onClick={handleClick}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-            >
-                <BadgeSVG variant={props.variant} />
-            </div>
-
-            {/* Tooltip */}
-            <Show when={showTooltip()}>
-                <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50 pointer-events-none">
-                    <div class="bg-gray-900 dark:bg-gray-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
-                        {info().tooltip}
-                        <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-px">
-                            <div class="border-4 border-transparent border-t-gray-900 dark:border-t-gray-700" />
-                        </div>
-                    </div>
+        <div class="inline-flex items-center gap-2 group">
+            <Tooltip text={info().tooltip}>
+                <div
+                    class={`${sizeClass()} flex-shrink-0 transition-all duration-300 ease-out group-hover:scale-105 group-hover:-translate-y-0.5 hover:shadow-xl cursor-pointer`}
+                >
+                    <BadgeSVG variant={props.variant} />
                 </div>
-            </Show>
+            </Tooltip>
 
             {/* Label */}
             <Show when={props.showLabel}>
