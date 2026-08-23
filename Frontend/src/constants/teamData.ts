@@ -245,7 +245,7 @@ const team = {
         name: "justin",
         discord: "jus2k",
         image: "/profiles/justin.png",
-        fc: "3441-9984-1787",
+        fc: "0000-0633-6666",
     }),
     Karson: new TeamMember({
         name: "Karson",
