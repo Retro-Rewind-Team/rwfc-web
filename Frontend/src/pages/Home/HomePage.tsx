@@ -1,4 +1,4 @@
-import { createMemo, Show } from "solid-js";
+import { createMemo } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import {
     ChevronRight,
@@ -126,25 +126,23 @@ export default function HomePage() {
                         </p>
                     </div>
 
-                    <Show when={pcountQuery.data}>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                            <StatCard
-                                value={pcountQuery.data!.count.toLocaleString()}
-                                label="Total Players"
-                                colorScheme="emerald"
-                            />
-                            <StatCard
-                                value={discordQuery.data?.toLocaleString() ?? "8000+"}
-                                label="Discord Members"
-                                colorScheme="blue"
-                            />
-                            <StatCard
-                                value={totalTrackCount()?.toLocaleString() ?? "..."}
-                                label="Tracks Available"
-                                colorScheme="purple"
-                            />
-                        </div>
-                    </Show>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <StatCard
+                            value={pcountQuery.data?.count.toLocaleString() ?? "80,000+"}
+                            label="Total Players"
+                            colorScheme="emerald"
+                        />
+                        <StatCard
+                            value={discordQuery.data?.toLocaleString() ?? "20,000+"}
+                            label="Discord Members"
+                            colorScheme="blue"
+                        />
+                        <StatCard
+                            value={totalTrackCount()?.toLocaleString() ?? "..."}
+                            label="Tracks Available"
+                            colorScheme="purple"
+                        />
+                    </div>
                 </div>
             </section>
 
