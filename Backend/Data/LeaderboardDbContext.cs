@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using RetroRewindWebsite.Models.Entities.Multiplier;
 using RetroRewindWebsite.Models.Entities.Player;
 using RetroRewindWebsite.Models.Entities.RaceResult;
 using RetroRewindWebsite.Models.Entities.Room;
@@ -25,6 +26,7 @@ public class LeaderboardDbContext : DbContext
     public DbSet<GhostFileBlobEntity> GhostFileBlobs { get; set; }
     public DbSet<RaceResultEntity> RaceResults { get; set; }
     public DbSet<RoomSnapshotEntity> RoomSnapshots { get; set; }
+    public DbSet<MultiplierEntity> Multipliers { get; set; }
     // ===== MODEL CONFIGURATION =====
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
