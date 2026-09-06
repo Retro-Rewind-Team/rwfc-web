@@ -12,6 +12,7 @@ export class TeamMember {
     donation?: string;
     image?: string;
     fc?: string;
+    forge?: string;
 
     constructor(def: TeamMemberDef) {
         this.name = def.name;
@@ -29,6 +30,12 @@ export class TeamMember {
     public withDonation(donation: string): TeamMember {
         const clone = Object.assign(Object.create(Object.getPrototypeOf(this)), this);
         clone.donation = donation;
+        return clone;
+    }
+
+    public withForge(forge: string): TeamMember {
+        const clone = Object.assign(Object.create(Object.getPrototypeOf(this)), this);
+        clone.forge = forge;
         return clone;
     }
 }
