@@ -12,6 +12,7 @@ const team = {
         name: "Renverse",
         discord: "renverse",
         image: "/profiles/Renverse.png",
+        fc: "2711-8463-8894",
     }),
     Ppeb: new TeamMember({
         name: "ppeb",
@@ -442,6 +443,7 @@ export const teamData: Record<string, TeamMember[]> = {
             .withDonation("https://ko-fi.com/jacherr")
             .withForge("https://github.com/Jacherr"),
         team.Renverse.withRole("Server Co-Host")
+            .withForge("https://github.com/Renverse420")
             .withDonation("https://streamlabs.com/renverse64/tip"),
         team.Gab
             .withRole("Lead Retro WFC and Discord Administrator")
