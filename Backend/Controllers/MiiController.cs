@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 using RetroRewindWebsite.Filters;
 using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs.Player;
@@ -83,7 +82,6 @@ public class MiiController : ControllerBase
     }
 
     [HttpGet("player/{fc}/mii/download")]
-    [EnableRateLimiting("DownloadPolicy")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]

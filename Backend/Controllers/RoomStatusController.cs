@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs.Player;
 using RetroRewindWebsite.Models.DTOs.Room;
@@ -218,14 +217,16 @@ public class RoomStatusController : ControllerBase
     }
 
     [HttpPost("refresh")]
-    [EnableRateLimiting("RefreshPolicy")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> ForceRefresh()
     {
         try
         {
-            await _roomStatusService.RefreshRoomDataAsync(persistSnapshot: true);
+            // No snapshot: this endpoint is anonymous, so persisting here would let callers
+            // insert RoomSnapshots rows off the background service's fixed cadence and skew
+            // the activity history.
+            await _roomStatusService.RefreshRoomDataAsync(persistSnapshot: false);
             return Ok(new { message = "Room data refresh initiated" });
         }
         catch (Exception ex)
