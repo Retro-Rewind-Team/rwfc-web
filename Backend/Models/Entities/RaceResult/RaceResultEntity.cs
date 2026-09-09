@@ -19,6 +19,10 @@ public class RaceResultEntity
     public short CharacterId { get; set; }
     public short VehicleId { get; set; }
     public short PlayerCount { get; set; }
+
+    // Recomputed on ingest -- the position WFC reports is unreliable, so RaceResultService
+    // ranks each sub-race by FinishTime instead. 0 means the player did not finish
+    // (disconnect/DNF). Read by win-rate, position-distribution and average-position stats.
     public short FinishPos { get; set; }
     public int FramesIn1st { get; set; }
     public short CourseId { get; set; } // Maps to CourseId in TrackEntity
