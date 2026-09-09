@@ -13,6 +13,13 @@ public class GhostFileService : IGhostFileService
     private const string RkgMagic = "RKGD";
     private const int MaxLapSplitsStored = 5;
 
+    /// <summary>
+    /// Upper bound on the lap count a ghost may claim. Deliberately well above any real track
+    /// (vanilla is 3) so custom tracks are never rejected, while keeping the stored lap-split
+    /// array bounded.
+    /// </summary>
+    private const int MaxSupportedLaps = 32;
+
     private const int OffsetMagic = 0x00;
     private const int OffsetTimeAndTrack = 0x04;
     private const int OffsetStatsInfo = 0x08;
@@ -60,7 +67,16 @@ public class GhostFileService : IGhostFileService
             var (vehicleId, characterId, dateSet, controllerId) = ParseStatsInfo(bytes);
             var (driftType, transmissionBits) = ParseDriftInfo(bytes);
             var driftCategory = DetermineActualDrift(vehicleId, transmissionBits);
+            // A raw byte, so 0-255 as read. Anything past MaxLapSplitsStored is synthesised by
+            // EstimateRemainingLaps, so an unbounded value writes up to 250 invented splits into
+            // the jsonb column. No Mario Kart Wii track comes close to this ceiling.
             var lapCount = bytes[OffsetLapCount];
+            if (lapCount < 1 || lapCount > MaxSupportedLaps)
+            {
+                return new GhostFileParseResult.Failure(
+                    $"Ghost reports {lapCount} laps, which is outside the supported range of 1 to {MaxSupportedLaps}");
+            }
+
             var lapSplitsMs = ParseLapSplits(bytes, lapCount, finishTimeMs);
             var miiName = ParseMiiName(bytes);
 
