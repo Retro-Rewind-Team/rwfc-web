@@ -16,6 +16,8 @@ namespace RetroRewindWebsite.Controllers;
 [Route("api/[controller]")]
 public class RoomStatusController : ControllerBase
 {
+    private static readonly TimeSpan MaxHistoryRange = TimeSpan.FromDays(31);
+
     private readonly IRoomStatusService _roomStatusService;
     private readonly IRetroWFCApiClient _retroWFCApiClient;
     private readonly ILogger<RoomStatusController> _logger;
@@ -178,6 +180,11 @@ public class RoomStatusController : ControllerBase
             {
                 if (from.Value > to.Value)
                     return BadRequest("'from' must be earlier than 'to'.");
+
+                // Each snapshot carries its full room list as JSON and one is stored per minute,
+                // so an unbounded range meant loading the entire history into memory.
+                if (to.Value - from.Value > MaxHistoryRange)
+                    return BadRequest($"Date range must not exceed {MaxHistoryRange.TotalDays:0} days.");
 
                 var range = await _roomStatusService.GetSnapshotsByDateRangeAsync(from.Value, to.Value);
                 Response.Headers.CacheControl = "public, max-age=60";
