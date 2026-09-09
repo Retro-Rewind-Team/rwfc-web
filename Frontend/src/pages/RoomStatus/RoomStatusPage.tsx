@@ -1,6 +1,7 @@
 import { createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
 import { useRoomStatus } from "../../hooks/useRoom";
 import { useMiiLoader } from "../../hooks/useMiiLoader";
+import { roomStatusApi } from "../../services/api/room";
 import { RoomCard, ServerActivityChart } from "../../components/ui";
 import { StatCard, Tooltip } from "../../components/common";
 import {
@@ -85,11 +86,13 @@ export default function RoomStatusPage() {
         });
     });
 
-    // Load Miis when rooms change
+    // Load Miis when rooms change. Loaded through the room endpoint, which reads Mii data from the
+    // room snapshot itself and falls back to the leaderboard: a player visible in a room but absent
+    // from the Players table has no leaderboard Mii and would otherwise show no avatar at all.
     createEffect(() => {
         const friendCodes = getAllFriendCodes();
         if (friendCodes.length > 0) {
-            setTimeout(() => miiLoader.loadMiisBatch(friendCodes), 100);
+            setTimeout(() => miiLoader.loadMiisBatch(friendCodes, roomStatusApi.getMiisBatch), 100);
         }
     });
 

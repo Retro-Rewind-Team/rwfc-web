@@ -176,7 +176,13 @@ public static class RaceStatsMapper
     {
         var byRace = participants
             .GroupBy(r => (r.RoomId, r.RaceNumber, r.PlayerCount))
-            .ToDictionary(g => g.Key, g => g.OrderBy(r => r.FinishPos).ToList());
+            // FinishPos is 0 for a player who did not finish, so ordering on it alone put every
+            // DNF ahead of first place. Sort them to the back and rank the finishers among
+            // themselves.
+            .ToDictionary(g => g.Key, g => g
+                .OrderBy(r => r.FinishPos == 0)
+                .ThenBy(r => r.FinishPos)
+                .ToList());
 
         return [.. raceKeys.Select(k =>
         {

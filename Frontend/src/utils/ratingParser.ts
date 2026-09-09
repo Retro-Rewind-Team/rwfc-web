@@ -45,7 +45,9 @@ export function parseRatingFile(buffer: ArrayBuffer): RatingFile {
     const entries: RatingEntry[] = [];
     for (let i = 0; i < entriesToRead; i++) {
         const base = 8 + i * 16;
-        const profileId = view.getInt32(base, false);
+        // Profile IDs are unsigned 32-bit. Reading them signed made anything at or above 2^31
+        // come back negative, and the editor treats profileId > 0 as "slot in use".
+        const profileId = view.getUint32(base, false);
         let vr = view.getFloat32(base + 4, false);
         let br = view.getFloat32(base + 8, false);
         const flags = view.getUint32(base + 12, false);
@@ -92,7 +94,7 @@ export function buildRatingFile(ratingFile: RatingFile): ArrayBuffer {
     for (let i = 0; i < totalEntries; i++) {
         const e = ratingFile.entries[i];
         const base = 8 + i * 16;
-        view.setInt32(base, e.profileId | 0, false);
+        view.setUint32(base, e.profileId >>> 0, false);
         view.setFloat32(base + 4, e.vr, false);
         view.setFloat32(base + 8, e.br, false);
         view.setUint32(base + 12, e.flags >>> 0, false);

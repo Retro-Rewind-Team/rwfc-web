@@ -10,7 +10,7 @@ import { usePagination } from "./usePagination";
  * Manages filter state, pagination, and data fetching for a time trial player
  * profile page (submissions table + WR history).
  */
-export function useTTPlayer(ttProfileId: number) {
+export function useTTPlayer(ttProfileId: () => number) {
     const { currentPage, setCurrentPage, pageSize, handlePageSizeChange } = usePagination(10);
 
     const [selectedCC, setSelectedCC] = createSignal<150 | 200 | undefined>(undefined);
@@ -30,15 +30,15 @@ export function useTTPlayer(ttProfileId: number) {
 
     // Fetch player profile
     const profileQuery = useQuery(() => ({
-        queryKey: queryKeys.ttProfile(ttProfileId),
-        queryFn: () => timeTrialApi.getProfile(ttProfileId),
+        queryKey: queryKeys.ttProfile(ttProfileId()),
+        queryFn: () => timeTrialApi.getProfile(ttProfileId()),
         retry: 1,
     }));
 
     // Fetch submissions with all filters and pagination server-side
     const submissionsQuery = useQuery(() => ({
         queryKey: queryKeys.ttProfileSubmissions(
-            ttProfileId,
+            ttProfileId(),
             currentPage(),
             pageSize(),
             selectedCC(),
@@ -48,7 +48,7 @@ export function useTTPlayer(ttProfileId: number) {
         ),
         queryFn: () =>
             timeTrialApi.getProfileSubmissions(
-                ttProfileId,
+                ttProfileId(),
                 currentPage(),
                 pageSize(),
                 undefined,
@@ -61,8 +61,8 @@ export function useTTPlayer(ttProfileId: number) {
 
     // Fetch player stats - always unfiltered
     const statsQuery = useQuery(() => ({
-        queryKey: queryKeys.ttProfileStats(ttProfileId),
-        queryFn: () => timeTrialApi.getPlayerStats(ttProfileId),
+        queryKey: queryKeys.ttProfileStats(ttProfileId()),
+        queryFn: () => timeTrialApi.getPlayerStats(ttProfileId()),
     }));
 
     // Client-side track name search - applied on top of server results

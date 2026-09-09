@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { buildRatingFile, parseRatingFile } from "../../utils/ratingParser";
 
 /** Builds a valid RRRT buffer with the given entries. */
@@ -18,7 +18,7 @@ function makeBuffer(
     view.setUint16(6, count, false);
     entries.forEach((e, i) => {
         const base = 8 + i * 16;
-        view.setInt32(base, e.profileId, false);
+        view.setUint32(base, e.profileId >>> 0, false);
         view.setFloat32(base + 4, e.vr, false);
         view.setFloat32(base + 8, e.br, false);
         view.setUint32(base + 12, e.flags, false);
@@ -111,5 +111,33 @@ describe("round-trip: parseRatingFile → buildRatingFile → parseRatingFile", 
             expect(e.br).toBeCloseTo(parsed.entries[i].br, 1);
             expect(e.flags).toBe(parsed.entries[i].flags);
         });
+    });
+});
+
+describe("profile IDs above the signed 32-bit range", () => {
+    // Profile IDs are unsigned 32-bit. Read or written as signed, anything at or above 2^31 comes
+    // back negative, and the editor treats profileId > 0 as "this slot holds a player".
+    const LARGE_PID = 3_000_000_000;
+
+    it("parses a profile ID above 2^31 as a positive number", () => {
+        const buf = makeBuffer([{ profileId: LARGE_PID, vr: 5000.0, br: 4500.0, flags: 0 }]);
+
+        const parsed = parseRatingFile(buf);
+
+        expect(parsed.entries[0].profileId).toBe(LARGE_PID);
+        expect(parsed.entries[0].profileId).toBeGreaterThan(0);
+    });
+
+    it("round-trips a profile ID above 2^31 unchanged", () => {
+        const original = makeBuffer([
+            { profileId: LARGE_PID, vr: 7500.0, br: 5000.0, flags: 1 },
+            { profileId: 4_294_967_295, vr: 3000.0, br: 2000.0, flags: 0 },
+        ]);
+
+        const rebuilt = buildRatingFile(parseRatingFile(original));
+        const parsedAgain = parseRatingFile(rebuilt);
+
+        expect(parsedAgain.entries[0].profileId).toBe(LARGE_PID);
+        expect(parsedAgain.entries[1].profileId).toBe(4_294_967_295);
     });
 });

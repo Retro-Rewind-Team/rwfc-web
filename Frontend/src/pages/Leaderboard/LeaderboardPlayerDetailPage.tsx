@@ -3,6 +3,7 @@ import { Show } from "solid-js";
 import { ChartBar, ChevronLeft, Download, TriangleAlert, Trophy, UserX } from "lucide-solid";
 import { Meta, Title } from "@solidjs/meta";
 import { usePlayer } from "../../hooks";
+import { API_BASE_URL } from "../../services/api/client";
 import { DYNAMIC_META_DEFAULTS } from "../../constants/pageMeta";
 import { formatLastSeen } from "../../utils";
 import {
@@ -20,8 +21,10 @@ import { LoadingSpinner, Tooltip } from "../../components/common";
 
 export default function PlayerDetailPage() {
     const params = useParams();
+    // Accessor: the router reuses this component when only the friend code changes, so reading
+    // params once showed the previously-viewed player after a back/forward navigation.
     const { playerQuery, legacyPlayer, hasLegacyData, isPlayerNotFound } = usePlayer(
-        params.friendCode ?? "0000-0000-0000",
+        () => params.friendCode ?? "0000-0000-0000",
     );
 
     return (
@@ -132,7 +135,7 @@ export default function PlayerDetailPage() {
                                                 size="lg"
                                             />
                                             <a
-                                                href={`/api/leaderboard/player/${player().friendCode}/mii/download`}
+                                                href={`${API_BASE_URL}/leaderboard/player/${player().friendCode}/mii/download`}
                                                 download={`${player().name}.mii`}
                                                 class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all rounded-lg opacity-0 group-hover:opacity-100"
                                                 title="Download Mii"

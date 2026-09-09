@@ -11,16 +11,12 @@ import PositionBadge from "../../components/ui/player/PositionBadge";
 import { Meta, Title } from "@solidjs/meta";
 import { RACES_META } from "../../constants/pageMeta";
 
-function parseFinishTimeMs(display: string): number {
-    const colonIdx = display.indexOf(":");
-    if (colonIdx === -1) return Infinity;
-    const minutes = parseInt(display.slice(0, colonIdx), 10);
-    const rest = display.slice(colonIdx + 1);
-    const dotIdx = rest.indexOf(".");
-    const seconds = dotIdx === -1 ? parseInt(rest, 10) : parseInt(rest.slice(0, dotIdx), 10);
-    const ms = dotIdx === -1 ? 0 : parseInt(rest.slice(dotIdx + 1).padEnd(3, "0"), 10);
-    return minutes * 60000 + seconds * 1000 + ms;
-}
+// The backend recomputes finishPos from finish times on ingest and uses 0 for a player who did
+// not finish. Reading that is exact; parsing it back out of the formatted time is not, because a
+// DNF is sent as "N/A".
+const DNF = 0;
+
+const didNotFinish = (entry: RaceEntry) => entry.finishPos === DNF;
 
 function RaceCard(props: { race: RaceResult }) {
     const date = () =>
@@ -34,14 +30,12 @@ function RaceCard(props: { race: RaceResult }) {
 
     const sortedParticipants = () =>
         [...props.race.participants].sort((a, b) => {
-            const ta = parseFinishTimeMs(a.finishTimeDisplay);
-            const tb = parseFinishTimeMs(b.finishTimeDisplay);
-            const dnfA = ta === 0;
-            const dnfB = tb === 0;
+            const dnfA = didNotFinish(a);
+            const dnfB = didNotFinish(b);
             if (dnfA && dnfB) return 0;
             if (dnfA) return 1;
             if (dnfB) return -1;
-            return ta - tb;
+            return a.finishPos - b.finishPos;
         });
 
     return (
@@ -93,10 +87,10 @@ function RaceCard(props: { race: RaceResult }) {
                     </thead>
                     <tbody class="divide-y divide-gray-50 dark:divide-gray-700/50">
                         <For each={sortedParticipants()}>
-                            {(entry: RaceEntry, index) => {
-                                const isDnf = () =>
-                                    parseFinishTimeMs(entry.finishTimeDisplay) === 0;
-                                const pos = () => (isDnf() ? null : index() + 1);
+                            {(entry: RaceEntry) => {
+                                // null renders the DNF badge. The server's finishPos is used
+                                // rather than the row index so a DNF cannot be handed a position.
+                                const pos = () => (didNotFinish(entry) ? null : entry.finishPos);
                                 return (
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                                         <td class="py-2.5 pr-2">

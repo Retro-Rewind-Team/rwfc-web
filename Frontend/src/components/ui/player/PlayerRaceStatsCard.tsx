@@ -31,7 +31,7 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
         handleDaysChange,
         handleCourseIdChange,
         handleEngineClassChange,
-    } = usePlayerRaceStats(props.pid);
+    } = usePlayerRaceStats(() => props.pid);
 
     const stats = () => raceStatsQuery.data as PlayerRaceStats;
     const [setupMode, setSetupMode] = createSignal<"usage" | "winrate" | "wincount">("usage");

@@ -10,7 +10,7 @@ const PAGE_SIZE = 20;
  * Fetches race statistics for a single player with optional time window and
  * track filters, plus client-side pagination of the recent races list.
  */
-export function usePlayerRaceStats(pid: string | undefined) {
+export function usePlayerRaceStats(pid: () => string | undefined) {
     const { currentPage, setCurrentPage } = usePagination(PAGE_SIZE);
 
     const [days, setDays] = createSignal<number | undefined>(undefined);
@@ -20,21 +20,21 @@ export function usePlayerRaceStats(pid: string | undefined) {
 
     const raceStatsQuery = useQuery(() => ({
         queryKey: queryKeys.playerRaceStats(
-            pid,
+            pid(),
             days(),
             courseId(),
             engineClassId(),
             currentPage(),
         ),
         queryFn: () =>
-            raceStatsApi.getPlayerRaceStats(pid!, {
+            raceStatsApi.getPlayerRaceStats(pid()!, {
                 days: days(),
                 courseId: courseId(),
                 engineClassId: engineClassId(),
                 page: currentPage(),
                 pageSize: PAGE_SIZE,
             }),
-        enabled: !!pid,
+        enabled: !!pid(),
         retry: 1,
     }));
 

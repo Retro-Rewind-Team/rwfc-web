@@ -147,7 +147,7 @@ export function parseRksys(buffer: ArrayBuffer): RksysFile {
 
         const miiName = readUtf16BE(dv, base + OFF.MII_NAME, 10);
         const profileId = hasBytes(dv, base + OFF.DWC + OFF.DWC_PROFILE_ID, 4)
-            ? dv.getInt32(base + OFF.DWC + OFF.DWC_PROFILE_ID, false)
+            ? dv.getUint32(base + OFF.DWC + OFF.DWC_PROFILE_ID, false)
             : 0;
         const vrPoints = hasBytes(dv, base + OFF.VR, 2) ? dv.getUint16(base + OFF.VR, false) : 0;
         const vsWins = hasBytes(dv, base + OFF.VS_WINS, 4)

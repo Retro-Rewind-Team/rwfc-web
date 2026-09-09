@@ -1,5 +1,7 @@
 using RetroRewindWebsite.Mappers;
+using RetroRewindWebsite.Models.Domain;
 using RetroRewindWebsite.Models.Entities.Player;
+using RetroRewindWebsite.Models.Entities.RaceResult;
 using Shouldly;
 using Xunit;
 
@@ -8,6 +10,48 @@ namespace RetroRewindWebsite.Tests.Unit.Mappers;
 [Trait("Category", "Unit")]
 public class RaceStatsMapperTests
 {
+    [Fact]
+    public void MapRaces_PutsPlayersWhoDidNotFinishAfterEveryFinisher()
+    {
+        var key = new RaceKey("room-1", 1, new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc), 1, 2, 4);
+
+        // Deliberately out of order, and FinishPos 0 means the player did not finish. Ordering on
+        // FinishPos alone would sort those two to the front, ahead of first place.
+        var participants = new List<RaceResultEntity>
+        {
+            Participant(key, profileId: 300, finishPos: 0),
+            Participant(key, profileId: 100, finishPos: 2),
+            Participant(key, profileId: 400, finishPos: 0),
+            Participant(key, profileId: 200, finishPos: 1)
+        };
+
+        var races = RaceStatsMapper.MapRaces([key], participants, new Dictionary<short, string>(), []);
+
+        var entries = races.ShouldHaveSingleItem().Participants;
+        entries.Select(e => e.ProfileId).Take(2).ShouldBe([200L, 100L]);
+        entries.Select(e => e.FinishPos).Take(2).ShouldBe([(short)1, (short)2]);
+
+        // Both non-finishers come last, still carrying the 0 sentinel the UI reads.
+        entries.Skip(2).Select(e => e.FinishPos).ShouldAllBe(p => p == 0);
+    }
+
+    private static RaceResultEntity Participant(RaceKey key, long profileId, short finishPos) => new()
+    {
+        RoomId = key.RoomId,
+        RaceNumber = key.RaceNumber,
+        RaceTimestamp = key.RaceTimestamp,
+        PlayerCount = key.PlayerCount,
+        CourseId = key.CourseId,
+        EngineClassId = key.EngineClassId,
+        ProfileId = profileId,
+        PlayerId = 0,
+        FinishPos = finishPos,
+        FinishTime = finishPos == 0 ? 0 : BitConverter.SingleToInt32Bits(90f + finishPos),
+        CharacterId = 0,
+        VehicleId = 0,
+        FramesIn1st = 0
+    };
+
     [Fact]
     public void ToPlayerStatsDto_MapsAllFieldsFromPlayerEntity()
     {

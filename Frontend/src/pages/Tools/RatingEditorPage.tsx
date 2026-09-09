@@ -10,6 +10,9 @@ import { Download, TriangleAlert } from "lucide-solid";
 import { Meta, Title } from "@solidjs/meta";
 import { RATING_EDITOR_META } from "../../constants/pageMeta";
 
+/** Profile IDs are unsigned 32-bit, and `pidToFriendCode` treats them as such. */
+const MAX_PROFILE_ID = 4_294_967_295;
+
 export default function RatingEditorPage() {
     const [ratingFile, setRatingFile] = createSignal<RatingFile | null>(null);
     const [fileName, setFileName] = createSignal("RRRating.pul");
@@ -413,10 +416,14 @@ export default function RatingEditorPage() {
                                                 });
 
                                                 const commitPid = () => {
+                                                    // Full unsigned 32-bit range. The old ceiling of
+                                                    // 1e9 silently rewrote any larger profile ID
+                                                    // down to exactly 1000000000, producing a
+                                                    // friend code for a different player.
                                                     const v = Math.max(
                                                         0,
                                                         Math.min(
-                                                            1_000_000_000,
+                                                            MAX_PROFILE_ID,
                                                             parseInt(editPid()) || 0,
                                                         ),
                                                     );
