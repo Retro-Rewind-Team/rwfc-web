@@ -55,6 +55,18 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
             .ToListAsync();
     }
 
+    public async Task<List<PlayerEntity>> GetPlayersByPidsForUpdateAsync(List<string> pids)
+    {
+        if (pids == null || pids.Count == 0)
+            return [];
+
+        // Tracked on purpose -- see IPlayerRepository for why the sync loop must not
+        // write back columns it did not touch.
+        return await _context.Players
+            .Where(p => pids.Contains(p.Pid))
+            .ToListAsync();
+    }
+
     // ===== LEADERBOARD QUERIES =====
 
     public async Task<PagedResult<PlayerEntity>> GetLeaderboardPageAsync(
@@ -126,7 +138,16 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
 
     public async Task UpdateAsync(PlayerEntity player)
     {
-        _context.Players.Update(player);
+        // Callers load the player through GetByPidAsync, which includes MiiCache so the
+        // response can carry the Mii image. DbSet.Update walks that navigation and marks the
+        // cached row Modified too, rewriting a multi-KB blob on every flag, ban or badge
+        // change. Attach leaves navigations Unchanged; only the Players row is written.
+        if (_context.Entry(player).State == EntityState.Detached)
+        {
+            _context.Attach(player);
+            _context.Entry(player).State = EntityState.Modified;
+        }
+
         await _context.SaveChangesAsync();
     }
 
@@ -275,7 +296,15 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
 
     public async Task UpdateRangeAsync(IEnumerable<PlayerEntity> players)
     {
-        _context.Players.UpdateRange(players);
+        // Entities from GetPlayersByPidsForUpdateAsync are already tracked, so SaveChanges
+        // writes only the columns that changed. Calling UpdateRange on them instead would
+        // mark every column modified and clobber concurrent moderation writes.
+        foreach (var player in players)
+        {
+            if (_context.Entry(player).State == EntityState.Detached)
+                _context.Players.Update(player);
+        }
+
         await _context.SaveChangesAsync();
     }
 

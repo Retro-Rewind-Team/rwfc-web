@@ -152,6 +152,16 @@ public class PlayerModerationService : IPlayerModerationService
         if (target == null)
             return null;
 
+        // RaceResults.ProfileId is the numeric form of the PID. Validate before opening the
+        // transaction so a malformed PID is reported instead of throwing mid-swap.
+        if (!long.TryParse(sourcePid, out var sourceProfileId) || sourceProfileId <= 0 ||
+            !long.TryParse(targetPid, out var targetProfileId) || targetProfileId <= 0)
+        {
+            return new SwapResultDto(
+                false,
+                $"Both PIDs must be positive numeric player IDs (SourcePid: '{sourcePid}', TargetPid: '{targetPid}')");
+        }
+
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
@@ -190,35 +200,39 @@ public class PlayerModerationService : IPlayerModerationService
 
             // --- Swap VR history records ---
             // Both PIDs exist in the Players table throughout this transaction, so neither
-            // FK update violates a constraint. Source records go to target, target records go to source.
+            // FK update violates a constraint. VRHistories.PlayerId is a foreign key to
+            // Players.Pid, so rows cannot be parked on a sentinel id the way race results are.
+            // One conditional update handles both directions instead: two sequential updates
+            // would re-match the rows the first had already moved and pile everything onto
+            // one player. Postgres evaluates every SET expression against the pre-update row,
+            // so both selectors below still see the original PlayerId.
             await _context.VRHistories
-                .Where(v => v.PlayerId == sourcePid)
+                .Where(v => v.PlayerId == sourcePid || v.PlayerId == targetPid)
                 .ExecuteUpdateAsync(s => s
-                    .SetProperty(v => v.PlayerId, targetPid)
-                    .SetProperty(v => v.Fc, target.Fc));
-
-            await _context.VRHistories
-                .Where(v => v.PlayerId == targetPid)
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(v => v.PlayerId, sourcePid)
-                    .SetProperty(v => v.Fc, source.Fc));
+                    .SetProperty(v => v.PlayerId, v => v.PlayerId == sourcePid ? targetPid : sourcePid)
+                    .SetProperty(v => v.Fc, v => v.PlayerId == sourcePid ? target.Fc : source.Fc));
 
             // --- Swap race result records ---
-            // ProfileId is the numeric form of the PID (long). PlayerId is the PlayerEntity int PK.
-            var sourceProfileId = long.Parse(sourcePid);
-            var targetProfileId = long.Parse(targetPid);
+            // (RoomId, RaceNumber, ProfileId) is unique, so when both players took part in the
+            // same race a direct swap collides: Postgres checks the index per row as it writes,
+            // not at statement end. Move the source rows onto an unused negative ProfileId
+            // first so every step writes into a slot that is provably empty.
+            // PlayerId is deliberately left alone -- it is the co-op slot marker (0 = the
+            // online racer), not a foreign key to Players.Id, and every stats query filters
+            // on PlayerId == 0.
+            var parkedProfileId = -sourceProfileId;
 
             await _context.RaceResults
                 .Where(r => r.ProfileId == sourceProfileId)
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(r => r.ProfileId, targetProfileId)
-                    .SetProperty(r => r.PlayerId, target.Id));
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.ProfileId, parkedProfileId));
 
             await _context.RaceResults
                 .Where(r => r.ProfileId == targetProfileId)
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(r => r.ProfileId, sourceProfileId)
-                    .SetProperty(r => r.PlayerId, source.Id));
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.ProfileId, sourceProfileId));
+
+            await _context.RaceResults
+                .Where(r => r.ProfileId == parkedProfileId)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.ProfileId, targetProfileId));
 
             // --- Flush player entity changes and commit ---
             await _context.SaveChangesAsync();
