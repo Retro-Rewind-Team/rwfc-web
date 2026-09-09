@@ -5,6 +5,7 @@ using RetroRewindWebsite.Models.Entities.Player;
 using RetroRewindWebsite.Models.Entities.RaceResult;
 using RetroRewindWebsite.Repositories.Player;
 using RetroRewindWebsite.Tests.Integration.Fixtures;
+using RetroRewindWebsite.Tests.TestHelpers;
 using Shouldly;
 using Xunit;
 
@@ -122,6 +123,46 @@ public class PlayerRepositoryVehiclePreferenceTests : IAsyncLifetime
         kartPlayerAfter!.VehiclePreference.ShouldBe(VehicleType.Bike);
         kartPlayerAfter.KartRank.ShouldBeNull();
         kartPlayerAfter.BikeRank.ShouldNotBeNull();
+    }
+
+    [Fact]
+    public async Task UpdatePlayerVehiclePreferencesAsync_OnlyRecomputesTheRequestedPlayers()
+    {
+        using var scope = _fixture.Factory.Services.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IPlayerRepository>();
+
+        await repository.UpdatePlayerVehiclePreferencesAsync([9001]);
+
+        (await repository.GetByPidAsync("9001"))!.VehiclePreference.ShouldBe(VehicleType.Kart);
+
+        // 9002 has a clear bike majority but was not in the list, so it is left alone. This is
+        // what keeps the per-tick update off a full scan of RaceResults.
+        (await repository.GetByPidAsync("9002"))!.VehiclePreference.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task UpdatePlayerVehiclePreferencesAsync_DoesNotRewriteRowsWhosePreferenceIsUnchanged()
+    {
+        using var scope = _fixture.Factory.Services.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IPlayerRepository>();
+        var db = scope.ServiceProvider.GetRequiredService<LeaderboardDbContext>();
+
+        await repository.UpdatePlayerVehiclePreferencesAsync();
+
+        var ids = await db.Players.AsNoTracking()
+            .Where(p => TestPids.Contains(p.Pid))
+            .Select(p => (long)p.Id)
+            .ToListAsync(TestContext.Current.CancellationToken);
+
+        var before = await RowVersions.ReadAsync(db, "Players", "Id", ids, TestContext.Current.CancellationToken);
+
+        // No race results changed, so the second pass classifies everyone identically. This runs
+        // on the one-minute tick, so rewriting every player row each time is pure churn.
+        await repository.UpdatePlayerVehiclePreferencesAsync();
+
+        var after = await RowVersions.ReadAsync(db, "Players", "Id", ids, TestContext.Current.CancellationToken);
+
+        after.ShouldBe(before);
     }
 
     private static PlayerEntity NewPlayer(string name, long profileId) => new()

@@ -95,5 +95,8 @@ public class LeaderboardBackgroundService : PollingBackgroundService, ILeaderboa
         using var scope = ServiceScopeFactory.CreateScope();
         var maintenanceService = scope.ServiceProvider.GetRequiredService<IMaintenanceService>();
         await maintenanceService.UpdateAllPlayerVRGainsAsync();
+
+        cancellationToken.ThrowIfCancellationRequested();
+        await maintenanceService.UpdateAllPlayerVehiclePreferencesAsync();
     }
 }

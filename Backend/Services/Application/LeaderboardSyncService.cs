@@ -161,6 +161,18 @@ public class LeaderboardSyncService : ILeaderboardSyncService
                 await _playerRepository.UpdatePlayerVRGainsBatchAsync(gainUpdates);
             }
 
+            // Reclassify kart/bike preference for the players seen this tick. Their race counts
+            // are the only ones that can have moved, so this stays off a full RaceResults scan.
+            // Must run before RefreshRankingsAsync, which ranks within the classification.
+            var activeProfileIds = allPids
+                .Select(pid => long.TryParse(pid, out var id) ? id : (long?)null)
+                .Where(id => id.HasValue)
+                .Select(id => id!.Value)
+                .ToList();
+
+            if (activeProfileIds.Count > 0)
+                await _playerRepository.UpdatePlayerVehiclePreferencesAsync(activeProfileIds);
+
             // Invalidate Mii caches for players whose Mii data changed
             foreach (var pid in miiInvalidations)
                 await _playerMiiRepository.InvalidatePlayerMiiCacheAsync(pid);
@@ -182,7 +194,8 @@ public class LeaderboardSyncService : ILeaderboardSyncService
         try
         {
             await _playerRepository.UpdatePlayerRanksAsync();
-            await _playerRepository.UpdatePlayerVehiclePreferencesAsync();
+            // Vehicle preferences are refreshed in RefreshFromApiAsync for the players that were
+            // actually online, so this only has to re-rank within the existing classification.
             await _playerRepository.UpdatePlayerVehicleRanksAsync();
             _logger.LogInformation("Player rankings refreshed successfully");
         }

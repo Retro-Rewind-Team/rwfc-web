@@ -284,6 +284,6 @@ the real client first, via `CF-Connecting-IP` and trusting only the immediate pr
 
 | Endpoint | What it checks |
 |---|---|
-| `/api/health` | Full report: database, PostgreSQL, Retro WFC API, memory |
+| `/api/health` | Full report: database, Retro WFC API, memory |
 | `/api/health/live` | Liveness probe (always 200 if the process is up) |
 | `/api/health/ready` | Readiness probe (all checks must pass) |

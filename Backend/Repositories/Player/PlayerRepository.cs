@@ -173,7 +173,7 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
                 UPDATE ""Players"" p
                 SET ""Rank"" = rp.NewRank
                 FROM RankedPlayers rp
-                WHERE p.""Id"" = rp.""Id""
+                WHERE p.""Id"" = rp.""Id"" AND p.""Rank"" IS DISTINCT FROM rp.NewRank
             ");
 
             _logger.LogInformation("Successfully updated player ranks");
@@ -185,19 +185,33 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
         }
     }
 
-    public async Task UpdatePlayerVehiclePreferencesAsync()
+    public async Task UpdatePlayerVehiclePreferencesAsync(IReadOnlyCollection<long>? profileIds = null)
     {
         try
         {
-            _logger.LogInformation("Updating player vehicle preferences");
+            // A player's kart/bike majority can only change when they race, and a player only
+            // races while they are online. Passing the players seen in the current tick keeps
+            // this off a full scan of RaceResults, which is the write-heaviest table and grows
+            // without bound. A null list means recompute everyone -- the daily backstop, which
+            // also picks up any drift from moderation edits or backfills.
+            var scoped = profileIds is { Count: > 0 };
+            var idsParameter = new NpgsqlParameter("profileIds", NpgsqlDbType.Array | NpgsqlDbType.Bigint)
+            {
+                Value = scoped ? profileIds!.ToArray() : (object)DBNull.Value
+            };
 
-            await _context.Database.ExecuteSqlRawAsync(@"
+            _logger.LogInformation(
+                "Updating player vehicle preferences ({Scope})",
+                scoped ? $"{profileIds!.Count} players" : "all players");
+
+            var affected = await _context.Database.ExecuteSqlRawAsync(@"
                 WITH VehicleCounts AS (
                     SELECT
                         ""ProfileId"",
                         COUNT(*) FILTER (WHERE ""VehicleId"" <= 17) AS ""KartCount"",
                         COUNT(*) FILTER (WHERE ""VehicleId"" >= 18) AS ""BikeCount""
                     FROM ""RaceResults""
+                    WHERE @profileIds IS NULL OR ""ProfileId"" = ANY(@profileIds)
                     GROUP BY ""ProfileId""
                 ),
                 Classified AS (
@@ -214,9 +228,11 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
                 SET ""VehiclePreference"" = c.""VehicleTypeValue""
                 FROM Classified c
                 WHERE p.""Pid"" = c.""ProfileId""::text
-            ");
+                  AND p.""VehiclePreference"" IS DISTINCT FROM c.""VehicleTypeValue""
+            ", idsParameter);
 
-            _logger.LogInformation("Successfully updated player vehicle preferences");
+            _logger.LogInformation(
+                "Successfully updated player vehicle preferences ({Affected} changed)", affected);
         }
         catch (Exception ex)
         {
@@ -251,7 +267,7 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
                 UPDATE ""Players"" p
                 SET ""KartRank"" = rk.NewRank
                 FROM RankedKart rk
-                WHERE p.""Id"" = rk.""Id"";
+                WHERE p.""Id"" = rk.""Id"" AND p.""KartRank"" IS DISTINCT FROM rk.NewRank;
             ");
 
             await _context.Database.ExecuteSqlRawAsync(@"
@@ -274,7 +290,7 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
                 UPDATE ""Players"" p
                 SET ""BikeRank"" = rk.NewRank
                 FROM RankedBike rk
-                WHERE p.""Id"" = rk.""Id"";
+                WHERE p.""Id"" = rk.""Id"" AND p.""BikeRank"" IS DISTINCT FROM rk.NewRank;
             ");
 
             _logger.LogInformation("Successfully updated player vehicle ranks");
