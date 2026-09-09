@@ -98,26 +98,46 @@ public class RoomSnapshotRepository : IRoomSnapshotRepository
         if (bucketSize <= TimeSpan.Zero)
             throw new ArgumentException("bucketSize must be positive.", nameof(bucketSize));
 
-        IQueryable<RoomSnapshotEntity> query = _context.RoomSnapshots.AsNoTracking();
+        // Bucket and aggregate server-side: one row per bucket instead of one row per snapshot.
+        // At a snapshot a minute, an all-time series was every row ever recorded.
+        //
+        // Truncating the Unix epoch second count reproduces the previous tick-based bucketing
+        // exactly for every size in use (10m, 1h, 4h, 12h). Both origins sit at midnight and are a
+        // whole number of days apart, so any bucket that divides a day evenly lands on the same
+        // boundaries. A size that does not divide a day evenly would shift them.
+        var bucketSeconds = (long)bucketSize.TotalSeconds;
+        if (bucketSeconds <= 0)
+            throw new ArgumentException("bucketSize must be at least one second.", nameof(bucketSize));
 
+        var sql = """
+            SELECT to_timestamp(floor(extract(epoch FROM "Timestamp") / {0}) * {0}) AS "Bucket",
+                   MAX("TotalPlayers") AS "MaxPlayers",
+                   MAX("TotalRooms") AS "MaxRooms"
+            FROM "RoomSnapshots"
+            """;
+
+        object[] parameters;
         if (cutoff.HasValue)
-            query = query.Where(s => s.Timestamp >= cutoff.Value);
+        {
+            sql += "\nWHERE \"Timestamp\" >= {1}";
+            parameters = [bucketSeconds, cutoff.Value];
+        }
+        else
+        {
+            parameters = [bucketSeconds];
+        }
 
-        // Project only the three lightweight columns -- the JSON Rooms column is never loaded.
-        var raw = await query
-            .Select(s => new { s.Timestamp, s.TotalPlayers, s.TotalRooms })
+        sql += "\nGROUP BY 1\nORDER BY 1";
+
+        var rows = await _context.Database
+            .SqlQueryRaw<PlayerCountBucketRow>(sql, parameters)
             .ToListAsync();
 
-        var bucketTicks = bucketSize.Ticks;
-
-        return raw
-            .GroupBy(s => new DateTime(s.Timestamp.Ticks / bucketTicks * bucketTicks, DateTimeKind.Utc))
-            .OrderBy(g => g.Key)
-            .Select(g => (
-                Bucket: g.Key,
-                MaxPlayers: g.Max(s => s.TotalPlayers),
-                MaxRooms: g.Max(s => s.TotalRooms)
-            ))
-            .ToList();
+        return [.. rows.Select(r => (
+            Bucket: DateTime.SpecifyKind(r.Bucket, DateTimeKind.Utc),
+            MaxPlayers: r.MaxPlayers,
+            MaxRooms: r.MaxRooms))];
     }
+
+    private sealed record PlayerCountBucketRow(DateTime Bucket, int MaxPlayers, int MaxRooms);
 }

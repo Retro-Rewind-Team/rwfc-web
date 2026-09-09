@@ -470,11 +470,20 @@ public class RaceStatsRepository : IRaceStatsRepository
         if (raceKeys.Count == 0) return [];
 
         var roomIds = raceKeys.Select(k => k.RoomId).Distinct().ToList();
+        var raceNumbers = raceKeys.Select(k => k.RaceNumber).Distinct().ToList();
+        var playerCounts = raceKeys.Select(k => k.PlayerCount).Distinct().ToList();
         var raceKeySet = raceKeys.Select(k => (k.RoomId, k.RaceNumber, k.PlayerCount)).ToHashSet();
 
+        // Filtering on room alone pulled every race those rooms ever ran. The three IN lists can
+        // still admit combinations that were not asked for -- there is no portable tuple IN -- so
+        // the exact match below stays, but it now runs over a handful of rows instead of a room's
+        // entire history.
         var rows = await _context.RaceResults
             .AsNoTracking()
-            .Where(r => roomIds.Contains(r.RoomId) && r.PlayerId == 0)
+            .Where(r => roomIds.Contains(r.RoomId)
+                     && raceNumbers.Contains(r.RaceNumber)
+                     && playerCounts.Contains(r.PlayerCount)
+                     && r.PlayerId == 0)
             .ToListAsync();
 
         return rows.Where(r => raceKeySet.Contains((r.RoomId, r.RaceNumber, r.PlayerCount))).ToList();
@@ -510,29 +519,24 @@ public class RaceStatsRepository : IRaceStatsRepository
 
         const float CapSeconds = 330f; // online races end by default after 5:30
 
-        // Project only 4 fields before materializing so the query stays lightweight.
-        var allRows = await query
-            .Select(r => new { r.ProfileId, r.FinishTime, r.RaceTimestamp, r.Rk })
-            .ToListAsync();
+        // FinishTime stores the IEEE 754 bit pattern of a float. For non-negative floats that
+        // pattern orders identically to the value as a signed int, so converting the two bounds
+        // once lets the range filter, the per-player minimum and the ordering all run in SQL
+        // instead of pulling every race for the course into memory. Negative, NaN and infinite
+        // patterns fall outside the bounds and are dropped, as they were before.
+        var floorBits = BitConverter.SingleToInt32Bits(floorSeconds);
+        var capBits = BitConverter.SingleToInt32Bits(CapSeconds);
 
-        // Filter impossible times before grouping so a player with one bad time
-        // can still appear with their next-best valid time.
-        var validRows = allRows.Where(r =>
-        {
-            float secs = BitConverter.Int32BitsToSingle(r.FinishTime);
-            return secs >= floorSeconds && secs <= CapSeconds;
-        }).ToList();
-
-        // Group and find the best time per player in memory.
-        var bestPerPlayer = validRows
+        // One row per player, aggregated server-side. Bounded by the number of players who have
+        // raced the course rather than by how many times they raced it.
+        var bestPerPlayerQuery = query
+            .Where(r => r.FinishTime >= floorBits && r.FinishTime <= capBits)
             .GroupBy(r => r.ProfileId)
-            .Select(g =>
-            {
-                var best = g.OrderBy(r => r.FinishTime).First();
-                return (ProfileId: g.Key, FinishTime: best.FinishTime, AchievedAt: best.RaceTimestamp, Rk: best.Rk!);
-            })
+            .Select(g => new { ProfileId = g.Key, FinishTime = g.Min(r => r.FinishTime) });
+
+        var bestPerPlayer = await bestPerPlayerQuery
             .OrderBy(x => x.FinishTime)
-            .ToList();
+            .ToListAsync();
 
         var totalCount = bestPerPlayer.Count;
 
@@ -541,9 +545,38 @@ public class RaceStatsRepository : IRaceStatsRepository
             ? (float)bestPerPlayer.Average(r => (double)BitConverter.Int32BitsToSingle(r.FinishTime))
             : null;
 
-        var pageRows = bestPerPlayer
+        var pageKeys = bestPerPlayer
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .ToList();
+
+        if (pageKeys.Count == 0)
+            return ([], totalCount, avgBestSeconds);
+
+        // Only the page needs the timestamp and game mode, so fetch those for its players alone.
+        var pageProfileIds = pageKeys.Select(k => k.ProfileId).ToList();
+        var pageTimes = pageKeys.Select(k => k.FinishTime).Distinct().ToList();
+
+        var details = await query
+            .Where(r => pageProfileIds.Contains(r.ProfileId) && pageTimes.Contains(r.FinishTime))
+            .Select(r => new { r.ProfileId, r.FinishTime, r.RaceTimestamp, r.Rk })
+            .ToListAsync();
+
+        // The two IN lists can pair one player with another's time, so match on both, and take the
+        // earliest run of a tied best time rather than an arbitrary one.
+        var bestByProfile = pageKeys.ToDictionary(k => k.ProfileId, k => k.FinishTime);
+        var detailByProfile = details
+            .Where(d => bestByProfile[d.ProfileId] == d.FinishTime)
+            .GroupBy(d => d.ProfileId)
+            .ToDictionary(g => g.Key, g => g.OrderBy(d => d.RaceTimestamp).First());
+
+        var pageRows = pageKeys
+            .Where(k => detailByProfile.ContainsKey(k.ProfileId))
+            .Select(k =>
+            {
+                var detail = detailByProfile[k.ProfileId];
+                return (ProfileId: k.ProfileId, FinishTime: k.FinishTime, AchievedAt: detail.RaceTimestamp, Rk: detail.Rk!);
+            })
             .ToList();
 
         return (pageRows, totalCount, avgBestSeconds);
