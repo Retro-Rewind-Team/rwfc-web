@@ -60,9 +60,4 @@ public class RaceResultBackgroundService : PollingBackgroundService, IRaceResult
         Logger.LogDebug("Scheduled race results collection completed successfully");
     }
 
-    public override async Task ForceRefreshAsync()
-    {
-        Logger.LogInformation("Force collection requested");
-        await PerformAsync(CancellationToken.None);
-    }
 }

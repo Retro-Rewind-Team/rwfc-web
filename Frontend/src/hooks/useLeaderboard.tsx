@@ -37,7 +37,6 @@ export function useLeaderboard() {
             search: search() || undefined,
             sortBy: sortBy(),
             ascending: ascending(),
-            timePeriod: timePeriod(),
             activeDays: activeDays() ?? undefined,
             vehicleFilter: vehicleFilter(),
         }),

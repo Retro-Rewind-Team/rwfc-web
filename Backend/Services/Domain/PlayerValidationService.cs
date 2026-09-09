@@ -31,6 +31,12 @@ public class PlayerValidationService : IPlayerValidationService
     {
         var vrJump = player.Ev - previousVR;
 
+        // Same condition as the two paths below combined, so nothing past here fires for a normal
+        // gain. Calling the public method keeps one definition of "suspicious" rather than
+        // repeating the thresholds inline.
+        if (!IsSuspiciousVRJump(vrJump, player.Ev))
+            return null;
+
         // Path 1: single large jump while already at high VR, flag immediately, no accumulation needed
         if (player.Ev >= HighVRThreshold && vrJump >= LargeVRJumpThreshold)
         {

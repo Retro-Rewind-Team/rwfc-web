@@ -54,26 +54,6 @@ public static class PlayerMapper
     };
 
     /// <summary>
-    /// Maps a player entity to <see cref="PlayerDto"/> with <c>MiiImageBase64</c> stripped out (saves bandwidth on list endpoints).
-    /// </summary>
-    public static PlayerDto ToDtoWithoutMii(PlayerEntity entity) => new(
-        Pid: entity.Pid,
-        Name: entity.Name,
-        FriendCode: entity.Fc,
-        VR: entity.Ev,
-        Rank: entity.Rank,
-        LastSeen: entity.LastSeen,
-        IsSuspicious: entity.IsSuspicious,
-        VRStats: new VRStatsDto(
-            entity.VRGainLast24Hours,
-            entity.VRGainLastWeek,
-            entity.VRGainLastMonth),
-        MiiImageBase64: null,
-        MiiData: entity.MiiData,
-        Badges: entity.Badges
-    );
-
-    /// <summary>
     /// Maps a legacy snapshot entity to <see cref="PlayerDto"/>. VR gains are zero because legacy leaderboard snapshots
     /// don't include VR history data
     /// </summary>

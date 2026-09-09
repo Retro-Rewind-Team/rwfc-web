@@ -49,14 +49,6 @@ public abstract class PollingBackgroundService : BackgroundService
         }
     }
 
-    /// <summary>
-    /// Triggers an immediate out-of-band execution without waiting for the next scheduled cycle.
-    /// </summary>
-    public virtual async Task ForceRefreshAsync()
-    {
-        Logger.LogInformation("Force refresh requested");
-        await PerformAsync(CancellationToken.None);
-    }
 
     public override void Dispose()
     {
