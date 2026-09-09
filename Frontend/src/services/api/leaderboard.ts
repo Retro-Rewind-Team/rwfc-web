@@ -1,4 +1,4 @@
-import { apiRequest } from "./client";
+import { ApiError, apiRequest } from "./client";
 import { batchMiis } from "./miiHelpers";
 import {
     LeaderboardRequest,
@@ -67,7 +67,7 @@ export const leaderboardApi = {
         try {
             return await apiRequest<MiiResponse>(`/leaderboard/player/${friendCode}/mii`);
         } catch (error) {
-            if (error instanceof Error && error.message.includes("404")) {
+            if (error instanceof ApiError && error.status === 404) {
                 return null;
             }
             throw error;

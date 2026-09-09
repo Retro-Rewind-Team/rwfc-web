@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { createSignal, onCleanup } from "solid-js";
 
 /**
  * Provides clipboard write with a timed floating confirmation shown at the
@@ -15,15 +15,34 @@ export function useClipboard() {
     });
     const [isVisible, setIsVisible] = createSignal(false);
 
-    const copyToClipboard = (text: string, label: string, event: MouseEvent) => {
-        navigator.clipboard.writeText(text);
+    let hideTimer: ReturnType<typeof setTimeout> | undefined;
+    let clearTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const copyToClipboard = async (text: string, label: string, event: MouseEvent) => {
+        // Awaited so a rejected write (permission denied, insecure context) surfaces instead of
+        // becoming an unhandled rejection while the UI claims the copy succeeded.
+        try {
+            await navigator.clipboard.writeText(text);
+        } catch (error) {
+            console.warn("Clipboard write failed:", error);
+            return;
+        }
+
         setCopiedText(label);
         setCopiedPosition({ x: event.clientX, y: event.clientY });
         setIsVisible(true);
 
-        setTimeout(() => setIsVisible(false), 2000);
-        setTimeout(() => setCopiedText(""), 2500);
+        // Replace any in-flight timers so a second copy does not clear the new confirmation early.
+        clearTimeout(hideTimer);
+        clearTimeout(clearTimer);
+        hideTimer = setTimeout(() => setIsVisible(false), 2000);
+        clearTimer = setTimeout(() => setCopiedText(""), 2500);
     };
+
+    onCleanup(() => {
+        clearTimeout(hideTimer);
+        clearTimeout(clearTimer);
+    });
 
     return {
         copiedText,

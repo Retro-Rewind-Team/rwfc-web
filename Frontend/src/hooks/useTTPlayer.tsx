@@ -1,6 +1,7 @@
 import { createEffect, createMemo, createSignal } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { timeTrialApi } from "../services/api/timeTrial";
+import { ApiError } from "../services/api/client";
 import { GhostSubmission, ShroomlessFilter, VehicleFilter } from "../types/timeTrial";
 import { ghostFilename, triggerBlobDownload } from "../utils/downloadHelpers";
 import { queryKeys } from "../constants/queryKeys";
@@ -79,8 +80,8 @@ export function useTTPlayer(ttProfileId: () => number) {
     const isPlayerNotFound = createMemo(
         () =>
             profileQuery.isError &&
-            profileQuery.error instanceof Error &&
-            profileQuery.error.message.includes("404"),
+            profileQuery.error instanceof ApiError &&
+            profileQuery.error.status === 404,
     );
 
     const totalPages = createMemo(() => submissionsQuery.data?.totalPages ?? 1);

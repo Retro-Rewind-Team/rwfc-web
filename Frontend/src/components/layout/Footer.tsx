@@ -135,12 +135,12 @@ export default function Footer() {
                             © 2026 Retro Rewind Team. This project is not affiliated with Nintendo.
                         </div>
                         <div class="flex space-x-6 text-sm">
-                            <a
+                            <A
                                 href="/rules"
                                 class="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
                             >
                                 Community Guidelines
-                            </a>
+                            </A>
                         </div>
                     </div>
                 </div>

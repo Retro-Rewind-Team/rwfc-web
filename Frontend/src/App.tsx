@@ -2,6 +2,7 @@ import { Route, Router } from "@solidjs/router";
 import { MetaProvider } from "@solidjs/meta";
 import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
 import { ThemeProvider } from "./stores/theme";
+import { ApiError } from "./services/api/client";
 import Layout from "./components/layout/Layout";
 import {
     DownloadsPage,
@@ -32,8 +33,10 @@ const queryClient = new QueryClient({
             staleTime: 1000 * 60 * 2,
             gcTime: 1000 * 60 * 10,
             retry: (failureCount, error) => {
-                // Don't retry if it's a 404 error
-                if (error instanceof Error && error.message.includes("404")) {
+                // Don't retry a 404. Read the status rather than matching message text: a message
+                // that merely mentions 404 would match, and one that does not gets retried three
+                // times against an endpoint that will never answer.
+                if (error instanceof ApiError && error.status === 404) {
                     return false;
                 }
                 // Otherwise retry up to 2 times

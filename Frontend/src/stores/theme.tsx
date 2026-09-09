@@ -1,4 +1,12 @@
-import { createContext, createEffect, createSignal, JSX, onMount, useContext } from "solid-js";
+import {
+    createContext,
+    createEffect,
+    createSignal,
+    JSX,
+    onCleanup,
+    onMount,
+    useContext,
+} from "solid-js";
 
 export type Theme = "light" | "dark" | "system";
 
@@ -122,9 +130,11 @@ export function ThemeProvider(props: Readonly<{ children: JSX.Element }>) {
 
             mediaQuery.addEventListener("change", handleSystemThemeChange);
 
-            return () => {
+            // onCleanup, not a returned function: onMount ignores its return value, so this
+            // listener was never removed.
+            onCleanup(() => {
                 mediaQuery.removeEventListener("change", handleSystemThemeChange);
-            };
+            });
         }
     });
 

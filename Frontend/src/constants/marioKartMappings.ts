@@ -40,6 +40,16 @@ const characters: Record<number, string> = {
     37: "Large Mii Outfit A (Female)",
     38: "Large Mii Outfit B (Male)",
     39: "Large Mii Outfit B (Female)",
+    // 40-47 were missing here but present in Backend/Helpers/MarioKartMappings.cs, so these
+    // characters rendered as "Unknown Character (N)".
+    40: "Large Mii Outfit C (Male)",
+    41: "Large Mii Outfit C (Female)",
+    42: "Medium Mii",
+    43: "Small Mii",
+    44: "Large Mii",
+    45: "Peach (Menu)",
+    46: "Daisy (Menu)",
+    47: "Rosalina (Menu)",
 };
 
 // Vehicle mappings (decimal values)

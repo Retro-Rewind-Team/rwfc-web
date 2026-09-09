@@ -1,4 +1,5 @@
 import { Show } from "solid-js";
+import { A } from "@solidjs/router";
 import {
     Check,
     CircleQuestionMark,
@@ -72,7 +73,7 @@ export default function PlayerCard(props: PlayerCardProps) {
     const natConfig = () => NAT_CONFIG[natStatus()];
 
     return (
-        <a
+        <A
             href={`/player/${props.player.friendCode}`}
             class={`block rounded-xl p-3.5 border-2 transition-colors hover:shadow-md ${
                 isHighlighted()
@@ -156,6 +157,6 @@ export default function PlayerCard(props: PlayerCardProps) {
                     </div>
                 </div>
             </div>
-        </a>
+        </A>
     );
 }
