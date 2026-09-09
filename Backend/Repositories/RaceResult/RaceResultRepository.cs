@@ -15,12 +15,6 @@ public class RaceResultRepository : IRaceResultRepository
         _logger = logger;
     }
 
-    public async Task<bool> RaceResultExistsAsync(string roomId, int raceNumber, long profileId) =>
-        await _context.RaceResults
-            .AnyAsync(r => r.RoomId == roomId &&
-                           r.RaceNumber == raceNumber &&
-                           r.ProfileId == profileId);
-
     public async Task AddRaceResultsAsync(List<RaceResultEntity> raceResults)
     {
         if (raceResults == null || raceResults.Count == 0)

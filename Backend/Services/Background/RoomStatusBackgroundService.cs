@@ -61,7 +61,7 @@ public class RoomStatusBackgroundService : PollingBackgroundService, IRoomStatus
         Logger.LogInformation("Room status background service stopped");
     }
 
-    // Called by ForceRefreshAsync, always persist so the snapshot history stays consistent
+    // Out-of-band run: always persist so the snapshot history stays consistent
     protected override async Task ExecuteOnceAsync(IServiceProvider services, CancellationToken cancellationToken)
     {
         await _roomStatusService.RefreshRoomDataAsync(persistSnapshot: true);

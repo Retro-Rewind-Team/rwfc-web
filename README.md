@@ -89,7 +89,7 @@ NuGet packages are restored automatically on first build. No separate install st
 dotnet run
 ```
 
-Migrations are applied automatically on startup. The API listens on `https://localhost:7084` and `http://localhost:5084` by default.
+Migrations are applied automatically on startup. The API listens on `https://localhost:7084` and `http://localhost:5092` by default (see `Backend/Properties/launchSettings.json`).
 
 ### 4. Verify migrations (optional)
 
@@ -229,11 +229,11 @@ Four background services run automatically when the API starts. They all use a s
 | Service | Interval | What it does |
 |---|---|---|
 | **LeaderboardBackgroundService** | 1 min | Fetches active WFC room groups, upserts players, tracks VR history, recalculates rankings and VR gains |
-| **RoomStatusBackgroundService** | 1 min | Fetches live room data and stores a snapshot for the room browser |
+| **RoomStatusBackgroundService** | 10 s | Refreshes live room data every 10 s; persists a snapshot every 6th tick, so snapshot history is one row per minute |
 | **RaceResultBackgroundService** | 1 min | Polls WFC for completed race results and persists them |
 | **MiiPreFetchBackgroundService** | 30 min | Proactively fetches and caches Mii avatar images for players who don't have a fresh cache entry |
 
-Mii images go through a two-step external pipeline: RC24 studio proxy → Nintendo Studio. The results are cached in the `PlayerMiiCaches` table (refreshed every 7 days).
+Mii images are rendered by calling Nintendo's Mii Studio directly (`studio.mii.nintendo.com`) with the Mii data decoded from the player record. Results are cached in the `PlayerMiiCaches` table and in memory (refreshed every 7 days).
 
 ---
 

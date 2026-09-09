@@ -21,7 +21,6 @@ export interface LeaderboardRequest {
     search?: string;
     sortBy?: string;
     ascending?: boolean;
-    timePeriod?: string;
     activeDays?: number;
     vehicleFilter?: "kart" | "bike";
 }

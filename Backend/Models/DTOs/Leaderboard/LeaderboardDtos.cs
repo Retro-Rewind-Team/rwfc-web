@@ -40,8 +40,6 @@ public class LeaderboardRequest
 
     public bool Ascending { get; set; } = true;
 
-    [RegularExpression("^(24|week|month)$", ErrorMessage = "Invalid time period")]
-    public string TimePeriod { get; set; } = "24";
 
     public int? ActiveDays { get; set; } = null;
 

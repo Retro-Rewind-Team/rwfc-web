@@ -8,22 +8,32 @@ public class RetroWFCApiClient : IRetroWFCApiClient
     private readonly HttpClient _httpClient;
     private readonly ILogger<RetroWFCApiClient> _logger;
 
-    private readonly string _groupsApiUrl = Environment.GetEnvironmentVariable("WFC_GROUPS_ENDPOINT")
-        ?? "https://rwfc.net/api/wfc/groups";
-    private readonly string _raceResultsApiUrl = Environment.GetEnvironmentVariable("WFC_RACE_RESULTS_ENDPOINT")
-        ?? "https://rwfc.net/api/wfc/mkw_rr?id=";
-    private readonly string _pcountApiUrl = Environment.GetEnvironmentVariable("WFC_PCOUNT_ENDPOINT")
-        ?? "https://rwfc.net/api/wfc/pcount";
+    // Read through IConfiguration rather than Environment directly, so these follow the same
+    // precedence as every other setting (appsettings, user secrets, environment) and can be
+    // overridden in tests. Environment variables still bind by the same names.
+    private readonly string _groupsApiUrl;
+    private readonly string _raceResultsApiUrl;
+    private readonly string _pcountApiUrl;
 
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
 
-    public RetroWFCApiClient(HttpClient httpClient, ILogger<RetroWFCApiClient> logger)
+    public RetroWFCApiClient(
+        HttpClient httpClient,
+        IConfiguration configuration,
+        ILogger<RetroWFCApiClient> logger)
     {
         _httpClient = httpClient;
         _logger = logger;
+
+        _groupsApiUrl = configuration["WFC_GROUPS_ENDPOINT"]
+            ?? "https://rwfc.net/api/wfc/groups";
+        _raceResultsApiUrl = configuration["WFC_RACE_RESULTS_ENDPOINT"]
+            ?? "https://rwfc.net/api/wfc/mkw_rr?id=";
+        _pcountApiUrl = configuration["WFC_PCOUNT_ENDPOINT"]
+            ?? "https://rwfc.net/api/wfc/pcount";
     }
 
     public async Task<List<Group>> GetActiveGroupsAsync(CancellationToken cancellationToken = default)

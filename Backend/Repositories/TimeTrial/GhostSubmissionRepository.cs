@@ -396,9 +396,6 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
 
     // ===== PROFILE STATS =====
 
-    public async Task<int> GetTotalSubmissionsCountAsync() =>
-        await _context.GhostSubmissions.CountAsync();
-
     public async Task<int> GetProfileSubmissionsCountAsync(int ttProfileId) =>
         await _context.GhostSubmissions.CountAsync(g => g.TTProfileId == ttProfileId);
 

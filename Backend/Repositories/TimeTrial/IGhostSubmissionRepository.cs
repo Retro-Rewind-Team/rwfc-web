@@ -298,13 +298,6 @@ public interface IGhostSubmissionRepository
         short? maxVehicleId = null);
 
     /// <summary>
-    /// Asynchronously retrieves the total number of submissions available.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the total count of submissions as an
-    /// integer.</returns>
-    Task<int> GetTotalSubmissionsCountAsync();
-
-    /// <summary>
     /// Asynchronously retrieves the total number of submissions associated with the specified profile.
     /// </summary>
     /// <param name="ttProfileId">The unique identifier of the profile for which to count submissions. Must be a positive integer.</param>
