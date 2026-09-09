@@ -123,8 +123,14 @@ public interface IPlayerRepository
     /// A player is classified as Kart or Bike only if they have a strict majority of races in that
     /// category; ties or players with zero races are left null.
     /// </summary>
+    /// <param name="profileIds">
+    /// Restricts the recompute to these profile IDs. A player's majority can only change when they
+    /// race, so the sync passes the players it just saw online and avoids scanning all of
+    /// RaceResults every minute. Pass null (or an empty list) to recompute every player, which the
+    /// daily maintenance job does as a backstop against drift.
+    /// </param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task UpdatePlayerVehiclePreferencesAsync();
+    Task UpdatePlayerVehiclePreferencesAsync(IReadOnlyCollection<long>? profileIds = null);
 
     /// <summary>
     /// Recomputes each player's rank within their kart-majority and bike-majority groups (KartRank/BikeRank).

@@ -76,4 +76,20 @@ public class MaintenanceService : IMaintenanceService
             throw;
         }
     }
+
+    public async Task UpdateAllPlayerVehiclePreferencesAsync()
+    {
+        _logger.LogInformation("Starting daily recompute of vehicle preferences for all players");
+
+        try
+        {
+            await _playerRepository.UpdatePlayerVehiclePreferencesAsync();
+            _logger.LogInformation("Daily recompute of vehicle preferences completed");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during daily vehicle preference recompute");
+            throw;
+        }
+    }
 }

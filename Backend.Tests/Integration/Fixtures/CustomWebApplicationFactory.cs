@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +13,17 @@ internal class CustomWebApplicationFactory : WebApplicationFactory<Program>
     private const string DefaultTestConnectionString =
         "Host=localhost;Database=rr_test;Username=postgres;Password=postgres";
 
+    private readonly Dictionary<string, string?> _configOverrides;
+
+    /// <param name="configOverrides">
+    /// Applied after the defaults below, so a test class can vary settings without disturbing the
+    /// factory shared by the Integration collection.
+    /// </param>
+    public CustomWebApplicationFactory(Dictionary<string, string?>? configOverrides = null)
+    {
+        _configOverrides = configOverrides ?? [];
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         // Use Development so Program.cs picks up ConnectionStrings:DefaultConnection
@@ -26,8 +37,15 @@ internal class CustomWebApplicationFactory : WebApplicationFactory<Program>
                     Environment.GetEnvironmentVariable("RR_TEST_CONNECTION_STRING")
                     ?? DefaultTestConnectionString,
                 // Known secret used in auth middleware tests
-                ["WfcSecret"] = "test-secret-do-not-use-in-prod"
+                ["WfcSecret"] = "test-secret-do-not-use-in-prod",
+                // Race stats caching off by default so tests always observe freshly seeded data.
+                // Tests that exercise the cache itself opt back in via configOverrides.
+                ["RaceStatsCache:GlobalSeconds"] = "0",
+                ["RaceStatsCache:PlayerSeconds"] = "0"
             });
+
+            if (_configOverrides.Count > 0)
+                config.AddInMemoryCollection(_configOverrides);
         });
 
         builder.ConfigureServices(services =>

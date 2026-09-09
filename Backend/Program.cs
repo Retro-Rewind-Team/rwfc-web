@@ -6,6 +6,7 @@ using Microsoft.OpenApi;
 using Npgsql;
 using RetroRewindWebsite.Data;
 using RetroRewindWebsite.HealthChecks;
+using RetroRewindWebsite.Models.Domain;
 using RetroRewindWebsite.Repositories.Multiplier;
 using RetroRewindWebsite.Repositories.Player;
 using RetroRewindWebsite.Repositories.RaceResult;
@@ -68,6 +69,10 @@ if (string.IsNullOrEmpty(connectionString))
     throw new InvalidOperationException($"{environment} connection string is not configured.");
 }
 
+// Deliberately small: the host is a 4-thread machine, so more Postgres backends than that buys
+// contention rather than throughput. A request now uses one connection at a time (RaceStatsService
+// runs its aggregates sequentially), so the four background services plus request traffic fit
+// comfortably. Every connection here is a forked backend process on the server.
 var csb = new NpgsqlConnectionStringBuilder(connectionString) { MaxPoolSize = 10 };
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(csb.ConnectionString);
 dataSourceBuilder.EnableDynamicJson();
@@ -81,6 +86,9 @@ builder.Services.AddMemoryCache(options =>
 {
     options.SizeLimit = 1000;
 });
+
+builder.Services.Configure<RaceStatsCacheOptions>(
+    builder.Configuration.GetSection(RaceStatsCacheOptions.SectionName));
 
 // ===== HTTP CLIENT =====
 builder.Services.AddHttpClient();
@@ -141,8 +149,11 @@ builder.Services.AddHostedService<RaceResultBackgroundService>(sp =>
 
 // ===== HEALTH CHECKS =====
 builder.Services.AddHealthChecks()
+    // Checks connectivity through the shared data source, so it costs no extra connections.
+    // A second AddNpgSql check used to sit here; it only accepts a connection string, and Npgsql
+    // pools per connection string, so it opened an independent pool and the process could hold up
+    // to twice MaxPoolSize backends. It tested nothing this check does not.
     .AddDbContextCheck<LeaderboardDbContext>()
-    .AddNpgSql(csb.ConnectionString)
     .AddCheck<ExternalApiHealthCheck>("retro-wfc-api")
     .AddCheck("memory", () =>
     {
