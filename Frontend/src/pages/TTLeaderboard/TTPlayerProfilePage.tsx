@@ -9,7 +9,7 @@ import { DYNAMIC_META_DEFAULTS } from "../../constants/pageMeta";
 
 export default function TTPlayerProfilePage() {
     const params = useParams();
-    const ttPlayer = useTTPlayer(Number(params.ttProfileId));
+    const ttPlayer = useTTPlayer(() => Number(params.ttProfileId));
 
     return (
         <div class="space-y-6">

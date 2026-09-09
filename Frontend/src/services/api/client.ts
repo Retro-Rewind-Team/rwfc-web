@@ -1,4 +1,9 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+/**
+ * Base for every API call. Exported so links built outside `apiRequest` (file downloads, which the
+ * browser must navigate to rather than fetch) resolve against the same origin instead of assuming
+ * the API is served from the frontend's own host.
+ */
+export const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 export class ApiError extends Error {
     constructor(

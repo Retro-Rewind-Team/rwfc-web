@@ -42,7 +42,7 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
         engineClassId,
         handleDaysChange,
         handleEngineClassChange,
-    } = usePlayerAnalytics(props.pid);
+    } = usePlayerAnalytics(() => props.pid);
 
     const [isOpen, setIsOpen] = createSignal(false);
     const [trackSort, setTrackSort] = createSignal<SortKey>("races");

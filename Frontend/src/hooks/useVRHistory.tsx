@@ -1,6 +1,6 @@
-import { createSignal, onMount } from "solid-js";
+import { createEffect, createSignal, on } from "solid-js";
 import { leaderboardApi } from "../services/api/leaderboard";
-import { VRHistoryEntry } from "../types";
+import { VRHistoryEntry, VRHistoryResponse } from "../types";
 
 /** Aggregate statistics derived from a player's fetched VR history window. */
 export interface VRHistoryStats {
@@ -31,7 +31,7 @@ export interface CustomRange {
  * @param friendCode - The player's friend code.
  * @param initialDays - Day window to load on mount. Defaults to 30.
  */
-export function useVRHistory(friendCode: string, initialDays = 30) {
+export function useVRHistory(friendCode: () => string, initialDays = 30) {
     const [historyData, setHistoryData] = createSignal<ProcessedVRHistory[]>([]);
     const [stats, setStats] = createSignal<VRHistoryStats | null>(null);
     const [isLoading, setIsLoading] = createSignal(false);
@@ -39,14 +39,21 @@ export function useVRHistory(friendCode: string, initialDays = 30) {
     const [selectedDays, setSelectedDays] = createSignal<number | null>(initialDays);
     const [customRange, setCustomRange] = createSignal<CustomRange | null>(null);
 
-    const fetchHistory = async (days: number | null) => {
-        if (!friendCode) return;
+    // Guards against a slow response overwriting a newer one: switching period quickly used to
+    // leave whichever request happened to land last on screen, not the one that was asked for.
+    let latestRequest = 0;
 
+    const load = async (fetcher: (fc: string) => Promise<VRHistoryResponse>) => {
+        const fc = friendCode();
+        if (!fc) return;
+
+        const request = ++latestRequest;
         setIsLoading(true);
         setError(null);
 
         try {
-            const response = await leaderboardApi.getPlayerHistory(friendCode, days);
+            const response = await fetcher(fc);
+            if (request !== latestRequest) return;
 
             if (response.history.length === 0) {
                 setHistoryData([]);
@@ -76,57 +83,19 @@ export function useVRHistory(friendCode: string, initialDays = 30) {
                 changesCount: processedData.length - 1, // Exclude the synthetic anchor point
             });
         } catch (err) {
+            if (request !== latestRequest) return;
             console.error("Error fetching VR history:", err);
             setError(err instanceof Error ? err.message : "Failed to fetch VR history");
         } finally {
-            setIsLoading(false);
+            if (request === latestRequest) setIsLoading(false);
         }
     };
 
-    const fetchHistoryByRange = async (from: Date, to: Date) => {
-        if (!friendCode) return;
+    const fetchHistory = (days: number | null) =>
+        load((fc) => leaderboardApi.getPlayerHistory(fc, days));
 
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            const response = await leaderboardApi.getPlayerHistoryByRange(friendCode, from, to);
-
-            if (response.history.length === 0) {
-                setHistoryData([]);
-                setStats(null);
-                return;
-            }
-
-            const processedData: ProcessedVRHistory[] = response.history.map((entry) => ({
-                ...entry,
-                formattedDate: new Date(entry.date).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    hour: "numeric",
-                    minute: "2-digit",
-                }),
-            }));
-
-            const vrValues = processedData.map((d) => d.totalVR);
-
-            setHistoryData(processedData);
-            setStats({
-                totalChange: response.totalVRChange,
-                startingVR: response.startingVR,
-                endingVR: response.endingVR,
-                highestVR: Math.max(...vrValues),
-                lowestVR: Math.min(...vrValues),
-                changesCount: processedData.length - 1,
-            });
-        } catch (err) {
-            console.error("Error fetching VR history by range:", err);
-            setError(err instanceof Error ? err.message : "Failed to fetch VR history");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
+    const fetchHistoryByRange = (from: Date, to: Date) =>
+        load((fc) => leaderboardApi.getPlayerHistoryByRange(fc, from, to));
     const changePeriod = (days: number | null) => {
         setCustomRange(null);
         setSelectedDays(days);
@@ -148,11 +117,14 @@ export function useVRHistory(friendCode: string, initialDays = 30) {
         }
     };
 
-    onMount(() => {
-        if (friendCode) {
+    // createEffect, not onMount: the router reuses this component when only the friend code
+    // changes, so mounting once left the chart showing the previously-viewed player.
+    createEffect(
+        on(friendCode, () => {
+            setCustomRange(null);
             fetchHistory(selectedDays());
-        }
-    });
+        }),
+    );
 
     return {
         // Data

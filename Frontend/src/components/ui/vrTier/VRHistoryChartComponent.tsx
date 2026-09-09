@@ -24,7 +24,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
         changePeriod,
         changeRange,
         refresh,
-    } = useVRHistory(props.friendCode, props.initialDays);
+    } = useVRHistory(() => props.friendCode, props.initialDays);
 
     const [hoveredPoint, setHoveredPoint] = createSignal<ProcessedVRHistory | null>(null);
     const [showCustomRange, setShowCustomRange] = createSignal(false);

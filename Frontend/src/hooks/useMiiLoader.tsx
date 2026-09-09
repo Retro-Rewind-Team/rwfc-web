@@ -1,44 +1,48 @@
-import { createEffect, createSignal, onCleanup } from "solid-js";
+import { onCleanup } from "solid-js";
+import { createStore } from "solid-js/store";
 import { leaderboardApi } from "../services/api/leaderboard";
+import { BatchMiiResponse } from "../types";
 
 interface MiiCache {
     [friendCode: string]: string | null | "loading";
 }
 
+/** Fetches Mii images for a set of friend codes. Both the leaderboard and room endpoints match this. */
+export type MiiBatchFetcher = (friendCodes: string[]) => Promise<BatchMiiResponse>;
+
 interface UseMiiLoaderReturn {
     getMiiImage: (friendCode: string) => string | null | undefined;
     loadMii: (friendCode: string) => Promise<void>;
-    loadMiisBatch: (friendCodes: string[]) => Promise<void>;
+    loadMiisBatch: (friendCodes: string[], fetcher?: MiiBatchFetcher) => Promise<void>;
     isLoading: (friendCode: string) => boolean;
 }
 
-/** Module-level cache shared across all `useMiiLoader` instances. Value is a base64 image, null (no Mii), or "loading". */
-const globalMiiCache: MiiCache = {};
+/**
+ * Cache shared across all `useMiiLoader` instances. Value is a base64 image, null (no Mii), or
+ * "loading". A Solid store rather than a plain object so writes reach the reactive graph: with a
+ * plain object nothing could observe a change, and every avatar polled the cache on a timer to
+ * notice one.
+ */
+const [miiCache, setMiiCache] = createStore<MiiCache>({});
+
 /** In-flight load promises keyed by friend code, preventing duplicate API calls. */
 const loadingPromises = new Map<string, Promise<void>>();
 
 /**
- * Provides Mii image loading with a module-level cache shared across all
- * hook instances. Individual and batch loading are deduplicated so each friend
- * code is fetched at most once per page lifecycle.
+ * Provides Mii image loading with a cache shared across all hook instances. Individual and batch
+ * loading are deduplicated so each friend code is fetched at most once per page lifecycle.
  */
 export function useMiiLoader(): UseMiiLoaderReturn {
-    const [, setForceUpdate] = createSignal(0);
-
-    const forceUpdate = () => setForceUpdate((prev) => prev + 1);
-
     const getMiiImage = (friendCode: string): string | null | undefined => {
-        const cached = globalMiiCache[friendCode];
+        const cached = miiCache[friendCode];
         if (cached === "loading") return undefined;
         return cached;
     };
 
-    const isLoading = (friendCode: string): boolean => {
-        return globalMiiCache[friendCode] === "loading";
-    };
+    const isLoading = (friendCode: string): boolean => miiCache[friendCode] === "loading";
 
     const loadMii = async (friendCode: string): Promise<void> => {
-        if (globalMiiCache[friendCode] !== undefined) {
+        if (miiCache[friendCode] !== undefined) {
             return;
         }
 
@@ -46,19 +50,17 @@ export function useMiiLoader(): UseMiiLoaderReturn {
             return loadingPromises.get(friendCode)!;
         }
 
-        globalMiiCache[friendCode] = "loading";
-        forceUpdate();
+        setMiiCache(friendCode, "loading");
 
         const loadPromise = (async () => {
             try {
                 const response = await leaderboardApi.getPlayerMii(friendCode);
-                globalMiiCache[friendCode] = response?.miiImageBase64 || null;
+                setMiiCache(friendCode, response?.miiImageBase64 || null);
             } catch (error) {
                 console.warn(`Failed to load Mii for ${friendCode}:`, error);
-                globalMiiCache[friendCode] = null;
+                setMiiCache(friendCode, null);
             } finally {
                 loadingPromises.delete(friendCode);
-                forceUpdate();
             }
         })();
 
@@ -66,33 +68,38 @@ export function useMiiLoader(): UseMiiLoaderReturn {
         return loadPromise;
     };
 
-    const loadMiisBatch = async (friendCodes: string[]): Promise<void> => {
+    /**
+     * @param fetcher Which endpoint to load from. Defaults to the leaderboard batch, which only
+     * knows players present in the Players table. The room browser passes the room endpoint so
+     * players visible in a room but absent from the leaderboard still get an avatar.
+     */
+    const loadMiisBatch = async (
+        friendCodes: string[],
+        fetcher: MiiBatchFetcher = leaderboardApi.getPlayerMiisBatch,
+    ): Promise<void> => {
         const uncachedFriendCodes = friendCodes.filter(
-            (fc) => globalMiiCache[fc] === undefined && !loadingPromises.has(fc),
+            (fc) => miiCache[fc] === undefined && !loadingPromises.has(fc),
         );
 
         if (uncachedFriendCodes.length === 0) {
             return;
         }
 
-        uncachedFriendCodes.forEach((fc) => {
-            globalMiiCache[fc] = "loading";
-        });
-        forceUpdate();
+        setMiiCache(
+            Object.fromEntries(uncachedFriendCodes.map((fc) => [fc, "loading" as const])),
+        );
 
         try {
-            const response = await leaderboardApi.getPlayerMiisBatch(uncachedFriendCodes);
+            const response = await fetcher(uncachedFriendCodes);
 
-            uncachedFriendCodes.forEach((fc) => {
-                globalMiiCache[fc] = response.miis[fc] || null;
-            });
+            setMiiCache(
+                Object.fromEntries(
+                    uncachedFriendCodes.map((fc) => [fc, response.miis[fc] || null]),
+                ),
+            );
         } catch (error) {
             console.warn("Failed to load Miis batch:", error);
-            uncachedFriendCodes.forEach((fc) => {
-                globalMiiCache[fc] = null;
-            });
-        } finally {
-            forceUpdate();
+            setMiiCache(Object.fromEntries(uncachedFriendCodes.map((fc) => [fc, null])));
         }
     };
 
@@ -104,36 +111,19 @@ export function useMiiLoader(): UseMiiLoaderReturn {
     };
 }
 
-/** Reactive wrapper around `useMiiLoader` for a single friend code, polling the cache every 200 ms for updates. */
+/**
+ * Reactive wrapper around `useMiiLoader` for a single friend code. The accessors read the store
+ * directly, so a component using them updates when the image arrives.
+ */
 export function useMiiImage(friendCode: string): {
     miiImage: () => string | null | undefined;
     isLoading: () => boolean;
     loadMii: () => void;
 } {
     const miiLoader = useMiiLoader();
-    const [miiImage, setMiiImage] = createSignal<string | null | undefined>(
-        miiLoader.getMiiImage(friendCode),
-    );
-
-    createEffect(() => {
-        const checkForUpdates = () => {
-            const current = miiLoader.getMiiImage(friendCode);
-            if (current !== miiImage()) {
-                setMiiImage(current);
-            }
-        };
-
-        checkForUpdates();
-
-        const interval = setInterval(checkForUpdates, 200);
-
-        onCleanup(() => {
-            clearInterval(interval);
-        });
-    });
 
     return {
-        miiImage,
+        miiImage: () => miiLoader.getMiiImage(friendCode),
         isLoading: () => miiLoader.isLoading(friendCode),
         loadMii: () => {
             miiLoader.loadMii(friendCode);
@@ -142,8 +132,8 @@ export function useMiiImage(friendCode: string): {
 }
 
 /**
- * Returns a callback ref that fires `callback` once when the element first
- * enters the viewport, then stops observing it.
+ * Calls `callback` the first time the observed element scrolls into view, then stops observing it.
+ * Used to defer Mii loading until an avatar is actually on screen.
  */
 export function useIntersectionObserver(
     callback: () => void,
