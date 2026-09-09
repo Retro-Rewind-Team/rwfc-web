@@ -402,31 +402,6 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
     public async Task<int> GetProfileSubmissionsCountAsync(int ttProfileId) =>
         await _context.GhostSubmissions.CountAsync(g => g.TTProfileId == ttProfileId);
 
-    public async Task<int> GetProfileWorldRecordsCountAsync(int ttProfileId)
-    {
-        try
-        {
-            return await _context.Database
-                .SqlQuery<int>($@"
-                    SELECT CAST(COUNT(*) AS INTEGER) as ""Value""
-                    FROM (
-                        SELECT DISTINCT ON (""TrackId"", ""CC"", ""Glitch"")
-                            ""TrackId"", ""CC"", ""Glitch"", ""TTProfileId""
-                        FROM ""GhostSubmissions""
-                        WHERE ""IsFlap"" = false
-                        ORDER BY ""TrackId"", ""CC"", ""Glitch"", ""FinishTimeMs"", ""SubmittedAt""
-                    ) wr
-                    WHERE wr.""TTProfileId"" = {ttProfileId}
-                ")
-                .FirstOrDefaultAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting world records count for profile {ProfileId}", ttProfileId);
-            throw;
-        }
-    }
-
     public async Task<double> CalculateAverageFinishPositionAsync(int ttProfileId)
     {
         try
@@ -545,12 +520,23 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
 
                         UNION ALL
 
+                        -- Flap records rank on the fastest single lap, not the fastest total time.
+                        -- Ordering by FinishTimeMs here credited whoever had the quickest overall
+                        -- run among flap submissions, disagreeing with GetFlapWorldRecordHistoryAsync
+                        -- which this now matches.
                         SELECT ""TTProfileId"" FROM (
                             SELECT DISTINCT ON (""TrackId"", ""CC"", ""Glitch"")
                                 ""TTProfileId""
-                            FROM ""GhostSubmissions""
-                            WHERE ""IsFlap"" = true AND ""Shroomless"" = false
-                            ORDER BY ""TrackId"", ""CC"", ""Glitch"", ""FinishTimeMs"", ""SubmittedAt""
+                            FROM (
+                                SELECT ""TTProfileId"", ""TrackId"", ""CC"", ""Glitch"", ""SubmittedAt"",
+                                       (
+                                           SELECT MIN(lap::int)
+                                           FROM jsonb_array_elements_text(""LapSplitsMs"") AS lap
+                                       ) AS fastest_lap
+                                FROM ""GhostSubmissions""
+                                WHERE ""IsFlap"" = true AND ""Shroomless"" = false
+                            ) flap_candidates
+                            ORDER BY ""TrackId"", ""CC"", ""Glitch"", fastest_lap, ""SubmittedAt""
                         ) flap
 
                 ),
@@ -630,13 +616,21 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
         if (trackCategory != null)
             query = query.Where(g => g.Track!.Category == trackCategory);
 
-        var all = await query
-            .OrderBy(g => g.FinishTimeMs)
+        // Only the winning row per track comes back. Materialising the whole category and taking
+        // the first of each group pulled every submission ever made in it, with Track and TTProfile
+        // joined onto each one.
+        var bestPerTrack = query
+            .GroupBy(g => g.TrackId)
+            .Select(grp => new { TrackId = grp.Key, MinTime = grp.Min(g => g.FinishTimeMs) });
+
+        var winners = await query
+            .Where(g => bestPerTrack.Any(b => b.TrackId == g.TrackId && b.MinTime == g.FinishTimeMs))
             .ToListAsync();
 
-        return all
+        // Two runs can share the winning time, so settle ties on submission order.
+        return winners
             .GroupBy(g => g.TrackId)
-            .ToDictionary(grp => grp.Key, grp => grp.First());
+            .ToDictionary(grp => grp.Key, grp => grp.OrderBy(g => g.SubmittedAt).First());
     }
 
     public async Task<List<GhostSubmissionEntity>> GetWorldRecordHoldersForRankingsAsync(
@@ -661,8 +655,7 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
             {
                 var q = BuildRankingsBaseQuery(cc, glitchAllowed, trackCategory)
                     .Where(g => !g.Shroomless && g.VehicleId >= kartMin && g.VehicleId <= kartMax);
-                var data = await q.OrderBy(g => g.FinishTimeMs).ToListAsync();
-                results.AddRange(data.GroupBy(g => (g.TrackId, g.Glitch)).Select(grp => grp.First()));
+                results.AddRange(await BestPerTrackAndGlitchAsync(q));
             }
         }
 
@@ -675,8 +668,7 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
             {
                 var q = BuildRankingsBaseQuery(cc, glitchAllowed, trackCategory)
                     .Where(g => !g.Shroomless && g.VehicleId >= bikeMin && g.VehicleId <= bikeMax);
-                var data = await q.OrderBy(g => g.FinishTimeMs).ToListAsync();
-                results.AddRange(data.GroupBy(g => (g.TrackId, g.Glitch)).Select(grp => grp.First()));
+                results.AddRange(await BestPerTrackAndGlitchAsync(q));
             }
         }
 
@@ -687,8 +679,7 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
                 .Where(g => g.Shroomless);
             if (minVehicleId.HasValue && maxVehicleId.HasValue)
                 q = q.Where(g => g.VehicleId >= minVehicleId.Value && g.VehicleId <= maxVehicleId.Value);
-            var data = await q.OrderBy(g => g.FinishTimeMs).ToListAsync();
-            results.AddRange(data.GroupBy(g => (g.TrackId, g.Glitch)).Select(grp => grp.First()));
+            results.AddRange(await BestPerTrackAndGlitchAsync(q));
         }
 
         // Flap (non-shroomless only, matches UpdateWorldRecordCountsAsync definition)
@@ -705,8 +696,19 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
                 q = q.Where(g => g.VehicleId >= minVehicleId.Value && g.VehicleId <= maxVehicleId.Value);
             if (trackCategory != null)
                 q = q.Include(g => g.Track).Where(g => g.Track!.Category == trackCategory);
-            var data = await q.OrderBy(g => g.FinishTimeMs).ToListAsync();
-            results.AddRange(data.GroupBy(g => (g.TrackId, g.Glitch)).Select(grp => grp.First()));
+
+            // Ranked on the fastest single lap, matching UpdateWorldRecordCountsAsync and
+            // GetFlapWorldRecordHistoryAsync. Ordering by FinishTimeMs credited the quickest
+            // overall run instead, so the rankings page disagreed with both. LapSplitsMs is a
+            // jsonb column, so the minimum is taken after materialising.
+            var data = await q.ToListAsync();
+            results.AddRange(data
+                .Where(g => g.LapSplitsMs.Count > 0)
+                .GroupBy(g => (g.TrackId, g.Glitch))
+                .Select(grp => grp
+                    .OrderBy(g => g.LapSplitsMs.Min())
+                    .ThenBy(g => g.SubmittedAt)
+                    .First()));
         }
 
         return results;
@@ -733,6 +735,33 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
     /// Category filter query without a track constraint, used by both
     /// <see cref="BuildLeaderboardQuery"/> and <see cref="GetAllWorldRecordsAsync"/>.
     /// </summary>
+    /// <summary>
+    /// Returns the record holder for each (track, glitch) pair in <paramref name="query"/>, ranked
+    /// on finish time. The winners are selected server-side: materialising the category and taking
+    /// the first of each group pulled every submission in it, with Track and TTProfile joined onto
+    /// every row. Ties are settled on submission order so the earliest run keeps the record.
+    /// </summary>
+    private static async Task<List<GhostSubmissionEntity>> BestPerTrackAndGlitchAsync(
+        IQueryable<GhostSubmissionEntity> query)
+    {
+        var best = query
+            .GroupBy(g => new { g.TrackId, g.Glitch })
+            .Select(grp => new
+            {
+                grp.Key.TrackId,
+                grp.Key.Glitch,
+                MinTime = grp.Min(g => g.FinishTimeMs)
+            });
+
+        var winners = await query
+            .Where(g => best.Any(b => b.TrackId == g.TrackId && b.Glitch == g.Glitch && b.MinTime == g.FinishTimeMs))
+            .ToListAsync();
+
+        return [.. winners
+            .GroupBy(g => (g.TrackId, g.Glitch))
+            .Select(grp => grp.OrderBy(g => g.SubmittedAt).First())];
+    }
+
     private IQueryable<GhostSubmissionEntity> BuildCategoryQuery(
         short cc,
         bool glitchAllowed,

@@ -312,13 +312,7 @@ public interface IGhostSubmissionRepository
     /// specified profile.</returns>
     Task<int> GetProfileSubmissionsCountAsync(int ttProfileId);
 
-    /// <summary>
-    /// Asynchronously retrieves the number of world records associated with the specified profile.
-    /// </summary>
-    /// <param name="ttProfileId">The unique identifier of the profile for which to count world records. Must be a valid profile ID.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the total number of world records
-    /// for the specified profile.</returns>
-    Task<int> GetProfileWorldRecordsCountAsync(int ttProfileId);
+
 
     /// <summary>
     /// Calculates the average finish position for the specified profile asynchronously.
