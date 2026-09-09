@@ -14,4 +14,12 @@ public interface IMiiService
         string friendCode,
         string miiData,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Drops the in-process cached image for a friend code. Call this alongside
+    /// <c>IPlayerMiiRepository.InvalidatePlayerMiiCacheAsync</c>: they are two separate caches, and
+    /// clearing only the database row left this process serving the old image for up to seven days.
+    /// </summary>
+    /// <param name="friendCode">The friend code whose cached image should be discarded.</param>
+    void InvalidateCachedImage(string friendCode);
 }

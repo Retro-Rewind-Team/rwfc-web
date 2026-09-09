@@ -13,10 +13,11 @@ public class LeaderboardSyncService : ILeaderboardSyncService
 {
     private readonly IPlayerRepository _playerRepository;
     private readonly IPlayerMiiRepository _playerMiiRepository;
+    private readonly IMiiService _miiService;
     private readonly IVRHistoryRepository _vrHistoryRepository;
     private readonly IRetroWFCApiClient _apiClient;
     private readonly IPlayerValidationService _validationService;
-    private readonly IDiscordWebhookService _discordWebhook;
+    private readonly DiscordAlertQueue _discordAlerts;
     private readonly ILogger<LeaderboardSyncService> _logger;
 
     private static readonly HashSet<string> AllowedRoomTypes =
@@ -29,18 +30,20 @@ public class LeaderboardSyncService : ILeaderboardSyncService
     public LeaderboardSyncService(
         IPlayerRepository playerRepository,
         IPlayerMiiRepository playerMiiRepository,
+        IMiiService miiService,
         IVRHistoryRepository vrHistoryRepository,
         IRetroWFCApiClient apiClient,
         IPlayerValidationService validationService,
-        IDiscordWebhookService discordWebhook,
+        DiscordAlertQueue discordAlerts,
         ILogger<LeaderboardSyncService> logger)
     {
         _playerRepository = playerRepository;
         _playerMiiRepository = playerMiiRepository;
+        _miiService = miiService;
         _vrHistoryRepository = vrHistoryRepository;
         _apiClient = apiClient;
         _validationService = validationService;
-        _discordWebhook = discordWebhook;
+        _discordAlerts = discordAlerts;
         _logger = logger;
     }
 
@@ -77,7 +80,7 @@ public class LeaderboardSyncService : ILeaderboardSyncService
             var vrHistoryEntries = new List<VRHistoryEntity>();
             // pid → previousVR, for gain recalculation after batch insert of history
             var vrChangedPlayers = new List<(PlayerEntity Player, int PreviousVR)>();
-            var miiInvalidations = new List<string>();
+            var miiInvalidations = new List<(string Pid, string Fc)>();
 
             var now = DateTime.UtcNow;
 
@@ -94,7 +97,7 @@ public class LeaderboardSyncService : ILeaderboardSyncService
                         _logger.LogWarning(
                             "New player flagged as suspicious: {Name} ({Pid}) with VR {VR}",
                             newPlayer.Name, newPlayer.Pid, newPlayer.Ev);
-                        await _discordWebhook.SendAutoFlagAsync(newPlayer.Name, newPlayer.Fc, newPlayer.FlagReason);
+                        QueueAutoFlagAlert(newPlayer.Name, newPlayer.Fc, newPlayer.FlagReason);
                     }
 
                     toInsert.Add(newPlayer);
@@ -106,7 +109,7 @@ public class LeaderboardSyncService : ILeaderboardSyncService
                     toUpdate.Add(existingPlayer);
 
                     if (miiDataChanged)
-                        miiInvalidations.Add(existingPlayer.Pid);
+                        miiInvalidations.Add((existingPlayer.Pid, existingPlayer.Fc));
 
                     if (existingPlayer.Ev != previousVR)
                     {
@@ -174,8 +177,13 @@ public class LeaderboardSyncService : ILeaderboardSyncService
                 await _playerRepository.UpdatePlayerVehiclePreferencesAsync(activeProfileIds);
 
             // Invalidate Mii caches for players whose Mii data changed
-            foreach (var pid in miiInvalidations)
+            foreach (var (pid, fc) in miiInvalidations)
+            {
                 await _playerMiiRepository.InvalidatePlayerMiiCacheAsync(pid);
+                // The database row and the in-process image are separate caches, keyed by Pid and
+                // Fc respectively. Clearing only the row served the old image for up to seven days.
+                _miiService.InvalidateCachedImage(fc);
+            }
 
             _logger.LogInformation("API refresh completed. New: {NewCount}, Updated: {UpdatedCount}",
                 toInsert.Count, toUpdate.Count);
@@ -184,6 +192,20 @@ public class LeaderboardSyncService : ILeaderboardSyncService
         {
             _logger.LogError(ex, "Error during API refresh");
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Hands an auto-flag alert to the background sender. Deliberately not awaited: this runs on a
+    /// one-minute schedule, and a slow Discord used to stall the whole tick.
+    /// </summary>
+    private void QueueAutoFlagAlert(string playerName, string friendCode, string reason)
+    {
+        if (!_discordAlerts.TryEnqueue(new DiscordAlert(playerName, friendCode, reason)))
+        {
+            _logger.LogWarning(
+                "Discord alert queue full, dropped auto-flag notification for {Player} ({FriendCode})",
+                playerName, friendCode);
         }
     }
 
@@ -247,7 +269,7 @@ public class LeaderboardSyncService : ILeaderboardSyncService
                 existingPlayer.FlagReason = update.FlagReason;
 
                 if (update.IsSuspicious && !wasSuspicious)
-                    await _discordWebhook.SendAutoFlagAsync(existingPlayer.Name, existingPlayer.Fc, update.FlagReason);
+                    QueueAutoFlagAlert(existingPlayer.Name, existingPlayer.Fc, update.FlagReason);
             }
         }
 

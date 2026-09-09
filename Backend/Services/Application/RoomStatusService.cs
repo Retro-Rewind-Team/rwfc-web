@@ -293,7 +293,10 @@ public class RoomStatusService : IRoomStatusService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error refreshing room data");
-            // Live cache is not updated on failure, callers continue to see last-known-good data
+            // Only reached if something here throws. It is not the WFC-outage path: the API client
+            // logs and returns an empty list rather than throwing, so an outage refreshes the cache
+            // to zero rooms and can persist a zero snapshot. That is intended -- when the WFC API
+            // is unreachable there is nothing to play on -- so this is not a last-known-good hold.
         }
         finally
         {

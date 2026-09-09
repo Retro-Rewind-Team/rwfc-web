@@ -2,7 +2,6 @@ using Kaitai;
 using Microsoft.Extensions.Caching.Memory;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
-using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 
 namespace RetroRewindWebsite.Services.Domain;
@@ -15,7 +14,9 @@ public class MiiService : IMiiService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IMemoryCache _cache;
     private readonly MemoryCacheEntryOptions _cacheOptions;
-    private readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = new();
+    // Guarded by lock(_locks): rent/return must be atomic with removal, which a concurrent
+    // dictionary alone cannot give.
+    private readonly Dictionary<string, Gate> _locks = [];
     private readonly ILogger<MiiService> _logger;
 
     public MiiService(IHttpClientFactory httpClientFactory, IMemoryCache memoryCache, ILogger<MiiService> logger)
@@ -42,12 +43,22 @@ public class MiiService : IMiiService
             return cachedMiiImage;
         }
 
-        var semaphore = _locks.GetOrAdd(friendCode, _ => new SemaphoreSlim(1, 1));
+        var gate = RentGate(friendCode);
+
+        // Acquired outside the try: a cancelled wait never took the semaphore, and releasing one
+        // that was never taken throws SemaphoreFullException from the finally below.
+        try
+        {
+            await gate.Semaphore.WaitAsync(cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            ReturnGate(friendCode, gate, released: false);
+            throw;
+        }
 
         try
         {
-            await semaphore.WaitAsync(cancellationToken);
-
             // Double-check cache after acquiring lock
             if (_cache.TryGetValue(friendCode, out cachedMiiImage))
             {
@@ -92,8 +103,59 @@ public class MiiService : IMiiService
         }
         finally
         {
-            semaphore.Release();
+            ReturnGate(friendCode, gate, released: true);
         }
+    }
+
+    /// <summary>
+    /// Takes a reference on the per-friend-code gate, creating it if needed. Reference counting is
+    /// what lets <see cref="ReturnGate"/> drop the entry again: keying a dictionary by friend code
+    /// and never removing anything grew one semaphore per player seen, for the process lifetime.
+    /// </summary>
+    private Gate RentGate(string friendCode)
+    {
+        lock (_locks)
+        {
+            if (!_locks.TryGetValue(friendCode, out var gate))
+            {
+                gate = new Gate();
+                _locks[friendCode] = gate;
+            }
+
+            gate.RefCount++;
+            return gate;
+        }
+    }
+
+    private void ReturnGate(string friendCode, Gate gate, bool released)
+    {
+        if (released)
+            gate.Semaphore.Release();
+
+        lock (_locks)
+        {
+            if (--gate.RefCount == 0 && _locks.TryGetValue(friendCode, out var current) && ReferenceEquals(current, gate))
+            {
+                _locks.Remove(friendCode);
+                gate.Semaphore.Dispose();
+            }
+        }
+    }
+
+    private sealed class Gate
+    {
+        public SemaphoreSlim Semaphore { get; } = new(1, 1);
+        public int RefCount;
+    }
+
+    /// <summary>
+    /// Drops the in-process image for a friend code. The database cache row and this cache are
+    /// separate: clearing only the row left the process serving the old image for up to seven days.
+    /// </summary>
+    public void InvalidateCachedImage(string friendCode)
+    {
+        if (!string.IsNullOrEmpty(friendCode))
+            _cache.Remove(friendCode);
     }
 
     static readonly Dictionary<byte, byte> _wrinkles = new() { { 4, 5 }, { 5, 2 }, { 6, 3 }, { 7, 7 }, { 8, 8 }, { 10, 9 }, { 11, 11 } };

@@ -27,14 +27,19 @@ public class ExternalApiHealthCheck : IHealthCheck
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(TimeSpan.FromSeconds(HealthCheckTimeoutSeconds));
 
-            var groups = await _apiClient.GetActiveGroupsAsync();
+            // Player count rather than the full group list: it is the cheapest call on the API,
+            // and it is the only one that reports failure. GetActiveGroupsAsync swallows every
+            // error and returns an empty list, which is right for the room browser but leaves a
+            // health check unable to tell "nobody online" from "the API is down".
+            var playerCount = await _apiClient.GetPlayerCountAsync(cts.Token);
 
-            return groups.Count >= 0
-                ? HealthCheckResult.Healthy($"External API responding. Found {groups.Count} groups.")
-                : HealthCheckResult.Degraded("External API returned no data");
+            return playerCount.HasValue
+                ? HealthCheckResult.Healthy($"External API responding. {playerCount.Value} players online.")
+                : HealthCheckResult.Unhealthy("External API returned an error or unreadable response");
         }
-        catch (TaskCanceledException)
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
+            // Our own deadline elapsed rather than the host shutting the check down.
             return HealthCheckResult.Degraded($"External API timeout (>{HealthCheckTimeoutSeconds}s)");
         }
         catch (Exception ex)
