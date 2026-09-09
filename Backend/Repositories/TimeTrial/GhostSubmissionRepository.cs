@@ -506,10 +506,12 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
     {
         try
         {
+            // Counts are computed for every profile, but only rows whose count actually moved are
+            // written. Previously this was an unqualified UPDATE, so every ghost submit and every
+            // delete rewrote the whole TTProfiles table and stamped UpdatedAt on all of it, making
+            // that column useless as a "when did this profile last change" signal.
             await _context.Database.ExecuteSqlAsync($@"
-                UPDATE ""TTProfiles"" p
-                SET ""CurrentWorldRecords"" = (
-                    SELECT CAST(COUNT(*) AS INTEGER) FROM (
+                WITH all_wrs AS (
 
                         SELECT ""TTProfileId"" FROM (
                             SELECT DISTINCT ON (""TrackId"", ""CC"", ""Glitch"")
@@ -551,10 +553,23 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
                             ORDER BY ""TrackId"", ""CC"", ""Glitch"", ""FinishTimeMs"", ""SubmittedAt""
                         ) flap
 
-                    ) all_wrs
-                    WHERE ""TTProfileId"" = p.""Id""
                 ),
-                ""UpdatedAt"" = {DateTime.UtcNow}
+                counts AS (
+                    SELECT ""TTProfileId"" AS profile_id, CAST(COUNT(*) AS INTEGER) AS wr_count
+                    FROM all_wrs
+                    GROUP BY ""TTProfileId""
+                ),
+                target AS (
+                    SELECT p.""Id"" AS profile_id, COALESCE(c.wr_count, 0) AS wr_count
+                    FROM ""TTProfiles"" p
+                    LEFT JOIN counts c ON c.profile_id = p.""Id""
+                )
+                UPDATE ""TTProfiles"" p
+                SET ""CurrentWorldRecords"" = t.wr_count,
+                    ""UpdatedAt"" = {DateTime.UtcNow}
+                FROM target t
+                WHERE p.""Id"" = t.profile_id
+                  AND p.""CurrentWorldRecords"" IS DISTINCT FROM t.wr_count
             ");
         }
         catch (Exception ex)

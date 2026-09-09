@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using RetroRewindWebsite.Mappers;
 using RetroRewindWebsite.Models.Domain;
 using RetroRewindWebsite.Models.DTOs.TimeTrial;
@@ -292,7 +293,22 @@ public class TimeTrialModerationService : ITimeTrialModerationService
                 $"Cannot delete profile '{profile.DisplayName}' - it has {submissionCount} submission(s). Delete submissions first.");
         }
 
-        await _ttProfileRepository.DeleteAsync(id);
+        try
+        {
+            await _ttProfileRepository.DeleteAsync(id);
+        }
+        catch (DbUpdateException ex)
+        {
+            // The foreign key is Restrict, so a ghost uploaded between the count above and this
+            // delete is refused by the database rather than silently cascaded away. Report it the
+            // same way as the guard rather than surfacing a 500.
+            _logger.LogWarning(ex,
+                "Delete of TT profile {ProfileId} was refused; a submission arrived after the check", id);
+
+            return new ProfileDeletionResultDto(
+                false,
+                $"Cannot delete profile '{profile.DisplayName}' - a submission was added while the delete was in progress. Try again.");
+        }
 
         _logger.LogInformation("TT Profile deleted: {DisplayName} (ID: {ProfileId})",
             profile.DisplayName, id);

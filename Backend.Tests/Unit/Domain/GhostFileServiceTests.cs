@@ -52,6 +52,35 @@ public class GhostFileServiceTests
         success.LapSplitsMs.Count.ShouldBe(3);
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(33)]
+    [InlineData(255)]
+    public async Task ParseGhostFileAsync_LapCountOutsideSupportedRange_ReturnsFailure(byte lapCount)
+    {
+        // Only five splits are stored in the file; the rest are synthesised. An unbounded lap
+        // count therefore writes hundreds of invented splits into the stored jsonb column.
+        var bytes = RkgTestData.BuildValidRkg(finishMinutes: 1, finishSeconds: 30, finishMs: 0, lapCount: lapCount);
+        using var stream = new MemoryStream(bytes);
+
+        var result = await _sut.ParseGhostFileAsync(stream);
+
+        result.ShouldBeOfType<GhostFileParseResult.Failure>();
+    }
+
+    [Fact]
+    public async Task ParseGhostFileAsync_LapCountAtUpperBound_IsAccepted()
+    {
+        var bytes = RkgTestData.BuildValidRkg(finishMinutes: 5, finishSeconds: 0, finishMs: 0, lapCount: 32);
+        using var stream = new MemoryStream(bytes);
+
+        var result = await _sut.ParseGhostFileAsync(stream);
+
+        var success = result.ShouldBeOfType<GhostFileParseResult.Success>();
+        success.LapCount.ShouldBe((short)32);
+        success.LapSplitsMs.Count.ShouldBe(32);
+    }
+
     [Fact]
     public async Task ParseGhostFileAsync_ValidRkg_ParsesMiiName()
     {

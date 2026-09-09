@@ -20,6 +20,18 @@ public class TimeTrialModerationController : ControllerBase
     private const int MinDisplayNameLength = 2;
     private const int MaxDisplayNameLength = 50;
 
+    /// <summary>Smallest valid .rkg: the fixed header alone is 0x88 bytes.</summary>
+    private const long MinGhostFileBytes = 0x88;
+
+    /// <summary>
+    /// Generous ceiling for a ghost. Real files are a few tens of KB; this is a sanity bound, not
+    /// a tuning knob.
+    /// </summary>
+    private const long MaxGhostFileBytes = 512 * 1024;
+
+    /// <summary>Whole-request cap, leaving room for the other form fields and multipart overhead.</summary>
+    private const long MaxRequestBytes = MaxGhostFileBytes + (64 * 1024);
+
     public TimeTrialModerationController(
         ITimeTrialModerationService moderationService,
         ILogger<TimeTrialModerationController> logger)
@@ -31,8 +43,12 @@ public class TimeTrialModerationController : ControllerBase
     // ===== GHOST SUBMISSION ENDPOINTS =====
 
     [HttpPost("submit")]
+    // Rejected by the server before the body is buffered, unlike the checks in ValidateGhostFile
+    // which only run once the whole multipart payload has been read.
+    [RequestSizeLimit(MaxRequestBytes)]
     [ProducesResponseType<GhostSubmissionResultDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status413PayloadTooLarge)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<GhostSubmissionResultDto>> SubmitTimeTrialGhost(
         [FromForm] GhostSubmissionRequest request)
@@ -301,6 +317,15 @@ public class TimeTrialModerationController : ControllerBase
 
         if (!ghostFile.FileName.EndsWith(".rkg", StringComparison.OrdinalIgnoreCase))
             return BadRequest("File must be a .rkg file");
+
+        // A real ghost is a few tens of KB. Without this the framework's multipart default (about
+        // 128MB) applied, and the upload is buffered into memory and then copied again before the
+        // header is even read.
+        if (ghostFile.Length < MinGhostFileBytes)
+            return BadRequest("Ghost file is too small to be a valid .rkg file");
+
+        if (ghostFile.Length > MaxGhostFileBytes)
+            return BadRequest($"Ghost file must be {MaxGhostFileBytes / 1024}KB or smaller");
 
         return null;
     }
