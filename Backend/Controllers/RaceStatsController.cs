@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs.Common;
 using RetroRewindWebsite.Models.DTOs.RaceStats;
 using RetroRewindWebsite.Services.Application;
@@ -146,7 +147,7 @@ public class RaceStatsController : ControllerBase
 
             var result = await _raceStatsService.GetRacesAsync(
                 roomId, raceNumber, courseId, engineClassId, friendCode,
-                AsUtc(from), AsUtc(to), page, pageSize);
+                UtcDateTime.From(from), UtcDateTime.From(to), page, pageSize);
             Response.Headers.CacheControl = "public, max-age=60";
             return Ok(result);
         }
@@ -205,10 +206,4 @@ public class RaceStatsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Query-string DateTimes bind with Kind=Unspecified, which Npgsql rejects against
-    /// timestamptz columns. RaceTimestamp is always UTC, so treat caller-supplied bounds as UTC.
-    /// </summary>
-    private static DateTime? AsUtc(DateTime? value) =>
-        value.HasValue ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc) : null;
 }

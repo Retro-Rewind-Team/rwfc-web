@@ -172,7 +172,7 @@ public class RoomStatusController : ControllerBase
             var minId = await _roomStatusService.GetMinIdAsync();
             var maxId = await _roomStatusService.GetMaxIdAsync();
 
-            var response = await _roomStatusService.GetNearestStatusAsync(timestamp);
+            var response = await _roomStatusService.GetNearestStatusAsync(UtcDateTime.From(timestamp));
 
             if (response == null)
                 return NotFound("No snapshots available.");
@@ -215,7 +215,7 @@ public class RoomStatusController : ControllerBase
                 if (to.Value - from.Value > MaxHistoryRange)
                     return BadRequest($"Date range must not exceed {MaxHistoryRange.TotalDays:0} days.");
 
-                var range = await _roomStatusService.GetSnapshotsByDateRangeAsync(from.Value, to.Value);
+                var range = await _roomStatusService.GetSnapshotsByDateRangeAsync(UtcDateTime.From(from.Value), UtcDateTime.From(to.Value));
                 Response.Headers.CacheControl = "public, max-age=60";
                 return Ok(range);
             }

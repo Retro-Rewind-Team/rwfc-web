@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using RetroRewindWebsite.Filters;
+using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs.Player;
 using RetroRewindWebsite.Services.Application;
 
@@ -63,8 +64,8 @@ public class PlayerController : ControllerBase
             if (from.HasValue || to.HasValue)
             {
                 var now = DateTime.UtcNow;
-                var resolvedFrom = (from?.ToUniversalTime() ?? now.AddDays(-30));
-                var resolvedTo = (to?.ToUniversalTime() ?? now);
+                var resolvedFrom = UtcDateTime.From(from) ?? now.AddDays(-30);
+                var resolvedTo = UtcDateTime.From(to) ?? now;
 
                 if (resolvedTo > now) resolvedTo = now;
                 if (resolvedFrom > now) return BadRequest("'from' date cannot be in the future");
