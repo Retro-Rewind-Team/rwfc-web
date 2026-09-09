@@ -242,6 +242,10 @@ public class LeaderboardSyncService : ILeaderboardSyncService
     {
         var previousVR = existingPlayer.Ev;
 
+        // Intentional, not a bug: bans are enforced by the WFC server, not here. A banned player
+        // cannot appear in a room at all, so seeing them online means their ban has already been
+        // lifted upstream and this flag is stale. Do not "fix" this into a persistent website ban
+        // without first moving ban enforcement off WFC.
         if (existingPlayer.IsBanned)
         {
             existingPlayer.IsBanned = false;
