@@ -66,7 +66,10 @@ public class LeaderboardSyncService : ILeaderboardSyncService
 
             // Batch-fetch all existing players in one query instead of N individual lookups
             var allPids = uniqueApiPlayers.Select(p => p.Pid).ToList();
-            var existingPlayers = await _playerRepository.GetPlayersByPidsAsync(allPids);
+            // Tracked: this batch is held across the rest of the tick (Discord calls, VR gain
+            // queries) before being written back. A full-row write would revert any moderation
+            // action applied in that window.
+            var existingPlayers = await _playerRepository.GetPlayersByPidsForUpdateAsync(allPids);
             var existingByPid = existingPlayers.ToDictionary(p => p.Pid);
 
             var toInsert = new List<PlayerEntity>();

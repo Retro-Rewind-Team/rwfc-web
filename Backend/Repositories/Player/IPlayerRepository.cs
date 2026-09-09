@@ -36,6 +36,18 @@ public interface IPlayerRepository
     /// the provided player IDs. The list will be empty if no players are found.</returns>
     Task<List<PlayerEntity>> GetPlayersByPidsAsync(List<string> pids);
 
+    /// <summary>
+    /// Retrieves players for a caller that intends to modify them. Unlike
+    /// <see cref="GetPlayersByPidsAsync"/> the returned entities are change-tracked, so a
+    /// following <see cref="UpdateRangeAsync"/> writes only the columns that actually changed
+    /// instead of every column. The sync loop needs this: it holds its batch across several
+    /// seconds of work, and a full-row write would silently revert any moderation action
+    /// (flag, unflag, ban, badge) applied in that window.
+    /// </summary>
+    /// <param name="pids">The player IDs to load. May be null or empty, in which case no query runs.</param>
+    /// <returns>Change-tracked player entities matching the provided IDs.</returns>
+    Task<List<PlayerEntity>> GetPlayersByPidsForUpdateAsync(List<string> pids);
+
     // ===== LEADERBOARD QUERIES =====
 
     /// <summary>
