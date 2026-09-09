@@ -108,11 +108,21 @@ builder.Services.AddScoped<IRaceStatsRepository, RaceStatsRepository>();
 builder.Services.AddScoped<IMultiplierRepository, MultiplierRepository>();
 
 // ===== EXTERNAL SERVICES =====
-builder.Services.AddScoped<IRetroWFCApiClient, RetroWFCApiClient>();
+// Typed client with an explicit timeout. The default HttpClient waits 100 seconds, long enough
+// for a slow upstream to stall the one-minute sync and hold the room refresh lock.
+builder.Services.AddHttpClient<IRetroWFCApiClient, RetroWFCApiClient>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
 
 // ===== DOMAIN SERVICES =====
 builder.Services.AddScoped<IPlayerValidationService, PlayerValidationService>();
 builder.Services.AddScoped<IDiscordWebhookService, DiscordWebhookService>();
+builder.Services.AddSingleton<DiscordAlertQueue>();
+builder.Services.AddHttpClient(DiscordWebhookService.DiscordClientName, client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
 builder.Services.AddScoped<IMaintenanceService, MaintenanceService>();
 builder.Services.AddScoped<IMiiService, MiiService>();
 builder.Services.AddScoped<IGhostFileService, GhostFileService>();
@@ -146,6 +156,8 @@ builder.Services.AddHostedService<RoomStatusBackgroundService>(sp =>
 builder.Services.AddSingleton<IRaceResultBackgroundService, RaceResultBackgroundService>();
 builder.Services.AddHostedService<RaceResultBackgroundService>(sp =>
     (RaceResultBackgroundService)sp.GetRequiredService<IRaceResultBackgroundService>());
+
+builder.Services.AddHostedService<DiscordAlertBackgroundService>();
 
 // ===== HEALTH CHECKS =====
 builder.Services.AddHealthChecks()

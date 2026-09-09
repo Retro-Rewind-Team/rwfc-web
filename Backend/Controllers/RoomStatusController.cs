@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs.Player;
 using RetroRewindWebsite.Models.DTOs.Room;
@@ -17,18 +18,23 @@ namespace RetroRewindWebsite.Controllers;
 public class RoomStatusController : ControllerBase
 {
     private static readonly TimeSpan MaxHistoryRange = TimeSpan.FromDays(31);
+    private static readonly TimeSpan PlayerCountCacheDuration = TimeSpan.FromSeconds(60);
+    private const string PlayerCountCacheKey = "wfc:pcount";
 
     private readonly IRoomStatusService _roomStatusService;
     private readonly IRetroWFCApiClient _retroWFCApiClient;
+    private readonly IMemoryCache _cache;
     private readonly ILogger<RoomStatusController> _logger;
 
     public RoomStatusController(
         IRoomStatusService roomStatusService,
         IRetroWFCApiClient retroWFCApiClient,
+        IMemoryCache cache,
         ILogger<RoomStatusController> logger)
     {
         _roomStatusService = roomStatusService;
         _retroWFCApiClient = retroWFCApiClient;
+        _cache = cache;
         _logger = logger;
     }
 
@@ -121,15 +127,38 @@ public class RoomStatusController : ControllerBase
     [HttpGet("pcount")]
     [ProducesResponseType<PlayerCountDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
-    public async Task<ActionResult<PlayerCountDto>> GetPlayerCount()
+    public async Task<ActionResult<PlayerCountDto>> GetPlayerCount(CancellationToken cancellationToken)
     {
-        var count = await _retroWFCApiClient.GetPlayerCountAsync();
+        try
+        {
+            // Anonymous endpoint that reaches straight through to the WFC API, so without a
+            // server-side cache every caller drives a request onto the third party. The
+            // Cache-Control header below only helps callers that honour it.
+            if (!_cache.TryGetValue(PlayerCountCacheKey, out int? count))
+            {
+                count = await _retroWFCApiClient.GetPlayerCountAsync(cancellationToken);
 
-        if (count == null)
+                if (count.HasValue)
+                {
+                    _cache.Set(PlayerCountCacheKey, count, new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = PlayerCountCacheDuration,
+                        Size = 1
+                    });
+                }
+            }
+
+            if (count == null)
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, "Player count is currently unavailable");
+
+            Response.Headers.CacheControl = "public, max-age=300";
+            return Ok(new PlayerCountDto(count.Value));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving player count");
             return StatusCode(StatusCodes.Status503ServiceUnavailable, "Player count is currently unavailable");
-
-        Response.Headers.CacheControl = "public, max-age=300";
-        return Ok(new PlayerCountDto(count.Value));
+        }
     }
 
     [HttpGet("nearest")]

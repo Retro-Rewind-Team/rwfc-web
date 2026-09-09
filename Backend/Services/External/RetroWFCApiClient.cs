@@ -26,13 +26,13 @@ public class RetroWFCApiClient : IRetroWFCApiClient
         _logger = logger;
     }
 
-    public async Task<List<Group>> GetActiveGroupsAsync()
+    public async Task<List<Group>> GetActiveGroupsAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogDebug("Fetching active groups from Retro WFC API");
 
-            var response = await _httpClient.GetStringAsync(_groupsApiUrl);
+            var response = await _httpClient.GetStringAsync(_groupsApiUrl, cancellationToken);
             var groups = JsonSerializer.Deserialize<List<Group>>(response, _jsonOptions);
 
             if (groups == null)
@@ -43,6 +43,12 @@ public class RetroWFCApiClient : IRetroWFCApiClient
 
             _logger.LogDebug("Successfully fetched {GroupCount} groups from API", groups.Count);
             return groups;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // The caller gave up (health check timeout). Distinct from HttpClient's own timeout,
+            // which surfaces the same exception type with the caller's token not signalled.
+            throw;
         }
         catch (HttpRequestException ex)
         {
@@ -61,13 +67,13 @@ public class RetroWFCApiClient : IRetroWFCApiClient
         }
     }
 
-    public async Task<Dictionary<int, List<RaceResult>>> GetRoomRaceResultsAsync(string roomId)
+    public async Task<Dictionary<int, List<RaceResult>>> GetRoomRaceResultsAsync(string roomId, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogDebug("Fetching race results for room {RoomId}", roomId);
 
-            var response = await _httpClient.GetStringAsync($"{_raceResultsApiUrl}{roomId}");
+            var response = await _httpClient.GetStringAsync($"{_raceResultsApiUrl}{roomId}", cancellationToken);
             var raceResponse = JsonSerializer.Deserialize<RoomRaceResponse>(response, _jsonOptions);
 
             if (raceResponse?.Results == null || raceResponse.Results.Count == 0)
@@ -89,6 +95,12 @@ public class RetroWFCApiClient : IRetroWFCApiClient
 
             return resultsDict;
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // The caller gave up (health check timeout). Distinct from HttpClient's own timeout,
+            // which surfaces the same exception type with the caller's token not signalled.
+            throw;
+        }
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error while fetching race results for room {RoomId}", roomId);
@@ -106,13 +118,13 @@ public class RetroWFCApiClient : IRetroWFCApiClient
         }
     }
 
-    public async Task<int?> GetPlayerCountAsync()
+    public async Task<int?> GetPlayerCountAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogDebug("Fetching player count from Retro WFC API");
 
-            var response = await _httpClient.GetStringAsync(_pcountApiUrl);
+            var response = await _httpClient.GetStringAsync(_pcountApiUrl, cancellationToken);
             var pcount = JsonSerializer.Deserialize<PCountResponse>(response, _jsonOptions);
 
             if (pcount is not { Success: true })
@@ -122,6 +134,12 @@ public class RetroWFCApiClient : IRetroWFCApiClient
             }
 
             return pcount.Count;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // The caller gave up (health check timeout). Distinct from HttpClient's own timeout,
+            // which surfaces the same exception type with the caller's token not signalled.
+            throw;
         }
         catch (HttpRequestException ex)
         {
