@@ -19,7 +19,6 @@ using Scalar.AspNetCore;
 using Serilog;
 using System.Net;
 using System.Text.Json;
-using System.Threading.RateLimiting;
 
 // Disable IPv6 to prevent connectivity issues with external Mii image API
 AppContext.SetSwitch("System.Net.DisableIPv6", true);
@@ -163,56 +162,6 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 
-// ===== RATE LIMITING =====
-static string GetClientIp(HttpContext ctx)
-{
-    // X-Forwarded-For: "client, proxy1, proxy2" -- leftmost is the real client
-    var xff = ctx.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-    if (!string.IsNullOrEmpty(xff))
-        return xff.Split(',')[0].Trim();
-
-    // nginx: proxy_set_header X-Real-IP $remote_addr
-    var xri = ctx.Request.Headers["X-Real-IP"].FirstOrDefault();
-    if (!string.IsNullOrEmpty(xri))
-        return xri.Trim();
-
-    return ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-}
-
-static RateLimitPartition<string> IpFixedWindow(HttpContext ctx, int limit) =>
-    RateLimitPartition.GetFixedWindowLimiter(
-        partitionKey: GetClientIp(ctx),
-        factory: _ => new FixedWindowRateLimiterOptions
-        {
-            AutoReplenishment = true,
-            PermitLimit = limit,
-            Window = TimeSpan.FromMinutes(1)
-        });
-
-builder.Services.AddRateLimiter(options =>
-{
-    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
-        ctx => IpFixedWindow(ctx, 2000));
-
-    options.AddPolicy("RefreshPolicy", ctx => IpFixedWindow(ctx, 5));
-    options.AddPolicy("DownloadPolicy", ctx => IpFixedWindow(ctx, 3));
-    options.AddPolicy("GhostDownloadPolicy", ctx => IpFixedWindow(ctx, 10));
-
-    // Configure rejection behavior when rate limit is exceeded
-    options.OnRejected = async (context, token) =>
-    {
-        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-
-        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
-        {
-            context.HttpContext.Response.Headers.RetryAfter = retryAfter.TotalSeconds.ToString();
-        }
-
-        await context.HttpContext.Response.WriteAsync(
-            "Rate limit exceeded. Please try again later.", token);
-    };
-});
-
 // ===== CONTROLLERS =====
 builder.Services.AddControllers();
 
@@ -288,7 +237,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-app.UseRateLimiter();
 app.UseAuthorization();
 app.MapControllers();
 

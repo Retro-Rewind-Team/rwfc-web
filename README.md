@@ -249,14 +249,15 @@ All endpoints are public except `/api/moderation/*`, which requires:
 Authorization: Bearer <WfcSecret>
 ```
 
-### Rate limits (per IP)
+### Rate limits
 
-| Policy | Limit | Applied to |
-|---|---|---|
-| Global | 2000 req / min | All endpoints |
-| `RefreshPolicy` | 5 req / min | `POST /api/roomstatus/refresh` |
-| `DownloadPolicy` | 3 req / min | Mii image downloads |
-| `GhostDownloadPolicy` | 10 req / min | Ghost file downloads |
+Rate limiting is handled by Cloudflare in front of the origin, not by the API.
+
+The application previously ran its own per-IP limiter. It was removed because the
+API sits behind both Cloudflare and nginx, so the address the app sees is nginx's
+and every client partitioned to the same bucket, giving one shared limit for all
+users rather than one each. Reintroducing an in-process limiter requires resolving
+the real client first, via `CF-Connecting-IP` and trusting only the immediate proxy.
 
 ### Key endpoints
 

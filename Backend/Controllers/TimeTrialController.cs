@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs.TimeTrial;
 using RetroRewindWebsite.Services.Application;
@@ -363,7 +362,6 @@ public class TimeTrialController : ControllerBase
     // ===== GHOST DOWNLOAD ENDPOINT =====
 
     [HttpGet("ghost/{id}/download")]
-    [EnableRateLimiting("GhostDownloadPolicy")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
