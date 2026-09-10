@@ -62,9 +62,17 @@ public class LeaderboardBackgroundService : PollingBackgroundService, ILeaderboa
         LastSyncTime = DateTime.UtcNow;
 
         var now = LastSyncTime.Value;
-        if (now.Hour == MaintenanceHourUtc && now.Minute < RefreshIntervalMinutes
-            && _lastMaintenanceDate?.Date != now.Date)
+
+        // Any tick during the maintenance hour will do. Requiring minute 0 meant a tick that
+        // drifted past it -- the loop waits a full interval *after* each sync, so it slips a little
+        // every time -- skipped maintenance for the whole day.
+        if (now.Hour == MaintenanceHourUtc && _lastMaintenanceDate?.Date != now.Date)
         {
+            // Claim the day before starting: a run outlasts the tick interval, so a flag set only
+            // on completion would let the next tick start a second one on top of it. A failure
+            // gives the claim back so a later tick in the same hour can retry.
+            _lastMaintenanceDate = now;
+
             Logger.LogInformation("Performing daily maintenance tasks for {Date:yyyy-MM-dd}", now.Date);
 
             _ = Task.Run(async () =>
@@ -72,15 +80,16 @@ public class LeaderboardBackgroundService : PollingBackgroundService, ILeaderboa
                 try
                 {
                     await PerformMaintenanceTasksAsync(cancellationToken);
-                    _lastMaintenanceDate = now;
                     Logger.LogInformation("Daily maintenance tasks completed");
                 }
                 catch (OperationCanceledException)
                 {
+                    _lastMaintenanceDate = null;
                     Logger.LogInformation("Daily maintenance cancelled during host shutdown");
                 }
                 catch (Exception ex)
                 {
+                    _lastMaintenanceDate = null;
                     Logger.LogError(ex, "Maintenance failed");
                 }
             }, cancellationToken);

@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using RetroRewindWebsite.Models.Entities.RaceResult;
 using RetroRewindWebsite.Repositories.RaceResult;
 using RetroRewindWebsite.Services.External;
@@ -113,20 +112,11 @@ public class RaceResultService : IRaceResultService
 
                     if (allNewResults.Count > 0)
                     {
-                        try
-                        {
-                            await raceResultRepository.AddRaceResultsAsync(allNewResults);
-                            totalNewResults += allNewResults.Count;
-                        }
-                        catch (DbUpdateException ex) when (
-                            ex.InnerException is Npgsql.PostgresException pgEx &&
-                            pgEx.SqlState == "23505")
-                        {
-                            _logger.LogDebug(
-                                "Caught race condition duplicate for room {RoomId}, skipped {Count} results",
-                                group.Id, allNewResults.Count);
-                            totalSkippedResults += allNewResults.Count;
-                        }
+                        // The repository drops only the rows a concurrent tick already wrote, so a
+                        // single duplicate no longer costs us the rest of the room's races.
+                        var inserted = await raceResultRepository.AddRaceResultsAsync(allNewResults);
+                        totalNewResults += inserted;
+                        totalSkippedResults += allNewResults.Count - inserted;
                     }
                 }
                 catch (Exception ex)

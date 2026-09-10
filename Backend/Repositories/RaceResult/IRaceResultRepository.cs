@@ -5,11 +5,12 @@ namespace RetroRewindWebsite.Repositories.RaceResult;
 public interface IRaceResultRepository
 {
     /// <summary>
-    /// Asynchronously adds a collection of race results to the data store.
+    /// Asynchronously adds a collection of race results to the data store. Rows that a concurrent
+    /// tick already wrote are skipped rather than aborting the rest of the batch.
     /// </summary>
     /// <param name="raceResults">The list of race result entities to add. Cannot be null or contain null elements.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    Task AddRaceResultsAsync(List<RaceResultEntity> raceResults);
+    /// <returns>A task that represents the asynchronous operation, returning the number of rows stored.</returns>
+    Task<int> AddRaceResultsAsync(List<RaceResultEntity> raceResults);
 
     /// <summary>
     /// Asynchronously retrieves the race results for the specified room.

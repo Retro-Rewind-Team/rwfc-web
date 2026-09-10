@@ -124,6 +124,33 @@ public interface IGhostSubmissionRepository
         int count);
 
     /// <summary>
+    /// Counts the submissions in the same leaderboard category that are strictly faster than
+    /// <paramref name="finishTimeMs"/>. Olympic rank is that count plus one, which is how the
+    /// first row of a page finds its rank without seeing the rows before it.
+    /// </summary>
+    Task<int> CountFasterTimesAsync(
+        int trackId,
+        short cc,
+        bool glitchAllowed,
+        bool? shroomless,
+        short? minVehicleId,
+        short? maxVehicleId,
+        int finishTimeMs);
+
+    /// <summary>
+    /// The flap equivalent of <see cref="CountFasterTimesAsync"/>, comparing the fastest lap of
+    /// each submission rather than its finish time.
+    /// </summary>
+    Task<int> CountFasterLapsAsync(
+        int trackId,
+        short cc,
+        bool glitchAllowed,
+        bool? shroomless,
+        short? minVehicleId,
+        short? maxVehicleId,
+        int fastestLapMs);
+
+    /// <summary>
     /// Retrieves a paged leaderboard of ghost submissions for the specified track, filtered by engine class, glitch
     /// allowance, shroomless mode, vehicle range, and pagination parameters.
     /// </summary>

@@ -107,6 +107,19 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
         return await PagedResult<GhostSubmissionEntity>.CreateAsync(query, page, pageSize);
     }
 
+    public async Task<int> CountFasterTimesAsync(
+        int trackId,
+        short cc,
+        bool glitchAllowed,
+        bool? shroomless,
+        short? minVehicleId,
+        short? maxVehicleId,
+        int finishTimeMs)
+    {
+        var query = BuildLeaderboardQuery(trackId, cc, glitchAllowed, shroomless, minVehicleId, maxVehicleId);
+        return await query.CountAsync(g => g.FinishTimeMs < finishTimeMs);
+    }
+
     public async Task<List<GhostSubmissionEntity>> GetTopTimesForTrackAsync(
         int trackId,
         short cc,
@@ -124,6 +137,33 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
     }
 
     // ===== FLAP LEADERBOARD =====
+
+    public async Task<int> CountFasterLapsAsync(
+        int trackId,
+        short cc,
+        bool glitchAllowed,
+        bool? shroomless,
+        short? minVehicleId,
+        short? maxVehicleId,
+        int fastestLapMs)
+    {
+        return await _context.Database
+            .SqlQuery<int>($@"
+                SELECT CAST(COUNT(*) AS INTEGER) AS ""Value""
+                FROM ""GhostSubmissions"" g
+                WHERE g.""TrackId"" = {trackId}
+                  AND g.""CC"" = {cc}
+                  AND g.""IsFlap"" = true
+                  AND ({glitchAllowed} OR g.""Glitch"" = false)
+                  AND ({shroomless == null} OR g.""Shroomless"" = {shroomless ?? false})
+                  AND ({!minVehicleId.HasValue} OR (g.""VehicleId"" >= {minVehicleId ?? 0} AND g.""VehicleId"" <= {maxVehicleId ?? 0}))
+                  AND (
+                        SELECT MIN(lap::int)
+                        FROM jsonb_array_elements_text(g.""LapSplitsMs""::jsonb) AS lap
+                      ) < {fastestLapMs}
+            ")
+            .FirstOrDefaultAsync();
+    }
 
     public async Task<PagedResult<GhostSubmissionEntity>> GetFlapLeaderboardAsync(
         int trackId,

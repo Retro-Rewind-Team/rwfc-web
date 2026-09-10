@@ -43,7 +43,13 @@ public class MiiController : ControllerBase
                 return NotFound($"Mii image not found for player with friend code '{fc}'");
 
             Response.Headers.CacheControl = "public, max-age=3600";
-            Response.Headers.ETag = $"\"{Convert.ToHexString(MD5.HashData(Convert.FromBase64String(miiImage)))}\"";
+
+            // Stored data, not request data, but a malformed row should not turn a cache header
+            // into a 500. Skip the ETag rather than fail the response.
+            if (TryDecodeBase64(miiImage, out var cachedBytes))
+                Response.Headers.ETag = $"\"{Convert.ToHexString(MD5.HashData(cachedBytes))}\"";
+            else
+                _logger.LogWarning("Cached Mii image for {FriendCode} is not valid base64", fc);
 
             return Ok(new MiiResponseDto(fc, miiImage));
         }
@@ -67,7 +73,12 @@ public class MiiController : ControllerBase
             if (miiImage == null)
                 return NotFound($"Mii image not found for player with friend code '{fc}'");
 
-            var imageBytes = Convert.FromBase64String(miiImage);
+            if (!TryDecodeBase64(miiImage, out var imageBytes))
+            {
+                _logger.LogWarning("Cached Mii image for {FriendCode} is not valid base64", fc);
+                return NotFound($"Mii image for player with friend code '{fc}' is unreadable");
+            }
+
             Response.Headers.CacheControl = "public, max-age=3600";
             Response.Headers.ETag = $"\"{Convert.ToHexString(MD5.HashData(imageBytes))}\"";
 
@@ -96,7 +107,12 @@ public class MiiController : ControllerBase
             if (string.IsNullOrEmpty(player.MiiData))
                 return NotFound($"No Mii data available for player with friend code '{fc}'");
 
-            var miiBytes = Convert.FromBase64String(player.MiiData);
+            if (!TryDecodeBase64(player.MiiData, out var miiBytes))
+            {
+                _logger.LogWarning("Stored Mii data for {FriendCode} is not valid base64", fc);
+                return NotFound($"Mii data for player with friend code '{fc}' is unreadable");
+            }
+
             return File(miiBytes, "application/octet-stream", $"{player.Name}.mii");
         }
         catch (Exception ex)
@@ -188,5 +204,24 @@ public class MiiController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError,
                 "An error occurred while retrieving Mii images");
         }
+    }
+    /// <summary>
+    /// Decodes stored base64 without throwing. Mii data comes from an upstream API and is stored
+    /// verbatim, so a malformed value is possible and should degrade rather than 500.
+    /// </summary>
+    private static bool TryDecodeBase64(string? value, out byte[] bytes)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            var buffer = new byte[((value.Length * 3) + 3) / 4];
+            if (Convert.TryFromBase64String(value, buffer, out var written))
+            {
+                bytes = buffer[..written];
+                return true;
+            }
+        }
+
+        bytes = [];
+        return false;
     }
 }

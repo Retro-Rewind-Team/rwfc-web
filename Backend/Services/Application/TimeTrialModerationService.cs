@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using RetroRewindWebsite.Data;
 using RetroRewindWebsite.Mappers;
 using RetroRewindWebsite.Models.Domain;
 using RetroRewindWebsite.Models.DTOs.TimeTrial;
@@ -17,6 +18,7 @@ public class TimeTrialModerationService : ITimeTrialModerationService
     private readonly ITrackRepository _trackRepository;
     private readonly ITTProfileRepository _ttProfileRepository;
     private readonly IGhostSubmissionRepository _ghostSubmissionRepository;
+    private readonly LeaderboardDbContext _context;
     private readonly ILogger<TimeTrialModerationService> _logger;
 
     public TimeTrialModerationService(
@@ -24,12 +26,14 @@ public class TimeTrialModerationService : ITimeTrialModerationService
         ITrackRepository trackRepository,
         ITTProfileRepository ttProfileRepository,
         IGhostSubmissionRepository ghostSubmissionRepository,
+        LeaderboardDbContext context,
         ILogger<TimeTrialModerationService> logger)
     {
         _ghostFileService = ghostFileService;
         _trackRepository = trackRepository;
         _ttProfileRepository = ttProfileRepository;
         _ghostSubmissionRepository = ghostSubmissionRepository;
+        _context = context;
         _logger = logger;
     }
 
@@ -91,12 +95,20 @@ public class TimeTrialModerationService : ITimeTrialModerationService
                 IsFlap = isFlap
             };
 
-            await _ghostSubmissionRepository.AddAsync(submission);
+            // The submission row, the profile's submission count and the world-record counts have
+            // to move together: a failure between them leaves counts that disagree with the rows
+            // they are counting, and nothing recomputes them afterwards.
+            await using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                await _ghostSubmissionRepository.AddAsync(submission);
 
-            ttProfile.TotalSubmissions =
-                await _ghostSubmissionRepository.GetProfileSubmissionsCountAsync(ttProfile.Id);
-            await _ttProfileRepository.UpdateAsync(ttProfile);
-            await _ghostSubmissionRepository.UpdateWorldRecordCountsAsync();
+                ttProfile.TotalSubmissions =
+                    await _ghostSubmissionRepository.GetProfileSubmissionsCountAsync(ttProfile.Id);
+                await _ttProfileRepository.UpdateAsync(ttProfile);
+                await _ghostSubmissionRepository.UpdateWorldRecordCountsAsync();
+
+                await transaction.CommitAsync();
+            }
 
             _logger.LogInformation(
                 "Ghost submitted: Track {TrackId}, Player {PlayerName} (ID: {ProfileId}), Time {Time}ms, DriftCategory {DriftCategory}",
@@ -118,23 +130,31 @@ public class TimeTrialModerationService : ITimeTrialModerationService
         if (submission == null)
             return null;
 
-        await _ghostSubmissionRepository.DeleteAsync(submission.Id);
-
-        var ttProfile = await _ttProfileRepository.GetByIdAsync(submission.TTProfileId);
-        if (ttProfile != null)
+        // Same three-write set as submitting, and the same reason for the transaction: a delete
+        // that lands without the count updates leaves the profile claiming submissions it no
+        // longer has.
+        await using (var transaction = await _context.Database.BeginTransactionAsync())
         {
-            ttProfile.TotalSubmissions =
-                await _ghostSubmissionRepository.GetProfileSubmissionsCountAsync(ttProfile.Id);
-            await _ttProfileRepository.UpdateAsync(ttProfile);
-        }
-        else
-        {
-            _logger.LogWarning(
-                "TT Profile {ProfileId} not found when deleting submission {SubmissionId}",
-                submission.TTProfileId, id);
-        }
+            await _ghostSubmissionRepository.DeleteAsync(submission.Id);
 
-        await _ghostSubmissionRepository.UpdateWorldRecordCountsAsync();
+            var ttProfile = await _ttProfileRepository.GetByIdAsync(submission.TTProfileId);
+            if (ttProfile != null)
+            {
+                ttProfile.TotalSubmissions =
+                    await _ghostSubmissionRepository.GetProfileSubmissionsCountAsync(ttProfile.Id);
+                await _ttProfileRepository.UpdateAsync(ttProfile);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "TT Profile {ProfileId} not found when deleting submission {SubmissionId}",
+                    submission.TTProfileId, id);
+            }
+
+            await _ghostSubmissionRepository.UpdateWorldRecordCountsAsync();
+
+            await transaction.CommitAsync();
+        }
 
         _logger.LogInformation("Ghost submission {SubmissionId} deleted", id);
 
@@ -215,7 +235,21 @@ public class TimeTrialModerationService : ITimeTrialModerationService
             UpdatedAt = DateTime.UtcNow
         };
 
-        await _ttProfileRepository.AddAsync(newProfile);
+        try
+        {
+            await _ttProfileRepository.AddAsync(newProfile);
+        }
+        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+        {
+            // DisplayName is uniquely indexed, so two creates racing past the check above leave the
+            // loser with a 23505. Answer exactly as the check would have, so the caller cannot tell
+            // whether it lost the race.
+            var raced = await _ttProfileRepository.GetByNameAsync(displayName);
+            return new ProfileCreationResultDto(
+                false,
+                $"Profile with name '{displayName}' already exists",
+                raced == null ? null : TTProfileMapper.ToDto(raced));
+        }
 
         _logger.LogInformation("TT Profile created: {DisplayName} (ID: {ProfileId})",
             newProfile.DisplayName, newProfile.Id);
@@ -268,7 +302,18 @@ public class TimeTrialModerationService : ITimeTrialModerationService
         if (countryCode.HasValue)
             profile.CountryCode = countryCode.Value;
 
-        await _ttProfileRepository.UpdateAsync(profile);
+        try
+        {
+            await _ttProfileRepository.UpdateAsync(profile);
+        }
+        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+        {
+            // Renaming into a name another request claimed in the meantime hits the same unique
+            // index as CreateProfileAsync does.
+            return new ProfileUpdateResultDto(
+                false,
+                $"Profile with name '{displayName}' already exists");
+        }
 
         _logger.LogInformation("TT Profile updated: {DisplayName} (ID: {ProfileId})",
             profile.DisplayName, id);
@@ -317,4 +362,7 @@ public class TimeTrialModerationService : ITimeTrialModerationService
             true,
             $"Profile '{profile.DisplayName}' deleted successfully");
     }
+
+    private static bool IsUniqueViolation(DbUpdateException ex) =>
+        ex.InnerException is Npgsql.PostgresException { SqlState: "23505" };
 }

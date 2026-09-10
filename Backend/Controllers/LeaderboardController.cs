@@ -58,6 +58,9 @@ public class LeaderboardController : ControllerBase
     {
         try
         {
+            // Unvalidated, so a negative or huge page reached the offset calculation directly.
+            page = Math.Max(1, page);
+
             var response = await _leaderboardService.GetLeaderboardInGameAsync(page);
             Response.Headers.CacheControl = "public, max-age=60";
             return Ok(response);

@@ -169,6 +169,11 @@ public class RaceStatsController : ControllerBase
     {
         try
         {
+            // Narrowing an out-of-range courseId wraps, so the query would silently run against a
+            // different course rather than reporting bad input.
+            if (courseId is < short.MinValue or > short.MaxValue)
+                return BadRequest("Invalid courseId");
+
             page = Math.Max(1, page);
             pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
             var result = await _raceStatsService.GetTrackOnlineBestsAsync(

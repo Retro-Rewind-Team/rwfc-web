@@ -18,6 +18,13 @@ public class MiiBatchService : IMiiBatchService
     private const int MiiImageCacheDays = 7;
     private const int MiiFetchTimeoutSeconds = 10;
 
+    /// <summary>
+    /// Caps how many cache writes may run in the background at once. Each one takes a connection
+    /// from a pool of 10, so a large batch of uncached Miis must not be able to claim all of them.
+    /// The service is scoped, so this has to be static to bound anything.
+    /// </summary>
+    private static readonly SemaphoreSlim _storeSlots = new(4, 4);
+
     public MiiBatchService(
         IPlayerRepository playerRepository,
         IPlayerMiiRepository playerMiiRepository,
@@ -67,8 +74,15 @@ public class MiiBatchService : IMiiBatchService
     {
         var result = new Dictionary<string, string?>();
         var players = await _playerRepository.GetPlayersByFriendCodesAsync(friendCodes);
-        // Build a lookup keyed by FC so we can resolve each requested code in O(1)
-        var playerLookup = players.ToDictionary(p => p.Fc, p => p);
+        // Build a lookup keyed by FC so we can resolve each requested code in O(1). Fc carries a
+        // plain index, not a unique one, so a duplicate row would make ToDictionary throw and fail
+        // the whole batch. Keep the row most likely to answer instead.
+        var playerLookup = players
+            .GroupBy(p => p.Fc)
+            .ToDictionary(g => g.Key, g => g
+                .OrderByDescending(p => !string.IsNullOrEmpty(p.MiiData))
+                .ThenByDescending(p => p.MiiCache?.MiiImageFetchedAt ?? DateTime.MinValue)
+                .First());
         // Collect live-fetch tasks separately so they can run concurrently via Task.WhenAll
         var tasks = new List<Task<(string fc, string? mii)>>();
 
@@ -102,7 +116,13 @@ public class MiiBatchService : IMiiBatchService
     {
         var result = new Dictionary<string, string?>();
         var legacyPlayers = await _legacyPlayerRepository.GetLegacyPlayersByFriendCodesAsync(friendCodes);
-        var playerLookup = legacyPlayers.ToDictionary(p => p.Fc, p => p);
+        // Same non-unique Fc index as the live table, so collapse duplicates rather than throwing.
+        var playerLookup = legacyPlayers
+            .GroupBy(p => p.Fc)
+            .ToDictionary(g => g.Key, g => g
+                .OrderByDescending(p => !string.IsNullOrEmpty(p.MiiImageBase64))
+                .ThenByDescending(p => !string.IsNullOrEmpty(p.MiiData))
+                .First());
         var tasks = new List<Task<(string fc, string? mii)>>();
 
         foreach (var fc in friendCodes.Distinct())
@@ -151,6 +171,15 @@ public class MiiBatchService : IMiiBatchService
     /// <param name="fc">The friend code associated with the player. Used for logging purposes.</param>
     private void QueueStoreMiiImageAsync(string pid, string miiImage, string fc)
     {
+        // Take a slot up front rather than inside the task, so a batch of uncached players queues
+        // at most _storeSlots writes instead of one Task.Run per player. Storing is a cache warm:
+        // dropping it when the slots are busy just means the next request refetches.
+        if (!_storeSlots.Wait(0))
+        {
+            _logger.LogDebug("Mii store slots busy, skipped caching image for {FriendCode}", fc);
+            return;
+        }
+
         _ = Task.Run(async () =>
         {
             try
@@ -163,6 +192,10 @@ public class MiiBatchService : IMiiBatchService
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to store Mii image in database for {FriendCode}", fc);
+            }
+            finally
+            {
+                _storeSlots.Release();
             }
         });
     }
@@ -182,9 +215,9 @@ public class MiiBatchService : IMiiBatchService
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(MiiFetchTimeoutSeconds));
-            var miiImage = await _miiService
-                .GetMiiImageAsync(player.Fc, player.MiiData!)
-                .WaitAsync(cts.Token);
+            // Pass the token in rather than WaitAsync-ing on it: WaitAsync stops us waiting but
+            // leaves the upstream request running, so a slow Mii renderer keeps the connection.
+            var miiImage = await _miiService.GetMiiImageAsync(player.Fc, player.MiiData!, cts.Token);
 
             if (miiImage != null)
                 QueueStoreMiiImageAsync(player.Pid, miiImage, player.Fc);
@@ -217,9 +250,7 @@ public class MiiBatchService : IMiiBatchService
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(MiiFetchTimeoutSeconds));
-            var miiImage = await _miiService
-                .GetMiiImageAsync(fc, miiData)
-                .WaitAsync(cts.Token);
+            var miiImage = await _miiService.GetMiiImageAsync(fc, miiData, cts.Token);
             return (fc, miiImage);
         }
         catch (Exception ex)
