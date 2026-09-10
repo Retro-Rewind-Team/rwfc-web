@@ -130,39 +130,46 @@ public class LeaderboardSyncService : ILeaderboardSyncService
             if (toInsert.Count > 0)
                 await _playerRepository.AddRangeAsync(toInsert);
 
-            if (toUpdate.Count > 0)
-                await _playerRepository.UpdateRangeAsync(toUpdate);
-
-            // Batch insert VR history entries
+            // VR history goes in before the player rows are written, because the gains below are
+            // computed from it and are carried by that same write.
             if (vrHistoryEntries.Count > 0)
                 await _vrHistoryRepository.AddRangeAsync(vrHistoryEntries);
 
-            // Per-player gain recalculation (bounded to players whose VR actually changed)
-            foreach (var (player, _) in vrChangedPlayers)
+            // Gain recalculation for the players whose VR actually changed, in one grouped query
+            // rather than one round-trip each. A busy tick moves hundreds of players.
+            if (vrChangedPlayers.Count > 0)
             {
                 try
                 {
-                    (player.VRGainLast24Hours, player.VRGainLastWeek, player.VRGainLastMonth) =
-                        await _vrHistoryRepository.CalculateAllVRGainsAsync(player.Pid);
+                    var pids = vrChangedPlayers.Select(x => x.Player.Pid).ToList();
+                    var gains = await _vrHistoryRepository.CalculateVRGainsBatchAsync(pids);
 
-                    _logger.LogDebug("Tracked VR change for {Name} ({Pid}): new gains recalculated",
-                        player.Name, player.Pid);
+                    foreach (var (player, _) in vrChangedPlayers)
+                    {
+                        // Absent means no history inside the 30 day window, which is a real zero.
+                        var (gain24h, gain7d, gain30d) = gains.TryGetValue(player.Pid, out var g)
+                            ? g
+                            : (0, 0, 0);
+
+                        player.VRGainLast24Hours = gain24h;
+                        player.VRGainLastWeek = gain7d;
+                        player.VRGainLastMonth = gain30d;
+                    }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to recalculate VR gains for player {Name} ({Pid})",
-                        player.Name, player.Pid);
+                    // Leave the previous gains in place. They are a derived display value and the
+                    // next tick recomputes them; losing the whole sync over one is not worth it.
+                    _logger.LogWarning(ex, "Failed to recalculate VR gains for {Count} players",
+                        vrChangedPlayers.Count);
                 }
             }
 
-            // Flush gain updates if any, reuse the existing bulk path
-            if (vrChangedPlayers.Count > 0)
-            {
-                var gainUpdates = vrChangedPlayers.ToDictionary(
-                    x => x.Player.Pid,
-                    x => (x.Player.VRGainLast24Hours, x.Player.VRGainLastWeek, x.Player.VRGainLastMonth));
-                await _playerRepository.UpdatePlayerVRGainsBatchAsync(gainUpdates);
-            }
+            // One write carries both the player column changes and the gains just computed. These
+            // used to be two passes over the same rows: the bulk update ran before the gains
+            // existed, then UpdatePlayerVRGainsBatchAsync wrote the same rows again.
+            if (toUpdate.Count > 0)
+                await _playerRepository.UpdateRangeAsync(toUpdate);
 
             // Reclassify kart/bike preference for the players seen this tick. Their race counts
             // are the only ones that can have moved, so this stays off a full RaceResults scan.
