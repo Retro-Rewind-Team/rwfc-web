@@ -39,6 +39,37 @@ public class VRHistoryRepository : IVRHistoryRepository
             .Take(count)
             .ToListAsync();
 
+    public async Task<Dictionary<string, (int Gain24h, int Gain7d, int Gain30d)>> CalculateVRGainsBatchAsync(
+        IReadOnlyCollection<string> playerIds)
+    {
+        if (playerIds.Count == 0)
+            return [];
+
+        var now = DateTime.UtcNow;
+        var cutoff30d = now.AddDays(-30);
+        var cutoff7d = now.AddDays(-7);
+        var cutoff24h = now.AddDays(-1);
+
+        // Conditional sums so all three windows come back from one grouped query. The narrower
+        // windows are subsets of the 30 day one, so a single pass over the same rows answers all
+        // three. This aggregates server-side: the per-player version transferred every history row
+        // in the window and summed them in memory, once per player.
+        var rows = await _context.VRHistories
+            .AsNoTracking()
+            .Where(h => playerIds.Contains(h.PlayerId) && h.Date >= cutoff30d)
+            .GroupBy(h => h.PlayerId)
+            .Select(g => new
+            {
+                PlayerId = g.Key,
+                Gain24h = g.Sum(h => h.Date >= cutoff24h ? h.VRChange : 0),
+                Gain7d = g.Sum(h => h.Date >= cutoff7d ? h.VRChange : 0),
+                Gain30d = g.Sum(h => h.VRChange)
+            })
+            .ToListAsync();
+
+        return rows.ToDictionary(r => r.PlayerId, r => (r.Gain24h, r.Gain7d, r.Gain30d));
+    }
+
     public async Task<(int Gain24h, int Gain7d, int Gain30d)> CalculateAllVRGainsAsync(string playerId)
     {
         var now = DateTime.UtcNow;

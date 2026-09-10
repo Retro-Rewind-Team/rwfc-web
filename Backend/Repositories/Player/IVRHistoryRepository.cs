@@ -30,6 +30,18 @@ public interface IVRHistoryRepository
     Task<(int Gain24h, int Gain7d, int Gain30d)> CalculateAllVRGainsAsync(string playerId);
 
     /// <summary>
+    /// The batched form of <see cref="CalculateAllVRGainsAsync"/>: one grouped query covering every
+    /// requested player, instead of one round-trip each. The sync recalculates gains for every
+    /// player whose VR moved on a tick, which on a busy minute is hundreds of players.
+    /// </summary>
+    /// <returns>
+    /// Gains keyed by player id. A player with no history inside the 30 day window is absent rather
+    /// than zero, so callers should treat a miss as no gain.
+    /// </returns>
+    Task<Dictionary<string, (int Gain24h, int Gain7d, int Gain30d)>> CalculateVRGainsBatchAsync(
+        IReadOnlyCollection<string> playerIds);
+
+    /// <summary>
     /// Inserts multiple VR history entries in a single database round-trip.
     /// </summary>
     Task AddRangeAsync(IEnumerable<VRHistoryEntity> entries);
