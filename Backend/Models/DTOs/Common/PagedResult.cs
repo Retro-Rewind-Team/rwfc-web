@@ -21,10 +21,18 @@ public record PagedResult<T>(
         int pageSize)
     {
         var totalCount = await query.CountAsync();
-        var items = await query
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+
+        // (page - 1) * pageSize overflows int for a large page number and wraps negative, which
+        // Skip rejects at runtime. Compute in long and clamp: a page past the end is an empty
+        // result, not an error.
+        var skip = Math.Min((long)(page - 1) * pageSize, int.MaxValue);
+
+        var items = skip >= totalCount
+            ? []
+            : await query
+                .Skip((int)skip)
+                .Take(pageSize)
+                .ToListAsync();
 
         return new PagedResult<T>(items, totalCount, page, pageSize);
     }

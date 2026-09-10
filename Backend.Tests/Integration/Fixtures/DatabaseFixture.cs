@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using RetroRewindWebsite.Data;
 using RetroRewindWebsite.Models.Entities.Player;
 using Xunit;
@@ -24,6 +25,8 @@ public class DatabaseFixture : IAsyncLifetime
         // in case the rr_test database was created fresh outside the app lifecycle
         using var scope = Factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<LeaderboardDbContext>();
+
+        EnsureTestDatabase(db);
         await db.Database.MigrateAsync();
 
         await TruncateBaselineTablesAsync(db);
@@ -76,6 +79,27 @@ public class DatabaseFixture : IAsyncLifetime
         );
 
         await db.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// This fixture migrates the database it is handed and truncates Players with CASCADE. Pointed
+    /// at the wrong one it silently destroys real data, which is what happened while the connection
+    /// string override was being ignored, so refuse to run anywhere but the configured test
+    /// database rather than trusting the wiring.
+    /// </summary>
+    private static void EnsureTestDatabase(LeaderboardDbContext db)
+    {
+        var expected = new NpgsqlConnectionStringBuilder(
+            CustomWebApplicationFactory.TestConnectionString).Database;
+        var actual = db.Database.GetDbConnection().Database;
+
+        if (!string.Equals(expected, actual, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                $"Integration tests resolved the database '{actual}' but expect '{expected}'. " +
+                "These tests migrate and truncate what they connect to; refusing to run. " +
+                "Set RR_TEST_CONNECTION_STRING or check the connection string wiring.");
+        }
     }
 
     private static async Task TruncateBaselineTablesAsync(LeaderboardDbContext db)

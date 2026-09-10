@@ -13,6 +13,20 @@ internal class CustomWebApplicationFactory : WebApplicationFactory<Program>
     private const string DefaultTestConnectionString =
         "Host=localhost;Database=rr_test;Username=postgres;Password=postgres";
 
+    /// <summary>The connection string every test host runs against. See the static constructor.</summary>
+    internal static string TestConnectionString { get; } =
+        Environment.GetEnvironmentVariable("RR_TEST_CONNECTION_STRING") ?? DefaultTestConnectionString;
+
+    static CustomWebApplicationFactory()
+    {
+        // Program.cs reads ConnectionStrings:DefaultConnection straight off builder.Configuration,
+        // and that line runs before the ConfigureAppConfiguration callback below does, so the
+        // in-memory override never reached it: every integration test ran against the rr_dev
+        // database named in appsettings.json, migrating and truncating it. An environment variable
+        // is one of the builder's own default sources, so it lands early enough to win.
+        Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", TestConnectionString);
+    }
+
     private readonly Dictionary<string, string?> _configOverrides;
 
     /// <param name="configOverrides">
@@ -33,9 +47,9 @@ internal class CustomWebApplicationFactory : WebApplicationFactory<Program>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] =
-                    Environment.GetEnvironmentVariable("RR_TEST_CONNECTION_STRING")
-                    ?? DefaultTestConnectionString,
+                // Kept alongside the environment variable so the value is visible here too, but the
+                // environment variable is what Program.cs actually reads.
+                ["ConnectionStrings:DefaultConnection"] = TestConnectionString,
                 // Known secret used in auth middleware tests
                 ["WfcSecret"] = "test-secret-do-not-use-in-prod",
                 // Race stats caching off by default so tests always observe freshly seeded data.

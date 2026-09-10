@@ -306,7 +306,13 @@ public class RaceStatsService : IRaceStatsService
             var player = await _playerRepository.GetByFcAsync(friendCode);
             if (player == null)
                 return new PagedResult<RaceResultDto>([], 0, page, pageSize);
-            profileId = long.Parse(player.Pid);
+
+            // A PID that is not numeric has no race results to find; treat it as no match rather
+            // than letting a FormatException surface as a 500.
+            if (!long.TryParse(player.Pid, out var parsedProfileId))
+                return new PagedResult<RaceResultDto>([], 0, page, pageSize);
+
+            profileId = parsedProfileId;
         }
 
         var (raceKeys, totalCount) = await _raceStatsRepository.GetDistinctRacesAsync(
@@ -346,7 +352,12 @@ public class RaceStatsService : IRaceStatsService
 
         var pids = rows.Select(r => r.ProfileId.ToString()).ToList();
         var players = await _playerRepository.GetPlayersByPidsAsync(pids);
-        var playerMap = players.ToDictionary(p => long.Parse(p.Pid), p => (p.Name, p.Fc));
+        // Skip rather than throw on a non-numeric PID: the row simply falls back to its placeholder
+        // name below.
+        var playerMap = players
+            .Select(p => (Parsed: long.TryParse(p.Pid, out var id), Id: id, p.Name, p.Fc))
+            .Where(x => x.Parsed)
+            .ToDictionary(x => x.Id, x => (x.Name, x.Fc));
 
         var items = rows.Select((r, i) =>
         {
@@ -374,7 +385,9 @@ public class RaceStatsService : IRaceStatsService
         if (player == null)
             return null;
 
-        var profileId = long.Parse(pid);
+        if (!long.TryParse(pid, out var profileId))
+            return null;
+
         var rows = await _raceStatsRepository.GetPlayerOnlineBestsAsync(profileId);
 
         if (rows.Count == 0)

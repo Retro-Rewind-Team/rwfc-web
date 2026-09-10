@@ -12,6 +12,9 @@ namespace RetroRewindWebsite.Controllers;
 [Route("api/badges")]
 public class BadgeController : ControllerBase
 {
+    /// <summary>Matches the Mii batch cap so both batch endpoints behave the same way.</summary>
+    private const int MaxBatchPids = 100;
+
     private readonly IPlayerRepository _playerRepository;
     private readonly ILogger<BadgeController> _logger;
 
@@ -53,6 +56,10 @@ public class BadgeController : ControllerBase
         {
             if (request.Pids == null || request.Pids.Count == 0)
                 return BadRequest("Player IDs (Pids) are required");
+
+            // Uncapped, so a single request could ask for the whole player table in one IN clause.
+            if (request.Pids.Count > MaxBatchPids)
+                return BadRequest($"At most {MaxBatchPids} player IDs may be requested at once");
 
             var players = await _playerRepository.GetPlayersByPidsAsync(request.Pids);
             var badgeMap = new Dictionary<string, ICollection<int>>();

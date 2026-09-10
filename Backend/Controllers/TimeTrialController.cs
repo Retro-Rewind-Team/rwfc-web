@@ -39,8 +39,11 @@ public class TimeTrialController : ControllerBase
     {
         try
         {
+            var result = await _timeTrialService.GetAllTracksAsync();
+            // Set after the await: a header assigned first still rides on the 500 the catch
+            // below produces, telling intermediaries to cache an error.
             Response.Headers.CacheControl = "public, max-age=3600";
-            return Ok(await _timeTrialService.GetAllTracksAsync());
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -178,9 +181,13 @@ public class TimeTrialController : ControllerBase
 
             var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
 
+            var result = await _timeTrialService.GetTopTimesAsync(
+                trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax, count);
+
+            // Set after the await: a header assigned first still rides on the 500 the catch
+            // below produces, telling intermediaries to cache an error.
             Response.Headers.CacheControl = "public, max-age=30";
-            return Ok(await _timeTrialService.GetTopTimesAsync(
-                trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax, count));
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -246,9 +253,13 @@ public class TimeTrialController : ControllerBase
 
             var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
 
+            var result = await _timeTrialService.GetWorldRecordHistoryAsync(
+                trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax);
+
+            // Set after the await: a header assigned first still rides on the 500 the catch
+            // below produces, telling intermediaries to cache an error.
             Response.Headers.CacheControl = "public, max-age=30";
-            return Ok(await _timeTrialService.GetWorldRecordHistoryAsync(
-                trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax));
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -276,9 +287,13 @@ public class TimeTrialController : ControllerBase
 
             var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
 
+            var result = await _timeTrialService.GetFlapWorldRecordHistoryAsync(
+                trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax);
+
+            // Set after the await: a header assigned first still rides on the 500 the catch
+            // below produces, telling intermediaries to cache an error.
             Response.Headers.CacheControl = "public, max-age=30";
-            return Ok(await _timeTrialService.GetFlapWorldRecordHistoryAsync(
-                trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax));
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -305,9 +320,13 @@ public class TimeTrialController : ControllerBase
 
             var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
 
+            var result = await _timeTrialService.GetAllWorldRecordsAsync(
+                cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax);
+
+            // Set after the await: a header assigned first still rides on the 500 the catch
+            // below produces, telling intermediaries to cache an error.
             Response.Headers.CacheControl = "public, max-age=30";
-            return Ok(await _timeTrialService.GetAllWorldRecordsAsync(
-                cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax));
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -502,9 +521,13 @@ public class TimeTrialController : ControllerBase
 
             var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
 
+            var result = await _timeTrialService.GetPlayerRankingsAsync(
+                cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax, trackCategory, page, pageSize);
+
+            // Set after the await: a header assigned first still rides on the 500 the catch
+            // below produces, telling intermediaries to cache an error.
             Response.Headers.CacheControl = "public, max-age=30";
-            return Ok(await _timeTrialService.GetPlayerRankingsAsync(
-                cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax, trackCategory, page, pageSize));
+            return Ok(result);
         }
         catch (Exception ex)
         {

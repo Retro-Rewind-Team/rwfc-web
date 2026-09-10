@@ -70,7 +70,18 @@ public class TimeTrialService : ITimeTrialService
         var pageOffset = (page - 1) * pageSize;
         var ghostFileIds = await _ghostSubmissionRepository.GetExistingGhostFileIdsAsync(
             pagedResult.Items.Select(g => g.Id));
-        var submissions = GhostSubmissionMapper.ToLeaderboardDtos(pagedResult.Items, pageOffset, ghostFileIds);
+
+        // A tie group can start on the previous page, in which case the first row here shares that
+        // group's rank rather than starting a new one. The page cannot tell, so count the faster
+        // submissions. Page one always starts at rank 1, so it needs no query.
+        int? firstRank = pageOffset > 0 && pagedResult.Items.Count > 0
+            ? await _ghostSubmissionRepository.CountFasterTimesAsync(
+                trackId, cc, glitchAllowed, shroomless, vehicleMin, vehicleMax,
+                pagedResult.Items[0].FinishTimeMs) + 1
+            : null;
+
+        var submissions = GhostSubmissionMapper.ToLeaderboardDtos(
+            pagedResult.Items, pageOffset, ghostFileIds, firstRank);
 
         return new TrackLeaderboardDto(
             TrackMapper.ToDto(track),
@@ -113,7 +124,16 @@ public class TimeTrialService : ITimeTrialService
         var pageOffset = (page - 1) * pageSize;
         var ghostFileIds = await _ghostSubmissionRepository.GetExistingGhostFileIdsAsync(
             pagedResult.Items.Select(g => g.Id));
-        var submissions = GhostSubmissionMapper.ToFlapLeaderboardDtos(pagedResult.Items, pageOffset, ghostFileIds);
+
+        // Same boundary problem as the regular leaderboard, on fastest lap instead of finish time.
+        int? firstRank = pageOffset > 0 && pagedResult.Items.Count > 0
+            ? await _ghostSubmissionRepository.CountFasterLapsAsync(
+                trackId, cc, glitchAllowed, shroomless, vehicleMin, vehicleMax,
+                GhostSubmissionMapper.GetFastestLap(pagedResult.Items[0].LapSplitsMs)) + 1
+            : null;
+
+        var submissions = GhostSubmissionMapper.ToFlapLeaderboardDtos(
+            pagedResult.Items, pageOffset, ghostFileIds, firstRank);
 
         return new TrackLeaderboardDto(
             TrackMapper.ToDto(track),

@@ -62,11 +62,15 @@ public static class GhostSubmissionMapper
     /// Maps a page of regular leaderboard results with Olympic-style ranks (1,1,3).
     /// Rankings are based purely on FinishTimeMs, ties are draws.
     /// pageOffset is (currentPage - 1) * pageSize so ranks are globally correct across pages.
+    /// firstRank is the rank of this page's first row: a tie group that starts on an earlier page
+    /// continues onto this one, so that rank is not necessarily pageOffset + 1 and cannot be worked
+    /// out from the page alone. The caller counts the faster submissions. Null means page one.
     /// </summary>
     public static List<GhostSubmissionDetailDto> ToLeaderboardDtos(
         IList<GhostSubmissionEntity> entities,
         int pageOffset,
-        ISet<int> ghostFileIds)
+        ISet<int> ghostFileIds,
+        int? firstRank = null)
     {
         var result = new List<GhostSubmissionDetailDto>(entities.Count);
 
@@ -77,7 +81,7 @@ public static class GhostSubmissionMapper
 
             if (i == 0)
             {
-                rank = globalIndex + 1;
+                rank = firstRank ?? globalIndex + 1;
             }
             else
             {
@@ -96,11 +100,13 @@ public static class GhostSubmissionMapper
     /// Maps a page of flap leaderboard results with Olympic-style ranks (1,1,3).
     /// Rankings based on FastestLapMs (MIN of lap splits), ties are draws.
     /// Since the SQL already sorted by fastest lap, we compare adjacent fastest laps.
+    /// firstRank carries the page's opening rank for the same reason as in ToLeaderboardDtos.
     /// </summary>
     public static List<GhostSubmissionDetailDto> ToFlapLeaderboardDtos(
         IList<GhostSubmissionEntity> entities,
         int pageOffset,
-        ISet<int> ghostFileIds)
+        ISet<int> ghostFileIds,
+        int? firstRank = null)
     {
         var result = new List<GhostSubmissionDetailDto>(entities.Count);
 
@@ -111,7 +117,7 @@ public static class GhostSubmissionMapper
 
             if (i == 0)
             {
-                rank = globalIndex + 1;
+                rank = firstRank ?? globalIndex + 1;
             }
             else
             {

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using RetroRewindWebsite.Helpers;
+using RetroRewindWebsite.Models.Domain;
 using RetroRewindWebsite.Models.DTOs.Player;
 using RetroRewindWebsite.Models.DTOs.TimeTrial;
 using RetroRewindWebsite.Models.External;
@@ -187,6 +188,12 @@ public class PlayerModerationController : ControllerBase
             if (string.IsNullOrWhiteSpace(request.Pid))
                 return BadRequest("Player ID (Pid) is required");
 
+            // Badges are stored verbatim and the frontend silently drops ids it doesn't know, so
+            // an unrecognised id would sit in the row invisibly until someone removed that exact
+            // number by hand.
+            if (!Enum.IsDefined(typeof(BadgeId), request.Badge))
+                return BadRequest($"'{request.Badge}' is not a known badge id");
+
             var result = await _moderationService.AddBadgeAsync(request.Pid, request.Badge);
             if (result == null)
                 return NotFound($"Player with PID '{request.Pid}' not found");
@@ -212,6 +219,9 @@ public class PlayerModerationController : ControllerBase
         {
             if (string.IsNullOrWhiteSpace(request.Pid))
                 return BadRequest("Player ID (Pid) is required");
+
+            // Deliberately no BadgeId check here: removal has to reach ids that were stored before
+            // the add path started validating, or an expunged badge could never be cleaned up.
 
             var result = await _moderationService.RemoveBadgeAsync(request.Pid, request.Badge);
             if (result == null)

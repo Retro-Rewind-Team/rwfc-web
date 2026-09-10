@@ -13,6 +13,9 @@ namespace RetroRewindWebsite.Controllers;
 [Route("api/leaderboard")]
 public class PlayerController : ControllerBase
 {
+    private const int MinHistoryCount = 1;
+    private const int MaxHistoryCount = 200;
+
     private readonly IPlayerService _playerService;
     private readonly ILogger<PlayerController> _logger;
 
@@ -101,6 +104,9 @@ public class PlayerController : ControllerBase
     {
         try
         {
+            // A negative count reached Take() unguarded, which throws.
+            count = Math.Clamp(count, MinHistoryCount, MaxHistoryCount);
+
             var history = await _playerService.GetPlayerRecentHistoryAsync(fc, count);
             if (history == null)
                 return NotFound($"Player with friend code '{fc}' not found");

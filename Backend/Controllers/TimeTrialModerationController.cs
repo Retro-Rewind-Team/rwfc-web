@@ -58,13 +58,19 @@ public class TimeTrialModerationController : ControllerBase
             var fileValidation = ValidateGhostFile(request.GhostFile);
             if (fileValidation != null) return fileValidation;
 
-            var ccError = TimeTrialValidation.ValidateCc((short)request.Cc);
+            // Range-check before narrowing. Casting first wraps, so an int such as 65686 becomes
+            // 150 and sails through validation as a legitimate cc.
+            if (request.Cc is < short.MinValue or > short.MaxValue)
+                return BadRequest("Invalid cc value");
+
+            var cc = (short)request.Cc;
+            var ccError = TimeTrialValidation.ValidateCc(cc);
             if (ccError != null) return BadRequest(ccError);
 
             var result = await _moderationService.SubmitGhostAsync(
                 request.GhostFile,
                 request.TrackId,
-                (short)request.Cc,
+                cc,
                 request.TtProfileId,
                 request.Shroomless,
                 request.Glitch,
