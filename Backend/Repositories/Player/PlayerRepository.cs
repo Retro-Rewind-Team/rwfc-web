@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using NpgsqlTypes;
 using RetroRewindWebsite.Data;
+using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs.Common;
 using RetroRewindWebsite.Models.Entities.Player;
 
@@ -82,10 +83,13 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
 
         if (!string.IsNullOrEmpty(search))
         {
-            var searchTerm = $"%{search}%";
+            // Escaped: an unescaped '%' or '_' from the user changes what the query means, and a
+            // single '%' asks for every row. The escape character has to be passed through too,
+            // otherwise the backslashes are matched literally.
+            var searchTerm = LikePattern.Contains(search);
             query = query.Where(p =>
-                EF.Functions.ILike(p.Name, searchTerm) ||
-                EF.Functions.ILike(p.Fc, searchTerm));
+                EF.Functions.ILike(p.Name, searchTerm, LikePattern.EscapeCharacter) ||
+                EF.Functions.ILike(p.Fc, searchTerm, LikePattern.EscapeCharacter));
         }
 
         if (activeDays.HasValue && IsValidActiveDaysFilter(activeDays.Value))
@@ -466,10 +470,13 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
 
         if (!string.IsNullOrEmpty(search))
         {
-            var searchTerm = $"%{search}%";
+            // Escaped: an unescaped '%' or '_' from the user changes what the query means, and a
+            // single '%' asks for every row. The escape character has to be passed through too,
+            // otherwise the backslashes are matched literally.
+            var searchTerm = LikePattern.Contains(search);
             query = query.Where(p =>
-                EF.Functions.ILike(p.Name, searchTerm) ||
-                EF.Functions.ILike(p.Fc, searchTerm));
+                EF.Functions.ILike(p.Name, searchTerm, LikePattern.EscapeCharacter) ||
+                EF.Functions.ILike(p.Fc, searchTerm, LikePattern.EscapeCharacter));
         }
 
         query = sortBy.ToLower() switch
