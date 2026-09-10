@@ -46,7 +46,9 @@ export const VR_TIERS: readonly VRTierInfo[] = [
     },
     {
         tier: "master",
-        gradient: "from-gradient-rainbow",
+        // Real utility classes: "gradient-rainbow" was never defined anywhere, so the master
+        // plate rendered with no colour stops.
+        gradient: "from-rose-400 via-amber-400 to-sky-500",
         glow: true,
         icon: Trophy,
         iconColor: "text-purple-200",

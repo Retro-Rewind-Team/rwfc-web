@@ -47,21 +47,21 @@ const colorClasses = {
 };
 
 export default function StatCard(props: StatCardProps) {
-    const colors = colorClasses[props.colorScheme];
+    const colors = () => colorClasses[props.colorScheme];
 
     return (
         <div
-            class={`bg-white dark:bg-gray-800 rounded-xl border-2 ${colors.border} p-6 flex flex-col items-center justify-center`}
+            class={`bg-white dark:bg-gray-800 rounded-xl border-2 ${colors().border} p-6 flex flex-col items-center justify-center`}
         >
             <Show when={props.icon}>
-                <div class={`mb-3 ${colors.icon}`}>{props.icon}</div>
+                <div class={`mb-3 ${colors().icon}`}>{props.icon}</div>
             </Show>
-            <div class={`text-4xl font-bold ${colors.text} mb-1`}>
+            <div class={`text-4xl font-bold ${colors().text} mb-1`}>
                 {typeof props.value === "number" ? props.value.toLocaleString() : props.value}
             </div>
-            <div class={`text-sm font-semibold ${colors.label}`}>{props.label}</div>
+            <div class={`text-sm font-semibold ${colors().label}`}>{props.label}</div>
             <Show when={props.subtitle}>
-                <div class={`mt-1 text-xs ${colors.subtitle}`}>{props.subtitle}</div>
+                <div class={`mt-1 text-xs ${colors().subtitle}`}>{props.subtitle}</div>
             </Show>
         </div>
     );

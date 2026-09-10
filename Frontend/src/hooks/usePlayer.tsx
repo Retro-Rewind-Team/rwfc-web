@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/solid-query";
 import { api } from "../services/api";
+import { ApiError } from "../services/api/client";
 import { createMemo } from "solid-js";
 import { queryKeys } from "../constants/queryKeys";
 
@@ -30,9 +31,8 @@ export function usePlayer(friendCode: () => string) {
     const isPlayerNotFound = () => {
         return (
             playerQuery.isError &&
-            playerQuery.error instanceof Error &&
-            (playerQuery.error.message.includes("404") ||
-                playerQuery.error.message.includes("not found"))
+            playerQuery.error instanceof ApiError &&
+            playerQuery.error.status === 404
         );
     };
 

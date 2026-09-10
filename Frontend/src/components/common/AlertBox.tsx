@@ -47,20 +47,20 @@ const colorClasses = {
 };
 
 export default function AlertBox(props: AlertBoxProps) {
-    const colors = colorClasses[props.type];
+    const colors = () => colorClasses[props.type];
     const icon = () => props.icon ?? defaultIcons[props.type]();
 
     return (
-        <div class={`${colors.bg} border-l-4 ${colors.border} rounded-r-lg p-6`}>
+        <div class={`${colors().bg} border-l-4 ${colors().border} rounded-r-lg p-6`}>
             <div class="flex items-start space-x-3">
-                <div class={`shrink-0 mt-0.5 ${colors.icon}`}>{icon()}</div>
+                <div class={`shrink-0 mt-0.5 ${colors().icon}`}>{icon()}</div>
                 <div class="flex-1">
                     <Show when={props.title}>
-                        <h3 class={`text-lg font-semibold ${colors.titleText} mb-2`}>
+                        <h3 class={`text-lg font-semibold ${colors().titleText} mb-2`}>
                             {props.title}
                         </h3>
                     </Show>
-                    <div class={colors.bodyText}>{props.children}</div>
+                    <div class={colors().bodyText}>{props.children}</div>
                 </div>
             </div>
         </div>
