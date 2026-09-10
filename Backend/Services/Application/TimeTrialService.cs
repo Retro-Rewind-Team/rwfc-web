@@ -268,7 +268,7 @@ public class TimeTrialService : ITimeTrialService
 
     public async Task<(byte[] Data, string FileName)?> GetGhostDownloadInfoAsync(int id)
     {
-        var submission = await _ghostSubmissionRepository.GetByIdAsync(id);
+        var submission = await _ghostSubmissionRepository.GetByIdAsync(id, includeGhostFile: true);
         if (submission == null)
             return null;
 
@@ -329,16 +329,17 @@ public class TimeTrialService : ITimeTrialService
         if (profile == null)
             return null;
 
-        var tracks150 = await _ghostSubmissionRepository.CountDistinctTracksAsync(ttProfileId, CC_150);
-        var tracks200 = await _ghostSubmissionRepository.CountDistinctTracksAsync(ttProfileId, CC_200);
+        // One round-trip for all five figures. This was five sequential queries, two of which
+        // ranked every non-flap submission in the table before filtering to this one profile.
+        var stats = await _ghostSubmissionRepository.GetProfileStatsAsync(ttProfileId);
 
         return new TTPlayerStatsDto(
             TTProfileMapper.ToDto(profile),
-            await _ghostSubmissionRepository.CountDistinctTracksAsync(ttProfileId),
-            tracks150,
-            tracks200,
-            await _ghostSubmissionRepository.CalculateAverageFinishPositionAsync(ttProfileId),
-            await _ghostSubmissionRepository.CountTop10FinishesAsync(ttProfileId)
+            stats.TotalTracks,
+            stats.Tracks150,
+            stats.Tracks200,
+            stats.AverageFinishPosition,
+            stats.Top10Finishes
         );
     }
 

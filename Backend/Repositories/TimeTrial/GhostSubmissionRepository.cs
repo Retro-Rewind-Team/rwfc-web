@@ -16,13 +16,22 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
         _logger = logger;
     }
 
-    public async Task<GhostSubmissionEntity?> GetByIdAsync(int id) =>
-        await _context.GhostSubmissions
+    public async Task<GhostSubmissionEntity?> GetByIdAsync(int id, bool includeGhostFile = false)
+    {
+        // Typed as IQueryable, not the IIncludableQueryable the Include chain returns, so the
+        // conditional Include below can be reassigned to it.
+        IQueryable<GhostSubmissionEntity> query = _context.GhostSubmissions
             .AsNoTracking()
             .Include(g => g.Track)
-            .Include(g => g.TTProfile)
-            .Include(g => g.GhostFile)
-            .FirstOrDefaultAsync(g => g.Id == id);
+            .Include(g => g.TTProfile);
+
+        // The blob is the .rkg file itself, up to 512KB. Only the download path reads it; submitting
+        // and deleting used to drag it across the wire and throw it away.
+        if (includeGhostFile)
+            query = query.Include(g => g.GhostFile);
+
+        return await query.FirstOrDefaultAsync(g => g.Id == id);
+    }
 
     public async Task<HashSet<int>> GetExistingGhostFileIdsAsync(IEnumerable<int> submissionIds) =>
         (await _context.GhostFileBlobs
@@ -439,77 +448,73 @@ public class GhostSubmissionRepository : IGhostSubmissionRepository
     public async Task<int> GetProfileSubmissionsCountAsync(int ttProfileId) =>
         await _context.GhostSubmissions.CountAsync(g => g.TTProfileId == ttProfileId);
 
-    public async Task<double> CalculateAverageFinishPositionAsync(int ttProfileId)
+    public async Task<TTProfileStatsRow> GetProfileStatsAsync(int ttProfileId)
     {
         try
         {
-            return await _context.Database
-                .SqlQuery<double>($@"
-                    WITH RankedSubmissions AS (
-                        SELECT 
-                            ""TTProfileId"",
-                            RANK() OVER (
-                                PARTITION BY ""TrackId"", ""CC"", ""Glitch""
-                                ORDER BY ""FinishTimeMs""
-                            ) as Position
+            // profile_groups narrows the ranking to the (track, cc, glitch) partitions this profile
+            // actually competes in. RANK() is partitioned by exactly those three columns, so ranks
+            // in one partition cannot be affected by another: dropping partitions the profile is
+            // absent from leaves its own positions identical. The join keeps every submission
+            // inside a kept partition, not just this profile's, so the competition is intact.
+            //
+            // The two queries this replaces had no profile filter inside the CTE at all, so each
+            // ranked the whole GhostSubmissions table and then threw away all but one profile.
+            //
+            // Aliases are double-quoted because Postgres folds unquoted ones to lowercase and the
+            // unmapped result type is matched by property name.
+            var row = await _context.Database
+                .SqlQuery<TTProfileStatsRow>($@"
+                    WITH profile_groups AS (
+                        SELECT DISTINCT ""TrackId"", ""CC"", ""Glitch""
                         FROM ""GhostSubmissions""
-                        WHERE ""IsFlap"" = false
+                        WHERE ""TTProfileId"" = {ttProfileId} AND ""IsFlap"" = false
+                    ),
+                    ranked AS (
+                        SELECT g.""TTProfileId"",
+                               RANK() OVER (
+                                   PARTITION BY g.""TrackId"", g.""CC"", g.""Glitch""
+                                   ORDER BY g.""FinishTimeMs""
+                               ) AS position
+                        FROM ""GhostSubmissions"" g
+                        JOIN profile_groups pg
+                          ON pg.""TrackId"" = g.""TrackId""
+                         AND pg.""CC"" = g.""CC""
+                         AND pg.""Glitch"" = g.""Glitch""
+                        WHERE g.""IsFlap"" = false
+                    ),
+                    positions AS (
+                        SELECT COALESCE(AVG(position::float8), 0.0) AS avg_position,
+                               COUNT(*) FILTER (WHERE position <= 10) AS top10
+                        FROM ranked
+                        WHERE ""TTProfileId"" = {ttProfileId}
+                    ),
+                    tracks AS (
+                        -- Deliberately not filtered on IsFlap, matching the counts this replaces.
+                        SELECT COUNT(DISTINCT ""TrackId"") AS total,
+                               COUNT(DISTINCT ""TrackId"") FILTER (WHERE ""CC"" = 150) AS c150,
+                               COUNT(DISTINCT ""TrackId"") FILTER (WHERE ""CC"" = 200) AS c200
+                        FROM ""GhostSubmissions""
+                        WHERE ""TTProfileId"" = {ttProfileId}
                     )
-                    SELECT COALESCE(AVG(CAST(Position AS FLOAT)), 0.0) as ""Value""
-                    FROM RankedSubmissions
-                    WHERE ""TTProfileId"" = {ttProfileId}
+                    SELECT CAST(t.total AS INTEGER) AS ""TotalTracks"",
+                           CAST(t.c150 AS INTEGER) AS ""Tracks150"",
+                           CAST(t.c200 AS INTEGER) AS ""Tracks200"",
+                           p.avg_position AS ""AverageFinishPosition"",
+                           CAST(p.top10 AS INTEGER) AS ""Top10Finishes""
+                    FROM tracks t CROSS JOIN positions p
                 ")
                 .FirstOrDefaultAsync();
+
+            // CROSS JOIN of two single-row aggregates always yields a row, but a profile with no
+            // submissions at all still deserves an answer rather than a null.
+            return row ?? new TTProfileStatsRow(0, 0, 0, 0.0, 0);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calculating average finish position for profile {ProfileId}", ttProfileId);
+            _logger.LogError(ex, "Error gathering stats for profile {ProfileId}", ttProfileId);
             throw;
         }
-    }
-
-    public async Task<int> CountTop10FinishesAsync(int ttProfileId)
-    {
-        try
-        {
-            return await _context.Database
-                .SqlQuery<int>($@"
-                    WITH RankedSubmissions AS (
-                        SELECT 
-                            ""TTProfileId"",
-                            RANK() OVER (
-                                PARTITION BY ""TrackId"", ""CC"", ""Glitch""
-                                ORDER BY ""FinishTimeMs""
-                            ) as Position
-                        FROM ""GhostSubmissions""
-                        WHERE ""IsFlap"" = false
-                    )
-                    SELECT CAST(COUNT(*) AS INTEGER) as ""Value""
-                    FROM RankedSubmissions
-                    WHERE ""TTProfileId"" = {ttProfileId}
-                      AND Position <= 10
-                ")
-                .FirstOrDefaultAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error counting top 10 finishes for profile {ProfileId}", ttProfileId);
-            throw;
-        }
-    }
-
-    public async Task<int> CountDistinctTracksAsync(int ttProfileId, short? cc = null)
-    {
-        var query = _context.GhostSubmissions
-            .Where(g => g.TTProfileId == ttProfileId);
-
-        if (cc.HasValue)
-            query = query.Where(g => g.CC == cc.Value);
-
-        return await query
-            .Select(g => g.TrackId)
-            .Distinct()
-            .CountAsync();
     }
 
     // ===== WORLD RECORD COUNTS =====
