@@ -48,14 +48,10 @@ public interface IRoomStatusService
     Task<List<PlayerCountDataPointDto>> GetPlayerCountSeriesAsync(int? days);
 
     /// <summary>
-    /// Returns the smallest snapshot database ID currently stored.
+    /// The lowest and highest snapshot ids, used by the browser to bound its navigation. Cached;
+    /// see the implementation for how fresh the value is.
     /// </summary>
-    Task<int> GetMinIdAsync();
-
-    /// <summary>
-    /// Returns the largest snapshot database ID currently stored.
-    /// </summary>
-    Task<int> GetMaxIdAsync();
+    Task<(int MinId, int MaxId)> GetSnapshotIdBoundsAsync();
 
     // ===== MII DATA =====
 

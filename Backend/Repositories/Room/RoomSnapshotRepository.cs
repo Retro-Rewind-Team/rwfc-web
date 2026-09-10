@@ -76,11 +76,18 @@ public class RoomSnapshotRepository : IRoomSnapshotRepository
         return (timestamp - before.Timestamp) <= (after.Timestamp - timestamp) ? before : after;
     }
 
-    public async Task<int> GetMinIdAsync() =>
-        await _context.RoomSnapshots.MinAsync(s => (int?)s.Id) ?? 0;
+    public async Task<(int MinId, int MaxId)> GetIdBoundsAsync()
+    {
+        // One aggregate rather than two. Both are index scans on the primary key, so the round
+        // trip was most of the cost.
+        var bounds = await _context.RoomSnapshots
+            .GroupBy(_ => 1)
+            .Select(g => new { Min = g.Min(s => (int?)s.Id), Max = g.Max(s => (int?)s.Id) })
+            .FirstOrDefaultAsync();
 
-    public async Task<int> GetMaxIdAsync() =>
-        await _context.RoomSnapshots.MaxAsync(s => (int?)s.Id) ?? 0;
+        // No rows at all: GroupBy yields nothing rather than a row of nulls.
+        return (bounds?.Min ?? 0, bounds?.Max ?? 0);
+    }
 
     public async Task<int> GetPeakPlayerCountAsync(DateTime? since = null)
     {

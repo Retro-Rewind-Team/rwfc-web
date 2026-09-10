@@ -27,8 +27,20 @@ public class RoomStatusService : IRoomStatusService
     private volatile int _peakPlayersAllTime;
     private DateOnly _peakTodayDate; // only read/written under _refreshLock
 
+    // Track names come from a full read of the Tracks table. The poll was doing that every 10
+    // seconds, roughly 8,600 reads a day of a table that changes only when TrackSync runs.
+    private Dictionary<short, string>? _trackNames;
+    private DateTime _trackNamesLoadedAt;
+
+    // Snapshot id bounds, reported by three endpoints on every request.
+    private volatile int _cachedMinId;
+    private volatile int _cachedMaxId;
+    private DateTime _idBoundsLoadedAt;
+
     private const int LiveCacheSize = 1;
     private const int RefreshTimeoutSeconds = 5;
+    private const int TrackNameCacheMinutes = 10;
+    private const int IdBoundsCacheSeconds = 60;
 
     public RoomStatusService(
         IServiceScopeFactory serviceScopeFactory,
@@ -136,18 +148,34 @@ public class RoomStatusService : IRoomStatusService
         return raw.Select(r => new PlayerCountDataPointDto(r.Bucket, r.MaxPlayers, r.MaxRooms)).ToList();
     }
 
-    public async Task<int> GetMinIdAsync()
+    /// <summary>
+    /// Three endpoints report these bounds on every request, and each used to run two queries in
+    /// its own DI scope, taking a second connection from a pool of ten to answer two index scans.
+    /// </summary>
+    /// <remarks>
+    /// The maximum does not rely on the TTL to stay current: this service writes the snapshots, so
+    /// it advances the cached maximum itself the moment a write succeeds. The TTL is really for the
+    /// minimum, which only moves when old snapshots are pruned, and as a first load after start-up.
+    /// </remarks>
+    public async Task<(int MinId, int MaxId)> GetSnapshotIdBoundsAsync()
     {
-        using var scope = _serviceScopeFactory.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IRoomSnapshotRepository>();
-        return await repository.GetMinIdAsync();
-    }
+        if (DateTime.UtcNow - _idBoundsLoadedAt < TimeSpan.FromSeconds(IdBoundsCacheSeconds))
+            return (_cachedMinId, _cachedMaxId);
 
-    public async Task<int> GetMaxIdAsync()
-    {
         using var scope = _serviceScopeFactory.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IRoomSnapshotRepository>();
-        return await repository.GetMaxIdAsync();
+        var (minId, maxId) = await repository.GetIdBoundsAsync();
+
+        _cachedMinId = minId;
+
+        // Never move the maximum backwards. A persist that landed while this query was in flight
+        // would otherwise be undone by a snapshot of the table taken before it.
+        if (maxId > _cachedMaxId)
+            _cachedMaxId = maxId;
+
+        _idBoundsLoadedAt = DateTime.UtcNow;
+
+        return (_cachedMinId, _cachedMaxId);
     }
 
     // ===== MII DATA =====
@@ -236,14 +264,7 @@ public class RoomStatusService : IRoomStatusService
             var groups = await retroWFCApiClient.GetActiveGroupsAsync();
             var timestamp = DateTime.UtcNow;
 
-            // Build track name lookup once, reused for both mapping and persistence
-            var allTracks = await trackRepository.GetAllTracksAsync();
-            var trackNames = allTracks
-                .GroupBy(t => t.CourseId)
-                .ToDictionary(
-                    g => g.Key,
-                    g => string.Join(" / ", g.Select(t => t.Name))
-                );
+            var trackNames = await GetTrackNamesAsync(trackRepository, timestamp);
 
             // Map to DTOs (track names resolved here)
             var roomDtos = groups.Select(g => RoomMapper.ToDto(g, trackNames)).ToList();
@@ -272,6 +293,10 @@ public class RoomStatusService : IRoomStatusService
                 {
                     if (totalPlayers > _peakPlayersToday) _peakPlayersToday = totalPlayers;
                     if (totalPlayers > _peakPlayersAllTime) _peakPlayersAllTime = totalPlayers;
+
+                    // We just created the newest snapshot, so the cached maximum is known here
+                    // without going back to the database for it.
+                    if (dbId.Value > _cachedMaxId) _cachedMaxId = dbId.Value;
                 }
             }
 
@@ -378,5 +403,35 @@ public class RoomStatusService : IRoomStatusService
         public int DbId { get; set; }
         public DateTime Timestamp { get; set; }
         public List<RoomDto> Rooms { get; set; } = [];
+    }
+
+    /// <summary>
+    /// The track name lookup, rebuilt at most once every <see cref="TrackNameCacheMinutes"/>
+    /// minutes. A track name only changes when TrackSync runs, so the cost of the cache is a name
+    /// being briefly stale in the room browser, against a full table read every poll.
+    /// </summary>
+    /// <remarks>
+    /// Only ever called from RefreshRoomDataAsync, which holds _refreshLock for its whole body, so
+    /// the two fields need no synchronisation of their own.
+    /// </remarks>
+    private async Task<Dictionary<short, string>> GetTrackNamesAsync(
+        ITrackRepository trackRepository,
+        DateTime now)
+    {
+        if (_trackNames != null && now - _trackNamesLoadedAt < TimeSpan.FromMinutes(TrackNameCacheMinutes))
+            return _trackNames;
+
+        var allTracks = await trackRepository.GetAllTracksAsync();
+
+        // Grouped because two tracks can share a CourseId; the room browser shows both names.
+        _trackNames = allTracks
+            .GroupBy(t => t.CourseId)
+            .ToDictionary(
+                g => g.Key,
+                g => string.Join(" / ", g.Select(t => t.Name))
+            );
+        _trackNamesLoadedAt = now;
+
+        return _trackNames;
     }
 }

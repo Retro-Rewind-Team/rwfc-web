@@ -55,18 +55,10 @@ public interface IRoomSnapshotRepository
     Task<RoomSnapshotEntity?> GetNearestAsync(DateTime timestamp);
 
     /// <summary>
-    /// Asynchronously retrieves the minimum identifier value from the data source.
+    /// The lowest and highest snapshot ids, in a single aggregate. Both are 0 when there are no
+    /// snapshots at all.
     /// </summary>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the smallest identifier value found.
-    /// If no identifiers are present, the result is 0.</returns>
-    Task<int> GetMinIdAsync();
-
-    /// <summary>
-    /// Asynchronously retrieves the highest identifier value from the data source.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the maximum identifier value, or 0
-    /// if no identifiers are present.</returns>
-    Task<int> GetMaxIdAsync();
+    Task<(int MinId, int MaxId)> GetIdBoundsAsync();
 
     /// <summary>
     /// Asynchronously retrieves the highest recorded player count, optionally since a specified date and time.
