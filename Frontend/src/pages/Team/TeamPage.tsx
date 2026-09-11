@@ -73,6 +73,21 @@ export default function TeamPage() {
                                 </For>
                             </div>
 
+                            {/* Team Retro Rewind WFC Button */}
+                            {section === "Team Retro WFC" && (
+                                <div class="flex justify-center mt-4">
+                                    <a
+                                        href="https://www.patreon.com/cw/RetroRewindMKW"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors inline-flex items-center gap-2"
+                                    >
+                                        <Heart size={18} />
+                                        Support Team Retro WFC
+                                    </a>
+                                </div>
+                            )}
+
                             {/* Team WheelWizard Support Button */}
                             {section === "Team WheelWizard" && (
                                 <div class="flex justify-center mt-4">
