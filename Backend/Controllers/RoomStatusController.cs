@@ -53,8 +53,7 @@ public class RoomStatusController : ControllerBase
             if (response == null)
                 return NotFound("No room data available yet. The system may still be initializing.");
 
-            var minId = await _roomStatusService.GetMinIdAsync();
-            var maxId = await _roomStatusService.GetMaxIdAsync();
+            var (minId, maxId) = await _roomStatusService.GetSnapshotIdBoundsAsync();
             response = response with { MinimumId = minId, MaximumId = maxId };
 
             Response.Headers.CacheControl = "public, max-age=10";
@@ -77,8 +76,7 @@ public class RoomStatusController : ControllerBase
     {
         try
         {
-            var minId = await _roomStatusService.GetMinIdAsync();
-            var maxId = await _roomStatusService.GetMaxIdAsync();
+            var (minId, maxId) = await _roomStatusService.GetSnapshotIdBoundsAsync();
 
             var response = await _roomStatusService.GetStatusByDbIdAsync(id);
 
@@ -169,8 +167,7 @@ public class RoomStatusController : ControllerBase
     {
         try
         {
-            var minId = await _roomStatusService.GetMinIdAsync();
-            var maxId = await _roomStatusService.GetMaxIdAsync();
+            var (minId, maxId) = await _roomStatusService.GetSnapshotIdBoundsAsync();
 
             var response = await _roomStatusService.GetNearestStatusAsync(UtcDateTime.From(timestamp));
 

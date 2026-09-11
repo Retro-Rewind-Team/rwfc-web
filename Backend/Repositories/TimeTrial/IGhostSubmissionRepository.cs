@@ -3,6 +3,16 @@ using RetroRewindWebsite.Models.Entities.TimeTrial;
 
 namespace RetroRewindWebsite.Repositories.TimeTrial;
 
+/// <summary>
+/// The five figures behind a time trial profile's stats card, gathered in one query.
+/// </summary>
+public sealed record TTProfileStatsRow(
+    int TotalTracks,
+    int Tracks150,
+    int Tracks200,
+    double AverageFinishPosition,
+    int Top10Finishes);
+
 public interface IGhostSubmissionRepository
 {
     /// <summary>
@@ -11,7 +21,20 @@ public interface IGhostSubmissionRepository
     /// <param name="id">The unique identifier of the ghost submission to retrieve. Must be greater than zero.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the ghost submission entity if
     /// found; otherwise, null.</returns>
-    Task<GhostSubmissionEntity?> GetByIdAsync(int id);
+    /// <summary>
+    /// Every figure on a profile's stats card in one round-trip: distinct tracks overall and per
+    /// engine class, average finish position, and top ten finishes.
+    /// </summary>
+    /// <remarks>
+    /// Replaces five separate calls. Two of those ranked every non-flap submission in the table
+    /// before filtering to one profile, so a stats page cost two full-table window sorts.
+    /// </remarks>
+    Task<TTProfileStatsRow> GetProfileStatsAsync(int ttProfileId);
+
+    /// <param name="includeGhostFile">
+    /// Loads the stored .rkg blob, up to 512KB. Off by default: only the download path needs it.
+    /// </param>
+    Task<GhostSubmissionEntity?> GetByIdAsync(int id, bool includeGhostFile = false);
 
     /// <summary>
     /// Returns the subset of the given submission IDs that have a stored ghost file blob.
@@ -333,32 +356,6 @@ public interface IGhostSubmissionRepository
     Task<int> GetProfileSubmissionsCountAsync(int ttProfileId);
 
 
-
-    /// <summary>
-    /// Calculates the average finish position for the specified profile asynchronously.
-    /// </summary>
-    /// <param name="ttProfileId">The unique identifier of the profile for which to calculate the average finish position. Must be a valid profile
-    /// ID.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the average finish position as a
-    /// double. Returns 0 if no finish positions are available.</returns>
-    Task<double> CalculateAverageFinishPositionAsync(int ttProfileId);
-
-    /// <summary>
-    /// Asynchronously counts the number of top 10 finishes for the specified profile.
-    /// </summary>
-    /// <param name="ttProfileId">The unique identifier of the profile for which to count top 10 finishes. Must be a valid profile ID.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the number of top 10 finishes for
-    /// the specified profile.</returns>
-    Task<int> CountTop10FinishesAsync(int ttProfileId);
-
-    /// <summary>
-    /// Asynchronously counts the number of distinct tracks associated with the specified profile and code.
-    /// </summary>
-    /// <param name="ttProfileId">The identifier of the profile for which to count distinct tracks. Must be a valid profile ID.</param>
-    /// <param name="cc">The cc used to filter tracks. The value must be within the valid range for track ccs. Can be optionally null.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the number of distinct tracks found
-    /// for the given profile and code.</returns>
-    Task<int> CountDistinctTracksAsync(int ttProfileId, short? cc = null);
 
     /// <summary>
     /// Updates the counts of world records asynchronously.
