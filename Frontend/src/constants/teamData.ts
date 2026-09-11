@@ -431,18 +431,15 @@ const team = {
 
 export const teamData: Record<string, TeamMember[]> = {
     "Project Leader": [
-        team.ZPL.withRole("Creator & Project Leader").withDonation("https://ko-fi.com/zpl__"),
+        team.ZPL.withRole("Creator & Project Leader"),
     ],
     "Team Retro WFC": [
         team.Ppeb.withRole("Retro WFC & Bot Developer, Server Administrator")
-            .withDonation("https://ko-fi.com/ppebb")
             .withForge("https://github.com/ppebb"),
         team.Jacher.withRole("Server Administrator & Host, Channel Developer")
-            .withDonation("https://ko-fi.com/jacherr")
             .withForge("https://github.com/Jacherr"),
         team.Renverse.withRole("Server Co-Host")
-            .withForge("https://github.com/Renverse420")
-            .withDonation("https://streamlabs.com/renverse64/tip"),
+            .withForge("https://github.com/Renverse420"),
         team.Gab.withRole("Lead Retro WFC and Discord Administrator").withForge(
             "https://github.com/GABRlEL",
         ),
