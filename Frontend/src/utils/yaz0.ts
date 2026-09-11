@@ -1,3 +1,5 @@
+import { ByteWriter } from "./byteWriter";
+
 /**
  * Decompresses a Yaz0-encoded buffer.
  * Yaz0 is Nintendo's run-length encoding scheme used in MKWii .szs and .rkg files.
@@ -50,6 +52,17 @@ export function yaz0Decompress(src: Uint8Array): Uint8Array {
                 length += 2;
             }
 
+            // A back-reference must point at data already written, and must not run past the
+            // declared output size. Without these a malformed stream read dst[-1] as undefined,
+            // which silently stored 0, or wrote past the end where the assignment is ignored.
+            // Either way the result was quiet corruption rather than a rejected file.
+            if (dstPos - dist < 0) {
+                throw new Error("Yaz0 back-reference points before the start of the output.");
+            }
+            if (dstPos + length > dst.length) {
+                throw new Error("Yaz0 back-reference runs past the declared output size.");
+            }
+
             for (let i = 0; i < length; i++) {
                 dst[dstPos] = dst[dstPos - dist];
                 dstPos++;
@@ -79,13 +92,13 @@ export function yaz0Decompress(src: Uint8Array): Uint8Array {
  */
 export function yaz0Compress(uncompressed: Uint8Array): Uint8Array {
     const size = uncompressed.length;
-    const out: number[] = [];
+    const out = new ByteWriter(Math.max(4096, size));
 
     // Yaz0 header
     out.push(0x59, 0x61, 0x7a, 0x30); // 'Yaz0'
     out.push((size >>> 24) & 0xff, (size >>> 16) & 0xff, (size >>> 8) & 0xff, size & 0xff);
     // 8 reserved bytes
-    for (let i = 0; i < 8; i++) out.push(0x00);
+    out.pushRepeat(0x00, 8);
 
     const MAX_SEARCH_DEPTH = 8;
     const head = new Int32Array(0x10000);
@@ -97,7 +110,7 @@ export function yaz0Compress(uncompressed: Uint8Array): Uint8Array {
 
     while (pos < size) {
         const ctrlPos = out.length;
-        out.push(0x00); // control byte placeholder
+        out.pushByte(0x00); // control byte placeholder
         let mask = 0x80;
 
         for (let b = 0; b < 8 && pos < size; b++) {
@@ -141,12 +154,12 @@ export function yaz0Compress(uncompressed: Uint8Array): Uint8Array {
                 const distMinus1 = bestDist - 1;
 
                 if (runLen >= 0x12) {
-                    out.push((0 << 4) | ((distMinus1 >> 8) & 0x0f));
-                    out.push(distMinus1 & 0xff);
-                    out.push((runLen - 0x12) & 0xff);
+                    out.pushByte((0 << 4) | ((distMinus1 >> 8) & 0x0f));
+                    out.pushByte(distMinus1 & 0xff);
+                    out.pushByte((runLen - 0x12) & 0xff);
                 } else {
-                    out.push(((runLen - 2) << 4) | ((distMinus1 >> 8) & 0x0f));
-                    out.push(distMinus1 & 0xff);
+                    out.pushByte(((runLen - 2) << 4) | ((distMinus1 >> 8) & 0x0f));
+                    out.pushByte(distMinus1 & 0xff);
                 }
 
                 const start = pos;
@@ -160,8 +173,8 @@ export function yaz0Compress(uncompressed: Uint8Array): Uint8Array {
                 pos += runLen;
             } else {
                 // Literal byte
-                out[ctrlPos] |= mask;
-                out.push(uncompressed[pos]);
+                out.orAt(ctrlPos, mask);
+                out.pushByte(uncompressed[pos]);
 
                 if (pos < size - 1) {
                     const k2 = ((uncompressed[pos] << 8) | uncompressed[pos + 1]) & 0xffff;
@@ -176,7 +189,7 @@ export function yaz0Compress(uncompressed: Uint8Array): Uint8Array {
         }
     }
 
-    return new Uint8Array(out);
+    return out.toUint8Array();
 }
 
 /**
@@ -188,25 +201,25 @@ export function yaz0Compress(uncompressed: Uint8Array): Uint8Array {
  */
 export function yaz0CompressLiteralOnly(uncompressed: Uint8Array): Uint8Array {
     const size = uncompressed.length;
-    const out: number[] = [];
+    const out = new ByteWriter(Math.max(4096, size));
 
     // Yaz0 magic
     out.push(0x59, 0x61, 0x7a, 0x30);
     out.push((size >>> 24) & 0xff, (size >>> 16) & 0xff, (size >>> 8) & 0xff, size & 0xff);
-    for (let i = 0; i < 8; i++) out.push(0x00);
+    out.pushRepeat(0x00, 8);
 
     let i = 0;
     while (i < size) {
         const ctrlIndex = out.length;
-        out.push(0x00);
+        out.pushByte(0x00);
         let mask = 0x80;
 
         for (let bit = 0; bit < 8 && i < size; bit++) {
-            out[ctrlIndex] |= mask;
-            out.push(uncompressed[i++]);
+            out.orAt(ctrlIndex, mask);
+            out.pushByte(uncompressed[i++]);
             mask >>= 1;
         }
     }
 
-    return new Uint8Array(out);
+    return out.toUint8Array();
 }

@@ -9,6 +9,5 @@ export * from "./ratingParser";
 export * from "./u8Parser";
 export * from "./yaz0";
 export * from "./fileValidator";
-export * from "./countryUtils";
 export * from "./vrCalculator";
 export * from "./rksysParser";
