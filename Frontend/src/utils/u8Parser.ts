@@ -90,6 +90,7 @@ export function parseU8(u8: Uint8Array): U8Archive {
  * @param targetSuffix - Path suffix identifying the file to replace. Defaults to
  *   "tt_kart_extension_font.brfnt".
  * @returns A new U8 archive buffer with the replacement applied.
+ * @throws If no file in the archive matches `targetSuffix`.
  */
 export function replaceBrfntInU8(
     u8: Uint8Array,
@@ -97,6 +98,15 @@ export function replaceBrfntInU8(
     targetSuffix = "tt_kart_extension_font.brfnt",
 ): Uint8Array {
     const { nodes, paths, rootOffset, dataOffset } = parseU8(u8);
+
+    // Without a match the rebuild below produces an unchanged archive, which the patcher would
+    // then hand back as if it had been patched.
+    const hasTarget = nodes.some(
+        (node, idx) => idx > 0 && node.type !== 1 && paths[idx].endsWith(targetSuffix),
+    );
+    if (!hasTarget) {
+        throw new Error(`${targetSuffix} was not found in this archive, so nothing was replaced.`);
+    }
 
     const header = new Uint8Array(u8.subarray(0, dataOffset));
     const headerView = new DataView(header.buffer, header.byteOffset, header.byteLength);
@@ -143,4 +153,23 @@ export function replaceBrfntInU8(
     newU8.set(dataArr, header.length);
 
     return newU8;
+}
+
+/**
+ * Copies out the first file whose path ends with `suffix`. Directories are skipped even when their
+ * name matches.
+ * @param u8 - A U8 archive, already Yaz0-decompressed.
+ * @param suffix - Path suffix identifying the file, e.g. "tt_kart_extension_font.brfnt".
+ * @returns The file's bytes, or null when the archive has no such file.
+ */
+export function extractFileFromU8(u8: Uint8Array, suffix: string): Uint8Array | null {
+    const { nodes, paths } = parseU8(u8);
+
+    for (let idx = 1; idx < nodes.length; idx++) {
+        const node = nodes[idx];
+        if (node.type === 1 || !paths[idx].endsWith(suffix)) continue;
+        return u8.slice(node.dataOffset, node.dataOffset + node.size);
+    }
+
+    return null;
 }

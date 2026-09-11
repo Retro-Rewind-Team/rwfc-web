@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseU8, replaceBrfntInU8 } from "../../utils/u8Parser";
+import { extractFileFromU8, parseU8, replaceBrfntInU8 } from "../../utils/u8Parser";
 
 /**
  * U8 is the container inside a .szs. The font patcher rewrites one file in it and writes the
@@ -170,11 +170,36 @@ describe("replaceBrfntInU8", () => {
         expect(parseU8(rebuilt).nodes[3].size).toBe(4096);
     });
 
-    it("leaves the archive untouched when no path matches the target suffix", () => {
+    // It used to rebuild an unchanged archive here, and the patcher then reported success and
+    // downloaded a "patched" font that was identical to the input.
+    it("refuses to rebuild when no path matches the target suffix", () => {
+        const { bytes } = sample();
+
+        expect(() => replaceBrfntInU8(bytes, new Uint8Array([5, 5]), "no-such-file.brfnt")).toThrow(
+            /no-such-file\.brfnt/,
+        );
+    });
+});
+
+describe("extractFileFromU8", () => {
+    it("returns the bytes of the file whose path ends with the suffix", () => {
         const { bytes, fontData } = sample();
 
-        const rebuilt = replaceBrfntInU8(bytes, new Uint8Array([5, 5]), "no-such-file.brfnt");
+        const extracted = extractFileFromU8(bytes, TARGET);
 
-        expect(Array.from(fileBytes(rebuilt, 3))).toEqual(Array.from(fontData));
+        expect(extracted).not.toBeNull();
+        expect(Array.from(extracted!)).toEqual(Array.from(fontData));
+    });
+
+    it("returns null when no file matches", () => {
+        const { bytes } = sample();
+
+        expect(extractFileFromU8(bytes, "missing.brfnt")).toBeNull();
+    });
+
+    it("does not return a directory whose name happens to match", () => {
+        const { bytes } = sample();
+
+        expect(extractFileFromU8(bytes, "dir")).toBeNull();
     });
 });

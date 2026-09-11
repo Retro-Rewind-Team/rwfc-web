@@ -56,7 +56,23 @@ export const MAX_DIST1ST = 10000;
 export const MIN_VS_FOR_RANK = 100;
 
 export const RANK_THRESHOLDS = [24, 36, 48, 60, 72, 84, 94, 100] as const;
-export const RANK_NAMES = ["-", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"] as const;
+/**
+ * What the game shows for each rank index. Ranking.cpp's RankToLabel prints private-use characters
+ * U+F07D..U+F085 from Retro Rewind's tt_kart_extension_font, and those glyphs draw as these badges.
+ * Index 0 is a license under the race minimum, where the game prints "0".
+ */
+const RANK_LABELS = [
+    "Unranked",
+    "E",
+    "D",
+    "C",
+    "B",
+    "A",
+    "1 Star",
+    "2 Stars",
+    "3 Stars",
+    "Crown",
+] as const;
 
 export interface LicenseStats {
     miiName: string;
@@ -234,6 +250,15 @@ export function rankFromScore(score: number): number {
     if (score >= 36) return 3;
     if (score >= 24) return 2;
     return 1;
+}
+
+/**
+ * Returns the in-game name of a rank index: "E" through "A", "1 Star" to "3 Stars", then "Crown".
+ * Anything outside 1-9 reads as "Unranked".
+ * @param rank - A rank index as returned by {@link rankFromScore}, or 0 for no rank.
+ */
+export function rankLabel(rank: number): string {
+    return RANK_LABELS[rank] ?? RANK_LABELS[0];
 }
 
 function feasibility(normReq: number): "ok" | "warn" | "infeasible" {

@@ -12,41 +12,18 @@ import {
     MAX_VR_INTERNAL,
     MIN_VS_FOR_RANK,
     parseRksys,
-    RANK_NAMES,
+    rankLabel,
     type RankNeeds,
     type RksysFile,
 } from "../../utils/rksysParser";
-import { parseRatingFile } from "../../utils/ratingParser";
+import { findRatingEntry, parseRatingFile } from "../../utils/ratingParser";
 import type { RatingFile } from "../../types/tools";
 import { AlertBox } from "../../components/common";
 import { Meta, Title } from "@solidjs/meta";
 import { RANK_HELPER_META } from "../../constants/pageMeta";
 
-const RANK_COLORS = [
-    "",
-    "text-gray-400",
-    "text-green-400",
-    "text-teal-400",
-    "text-cyan-400",
-    "text-blue-400",
-    "text-violet-400",
-    "text-purple-400",
-    "text-pink-400",
-    "text-yellow-300",
-] as const;
-
-const RANK_BG = [
-    "",
-    "bg-gray-500/20 border-gray-500/40",
-    "bg-green-500/20 border-green-500/40",
-    "bg-teal-500/20 border-teal-500/40",
-    "bg-cyan-500/20 border-cyan-500/40",
-    "bg-blue-500/20 border-blue-500/40",
-    "bg-violet-500/20 border-violet-500/40",
-    "bg-purple-500/20 border-purple-500/40",
-    "bg-pink-500/20 border-pink-500/40",
-    "bg-yellow-400/20 border-yellow-400/40",
-] as const;
+/** Badge art cut from Retro Rewind's own font: the glyphs the game draws for ranks 1-9. */
+const rankIcon = (rank: number) => `/ranks/rank-${rank}.png`;
 
 function vrDisplay(vrPoints: number): string {
     return vrPoints.toLocaleString();
@@ -121,16 +98,29 @@ function ScoreGauge(props: { score: number; rank: number }) {
 }
 
 function RankBadge(props: { rank: number; large?: boolean }) {
-    const name = () => RANK_NAMES[props.rank] ?? "-";
+    const label = () => rankLabel(props.rank);
     return (
-        <div
-            class={`inline-flex items-center justify-center border rounded-lg font-bold tabular-nums
-                ${props.large ? "text-3xl px-4 py-2 min-w-[4rem]" : "text-base px-2.5 py-1 min-w-[2.5rem]"}
-                ${RANK_BG[props.rank] ?? RANK_BG[1]}
-                ${RANK_COLORS[props.rank] ?? RANK_COLORS[1]}`}
+        <Show
+            when={props.rank >= 1 && props.rank <= 9}
+            fallback={
+                <span class="inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-600 px-2.5 py-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {label()}
+                </span>
+            }
         >
-            {name()}
-        </div>
+            <div class={`inline-flex items-center ${props.large ? "flex-col gap-1.5" : "gap-2"}`}>
+                <img
+                    src={rankIcon(props.rank)}
+                    alt=""
+                    class={props.large ? "h-16 w-auto" : "h-7 w-auto"}
+                />
+                <span
+                    class={`font-semibold text-gray-700 dark:text-gray-300 ${props.large ? "text-base" : "text-sm"}`}
+                >
+                    {label()}
+                </span>
+            </div>
+        </Show>
     );
 }
 
@@ -154,7 +144,7 @@ function StatRow(props: { label: string; value: string; norm: number; max: strin
     );
 }
 
-function LicensePanel(props: { stats: LicenseStats; vrWarning?: boolean }) {
+function LicensePanel(props: { stats: LicenseStats; vrNote: string | null }) {
     // Memos, not plain functions: score() is read ten times in the markup below and needs() twice,
     // so each render recomputed the whole thing once per read.
     const score = createMemo((): LicenseScore => computeScore(props.stats));
@@ -179,10 +169,10 @@ function LicensePanel(props: { stats: LicenseStats; vrWarning?: boolean }) {
                         norm={score().vrNorm}
                         max={(MAX_VR_INTERNAL * 100).toLocaleString()}
                     />
-                    <Show when={props.vrWarning}>
+                    <Show when={props.vrNote}>
                         <p class="flex items-center gap-1 text-xs text-yellow-600 dark:text-yellow-400">
                             <AlertTriangle size={11} />
-                            VR from rksys.dat only - load RRRating.pul for accurate values
+                            {props.vrNote}
                         </p>
                     </Show>
                     <StatRow
@@ -405,46 +395,26 @@ export default function RankHelperPage() {
     const [pulFileName, setPulFileName] = createSignal<string | null>(null);
     const [pulError, setPulError] = createSignal<string | null>(null);
 
-    // Map profileId -> display VR from pul file
-    const vrByProfile = createMemo((): Map<number, number> => {
-        const map = new Map<number, number>();
-        const rating = ratingData();
-        if (!rating) return map;
-        for (const entry of rating.entries) {
-            if (entry.profileId > 0) {
-                map.set(entry.profileId, Math.round(entry.vr * 100));
-            }
-        }
-        return map;
-    });
-
     const activeLicenses = () => {
-        const byProfile = vrByProfile();
         const rating = ratingData();
         return (rksysData()?.licenses ?? [])
             .map((l, i) => {
                 if (!l) return null;
 
-                let overrideVr: number | undefined;
-
-                // Primary: match by profileId
-                if (l.profileId > 0) {
-                    overrideVr = byProfile.get(l.profileId);
+                // The game reads VR from the RRRating.pul slot matching this license's profile ID.
+                // Slots are filled first-free, so a slot's position says nothing about the license.
+                const entry = rating ? findRatingEntry(rating, l.profileId) : undefined;
+                if (entry) {
+                    return { l: { ...l, vrPoints: Math.round(entry.vr * 100) }, i, vrNote: null };
                 }
 
-                // Fallback: use pul entry at same license index
-                if (overrideVr === undefined && rating) {
-                    const entry = rating.entries[i];
-                    if (entry && entry.profileId > 0) {
-                        overrideVr = Math.round(entry.vr * 100);
-                    }
-                }
-
-                const stats: LicenseStats =
-                    overrideVr !== undefined ? { ...l, vrPoints: overrideVr } : l;
-                return { l: stats, i, vrWarning: overrideVr === undefined };
+                // Without a slot, the game seeds one from the VR stored in rksys.dat on next load.
+                const vrNote = rating
+                    ? "No RRRating.pul entry for this license, showing the VR from rksys.dat"
+                    : "VR from rksys.dat only - load RRRating.pul for accurate values";
+                return { l, i, vrNote };
             })
-            .filter((x): x is { l: LicenseStats; i: number; vrWarning: boolean } => x !== null);
+            .filter((x): x is { l: LicenseStats; i: number; vrNote: string | null } => x !== null);
     };
 
     async function loadRksys(file: File) {
@@ -757,9 +727,9 @@ export default function RankHelperPage() {
 
                             {/* Active license content */}
                             <For each={licenses}>
-                                {({ l, i, vrWarning }) => (
+                                {({ l, i, vrNote }) => (
                                     <Show when={activeTab() === i}>
-                                        <LicensePanel stats={l} vrWarning={vrWarning} />
+                                        <LicensePanel stats={l} vrNote={vrNote} />
                                     </Show>
                                 )}
                             </For>

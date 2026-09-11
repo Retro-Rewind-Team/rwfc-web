@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildRatingFile, parseRatingFile } from "../../utils/ratingParser";
+import {
+    buildRatingFile,
+    entriesInUse,
+    findRatingEntry,
+    parseRatingFile,
+} from "../../utils/ratingParser";
 
 /** Builds a valid RRRT buffer with the given entries. */
 function makeBuffer(
@@ -139,5 +144,60 @@ describe("profile IDs above the signed 32-bit range", () => {
 
         expect(parsedAgain.entries[0].profileId).toBe(LARGE_PID);
         expect(parsedAgain.entries[1].profileId).toBe(4_294_967_295);
+    });
+});
+
+// RRRating.pul is not one row per license. RatingSave.cpp keeps a 100-slot table keyed by profile
+// ID, puts a new profile in the first free slot, and only loads a slot whose flags have bit 0 set.
+const EMPTY_SLOT = { profileId: 0, vr: 0, br: 0, flags: 0 };
+
+describe("findRatingEntry", () => {
+    it("finds a profile stored past the first four slots", () => {
+        const others = [101, 102, 103, 104, 105, 106].map((profileId) => ({
+            profileId,
+            vr: 50,
+            br: 50,
+            flags: 1,
+        }));
+        const file = parseRatingFile(
+            makeBuffer([...others, { profileId: 600_000_123, vr: 226.93, br: 50, flags: 1 }]),
+        );
+
+        expect(findRatingEntry(file, 600_000_123)?.index).toBe(6);
+    });
+
+    it("ignores a slot whose data flag is cleared, as the game does when loading", () => {
+        const file = parseRatingFile(makeBuffer([{ profileId: 42, vr: 80, br: 50, flags: 0 }]));
+
+        expect(findRatingEntry(file, 42)).toBeUndefined();
+    });
+
+    it("never matches profile ID 0, which marks an unused slot", () => {
+        const file = parseRatingFile(makeBuffer([{ profileId: 0, vr: 80, br: 50, flags: 1 }]));
+
+        expect(findRatingEntry(file, 0)).toBeUndefined();
+    });
+});
+
+describe("entriesInUse", () => {
+    it("lists every slot holding a profile, wherever it sits in the table", () => {
+        const file = parseRatingFile(
+            makeBuffer([
+                { profileId: 11, vr: 50, br: 50, flags: 1 },
+                EMPTY_SLOT,
+                EMPTY_SLOT,
+                EMPTY_SLOT,
+                EMPTY_SLOT,
+                { profileId: 55, vr: 60, br: 50, flags: 1 },
+            ]),
+        );
+
+        expect(entriesInUse(file.entries).map((e) => e.index)).toEqual([0, 5]);
+    });
+
+    it("keeps a profile whose data flag is cleared, so the editor can switch it back on", () => {
+        const file = parseRatingFile(makeBuffer([{ profileId: 77, vr: 50, br: 50, flags: 0 }]));
+
+        expect(entriesInUse(file.entries).map((e) => e.index)).toEqual([0]);
     });
 });

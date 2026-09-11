@@ -102,3 +102,29 @@ export function buildRatingFile(ratingFile: RatingFile): ArrayBuffer {
 
     return buffer;
 }
+
+/** Bit 0 of an entry's flags: the game only loads a slot with this set (RatingSave.cpp Load). */
+const HAS_DATA_FLAG = 0x1;
+
+/**
+ * Finds the slot the game reads a profile's VR and BR from. RRRating.pul is a table of up to 100
+ * profiles, filled first-free, so a license's slot can sit anywhere and its index says nothing
+ * about which license it belongs to.
+ * @param file - A parsed rating file.
+ * @param profileId - The license's profile ID from rksys.dat.
+ * @returns The matching entry, or undefined when the game would find no data for this profile.
+ */
+export function findRatingEntry(file: RatingFile, profileId: number): RatingEntry | undefined {
+    if (profileId <= 0) return undefined;
+    return file.entries.find(
+        (entry) => entry.profileId === profileId && (entry.flags & HAS_DATA_FLAG) !== 0,
+    );
+}
+
+/**
+ * Returns the slots that hold a profile, including ones whose data flag is cleared so an editor
+ * can switch them back on.
+ */
+export function entriesInUse(entries: RatingEntry[]): RatingEntry[] {
+    return entries.filter((entry) => entry.profileId > 0);
+}

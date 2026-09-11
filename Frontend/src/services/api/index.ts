@@ -14,4 +14,5 @@ export { leaderboardApi } from "./leaderboard";
 export { roomStatusApi } from "./room";
 export { timeTrialApi } from "./timeTrial";
 export { raceStatsApi } from "./raceStats";
+export { multiplierApi } from "./multiplier";
 export { ApiError } from "./client";
