@@ -27,10 +27,14 @@ class Program
             return 1;
         }
 
-        return await RunSyncAsync(csvPath, updateTime.Value, connStr);
+        return await RunSyncAsync(csvPath, updateTime.Value, connStr, HasFlag(args, "--allow-warnings"));
     }
 
-    static async Task<int> RunSyncAsync(string csvPath, DateTime updateTime, string connStr)
+    static async Task<int> RunSyncAsync(
+        string csvPath,
+        DateTime updateTime,
+        string connStr,
+        bool allowWarnings)
     {
         List<CsvTrackEntry> csvEntries;
         try { csvEntries = CsvParser.Parse(csvPath); }
@@ -64,6 +68,17 @@ class Program
 
         foreach (var w in diff.Warnings)
             Console.WriteLine($"\n{w}");
+
+        // A warning here means several tracks share an old CourseId but map to different new
+        // ones, so applying the diff would move race history onto the wrong track. That is worth
+        // stopping for, rather than printing above a prompt and hoping it gets read.
+        if (diff.Warnings.Count > 0 && !allowWarnings)
+        {
+            Console.WriteLine(
+                "Refusing to continue: the diff reported the warnings above. Check each one, "
+                + "then re-run with --allow-warnings if the mapping really is intended.");
+            return 1;
+        }
 
         if (mappings.Count > 0 && raceResultCount == 0)
             Console.WriteLine(
@@ -206,6 +221,8 @@ class Program
         return Console.ReadLine()?.Trim().ToLower() == "yes";
     }
 
+    static bool HasFlag(string[] args, string flag) => Array.IndexOf(args, flag) >= 0;
+
     static string? GetConnectionString(string[] args)
     {
         for (int i = 0; i < args.Length - 1; i++)
@@ -230,5 +247,7 @@ class Program
         Console.WriteLine("  Restore: dotnet run --project Tools/TrackSync -- --restore <backup-path> [--connection <conn-str>]");
         Console.WriteLine();
         Console.WriteLine("CONNECTION_STRING env var is used when --connection is not provided.");
+        Console.WriteLine("--allow-warnings proceeds past inconsistent CourseId mappings, which");
+        Console.WriteLine("otherwise stop the sync because they move race history to a wrong track.");
     }
 }

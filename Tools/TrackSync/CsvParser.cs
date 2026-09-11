@@ -46,9 +46,26 @@ public static class CsvParser
         var fields = new List<string>();
         var field = new System.Text.StringBuilder();
         bool inQuotes = false;
-        foreach (char c in line)
+        for (int i = 0; i < line.Length; i++)
         {
-            if (c == '"') { inQuotes = !inQuotes; continue; }
+            char c = line[i];
+
+            if (c == '"')
+            {
+                // RFC 4180 escapes a quote by doubling it. Toggling on every quote instead treated
+                // "" as leave-then-reenter and dropped both characters, so a track named
+                // Bowser"s Castle came back as Bowsers Castle.
+                if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
+                {
+                    field.Append('"');
+                    i++;
+                    continue;
+                }
+
+                inQuotes = !inQuotes;
+                continue;
+            }
+
             if (c == ',' && !inQuotes) { fields.Add(field.ToString()); field.Clear(); continue; }
             field.Append(c);
         }
@@ -63,6 +80,15 @@ public static class CsvParser
             var value = hex.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
                 ? Convert.ToInt32(hex[2..], 16)
                 : int.Parse(hex);
+
+            // Range-checked rather than cast. A narrowing cast wraps, so 0x8000 became -32768 and
+            // the track synced under a course id belonging to something else.
+            if (value is < short.MinValue or > short.MaxValue)
+            {
+                throw new InvalidDataException(
+                    $"Line {lineNumber}: pulsar_id '{hex}' is outside the range of a course id.");
+            }
+
             return (short)value;
         }
         catch (Exception ex) when (ex is FormatException or OverflowException)
