@@ -1,5 +1,5 @@
 import { createEffect, createMemo, createResource, createSignal, For, Show } from "solid-js";
-import { buildRatingFile, parseRatingFile } from "../../utils/ratingParser";
+import { buildRatingFile, entriesInUse, parseRatingFile } from "../../utils/ratingParser";
 import { pidToFriendCode } from "../../utils/friendCodeUtils";
 import { validateFileName, validateRatingFile } from "../../utils/fileValidator";
 import { triggerBlobDownload } from "../../utils/downloadHelpers";
@@ -21,6 +21,7 @@ export default function RatingEditorPage() {
     const [validationError, setValidationError] = createSignal<string | null>(null);
     const [originalFCs, setOriginalFCs] = createSignal<Set<string>>(new Set());
     const [takenFCs, setTakenFCs] = createSignal<Set<string>>(new Set());
+    const [showEmptySlots, setShowEmptySlots] = createSignal(false);
 
     const fcMap = createMemo(() => {
         const file = ratingFile();
@@ -144,10 +145,12 @@ export default function RatingEditorPage() {
     };
 
     const isActive = (e: RatingEntry) => (e.flags & 0x1) !== 0 && e.profileId > 0;
-    const filledEntries = createMemo(
-        () => ratingFile()?.entries.filter((e) => e.profileId > 0) ?? [],
+    const filledEntries = createMemo(() => entriesInUse(ratingFile()?.entries ?? []));
+    // The game keeps up to 100 profiles and fills slots first-free, so a license's row can be
+    // anywhere in the table. Only showing the first four hid every profile stored after them.
+    const visibleEntries = createMemo(() =>
+        showEmptySlots() ? (ratingFile()?.entries ?? []) : filledEntries(),
     );
-    const visibleEntries = createMemo(() => ratingFile()?.entries.slice(0, 4) ?? []);
     const activeCount = () => ratingFile()?.entries.filter(isActive).length ?? 0;
     const dupCount = () => {
         let n = 0;
@@ -168,8 +171,8 @@ export default function RatingEditorPage() {
                     <code class="font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">
                         RRRating.pul
                     </code>{" "}
-                    file. This is a personal file stored on your save, with one entry per license
-                    (up to 4).
+                    file. It stores VR and BR for each profile that has played on this save (up to
+                    100), and the game finds a license's row by its profile ID.
                 </p>
             </div>
 
@@ -207,8 +210,8 @@ export default function RatingEditorPage() {
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {[
                             {
-                                label: "License Slots",
-                                value: `${filledEntries().length} / 4`,
+                                label: "Profiles",
+                                value: `${filledEntries().length} / ${ratingFile()?.entries.length ?? 0}`,
                                 mono: true,
                             },
                             { label: "Active", value: activeCount().toLocaleString(), mono: true },
@@ -259,7 +262,7 @@ export default function RatingEditorPage() {
                             Upload your <code class="font-mono">RRRating.pul</code> file
                         </li>
                         <li>
-                            Edit Profile IDs, VR, and BR directly in the table (one row per license)
+                            Edit Profile IDs, VR, and BR directly in the table (one row per profile)
                         </li>
                         <li>Use the "Active" checkbox to enable or disable a license slot</li>
                         <li>
@@ -315,14 +318,30 @@ export default function RatingEditorPage() {
                         <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                             {/* Toolbar */}
                             <div class="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between gap-3">
-                                <span class="text-sm text-gray-500 dark:text-gray-400">
-                                    <Show
-                                        when={selectedRows().size > 0}
-                                        fallback="No rows selected"
-                                    >
-                                        {selectedRows().size} selected
-                                    </Show>
-                                </span>
+                                <div class="flex flex-wrap items-center gap-4">
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">
+                                        <Show
+                                            when={selectedRows().size > 0}
+                                            fallback="No rows selected"
+                                        >
+                                            {selectedRows().size} selected
+                                        </Show>
+                                    </span>
+                                    <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={showEmptySlots()}
+                                            onChange={(e) => {
+                                                setShowEmptySlots(e.currentTarget.checked);
+                                                // Hidden rows must not stay selected, or
+                                                // "Clear Selected" would wipe rows you can't see.
+                                                setSelectedRows(new Set<number>());
+                                            }}
+                                            class="w-3.5 h-3.5 rounded cursor-pointer"
+                                        />
+                                        Show empty slots
+                                    </label>
+                                </div>
                                 <div class="flex gap-2">
                                     <button
                                         type="button"
@@ -607,6 +626,17 @@ export default function RatingEditorPage() {
                                                 );
                                             }}
                                         </For>
+                                        <Show when={visibleEntries().length === 0}>
+                                            <tr>
+                                                <td
+                                                    colspan="8"
+                                                    class="px-3 py-6 text-center text-sm text-gray-500 dark:text-gray-400"
+                                                >
+                                                    No profiles in this file yet. Tick "Show empty
+                                                    slots" to fill one in.
+                                                </td>
+                                            </tr>
+                                        </Show>
                                     </tbody>
                                 </table>
                             </div>

@@ -1,12 +1,23 @@
 import { createSignal, type JSX, Show } from "solid-js";
 import { CheckCircle, Loader, Package, PenTool, Wrench, XCircle } from "lucide-solid";
 import { yaz0Compress, yaz0CompressLiteralOnly, yaz0Decompress } from "../../utils/yaz0";
-import { replaceBrfntInU8 } from "../../utils/u8Parser";
-import { validateBrfnt, validateFileName, validateFontSzs } from "../../utils/fileValidator";
+import { extractFileFromU8, replaceBrfntInU8 } from "../../utils/u8Parser";
+import { brfntHasGlyph } from "../../utils/brfntParser";
+import {
+    getFileExtension,
+    validateBrfnt,
+    validateFileName,
+    validateFontSzs,
+} from "../../utils/fileValidator";
 import { triggerBlobDownload } from "../../utils/downloadHelpers";
 import { AlertBox } from "../../components/common";
 import { Meta, Title } from "@solidjs/meta";
 import { FONT_PATCHER_META } from "../../constants/pageMeta";
+
+const EXTENSION_FONT = "tt_kart_extension_font.brfnt";
+
+/** Retro Rewind's rank badges, U+F07D..U+F085 (Ranking.cpp). A font without them shows no rank. */
+const RANK_GLYPHS = Array.from({ length: 9 }, (_, i) => 0xf07d + i);
 
 const logClass = (line: string) => {
     if (line.startsWith("[OK]") || line.startsWith("[DONE]")) return "text-green-400";
@@ -21,74 +32,132 @@ interface FileSlot {
     error: string | null;
 }
 
+/** The Retro Rewind side also holds the extension font it resolved from the dropped file. */
+interface SourceSlot extends FileSlot {
+    brfnt: Uint8Array | null;
+}
+
 const emptySlot = (): FileSlot => ({ file: null, warnings: [], error: null });
+const emptySource = (): SourceSlot => ({ ...emptySlot(), brfnt: null });
 
 export default function FontPatcherPage() {
     const [fontSlot, setFontSlot] = createSignal<FileSlot>(emptySlot());
-    const [brfntSlot, setBrfntSlot] = createSignal<FileSlot>(emptySlot());
+    const [sourceSlot, setSourceSlot] = createSignal<SourceSlot>(emptySource());
     const [processing, setProcessing] = createSignal(false);
     const [log, setLog] = createSignal<string[]>([]);
     const [useLiteralOnly, setUseLiteralOnly] = createSignal(false);
-    const [dragging, setDragging] = createSignal<"font" | "brfnt" | null>(null);
+    const [dragging, setDragging] = createSignal<"font" | "source" | null>(null);
 
     const addLog = (msg: string) => setLog((p) => [...p, msg]);
     const clearLog = () => setLog([]);
 
-    async function loadFile(
-        file: File,
-        exts: string[],
-        validate: (b: ArrayBuffer) => { valid: boolean; error?: string; warnings?: string[] },
-        setSlot: (s: FileSlot) => void,
-        successMsg: string,
-    ) {
+    async function loadFont(file: File, successMsg: string) {
         clearLog();
-        const nameCheck = validateFileName(file.name, exts);
+        const nameCheck = validateFileName(file.name, ["szs"]);
         if (!nameCheck.valid) {
-            setSlot({ file: null, error: nameCheck.error ?? "Invalid file", warnings: [] });
+            setFontSlot({ file: null, error: nameCheck.error ?? "Invalid file", warnings: [] });
             addLog(`[ERROR] ${nameCheck.error}`);
             return;
         }
         addLog(`[INFO] Validating ${file.name}…`);
         try {
-            const buf = await file.arrayBuffer();
-            const result = validate(buf);
+            const result = validateFontSzs(await file.arrayBuffer());
             if (!result.valid) {
-                setSlot({ file: null, error: result.error ?? "Validation failed", warnings: [] });
+                setFontSlot({
+                    file: null,
+                    error: result.error ?? "Validation failed",
+                    warnings: [],
+                });
                 addLog(`[ERROR] ${result.error}`);
                 return;
             }
             const warnings = result.warnings ?? [];
             warnings.forEach((w) => addLog(`[WARN] ${w}`));
-            setSlot({ file, error: null, warnings });
+            setFontSlot({ file, error: null, warnings });
             addLog(`[OK] ${successMsg}: ${file.name} (${file.size.toLocaleString()} bytes)`);
         } catch (e) {
             const msg = e instanceof Error ? e.message : String(e);
-            setSlot({ file: null, error: msg, warnings: [] });
+            setFontSlot({ file: null, error: msg, warnings: [] });
+            addLog(`[ERROR] ${msg}`);
+        }
+    }
+
+    /**
+     * Resolves Retro Rewind's extension font from a whole Font.szs or from the .brfnt itself, then
+     * checks it carries the rank badges, since those are the reason for copying it over.
+     */
+    async function loadSource(file: File, successMsg: string) {
+        clearLog();
+        const nameCheck = validateFileName(file.name, ["szs", "brfnt"]);
+        if (!nameCheck.valid) {
+            setSourceSlot({ ...emptySource(), error: nameCheck.error ?? "Invalid file" });
+            addLog(`[ERROR] ${nameCheck.error}`);
+            return;
+        }
+        addLog(`[INFO] Validating ${file.name}…`);
+        try {
+            const buffer = await file.arrayBuffer();
+            const warnings: string[] = [];
+            let brfnt: Uint8Array;
+
+            if (getFileExtension(file.name) === "szs") {
+                const archiveCheck = validateFontSzs(buffer);
+                if (!archiveCheck.valid) throw new Error(archiveCheck.error ?? "Invalid Font.szs");
+                warnings.push(...(archiveCheck.warnings ?? []));
+
+                const extracted = extractFileFromU8(
+                    yaz0Decompress(new Uint8Array(buffer)),
+                    EXTENSION_FONT,
+                );
+                if (!extracted) throw new Error(`${file.name} does not contain ${EXTENSION_FONT}.`);
+                brfnt = extracted;
+                addLog(
+                    `[OK] Found ${EXTENSION_FONT} inside (${brfnt.length.toLocaleString()} bytes)`,
+                );
+            } else {
+                brfnt = new Uint8Array(buffer);
+            }
+
+            const fontCheck = validateBrfnt(brfnt.buffer as ArrayBuffer);
+            if (!fontCheck.valid) throw new Error(fontCheck.error ?? "Invalid .brfnt");
+            warnings.push(...(fontCheck.warnings ?? []));
+
+            if (!RANK_GLYPHS.every((code) => brfntHasGlyph(brfnt, code))) {
+                warnings.push(
+                    "This font is missing Retro Rewind's rank badges. Use the Font.szs from an up-to-date Retro Rewind install.",
+                );
+            }
+
+            warnings.forEach((w) => addLog(`[WARN] ${w}`));
+            setSourceSlot({ file, brfnt, warnings, error: null });
+            addLog(`[OK] ${successMsg}: ${file.name}`);
+        } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e);
+            setSourceSlot({ ...emptySource(), error: msg });
             addLog(`[ERROR] ${msg}`);
         }
     }
 
     const handleFontInput = (e: Event) => {
         const file = (e.target as HTMLInputElement).files?.[0];
-        if (file) loadFile(file, ["szs"], validateFontSzs, setFontSlot, "Loaded Font.szs");
+        if (file) loadFont(file, "Loaded your Font.szs");
     };
-    const handleBrfntInput = (e: Event) => {
+    const handleSourceInput = (e: Event) => {
         const file = (e.target as HTMLInputElement).files?.[0];
-        if (file) loadFile(file, ["brfnt"], validateBrfnt, setBrfntSlot, "Loaded .brfnt");
+        if (file) loadSource(file, "Loaded Retro Rewind's font");
     };
-    const handleDrop = (e: DragEvent, type: "font" | "brfnt") => {
+    const handleDrop = (e: DragEvent, type: "font" | "source") => {
         e.preventDefault();
         setDragging(null);
         const file = e.dataTransfer?.files?.[0];
         if (!file) return;
-        if (type === "font")
-            loadFile(file, ["szs"], validateFontSzs, setFontSlot, "Dropped Font.szs");
-        else loadFile(file, ["brfnt"], validateBrfnt, setBrfntSlot, "Dropped .brfnt");
+        if (type === "font") loadFont(file, "Dropped your Font.szs");
+        else loadSource(file, "Dropped Retro Rewind's font");
     };
 
     const patch = async () => {
         const font = fontSlot().file;
-        const brfnt = brfntSlot().file;
+        const brfnt = sourceSlot().brfnt;
         if (!font || !brfnt) return;
 
         setProcessing(true);
@@ -101,11 +170,8 @@ export default function FontPatcherPage() {
             const u8 = yaz0Decompress(fontData);
             addLog(`[OK] Decompressed - ${u8.length.toLocaleString()} bytes`);
 
-            addLog("[INFO] Reading replacement .brfnt…");
-            const brfntData = new Uint8Array(await brfnt.arrayBuffer());
-
-            addLog("[INFO] Patching U8 archive…");
-            const newU8 = replaceBrfntInU8(u8, brfntData);
+            addLog(`[INFO] Copying in Retro Rewind's ${EXTENSION_FONT}…`);
+            const newU8 = replaceBrfntInU8(u8, brfnt, EXTENSION_FONT);
             addLog(`[OK] Patched - ${newU8.length.toLocaleString()} bytes`);
 
             addLog(
@@ -133,7 +199,7 @@ export default function FontPatcherPage() {
         label: string;
         hint: string;
         slot: FileSlot;
-        type: "font" | "brfnt";
+        type: "font" | "source";
         icon: () => JSX.Element;
         accept: string;
         onInput: (e: Event) => void;
@@ -213,7 +279,7 @@ export default function FontPatcherPage() {
         );
     };
 
-    const canPatch = () => !!fontSlot().file && !!brfntSlot().file && !processing();
+    const canPatch = () => !!fontSlot().file && !!sourceSlot().brfnt && !processing();
 
     return (
         <div class="max-w-3xl mx-auto space-y-6">
@@ -222,22 +288,23 @@ export default function FontPatcherPage() {
             <div class="border-b border-gray-200 dark:border-gray-700 pb-6">
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-1">Font Patcher</h1>
                 <p class="text-gray-500 dark:text-gray-400 text-sm">
-                    Replace{" "}
+                    Use a custom font without losing Retro Rewind's rank badges. The patcher copies
+                    Retro Rewind's{" "}
                     <code class="font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">
-                        tt_kart_extension_font.brfnt
+                        {EXTENSION_FONT}
                     </code>{" "}
-                    inside a{" "}
+                    into your{" "}
                     <code class="font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">
                         Font.szs
-                    </code>{" "}
-                    archive.
+                    </code>
+                    .
                 </p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <DropZone
-                    label="1. Font.szs"
-                    hint="Drag & drop or click to choose"
+                    label="1. Your Font.szs"
+                    hint="The custom font you want to use"
                     slot={fontSlot()}
                     type="font"
                     icon={() => <Package size={36} />}
@@ -245,13 +312,13 @@ export default function FontPatcherPage() {
                     onInput={handleFontInput}
                 />
                 <DropZone
-                    label="2. Replacement .brfnt"
-                    hint="Drag & drop or click to choose"
-                    slot={brfntSlot()}
-                    type="brfnt"
+                    label="2. Retro Rewind's Font.szs"
+                    hint="RetroRewind6/UI/Font.szs, or its .brfnt on its own"
+                    slot={sourceSlot()}
+                    type="source"
                     icon={() => <PenTool size={36} />}
-                    accept=".brfnt"
-                    onInput={handleBrfntInput}
+                    accept=".szs,.brfnt"
+                    onInput={handleSourceInput}
                 />
             </div>
 
@@ -310,6 +377,11 @@ export default function FontPatcherPage() {
 
             <AlertBox type="info" title="Notes">
                 <ul class="space-y-1 text-sm list-disc list-inside">
+                    <li>
+                        Retro Rewind's font is at{" "}
+                        <code class="font-mono">RetroRewind6/UI/Font.szs</code> in your install.
+                        Take it from an up-to-date copy: older fonts don't have the rank badges.
+                    </li>
                     <li>
                         Back up your original <code class="font-mono">Font.szs</code> before
                         replacing it.

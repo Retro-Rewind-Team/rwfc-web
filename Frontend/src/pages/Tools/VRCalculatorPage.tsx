@@ -1,10 +1,12 @@
-import { createMemo, createSignal, For, Show } from "solid-js";
+import { createEffect, createMemo, createResource, createSignal, For, Show } from "solid-js";
 import {
     DEFAULT_DISPLAY_VR,
     DEFAULT_MODIFIERS,
     fmtDelta,
     fmtFixed,
     getMultiplier,
+    MAX_DISPLAY_VR,
+    MIN_DISPLAY_VR,
     type MultiplierInfo,
     type PlayerInput,
     type PlayerResult,
@@ -13,11 +15,20 @@ import {
     VR_DISPLAY_SCALE,
     type VRModifiers,
 } from "../../utils/vrCalculator";
+import { multiplierApi, type MultiplierChannel } from "../../services/api/multiplier";
 import { AlertBox } from "../../components/common";
 import { Meta, Title } from "@solidjs/meta";
 import { VR_CALCULATOR_META } from "../../constants/pageMeta";
 
 const PLAYER_LIMIT = { min: 2, max: 12 };
+
+type ToggleModifier = Exclude<keyof VRModifiers, "serverMultiplier">;
+
+const TOGGLES: { key: ToggleModifier; label: string; mult: string }[] = [
+    { key: "weekend", label: "Weekend", mult: "1.5×" },
+    { key: "battleElimination", label: "Battle Elimination", mult: "+0.166/player" },
+    { key: "betaBuild", label: "Beta Build", mult: "1.25×" },
+];
 
 function makeDefaultPlayers(count: number): PlayerInput[] {
     return Array.from({ length: count }, (_, i) => ({ id: i + 1, displayVr: DEFAULT_DISPLAY_VR }));
@@ -29,8 +40,9 @@ export default function VRCalculatorPage() {
     const [mods, setMods] = createSignal<VRModifiers>(DEFAULT_MODIFIERS);
     const [vrMode, setVrMode] = createSignal(true);
     const [allDisc, setAllDisc] = createSignal(false);
-    const [minDisplay, setMinDisplay] = createSignal(1);
-    const [maxDisplay, setMaxDisplay] = createSignal(1_000_000);
+    const [minDisplay, setMinDisplay] = createSignal(MIN_DISPLAY_VR);
+    const [maxDisplay, setMaxDisplay] = createSignal(MAX_DISPLAY_VR);
+    const [serverEdited, setServerEdited] = createSignal(false);
     const [reverseMode, setReverseMode] = createSignal(false);
     const [reverseDeltas, setReverseDeltas] = createSignal<number[]>(Array(12).fill(0));
     const [traceOpen, setTraceOpen] = createSignal(false);
@@ -51,6 +63,26 @@ export default function VRCalculatorPage() {
     });
 
     const mult = createMemo((): MultiplierInfo => getMultiplier(mods(), playerCount()));
+
+    // Events reach the game as a server multiplier, so start from the value it would download.
+    // The beta build reads its own channel.
+    const multiplierChannel = (): MultiplierChannel => (mods().betaBuild ? "beta" : "stable");
+    const [liveMultiplier] = createResource(multiplierChannel, (channel) =>
+        multiplierApi.getActive(channel).catch(() => null),
+    );
+    createEffect(() => {
+        const live = liveMultiplier();
+        if (live != null && !serverEdited()) {
+            setMods((m) => ({ ...m, serverMultiplier: live }));
+        }
+    });
+    const liveStatus = () => {
+        if (liveMultiplier.loading) return "Loading the live value…";
+        const live = liveMultiplier();
+        return live == null
+            ? "Live value unavailable"
+            : `Live ${multiplierChannel()} value: ${live}×`;
+    };
 
     const resultFor = (id: number): PlayerResult | undefined =>
         simResult()?.players.find((p) => p.id === id);
@@ -103,15 +135,7 @@ export default function VRCalculatorPage() {
         });
     };
 
-    const toggleMod = (key: keyof VRModifiers) => setMods((m) => ({ ...m, [key]: !m[key] }));
-
-    const MODIFIERS: { key: keyof VRModifiers; label: string; mult: string }[] = [
-        { key: "eventDay", label: "Event Day", mult: "2.0×" },
-        { key: "specialMultiplier", label: "Special", mult: "1.25×" },
-        { key: "weekendMultiplier", label: "Weekend", mult: "1.25×" },
-        { key: "battleBonus", label: "Battle Bonus", mult: "count" },
-        { key: "betaBuild", label: "Beta Build", mult: "1.15×" },
-    ];
+    const toggleMod = (key: ToggleModifier) => setMods((m) => ({ ...m, [key]: !m[key] }));
 
     return (
         <div class="max-w-6xl mx-auto space-y-5">
@@ -150,7 +174,9 @@ export default function VRCalculatorPage() {
                                 type="number"
                                 value={minDisplay()}
                                 onInput={(e) =>
-                                    setMinDisplay(parseFloat(e.currentTarget.value) || 1)
+                                    setMinDisplay(
+                                        parseFloat(e.currentTarget.value) || MIN_DISPLAY_VR,
+                                    )
                                 }
                                 class="w-full px-2 py-1.5 text-sm font-mono rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500"
                             />
@@ -161,7 +187,9 @@ export default function VRCalculatorPage() {
                                 type="number"
                                 value={maxDisplay()}
                                 onInput={(e) =>
-                                    setMaxDisplay(parseFloat(e.currentTarget.value) || 1_000_000)
+                                    setMaxDisplay(
+                                        parseFloat(e.currentTarget.value) || MAX_DISPLAY_VR,
+                                    )
                                 }
                                 class="w-full px-2 py-1.5 text-sm font-mono rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500"
                             />
@@ -212,7 +240,7 @@ export default function VRCalculatorPage() {
                         Multipliers
                     </h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {MODIFIERS.map((m) => (
+                        {TOGGLES.map((m) => (
                             <label
                                 class={`flex items-center gap-2.5 p-2.5 rounded-lg cursor-pointer border transition-colors
                                 ${mods()[m.key] ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700" : "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"}`}
@@ -235,22 +263,58 @@ export default function VRCalculatorPage() {
                         ))}
                     </div>
 
-                    <div class="grid grid-cols-3 gap-3 pt-2 border-t border-gray-100 dark:border-gray-700">
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-2 p-2.5 rounded-lg border bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700">
+                        <label class="flex items-center gap-2.5 flex-1 min-w-[10rem]">
+                            <span class="text-sm text-gray-700 dark:text-gray-300 flex-1">
+                                Server multiplier
+                            </span>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.05"
+                                value={mods().serverMultiplier}
+                                onInput={(e) => {
+                                    setServerEdited(true);
+                                    const value = parseFloat(e.currentTarget.value);
+                                    setMods((m) => ({ ...m, serverMultiplier: value }));
+                                }}
+                                class="w-20 px-2 py-1 text-sm font-mono rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500"
+                            />
+                        </label>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">{liveStatus()}</span>
+                        <Show when={serverEdited() && liveMultiplier() != null}>
+                            <button
+                                type="button"
+                                onClick={() => setServerEdited(false)}
+                                class="text-xs px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                            >
+                                Use live value
+                            </button>
+                        </Show>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-gray-100 dark:border-gray-700">
                         {[
-                            { label: "Base", value: mult().base.toFixed(2) },
-                            { label: "Battle Bonus", value: mult().battle.toFixed(2) },
-                            { label: "Total", value: mult().total.toFixed(2) },
+                            { label: "Base", value: `${mult().base.toFixed(2)}×` },
+                            { label: "Battle Bonus", value: `+${mult().battle.toFixed(3)}` },
+                            { label: "Server", value: `${mult().server.toFixed(2)}×` },
+                            { label: "Total", value: `${mult().total.toFixed(2)}×` },
                         ].map((s) => (
                             <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-2.5 border border-gray-200 dark:border-gray-700">
                                 <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">
                                     {s.label}
                                 </div>
                                 <div class="font-mono font-semibold text-gray-900 dark:text-white text-sm">
-                                    {s.value}×
+                                    {s.value}
                                 </div>
                             </div>
                         ))}
                     </div>
+                    <Show when={mult().capped}>
+                        <p class="text-xs text-yellow-600 dark:text-yellow-400">
+                            The game keeps the total between 1.00× and 2.50×.
+                        </p>
+                    </Show>
 
                     <Show when={reverseMode()}>
                         <AlertBox type="info">

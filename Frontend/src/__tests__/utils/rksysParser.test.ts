@@ -9,6 +9,7 @@ import {
     MAX_VR_INTERNAL,
     MIN_VS_FOR_RANK,
     rankFromScore,
+    rankLabel,
 } from "../../utils/rksysParser";
 
 function makeStats(overrides: Partial<LicenseStats> = {}): LicenseStats {
@@ -170,5 +171,53 @@ describe("computeNeeds", () => {
             needs?.dist.feasibility,
         ];
         expect(allFeasibilities.some((f) => f === "ok")).toBe(true);
+    });
+});
+
+// --- rankLabel ---
+
+// In-game ranks are not numbers. Ranking.cpp's RankToLabel prints private-use characters
+// U+F07D..U+F085 from Retro Rewind's tt_kart_extension_font, which draw as E, D, C, B, A, one to
+// three stars, and a crown. Issue #202: the helper showed Roman numerals, so an E-rank player saw "I".
+describe("rankLabel", () => {
+    it.each([
+        [1, "E"],
+        [2, "D"],
+        [3, "C"],
+        [4, "B"],
+        [5, "A"],
+        [6, "1 Star"],
+        [7, "2 Stars"],
+        [8, "3 Stars"],
+        [9, "Crown"],
+    ])("labels rank %i as %s, the glyph the game draws", (rank, label) => {
+        expect(rankLabel(rank)).toBe(label);
+    });
+
+    it("labels rank 0, below the race minimum, as Unranked", () => {
+        expect(rankLabel(0)).toBe("Unranked");
+    });
+});
+
+describe("rank shown for a license", () => {
+    it("shows E for a license on the formula's low anchor", () => {
+        // 5000 VR normalizes to 5 and a 50% win rate is the other low anchor: M = 3 + 7.5 = 10.5,
+        // which the formula maps to exactly 10.
+        const { score, rank } = computeScore(
+            makeStats({ vrPoints: 5000, vsWins: 50, vsLosses: 50 }),
+        );
+
+        expect(score).toBeCloseTo(10, 5);
+        expect(rankLabel(rank)).toBe("E");
+    });
+
+    it("shows D once the score passes 24", () => {
+        // 35000 VR normalizes to 35: M = 21 + 7.5 = 28.5, score = 10 + 90 * (28.5 - 10.5) / 82.75.
+        const { score, rank } = computeScore(
+            makeStats({ vrPoints: 35000, vsWins: 50, vsLosses: 50 }),
+        );
+
+        expect(score).toBeCloseTo(29.577, 2);
+        expect(rankLabel(rank)).toBe("D");
     });
 });

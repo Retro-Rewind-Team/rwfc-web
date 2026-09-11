@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
     calcNegPoints,
     calcPosPoints,
@@ -7,83 +7,114 @@ import {
     fmtFixed,
     getGainCap,
     getLossCap,
+    getLowVrLossDivider,
     getMultiplier,
     simulate,
     truncCentis,
+    type VRModifiers,
 } from "../../utils/vrCalculator";
 
+/**
+ * Expected values come from an oracle, not from this code: PlayerRating.cpp and
+ * RatingMultiplier.cpp from the game source, ported statement by statement to numpy float32
+ * (IEEE single precision, like the game's float math). Ratings are internal units, where 50.00
+ * displays as 5000 VR.
+ */
+
 describe("calcPosPoints", () => {
-    it("returns a value in the valid range [0.02, 0.24]", () => {
-        const result = calcPosPoints(50, 50);
-        expect(result).toBeGreaterThanOrEqual(0.02);
-        expect(result).toBeLessThanOrEqual(0.24);
+    it("awards 0.1785 for beating an equal-rated player", () => {
+        expect(calcPosPoints(50, 50)).toBeCloseTo(0.178507611, 6);
     });
 
-    it("returns a higher value when opponent VR is much higher (beating a stronger player)", () => {
-        const vsBetter = calcPosPoints(50, 100);
-        const vsWorse = calcPosPoints(50, 10);
-        expect(vsBetter).toBeGreaterThan(vsWorse);
+    it("awards more for beating a stronger player", () => {
+        expect(calcPosPoints(50, 100)).toBeCloseTo(0.193237141, 6);
+    });
+
+    it("reaches the 0.24 cap against a far stronger player", () => {
+        expect(calcPosPoints(0, 5000)).toBeCloseTo(0.24, 6);
+    });
+
+    it("bottoms out at 0.02 against a far weaker player", () => {
+        expect(calcPosPoints(5000, 0)).toBeCloseTo(0.02, 6);
     });
 });
 
 describe("calcNegPoints", () => {
-    it("returns a value in the valid range [-0.19, 0]", () => {
-        const result = calcNegPoints(50, 50);
-        expect(result).toBeLessThanOrEqual(0);
-        expect(result).toBeGreaterThanOrEqual(-0.19);
+    it("takes 0.1785 for losing to an equal-rated player", () => {
+        expect(calcNegPoints(50, 50)).toBeCloseTo(-0.178507611, 6);
     });
 
-    it("returns a larger loss when opponent VR is much lower (losing to a weaker player)", () => {
-        const vsWeaker = calcNegPoints(100, 10);
-        const vsStronger = calcNegPoints(10, 100);
-        expect(vsWeaker).toBeLessThan(vsStronger);
+    it("takes the full 0.19 for losing to a far weaker player", () => {
+        expect(calcNegPoints(5000, 0)).toBeCloseTo(-0.19, 6);
+    });
+
+    it("takes very little for losing to a far stronger player", () => {
+        expect(calcNegPoints(0, 5000)).toBeCloseTo(-0.00555555569, 6);
     });
 });
 
 describe("getGainCap", () => {
-    it("returns 1e6 (no cap) below 1500", () => {
+    it("does not cap gains below 1500", () => {
         expect(getGainCap(1499)).toBe(1e6);
         expect(getGainCap(0)).toBe(1e6);
     });
 
-    it("returns 0.1 at and above 9000", () => {
-        expect(getGainCap(9000)).toBe(0.1);
-        expect(getGainCap(99999)).toBe(0.1);
+    it("caps gains at 0.1 from 9000 up", () => {
+        expect(getGainCap(9000)).toBeCloseTo(0.1, 6);
+        expect(getGainCap(99999)).toBeCloseTo(0.1, 6);
     });
 
-    it("returns a value between 0.1 and 1000 in the 1500-9000 range", () => {
-        const cap = getGainCap(5250);
-        expect(cap).toBeGreaterThan(0.1);
-        expect(cap).toBeLessThan(1000);
+    it("scales the cap down linearly between 1500 and 9000", () => {
+        expect(getGainCap(5250)).toBeCloseTo(500.050018, 3);
     });
 });
 
 describe("getLossCap", () => {
-    it("returns -0.5 at and below 150", () => {
+    it("caps losses at 0.5 at a rating of 150", () => {
         expect(getLossCap(150)).toBe(-0.5);
-        expect(getLossCap(0)).toBe(-0.5);
     });
 
-    it("returns -2.09 at and above 500", () => {
-        expect(getLossCap(500)).toBeCloseTo(-2.09, 5);
-        expect(getLossCap(9999)).toBeCloseTo(-2.09, 5);
+    it("caps losses at 2.09 from 500 up", () => {
+        expect(getLossCap(500)).toBeCloseTo(-2.09, 6);
+        expect(getLossCap(9999)).toBeCloseTo(-2.09, 6);
     });
 
-    it("returns a value between -2.09 and -0.5 in the 150-500 range", () => {
-        const cap = getLossCap(325);
-        expect(cap).toBeLessThan(-0.5);
-        expect(cap).toBeGreaterThan(-2.09);
+    it("keeps extending the same line below 150 instead of flattening at -0.5", () => {
+        expect(getLossCap(100)).toBeCloseTo(-0.27285713, 6);
+    });
+
+    it("turns positive below a rating of about 40, as the game's formula does", () => {
+        expect(getLossCap(10)).toBeCloseTo(0.135999978, 6);
+    });
+});
+
+describe("getLowVrLossDivider", () => {
+    it("divides losses by 7.5 at a rating of 0", () => {
+        expect(getLowVrLossDivider(0)).toBe(7.5);
+    });
+
+    it("scales linearly to 1 at a rating of 150", () => {
+        expect(getLowVrLossDivider(75)).toBeCloseTo(4.25, 6);
+        expect(getLowVrLossDivider(149.99)).toBeCloseTo(1.000433, 5);
+    });
+
+    it("does nothing from 150 up", () => {
+        expect(getLowVrLossDivider(150)).toBe(1);
     });
 });
 
 describe("truncCentis", () => {
     it("truncates (does not round) to 2 decimal places", () => {
-        expect(truncCentis(1.239)).toBe(1.23);
-        expect(truncCentis(1.231)).toBe(1.23);
+        expect(truncCentis(1.239)).toBeCloseTo(1.23, 6);
+    });
+
+    it("keeps an exact centi value that double-precision math would push down a centi", () => {
+        // 0.29 * 100 is 28.999999999999996 in doubles, but 29 in the game's single precision.
+        expect(truncCentis(0.29)).toBeCloseTo(0.29, 6);
     });
 
     it("truncates toward zero for negative values", () => {
-        expect(truncCentis(-1.239)).toBe(-1.23);
+        expect(truncCentis(-1.239)).toBeCloseTo(-1.23, 6);
     });
 
     it("leaves whole numbers unchanged", () => {
@@ -92,97 +123,160 @@ describe("truncCentis", () => {
 });
 
 describe("getMultiplier", () => {
-    it("returns base=1, battle=0, total=1 with no modifiers", () => {
-        const result = getMultiplier(DEFAULT_MODIFIERS, 4);
-        expect(result).toEqual({ base: 1, battle: 0, total: 1 });
+    const mods = (overrides: Partial<VRModifiers> = {}): VRModifiers => ({
+        ...DEFAULT_MODIFIERS,
+        ...overrides,
     });
 
-    it("doubles base when eventDay is true", () => {
-        const result = getMultiplier({ ...DEFAULT_MODIFIERS, eventDay: true }, 4);
-        expect(result.base).toBe(2);
-        expect(result.total).toBe(2);
+    it.each([
+        { name: "no modifiers", modifiers: mods(), players: 12, total: 1 },
+        { name: "weekend", modifiers: mods({ weekend: true }), players: 12, total: 1.5 },
+        { name: "beta build", modifiers: mods({ betaBuild: true }), players: 12, total: 1.25 },
+        { name: "server value 2", modifiers: mods({ serverMultiplier: 2 }), players: 12, total: 2 },
+        {
+            name: "battle elimination, 12 players",
+            modifiers: mods({ battleElimination: true }),
+            players: 12,
+            total: 2.162,
+        },
+        {
+            name: "battle elimination, 6 players",
+            modifiers: mods({ battleElimination: true }),
+            players: 6,
+            total: 1.166,
+        },
+        {
+            name: "battle elimination, 5 players",
+            modifiers: mods({ battleElimination: true }),
+            players: 5,
+            total: 1,
+        },
+        {
+            name: "weekend plus battle elimination, 8 players",
+            modifiers: mods({ weekend: true, battleElimination: true }),
+            players: 8,
+            total: 1.998,
+        },
+    ])("$name gives $total", ({ modifiers, players, total }) => {
+        expect(getMultiplier(modifiers, players).total).toBeCloseTo(total, 5);
     });
 
-    it("multiplies base by 1.25 when specialMultiplier is true", () => {
-        const result = getMultiplier({ ...DEFAULT_MODIFIERS, specialMultiplier: true }, 4);
-        expect(result.base).toBeCloseTo(1.25, 5);
-    });
-
-    it("stacks eventDay and specialMultiplier: base = 2.5", () => {
+    it("caps the total at 2.5", () => {
         const result = getMultiplier(
-            { ...DEFAULT_MODIFIERS, eventDay: true, specialMultiplier: true },
-            4,
+            mods({ weekend: true, serverMultiplier: 2, betaBuild: true }),
+            12,
         );
-        expect(result.base).toBeCloseTo(2.5, 5);
+
+        expect(result.total).toBe(2.5);
+        expect(result.capped).toBe(true);
     });
 
-    it("adds battle bonus of 0.166 per player above 5", () => {
-        const result = getMultiplier({ ...DEFAULT_MODIFIERS, battleBonus: true }, 6);
-        expect(result.battle).toBeCloseTo(0.166, 3);
-        expect(result.total).toBeCloseTo(1.166, 3);
+    it("never goes below 1, even with a server value under 1", () => {
+        expect(getMultiplier(mods({ serverMultiplier: 0.5 }), 12).total).toBe(1);
     });
 
-    it("does not add battle bonus when player count is 5 or fewer", () => {
-        const result = getMultiplier({ ...DEFAULT_MODIFIERS, battleBonus: true }, 5);
-        expect(result.battle).toBe(0);
-    });
-
-    it("multiplies total by 1.15 when betaBuild is true", () => {
-        const result = getMultiplier({ ...DEFAULT_MODIFIERS, betaBuild: true }, 4);
-        expect(result.total).toBeCloseTo(1.15, 5);
-    });
-
-    it("applies betaBuild on top of eventDay: total = 2 * 1.15", () => {
-        const result = getMultiplier({ ...DEFAULT_MODIFIERS, eventDay: true, betaBuild: true }, 4);
-        expect(result.total).toBeCloseTo(2.3, 5);
+    it("ignores a server value that is not a number, as the game ignores an unreadable one", () => {
+        expect(getMultiplier(mods({ serverMultiplier: Number.NaN }), 12).total).toBe(1);
     });
 });
 
 describe("simulate", () => {
-    const OPTS = { vrMode: true, allDisconnected: false, minDisplay: 1, maxDisplay: 99999 };
+    const GAME_LIMITS = {
+        vrMode: true,
+        allDisconnected: false,
+        minDisplay: 100,
+        maxDisplay: 1_000_000,
+    };
 
-    it("two equal-VR players: winner gains, loser loses", () => {
-        const players = [
-            { id: 1, displayVr: 5000 },
-            { id: 2, displayVr: 5000 },
-        ];
-        const { players: results } = simulate(players, DEFAULT_MODIFIERS, OPTS);
-        expect(results[0].finalDelta).toBeGreaterThan(0);
-        expect(results[1].finalDelta).toBeLessThan(0);
+    /** Runs a race in the given finish order and returns each player's VR afterwards. */
+    const race = (
+        displayVrs: number[],
+        modifiers: VRModifiers = DEFAULT_MODIFIERS,
+        options: Partial<typeof GAME_LIMITS> = {},
+    ) =>
+        simulate(
+            displayVrs.map((displayVr, i) => ({ id: i + 1, displayVr })),
+            modifiers,
+            { ...GAME_LIMITS, ...options },
+        ).players.map((p) => p.newDisplayVr);
+
+    it("12 players at 5000 VR: 1st gains 196 and the low-VR divider softens every loss", () => {
+        expect(race(Array(12).fill(5000))).toEqual([
+            5196, 5160, 5124, 5089, 5053, 5017, 4996, 4995, 4995, 4995, 4995, 4995,
+        ]);
     });
 
-    it("all-disconnected rule: 4+ players all get -1 display VR", () => {
-        const players = [1, 2, 3, 4].map((id) => ({ id, displayVr: 5000 }));
-        const { players: results } = simulate(players, DEFAULT_MODIFIERS, {
-            ...OPTS,
-            allDisconnected: true,
-        });
-        results.forEach((r) => {
-            expect(r.newDisplayVr).toBe(r.displayVr - 1);
-        });
+    it("12 players at 30000 VR: the bottom three hit the loss cap", () => {
+        expect(race(Array(12).fill(30000))).toEqual([
+            30196, 30160, 30124, 30089, 30053, 30017, 29982, 29946, 29910, 29881, 29881, 29881,
+        ]);
     });
 
-    it("all-disconnected rule: fewer than 4 players get 0 delta", () => {
-        const players = [1, 2, 3].map((id) => ({ id, displayVr: 5000 }));
-        const { players: results } = simulate(players, DEFAULT_MODIFIERS, {
-            ...OPTS,
-            allDisconnected: true,
-        });
-        results.forEach((r) => {
-            expect(r.finalDelta).toBe(0);
-        });
+    it("a lobby with a wide VR spread", () => {
+        expect(
+            race([12000, 45000, 30000, 8000, 60000, 25000, 5000, 90000, 15000, 3000, 40000, 20000]),
+        ).toEqual([
+            12228, 45122, 30124, 8150, 60004, 25046, 5072, 89890, 14981, 3004, 39861, 19927,
+        ]);
     });
 
-    it("tiny negative rule: internal delta in (-0.0101, 0) rounds to 0 in vrMode", () => {
-        const players = [
-            { id: 1, displayVr: 99000 },
-            { id: 2, displayVr: 100 },
-        ];
-        const { players: results } = simulate(players, DEFAULT_MODIFIERS, OPTS);
-        const tinyNegPlayer = results.find((r) => r.vrRule === "TINY NEG → 0");
-        if (tinyNegPlayer) {
-            expect(tinyNegPlayer.finalDelta).toBe(0);
-        }
+    it("irregular ratings, including the 100 VR floor and the 15000 divider boundary", () => {
+        expect(
+            race([5029, 4971, 12345, 9876, 150, 14999, 15000, 50001, 23456, 7777, 31313, 100]),
+        ).toEqual([5251, 5158, 12476, 9979, 260, 15019, 14984, 49910, 23367, 7759, 31188, 117]);
+    });
+
+    it("a 2000 VR player finishing last still gains, because the loss cap turns positive", () => {
+        expect(race([...Array(11).fill(5000), 2000])).toEqual([
+            5195, 5159, 5124, 5088, 5052, 5017, 4996, 4995, 4995, 4995, 4995, 2009,
+        ]);
+    });
+
+    it("holds ratings near the top to the 0.10 gain cap", () => {
+        expect(race([999950, 999990, 5000, 5000])).toEqual([999959, 999976, 5016, 4996]);
+    });
+
+    it("applies the low-VR divider only under VR mode rules", () => {
+        const lobby = Array(12).fill(8000);
+
+        expect(race(lobby)).toEqual([
+            8196, 8160, 8124, 8089, 8053, 8017, 7995, 7986, 7981, 7981, 7981, 7981,
+        ]);
+        expect(race(lobby, DEFAULT_MODIFIERS, { vrMode: false })).toEqual([
+            8196, 8160, 8124, 8089, 8053, 8017, 7982, 7981, 7981, 7981, 7981, 7981,
+        ]);
+    });
+
+    it("zeroes a loss smaller than 0.0101 under VR mode rules", () => {
+        // Losing to a far stronger player costs 0.0056: dropped in VR mode, kept otherwise.
+        expect(race([999000, 20000])[1]).toBe(20000);
+        expect(race([999000, 20000], DEFAULT_MODIFIERS, { vrMode: false })[1]).toBe(19999);
+    });
+
+    it("scales changes by the weekend multiplier", () => {
+        expect(race(Array(12).fill(30000), { ...DEFAULT_MODIFIERS, weekend: true })).toEqual([
+            30294, 30240, 30187, 30133, 30080, 30026, 29973, 29919, 29881, 29881, 29881, 29881,
+        ]);
+    });
+
+    it("stops scaling once the multiplier reaches its 2.5 cap", () => {
+        const modifiers = { ...DEFAULT_MODIFIERS, weekend: true, serverMultiplier: 2 };
+
+        expect(race(Array(12).fill(30000), modifiers)).toEqual([
+            30490, 30401, 30312, 30223, 30133, 30044, 29955, 29881, 29881, 29881, 29881, 29881,
+        ]);
+    });
+
+    it("all-disconnected rule: 4 or more players each lose 1 VR", () => {
+        expect(race(Array(4).fill(5000), DEFAULT_MODIFIERS, { allDisconnected: true })).toEqual([
+            4999, 4999, 4999, 4999,
+        ]);
+    });
+
+    it("all-disconnected rule: fewer than 4 players keep their VR", () => {
+        expect(race(Array(3).fill(5000), DEFAULT_MODIFIERS, { allDisconnected: true })).toEqual([
+            5000, 5000, 5000,
+        ]);
     });
 });
 

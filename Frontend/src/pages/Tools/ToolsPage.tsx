@@ -17,15 +17,14 @@ const tools: {
         title: "Font Patcher",
         icon: () => <PenTool size={36} />,
         description:
-            "Patch Font.szs files to replace tt_kart_extension_font.brfnt with custom fonts.",
+            "Use a custom Font.szs without losing Retro Rewind's rank badges by copying in Retro Rewind's tt_kart_extension_font.brfnt.",
         path: "/tools/font-patcher",
     },
     {
         id: "rating-editor",
         title: "Rating Editor",
         icon: () => <Settings size={36} />,
-        description:
-            "Edit your RRRating.pul file to modify VR and BR values across your license slots.",
+        description: "Edit the VR and BR your RRRating.pul file stores for each profile.",
         path: "/tools/rating-editor",
     },
     {

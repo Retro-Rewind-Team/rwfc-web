@@ -1,121 +1,177 @@
-const SPLINE_CP = [0, 1, 8, 50, 125] as const;
+/**
+ * VR simulation mirroring Retro Rewind's PlayerRating.cpp and RatingMultiplier.cpp.
+ *
+ * The game does this math in single-precision floats, and that matters: ratings are truncated to
+ * centis after every race, so a value such as 0.29, which doubles hold as 0.28999999999999998,
+ * would lose a whole display VR point. Every step goes through Math.fround to stay on the same
+ * float grid the game uses.
+ */
+const f = Math.fround;
+
+const SPLINE_CONTROL_POINTS = [0, 1, 8, 50, 125] as const;
 const SPLINE_BIAS = 7499;
-const SPLINE_SCALE = 1 / (SPLINE_BIAS * 2);
+/**
+ * The game's constant as written. Its comment in PlayerRating.cpp says 1/(2*SPLINE_BIAS), but the
+ * value is three times that, and the value is what runs.
+ */
+const SPLINE_SCALE = f(0.00020004);
 
 export const VR_DISPLAY_SCALE = 100;
 export const DEFAULT_DISPLAY_VR = 5000;
+/** MIN_RATING and MAX_RATING from PlayerRating.hpp (1.00 and 10000.00) in display VR. */
+export const MIN_DISPLAY_VR = 100;
+export const MAX_DISPLAY_VR = 1_000_000;
 
-function clamp(v: number, lo: number, hi: number) {
-    return Math.max(lo, Math.min(hi, v));
+/** The game's Clamp: same argument order and the same result when the bounds cross. */
+function clamp(val: number, min: number, max: number): number {
+    return val < min ? min : val > max ? max : val;
 }
 
-function evalSpline(x: number): number {
-    let r = 0;
+function evaluateSpline(x: number): number {
+    let result = 0;
     for (let i = -2; i <= 6; i++) {
-        const idx = clamp(i, 0, 4);
-        const d = Math.abs(x - i);
+        const idx = i < 0 ? 0 : i > 4 ? 4 : i;
+        let d = f(x - i);
+        if (d < 0) d = -d;
+
         let w = 0;
         if (d <= 1) {
-            w = (4 - 6 * d * d + 3 * d * d * d) / 6;
+            // (4 - 6d² + 3d³) / 6, in the order the game evaluates it
+            w = f(f(f(4 - f(f(6 * d) * d)) + f(f(f(3 * d) * d) * d)) / 6);
         } else if (d < 2) {
-            const t = 2 - d;
-            w = (t * t * t) / 6;
+            const t = f(2 - d);
+            w = f(f(f(t * t) * t) / 6);
         }
-        r += w * SPLINE_CP[idx];
+        result = f(result + f(w * SPLINE_CONTROL_POINTS[idx]));
     }
-    return r / 30;
+    return f(result / 30);
 }
 
 /**
- * Calculates the positive VR points earned by beating one opponent.
- * Uses a cubic B-spline over the VR difference, biased toward the opponent's rating.
- * Returns a value in [0.02, 0.24] in internal VR units.
+ * Calculates the VR points earned by finishing ahead of one opponent.
+ * Beating a stronger opponent is worth more. Returns a value in [0.02, 0.24] internal VR.
  * @param selfVr - The player's internal VR (display VR / 100).
  * @param oppVr - The opponent's internal VR.
  */
 export function calcPosPoints(selfVr: number, oppVr: number): number {
-    const s = clamp(SPLINE_BIAS + (oppVr - selfVr) * 4, 0, SPLINE_BIAS * 2);
-    return clamp(evalSpline(SPLINE_SCALE * s), 0.02, 0.24);
+    const sample = clamp(f(SPLINE_BIAS + f(f(oppVr - selfVr) * 4)), 0, SPLINE_BIAS * 2);
+    return clamp(evaluateSpline(f(SPLINE_SCALE * sample)), f(0.02), f(0.24));
 }
 
 /**
- * Calculates the negative VR points lost by finishing behind one opponent.
- * Mirrors the positive spline but inverts the VR difference and returns a value in [-0.19, 0].
+ * Calculates the VR points lost by finishing behind one opponent.
+ * Losing to a weaker opponent costs more. Returns a value in [-0.19, 0] internal VR.
  * @param selfVr - The player's internal VR (display VR / 100).
  * @param oppVr - The opponent's internal VR.
  */
 export function calcNegPoints(selfVr: number, oppVr: number): number {
-    const s = clamp(SPLINE_BIAS - (oppVr - selfVr) * 16, 0, SPLINE_BIAS * 2);
-    return clamp(-evalSpline(SPLINE_SCALE * s), -0.19, 0);
+    const sample = clamp(f(SPLINE_BIAS - f(f(oppVr - selfVr) * 16)), 0, SPLINE_BIAS * 2);
+    return clamp(-evaluateSpline(f(SPLINE_SCALE * sample)), f(-0.19), 0);
 }
 
 /**
- * Returns the maximum VR gain cap for a given internal rating.
- * Players below 1500 have no cap (1e6). From 1500 to 9000 the cap decreases
- * linearly from ~1000 down to 0.1 to slow runaway inflation at high ratings.
- * @param rating - The player's current internal VR value (display VR / 100).
+ * Returns the largest VR gain allowed in one race at a given internal rating.
+ * Uncapped below 1500, then shrinking linearly from about 1000 down to 0.1 at 9000 and above.
+ * @param rating - The player's current internal VR (display VR / 100).
  */
 export function getGainCap(rating: number): number {
     if (rating < 1500) return 1e6;
-    if (rating >= 9000) return 0.1;
-    return 0.1 + 999.9 * (1 - (rating - 1500) / 7500);
+    if (rating >= 9000) return f(0.1);
+    const t = f(f(rating - 1500) / 7500);
+    return f(f(0.1) + f(f(999.9) * f(1 - t)));
 }
 
 /**
- * Returns the maximum VR loss cap (a negative value) for a given internal rating.
- * Players at or below 150 are hard-floored at -0.5 to prevent large losses at the
- * lowest ratings. From 150 to 500 the cap grows linearly in magnitude to -2.09 as
- * rating increases, then stays fixed above 500.
- * @param rating - The player's current internal VR value (display VR / 100).
+ * Returns the largest VR loss allowed in one race (a negative number) at a given internal rating.
+ * Fixed at -2.09 from 500 up. Below that the game keeps following the line through -0.5 at 150,
+ * and under about 40 the "cap" turns positive, which forces a small gain even for last place.
+ * @param rating - The player's current internal VR (display VR / 100).
  */
 export function getLossCap(rating: number): number {
-    if (rating <= 150) return -0.5;
-    if (rating >= 500) return -2.09;
-    return -0.5 - 1.59 * ((rating - 150) / 350);
+    if (rating >= 500) return f(-2.09);
+    const t = f(f(rating - 150) / 350);
+    return f(f(-0.5) + f(f(f(-2.09) + f(0.5)) * t));
 }
 
-/** Truncates a value to two decimal places (centis) without rounding. */
+/**
+ * Returns what a negative race total is divided by under VR mode rules: 7.5 at a rating of 0,
+ * falling linearly to 1 (no effect) at 150 and above.
+ * @param rating - The player's current internal VR (display VR / 100).
+ */
+export function getLowVrLossDivider(rating: number): number {
+    if (rating >= 150) return 1;
+    if (rating <= 0) return 7.5;
+    return f(7.5 - f(6.5 * f(rating / 150)));
+}
+
+/** Truncates a rating to two decimal places (centis) without rounding, in single precision. */
 export function truncCentis(v: number): number {
-    return Math.trunc(v * 100) / 100;
+    return f(Math.trunc(f(f(v) * 100)) / 100);
+}
+
+/** The number FormatRatingDigits prints for a rating: the whole part, then rounded centis. */
+function toDisplayVr(rating: number): number {
+    let whole = Math.trunc(rating);
+    let centis = Math.trunc(f(f(f(rating - whole) * 100) + 0.5));
+    if (centis >= 100) {
+        whole++;
+        centis -= 100;
+    }
+    if (centis < 0) centis = -centis;
+    return whole * 100 + centis;
 }
 
 export interface VRModifiers {
-    eventDay: boolean;
-    specialMultiplier: boolean;
-    weekendMultiplier: boolean;
-    battleBonus: boolean;
+    /** Weekend event for the player's region: 1.5×. */
+    weekend: boolean;
+    /** Battle elimination: +0.166 for each room player above 5. */
+    battleElimination: boolean;
+    /** Beta builds of the game multiply by 1.25. */
     betaBuild: boolean;
+    /** Value the game downloads from /api/multiplier, which is how events are applied. */
+    serverMultiplier: number;
 }
 
 export const DEFAULT_MODIFIERS: VRModifiers = {
-    eventDay: false,
-    specialMultiplier: false,
-    weekendMultiplier: false,
-    battleBonus: false,
+    weekend: false,
+    battleElimination: false,
     betaBuild: false,
+    serverMultiplier: 1,
 };
 
 export interface MultiplierInfo {
+    /** 1, or 1.5 on a weekend. */
     base: number;
+    /** Battle elimination bonus, added to the base. */
     battle: number;
+    /** Server multiplier actually applied: 1 when the value is not usable. */
+    server: number;
+    /** Final multiplier, after the beta factor and the game's 1.0-2.5 limit. */
     total: number;
+    /** True when that limit changed the total. */
+    capped: boolean;
 }
 
 /**
- * Computes the VR multiplier breakdown for a race session.
- * The base multiplier starts at 2 on event days, else 1. Special and weekend multipliers
- * each add 25%. The battle bonus adds 0.166 per player above 5. If betaBuild is active,
- * the total (base + battle) is scaled by 1.15.
- * @param mods - Active modifier flags for the session.
- * @param playerCount - Number of players in the room, used for the battle bonus.
+ * Computes the VR multiplier the way RatingMultiplier.cpp's GetMultiplier does:
+ * (weekend base + battle bonus) × server value × beta factor, then clamped to [1, 2.5].
+ * @param mods - Active modifiers.
+ * @param roomPlayers - Number of players in the room, used for the battle elimination bonus.
  */
-export function getMultiplier(mods: VRModifiers, playerCount: number): MultiplierInfo {
-    let base = mods.eventDay ? 2 : 1;
-    if (mods.specialMultiplier) base *= 1.25;
-    if (mods.weekendMultiplier) base *= 1.25;
-    const battle = mods.battleBonus && playerCount > 5 ? (playerCount - 5) * 0.166 : 0;
-    const total = mods.betaBuild ? (base + battle) * 1.15 : base + battle;
-    return { base, battle, total };
+export function getMultiplier(mods: VRModifiers, roomPlayers: number): MultiplierInfo {
+    const base = mods.weekend ? f(1.5) : 1;
+    const battle = mods.battleElimination && roomPlayers > 5 ? f(f(roomPlayers - 5) * f(0.166)) : 0;
+    // The game only applies a server value that parsed as a plain number; anything else leaves 1.
+    const server =
+        Number.isFinite(mods.serverMultiplier) && mods.serverMultiplier >= 0
+            ? f(mods.serverMultiplier)
+            : 1;
+
+    let uncapped = f(f(base + battle) * server);
+    if (mods.betaBuild) uncapped = f(uncapped * f(1.25));
+    const total = uncapped < 1 ? 1 : uncapped > 2.5 ? 2.5 : uncapped;
+
+    return { base, battle, server, total, capped: total !== uncapped };
 }
 
 export interface PlayerInput {
@@ -148,15 +204,16 @@ export interface SimulationResult {
 }
 
 /**
- * Simulates a full VR race result for all players in a room.
- * For each ordered pair (winner i, loser j), calculates pair-wise point contributions
- * using calcPosPoints and calcNegPoints, sums them, applies multipliers, clamps with
- * gain/loss caps, and applies Retro Rewind's "tiny negative to zero" and
- * "all disconnected" edge-case rules. The final display VR is truncated to centis.
- * @param players - Each player's ID and current display VR.
- * @param mods - Session modifier flags (event day, weekend, etc.).
- * @param opts - Simulation options including VR mode, disconnect state, and VR floor/ceiling.
- * @returns Per-player results with intermediate values and the session multiplier breakdown.
+ * Simulates one race, following RR_UpdatePoints in PlayerRating.cpp. Array order is finish order.
+ *
+ * Each player sums points against every opponent. Under VR mode rules a negative total below a
+ * rating of 150 is divided by {@link getLowVrLossDivider}. The total is multiplied, clamped to the
+ * loss and gain caps, and then VR mode rules either set everyone to -0.01 (all disconnected, 4+
+ * players) or drop a loss smaller than 0.0101. The new rating is clamped to the rating range and
+ * truncated to centis.
+ * @param players - Each player's ID and current display VR, in finish order.
+ * @param mods - Active modifiers.
+ * @param opts - VR mode rules, the all-disconnected case, and the display VR floor and ceiling.
  */
 export function simulate(
     players: PlayerInput[],
@@ -165,59 +222,55 @@ export function simulate(
 ): SimulationResult {
     const n = players.length;
     const mult = getMultiplier(mods, n);
-    const minVr = opts.minDisplay / VR_DISPLAY_SCALE;
-    const maxVr = opts.maxDisplay / VR_DISPLAY_SCALE;
+    const minRating = f(opts.minDisplay / VR_DISPLAY_SCALE);
+    const maxRating = f(opts.maxDisplay / VR_DISPLAY_SCALE);
+    const ratings = players.map((p) => f(p.displayVr / VR_DISPLAY_SCALE));
 
     const pairSums = new Array<number>(n).fill(0);
-    const contribs: PlayerContribution[][] = Array.from({ length: n }, () => []);
+    const pairs: Omit<PlayerContribution, "multValue">[][] = Array.from({ length: n }, () => []);
 
     for (let i = 0; i < n; i++) {
-        const selfVr = players[i].displayVr / VR_DISPLAY_SCALE;
         for (let j = 0; j < n; j++) {
             if (i === j) continue;
-            const oppVr = players[j].displayVr / VR_DISPLAY_SCALE;
-            if (i < j) {
-                const raw = calcPosPoints(selfVr, oppVr);
-                pairSums[i] += raw;
-                contribs[i].push({
-                    opponentId: players[j].id,
-                    win: true,
-                    rawValue: raw,
-                    multValue: raw * mult.total,
-                });
-            } else {
-                const raw = calcNegPoints(selfVr, oppVr);
-                pairSums[i] += raw;
-                contribs[i].push({
-                    opponentId: players[j].id,
-                    win: false,
-                    rawValue: raw,
-                    multValue: raw * mult.total,
-                });
-            }
+            const win = i < j;
+            const raw = win
+                ? calcPosPoints(ratings[i], ratings[j])
+                : calcNegPoints(ratings[i], ratings[j]);
+            pairSums[i] = f(pairSums[i] + raw);
+            pairs[i].push({ opponentId: players[j].id, win, rawValue: raw });
         }
     }
 
-    const results: PlayerResult[] = players.map((p, i) => {
-        const vr = p.displayVr / VR_DISPLAY_SCALE;
-        let delta = pairSums[i] * mult.total;
-        const afterMult = delta;
-        delta = clamp(delta, getLossCap(vr), getGainCap(vr));
-        const afterCaps = delta;
+    const results = players.map((p, i): PlayerResult => {
+        const old = ratings[i];
+        const rules: string[] = [];
+        let delta = pairSums[i];
 
-        let vrRule = "-";
-        if (opts.vrMode) {
-            if (opts.allDisconnected) {
-                delta = n >= 4 ? -0.01 : 0;
-                vrRule = n >= 4 ? "ALL DISC −0.01" : "ALL DISC 0.00";
-            } else if (delta >= -0.0101 && delta < 0) {
-                delta = 0;
-                vrRule = "TINY NEG → 0";
+        let divider = 1;
+        if (opts.vrMode && old < 150 && delta < 0) {
+            divider = getLowVrLossDivider(old);
+            if (divider > 1) {
+                delta = f(delta / divider);
+                rules.push(`LOW VR ÷${divider.toFixed(2)}`);
             }
         }
 
-        const newVr = truncCentis(clamp(vr + delta, minVr, maxVr));
-        const finalDelta = newVr - vr;
+        delta = f(delta * mult.total);
+        const afterMult = delta;
+        delta = clamp(delta, getLossCap(old), getGainCap(old));
+        const afterCaps = delta;
+
+        if (opts.vrMode) {
+            if (opts.allDisconnected) {
+                delta = n >= 4 ? f(-0.01) : 0;
+                rules.push(n >= 4 ? "ALL DISC −0.01" : "ALL DISC 0.00");
+            } else if (delta >= f(-0.0101) && delta < 0) {
+                delta = 0;
+                rules.push("TINY NEG → 0");
+            }
+        }
+
+        const next = truncCentis(clamp(f(old + delta), minRating, maxRating));
 
         return {
             id: p.id,
@@ -225,10 +278,13 @@ export function simulate(
             pairSum: pairSums[i],
             afterMult,
             afterCaps,
-            vrRule,
-            finalDelta,
-            newDisplayVr: Math.round(newVr * VR_DISPLAY_SCALE),
-            contributions: contribs[i],
+            vrRule: rules.length > 0 ? rules.join(", ") : "-",
+            finalDelta: f(next - old),
+            newDisplayVr: toDisplayVr(next),
+            contributions: pairs[i].map((pair) => ({
+                ...pair,
+                multValue: f(f(pair.rawValue / divider) * mult.total),
+            })),
         };
     });
 
