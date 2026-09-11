@@ -7,7 +7,7 @@ import {
     getControllerName,
     getVehicleName,
 } from "../../../constants/marioKartMappings";
-import { formatDate, getDriftInfo } from "../../../utils/formatter";
+import { formatAverageLap, formatDate, getDriftInfo } from "../../../utils/formatter";
 
 interface TTPlayerSubmissionsTableProps {
     submissions: GhostSubmission[];
@@ -292,33 +292,9 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
                                                                         Average Lap:
                                                                     </span>
                                                                     <span class="font-mono font-medium text-gray-900 dark:text-white">
-                                                                        {validLaps().length > 0
-                                                                            ? (() => {
-                                                                                  const avg =
-                                                                                      validLaps().reduce(
-                                                                                          (
-                                                                                              sum,
-                                                                                              lap,
-                                                                                          ) =>
-                                                                                              sum +
-                                                                                              lap.timeMs,
-                                                                                          0,
-                                                                                      ) /
-                                                                                      validLaps()
-                                                                                          .length;
-                                                                                  const mins =
-                                                                                      Math.floor(
-                                                                                          avg /
-                                                                                              60000,
-                                                                                      );
-                                                                                  const secs = (
-                                                                                      (avg %
-                                                                                          60000) /
-                                                                                      1000
-                                                                                  ).toFixed(3);
-                                                                                  return `${mins}:${secs.padStart(6, "0")}`;
-                                                                              })()
-                                                                            : "N/A"}
+                                                                        {formatAverageLap(
+                                                                            validLaps(),
+                                                                        )}
                                                                     </span>
                                                                 </div>
                                                                 <div class="flex justify-between">

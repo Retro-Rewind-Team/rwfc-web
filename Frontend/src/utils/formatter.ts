@@ -66,3 +66,19 @@ export const formatTimestamp = (timestamp: string): string => {
     const date = new Date(timestamp);
     return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
 };
+
+/**
+ * Mean of a set of lap times, formatted as m:ss.mmm. Returns "N/A" for an empty set.
+ *
+ * Both time trial tables computed this inline, in an IIFE nested deep in their expanded-row
+ * markup, with identical arithmetic in each.
+ */
+export function formatAverageLap(laps: { timeMs: number }[]): string {
+    if (laps.length === 0) return "N/A";
+
+    const average = laps.reduce((sum, lap) => sum + lap.timeMs, 0) / laps.length;
+    const minutes = Math.floor(average / 60000);
+    const seconds = ((average % 60000) / 1000).toFixed(3);
+
+    return `${minutes}:${seconds.padStart(6, "0")}`;
+}

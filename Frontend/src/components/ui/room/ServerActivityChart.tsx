@@ -1,4 +1,4 @@
-import { createEffect, createSignal, For, Show } from "solid-js";
+import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { ChartBarBig, TrendingUp, TriangleAlert } from "lucide-solid";
 import { queryKeys } from "../../../constants/queryKeys";
@@ -21,6 +21,34 @@ export default function ServerActivityChart() {
     const [selectedDays, setSelectedDays] = createSignal<number | undefined>(7);
     const [hoveredPoint, setHoveredPoint] = createSignal<PlayerCountDataPoint | null>(null);
     const [hoveredPos, setHoveredPos] = createSignal<{ x: number; y: number } | null>(null);
+
+    const TOOLTIP_WIDTH = 140;
+    const TOOLTIP_HEIGHT = 58;
+
+    /**
+     * Tooltip geometry, clamped inside the plot area. A memo rather than an IIFE inside the JSX:
+     * the previous form re-evaluated and rebuilt the whole tooltip subtree on every mouse move,
+     * where this lets Solid update the existing attributes instead.
+     */
+    const tooltipBox = createMemo(() => {
+        const point = hoveredPoint();
+        const pos = hoveredPos();
+        if (!point || !pos) return null;
+
+        const pad = getPad();
+
+        let x = pos.x > CHART_WIDTH / 2 ? pos.x - TOOLTIP_WIDTH - 10 : pos.x + 10;
+        if (x < pad.left) x = pad.left;
+        if (x + TOOLTIP_WIDTH > CHART_WIDTH - pad.right) {
+            x = CHART_WIDTH - pad.right - TOOLTIP_WIDTH;
+        }
+
+        // Not enough room above the cursor: sit below it instead.
+        let y = pos.y - TOOLTIP_HEIGHT - 10;
+        if (y < pad.top) y = pos.y + 15;
+
+        return { x, y, point };
+    });
     let svgRef: SVGSVGElement | undefined;
 
     const getPad = () => ({
@@ -443,59 +471,46 @@ export default function ServerActivityChart() {
                         </Show>
 
                         {/* Tooltip */}
-                        <Show when={hoveredPoint() && hoveredPos()}>
-                            {(() => {
-                                const pt = hoveredPoint()!;
-                                const pos = hoveredPos()!;
-                                const W = 140;
-                                const H = 58;
-                                let tx = pos.x > CHART_WIDTH / 2 ? pos.x - W - 10 : pos.x + 10;
-                                if (tx < getPad().left) tx = getPad().left;
-                                if (tx + W > CHART_WIDTH - getPad().right)
-                                    tx = CHART_WIDTH - getPad().right - W;
-                                let ty = pos.y - H - 10;
-                                if (ty < getPad().top) ty = pos.y + 15;
-
-                                return (
-                                    <g style="pointer-events: none">
-                                        <rect
-                                            x={tx}
-                                            y={ty}
-                                            width={W}
-                                            height={H}
-                                            rx="6"
-                                            fill="white"
-                                            stroke="#E5E7EB"
-                                            stroke-width="2"
-                                            class="dark:fill-gray-800 dark:stroke-gray-600"
-                                        />
-                                        <text
-                                            x={tx + W / 2}
-                                            y={ty + 16}
-                                            text-anchor="middle"
-                                            class="text-xs fill-gray-500 dark:fill-gray-400"
-                                        >
-                                            {formatTooltipTime(pt.timestamp)}
-                                        </text>
-                                        <text
-                                            x={tx + W / 2}
-                                            y={ty + 34}
-                                            text-anchor="middle"
-                                            class="text-sm fill-gray-900 dark:fill-white font-bold"
-                                        >
-                                            {pt.players} players
-                                        </text>
-                                        <text
-                                            x={tx + W / 2}
-                                            y={ty + 50}
-                                            text-anchor="middle"
-                                            class="text-xs fill-gray-500 dark:fill-gray-400"
-                                        >
-                                            {pt.rooms} rooms
-                                        </text>
-                                    </g>
-                                );
-                            })()}
+                        <Show when={tooltipBox()}>
+                            {(box) => (
+                                <g style="pointer-events: none">
+                                    <rect
+                                        x={box().x}
+                                        y={box().y}
+                                        width={TOOLTIP_WIDTH}
+                                        height={TOOLTIP_HEIGHT}
+                                        rx="6"
+                                        fill="white"
+                                        stroke="#E5E7EB"
+                                        stroke-width="2"
+                                        class="dark:fill-gray-800 dark:stroke-gray-600"
+                                    />
+                                    <text
+                                        x={box().x + TOOLTIP_WIDTH / 2}
+                                        y={box().y + 16}
+                                        text-anchor="middle"
+                                        class="text-xs fill-gray-500 dark:fill-gray-400"
+                                    >
+                                        {formatTooltipTime(box().point.timestamp)}
+                                    </text>
+                                    <text
+                                        x={box().x + TOOLTIP_WIDTH / 2}
+                                        y={box().y + 34}
+                                        text-anchor="middle"
+                                        class="text-sm fill-gray-900 dark:fill-white font-bold"
+                                    >
+                                        {box().point.players} players
+                                    </text>
+                                    <text
+                                        x={box().x + TOOLTIP_WIDTH / 2}
+                                        y={box().y + 50}
+                                        text-anchor="middle"
+                                        class="text-xs fill-gray-500 dark:fill-gray-400"
+                                    >
+                                        {box().point.rooms} rooms
+                                    </text>
+                                </g>
+                            )}
                         </Show>
                     </svg>
                 </div>

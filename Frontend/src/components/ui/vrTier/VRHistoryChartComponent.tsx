@@ -1,4 +1,4 @@
-import { createSignal, For, Show } from "solid-js";
+import { createSignal, createUniqueId, For, Show } from "solid-js";
 import { ProcessedVRHistory, useVRHistory } from "../../../hooks/useVRHistory";
 import TriangleAlert from "lucide-solid/icons/triangle-alert";
 import ChartBarBig from "lucide-solid/icons/chart-bar-big";
@@ -14,6 +14,11 @@ interface VRHistoryChartProps {
 const DOTS_THRESHOLD = 60;
 
 export default function VRHistoryChart(props: VRHistoryChartProps) {
+    // SVG gradient ids are document-global. Two charts on one page both defined "lineGradient",
+    // and every url(#lineGradient) resolved to whichever was in the DOM first.
+    const lineGradientId = createUniqueId();
+    const areaGradientId = createUniqueId();
+
     const {
         historyData,
         stats,
@@ -518,14 +523,14 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                     >
                         <defs>
                             {/* Gradient for line */}
-                            <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <linearGradient id={lineGradientId} x1="0%" y1="0%" x2="100%" y2="0%">
                                 <stop offset="0%" stop-color="#3B82F6" />
                                 <stop offset="50%" stop-color="#8B5CF6" />
                                 <stop offset="100%" stop-color="#EC4899" />
                             </linearGradient>
 
                             {/* Gradient for area */}
-                            <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <linearGradient id={areaGradientId} x1="0%" y1="0%" x2="0%" y2="100%">
                                 <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.3" />
                                 <stop offset="100%" stop-color="#EC4899" stop-opacity="0.05" />
                             </linearGradient>
@@ -551,13 +556,13 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                         </For>
 
                         {/* Area fill */}
-                        <path d={generateAreaPath()} fill="url(#areaGradient)" />
+                        <path d={generateAreaPath()} fill={`url(#${areaGradientId})`} />
 
                         {/* Main line */}
                         <path
                             d={generatePath()}
                             fill="none"
-                            stroke="url(#lineGradient)"
+                            stroke={`url(#${lineGradientId})`}
                             stroke-width="4"
                             stroke-linecap="round"
                             stroke-linejoin="round"
@@ -658,7 +663,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                                             cy={y}
                                             r="4"
                                             fill="white"
-                                            stroke="url(#lineGradient)"
+                                            stroke={`url(#${lineGradientId})`}
                                             stroke-width="2"
                                             style="pointer-events: none"
                                         />
@@ -687,7 +692,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                                 cy={hoveredPosition()!.y}
                                 r="6"
                                 fill="white"
-                                stroke="url(#lineGradient)"
+                                stroke={`url(#${lineGradientId})`}
                                 stroke-width="2"
                                 style="pointer-events: none"
                             />
