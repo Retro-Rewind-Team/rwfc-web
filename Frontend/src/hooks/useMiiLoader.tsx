@@ -85,9 +85,7 @@ export function useMiiLoader(): UseMiiLoaderReturn {
             return;
         }
 
-        setMiiCache(
-            Object.fromEntries(uncachedFriendCodes.map((fc) => [fc, "loading" as const])),
-        );
+        setMiiCache(Object.fromEntries(uncachedFriendCodes.map((fc) => [fc, "loading" as const])));
 
         try {
             const response = await fetcher(uncachedFriendCodes);

@@ -434,41 +434,34 @@ export const teamData: Record<string, TeamMember[]> = {
         team.ZPL.withRole("Creator & Project Leader").withDonation("https://ko-fi.com/zpl__"),
     ],
     "Team Retro WFC": [
-        team.Ppeb
-            .withRole("Retro WFC & Bot Developer, Server Administrator")
+        team.Ppeb.withRole("Retro WFC & Bot Developer, Server Administrator")
             .withDonation("https://ko-fi.com/ppebb")
             .withForge("https://github.com/ppebb"),
-        team.Jacher
-            .withRole("Server Administrator & Host, Channel Developer")
+        team.Jacher.withRole("Server Administrator & Host, Channel Developer")
             .withDonation("https://ko-fi.com/jacherr")
             .withForge("https://github.com/Jacherr"),
         team.Renverse.withRole("Server Co-Host")
             .withForge("https://github.com/Renverse420")
             .withDonation("https://streamlabs.com/renverse64/tip"),
-        team.Gab
-            .withRole("Lead Retro WFC and Discord Administrator")
-            .withForge("https://github.com/GABRlEL"),
-        team.Lami
-            .withRole("Retro WFC & Bot Developer")
+        team.Gab.withRole("Lead Retro WFC and Discord Administrator").withForge(
+            "https://github.com/GABRlEL",
+        ),
+        team.Lami.withRole("Retro WFC & Bot Developer")
             .withDonation("https://ko-fi.com/lilousky")
             .withForge("https://github.com/LamiLemmy"),
     ],
     "Team WheelWizard": [
-        team.Patchzy
-            .withRole("WheelWizard Creator & Developer")
-            .withForge("https://github.com/patchzyy"),
-        team.WantToBeeMe
-            .withRole("WheelWizard Creator & Developer")
-            .withForge("https://github.com/wanttobeeme"),
-        team.Lasagna
-            .withRole("WheelWizard Contributor")
-            .withForge("https://github.com/gdmagana"),
-        team.Matellush.withRole("WheelWizard Contributor")
+        team.Patchzy.withRole("WheelWizard Creator & Developer").withForge(
+            "https://github.com/patchzyy",
+        ),
+        team.WantToBeeMe.withRole("WheelWizard Creator & Developer").withForge(
+            "https://github.com/wanttobeeme",
+        ),
+        team.Lasagna.withRole("WheelWizard Contributor").withForge("https://github.com/gdmagana"),
+        team.Matellush.withRole("WheelWizard Contributor"),
     ],
     "Website Creator": [
-        team.Noel
-            .withRole("Website Developer")
-            .withForge("https://github.com/noelhermanss")
+        team.Noel.withRole("Website Developer").withForge("https://github.com/noelhermanss"),
     ],
     "Discord Community Administrators": [
         team.Gab.withRole("Lead Discord Administrator"),
@@ -504,36 +497,22 @@ export const teamData: Record<string, TeamMember[]> = {
         team.Ppeb.withRole("RWFC Moderator"),
     ],
     Developers: [
-        team.ZPL
-            .withRole("Retro Rewind Developer")
-            .withForge("https://github.com/zachpl-mk"),
-        team.Ppeb
-            .withRole("Retro WFC & Bot Developer")
-            .withForge("https://github.com/ppebb"),
-        team.Gab
-            .withRole("Tool Developer & Retro Rewind Contributor")
-            .withForge("https://github.com/GABRlEL"),
-        team.Jacher
-            .withRole("Channel Developer")
-            .withForge("https://github.com/Jacherr"),
-        team.Y21
-            .withRole("Channel Developer")
-            .withForge("https://github.com/y21"),
-        team.Noel
-            .withRole("Bot & Web Developer")
-            .withForge("https://github.com/noelhermanss"),
-        team.Dynohack
-            .withRole("RetroReader Developer")
-            .withForge("https://github.com/dynohack"),
+        team.ZPL.withRole("Retro Rewind Developer").withForge("https://github.com/zachpl-mk"),
+        team.Ppeb.withRole("Retro WFC & Bot Developer").withForge("https://github.com/ppebb"),
+        team.Gab.withRole("Tool Developer & Retro Rewind Contributor").withForge(
+            "https://github.com/GABRlEL",
+        ),
+        team.Jacher.withRole("Channel Developer").withForge("https://github.com/Jacherr"),
+        team.Y21.withRole("Channel Developer").withForge("https://github.com/y21"),
+        team.Noel.withRole("Bot & Web Developer").withForge("https://github.com/noelhermanss"),
+        team.Dynohack.withRole("RetroReader Developer").withForge("https://github.com/dynohack"),
     ],
     Contributors: [
-        team.Rambo
-            .withRole("Extended Teams & Other Features")
-            .withForge("https://github.com/EpicUsername12"),
+        team.Rambo.withRole("Extended Teams & Other Features").withForge(
+            "https://github.com/EpicUsername12",
+        ),
         team.Bodacious.withRole("Nunchuck Viewer"),
-        team.Zeroara
-            .withRole("Retro Rewind Contributor")
-            .withForge("https://github.com/ImZeraora"),
+        team.Zeroara.withRole("Retro Rewind Contributor").withForge("https://github.com/ImZeraora"),
         team.Eppe.withRole("Language System Improvements"),
         team.Ismy.withRole("Hybrid Drift & Gecko Codes"),
         team.Gaberboo.withRole("Retro Rewind Contributor"),

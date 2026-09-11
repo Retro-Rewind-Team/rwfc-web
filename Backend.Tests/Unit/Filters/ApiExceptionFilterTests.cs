@@ -14,6 +14,7 @@ namespace RetroRewindWebsite.Tests.Unit.Filters;
 /// This filter replaced 59 hand-written try/catch blocks, so every controller action now depends
 /// on it to turn a fault into a 500 rather than letting it escape as an unhandled exception.
 /// </summary>
+[Trait("Category", "Unit")]
 public class ApiExceptionFilterTests
 {
     [Fact]

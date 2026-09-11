@@ -54,7 +54,9 @@ export const leaderboardApi = {
             from: from.toISOString(),
             to: to.toISOString(),
         });
-        return apiRequest<VRHistoryResponse>(`/leaderboard/player/${encodeURIComponent(friendCode)}/history?${params}`);
+        return apiRequest<VRHistoryResponse>(
+            `/leaderboard/player/${encodeURIComponent(friendCode)}/history?${params}`,
+        );
     },
 
     async getPlayerRecentHistory(friendCode: string, count = 50): Promise<VRHistoryEntry[]> {
@@ -65,7 +67,9 @@ export const leaderboardApi = {
 
     async getPlayerMii(friendCode: string): Promise<MiiResponse | null> {
         try {
-            return await apiRequest<MiiResponse>(`/leaderboard/player/${encodeURIComponent(friendCode)}/mii`);
+            return await apiRequest<MiiResponse>(
+                `/leaderboard/player/${encodeURIComponent(friendCode)}/mii`,
+            );
         } catch (error) {
             if (error instanceof ApiError && error.status === 404) {
                 return null;
@@ -166,7 +170,9 @@ export const leaderboardApi = {
     async getDiscordInviteIcon(inviteUrl: string): Promise<string | null> {
         try {
             const code = inviteUrl.split("/").filter(Boolean).pop();
-            const response = await fetch(`https://discord.com/api/v10/invites/${encodeURIComponent(code ?? "")}`);
+            const response = await fetch(
+                `https://discord.com/api/v10/invites/${encodeURIComponent(code ?? "")}`,
+            );
 
             if (!response.ok) {
                 throw new Error("Failed to fetch Discord invite");
