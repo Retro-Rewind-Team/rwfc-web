@@ -10,6 +10,7 @@ namespace RetroRewindWebsite.Tests.Unit.Helpers;
 /// "a_c" also returns "abc". Neither is an injection (the pattern is still a parameter), but both
 /// are wrong answers, and a term of "%%%%" is a free full table scan.
 /// </summary>
+[Trait("Category", "Unit")]
 public class LikePatternTests
 {
     [Fact]
