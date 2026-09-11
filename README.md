@@ -371,16 +371,3 @@ dotnet run --project Tools/TrackSync -- --restore <backup-path> [--connection <c
 **`--allow-warnings` exists for one specific case.** If several tracks share an old `CourseId` but the CSV maps them to different new ones, the sync stops. Applying that would move race history onto the wrong track. Check each warning before overriding it.
 
 `--update-time` bounds which `RaceResults` rows get their `CourseId` remapped. If the tool reports that 0 rows would be updated, that is usually a sign the timestamp is wrong or in the future.
-
----
-
-## Things That Look Wrong But Are Not
-
-Decisions that read like oversights but are deliberate. Please do not "fix" these without reading the reasoning first.
-
-- **No in-process rate limiting.** Removed on purpose; see [Rate limits](#rate-limits).
-- **`MaxPoolSize` is 10 and stays there.** See [Configuration Reference](#configuration-reference).
-- **The `VRHistories` foreign key is permanently `NOT VALID`.** Production holds around 13,000 rows predating the constraint whose player no longer exists. They are historical, the code path that created them is gone, and none can be reattached. The constraint is still enforced on every insert and update; only those pre-existing rows go unchecked. Validating it would fail, and migrations run at startup, so that failure would stop the application from booting.
-- **`Frontend/src/pages/OnlineBests/OnlineBestsPage.tsx` is complete but routed nowhere.** It shipped, then was taken back off because the external race reporting API sends implausible times. It is kept so it can go back up once that data can be trusted. The file explains the conditions.
-- **`RaceResults` carries fewer indexes than you might expect.** Five were dropped on measured evidence after the production query planner had never once chosen them. The reasoning and the scan counts are in the migration that removed them.
-- **`CharacterId` has no index while `VehicleId` does.** `UpdatePlayerVehiclePreferencesAsync` groups race results by vehicle per profile on every sync tick. There is no character equivalent.
