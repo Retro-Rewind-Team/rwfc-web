@@ -13,6 +13,20 @@ const CC_OPTIONS: { label: string; value: number }[] = [
 
 const PAGE_SIZE = 25;
 
+/**
+ * Deliberately not routed. This page shipped, then was taken back off because many of the times it
+ * showed were nonsense, which is a problem with the race data the external reporting API sends
+ * rather than with anything here. It is kept rather than deleted so it can go back up once that
+ * data can be trusted; add a route in App.tsx with a Title and Meta the way every other page has.
+ *
+ * Note that the same data still reaches players through PlayerOnlineBestsCard, which is live on
+ * player profiles, so unparking this page is not the only place bad times can surface.
+ *
+ * The defence against implausible times is the floor and cap in
+ * RaceStatsRepository.GetTrackOnlineBestsAsync: a floor of the best known time minus two seconds
+ * and a cap of 330s, the default online race length. Tightening or verifying those rules is the
+ * route back to publishing this.
+ */
 export default function OnlineBestsPage() {
     const [selectedCourseId, setSelectedCourseId] = createSignal<number | null>(null);
     const [engineClassId, setEngineClassId] = createSignal<number>(2); // default 150cc
@@ -260,7 +274,7 @@ export default function OnlineBestsPage() {
                                                         <td class="py-2 text-right text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                                                             {new Date(
                                                                 entry.achievedAt,
-                                                            ).toLocaleDateString("nl-NL")}
+                                                            ).toLocaleDateString()}
                                                         </td>
                                                     </tr>
                                                 )}

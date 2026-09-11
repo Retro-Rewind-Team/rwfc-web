@@ -106,9 +106,7 @@ export default function PlayerOnlineBestsCard(props: PlayerOnlineBestsCardProps)
                                                 </span>
                                             </td>
                                             <td class="py-2 text-right text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                                                {new Date(entry.achievedAt).toLocaleDateString(
-                                                    "nl-NL",
-                                                )}
+                                                {new Date(entry.achievedAt).toLocaleDateString()}
                                             </td>
                                         </tr>
                                     )}

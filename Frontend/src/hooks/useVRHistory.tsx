@@ -63,7 +63,7 @@ export function useVRHistory(friendCode: () => string, initialDays = 30) {
 
             const processedData: ProcessedVRHistory[] = response.history.map((entry) => ({
                 ...entry,
-                formattedDate: new Date(entry.date).toLocaleDateString("en-US", {
+                formattedDate: new Date(entry.date).toLocaleDateString(undefined, {
                     month: "short",
                     day: "numeric",
                     hour: "numeric",

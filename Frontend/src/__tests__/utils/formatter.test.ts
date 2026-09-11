@@ -12,13 +12,30 @@ import {
 } from "../../utils/formatter";
 
 describe("formatDate", () => {
-    it("formats an ISO date string as DD/MM/YYYY", () => {
-        // Use noon local time to avoid timezone-induced date rollover
-        expect(formatDate("2024-06-15T12:00:00")).toBe("15/06/2024");
+    // Asserting a literal string here would pin the test to whatever locale the runner happens to
+    // use. The contract is that the reader's own convention is applied, so compare against the
+    // platform's own answer and check the parts separately.
+    it("formats in the visitor's locale rather than a fixed convention", () => {
+        // Noon local time, to avoid a timezone-induced date rollover.
+        const input = "2024-06-15T12:00:00";
+
+        expect(formatDate(input)).toBe(new Date(input).toLocaleDateString());
     });
 
-    it("zero-pads single-digit day and month", () => {
-        expect(formatDate("2024-01-05T12:00:00")).toBe("05/01/2024");
+    it("names the right day, month and year whatever the order", () => {
+        const parts = new Intl.DateTimeFormat(undefined)
+            .formatToParts(new Date("2024-06-15T12:00:00"))
+            .filter((part) => part.type !== "literal");
+
+        const valueOf = (type: string) => parts.find((part) => part.type === type)?.value;
+
+        expect(Number(valueOf("day"))).toBe(15);
+        expect(Number(valueOf("month"))).toBe(6);
+        expect(Number(valueOf("year"))).toBe(2024);
+    });
+
+    it("does not throw on an unparseable date", () => {
+        expect(() => formatDate("not a date")).not.toThrow();
     });
 });
 

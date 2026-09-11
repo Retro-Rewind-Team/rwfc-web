@@ -37,7 +37,7 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
     const [setupMode, setSetupMode] = createSignal<"usage" | "winrate" | "wincount">("usage");
 
     const formatTimestamp = (ts: string) =>
-        new Date(ts).toLocaleString("nl-NL", {
+        new Date(ts).toLocaleString(undefined, {
             day: "2-digit",
             month: "2-digit",
             year: "numeric",
@@ -129,7 +129,7 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
             <Show when={hasRaceStats()}>
                 <div class="space-y-6">
                     <p class="text-xs text-gray-400 dark:text-gray-500 -mt-4">
-                        Tracked since {new Date(stats().trackedSince).toLocaleDateString("nl-NL")}
+                        Tracked since {new Date(stats().trackedSince).toLocaleDateString()}
                     </p>
 
                     {/* Summary tiles */}
