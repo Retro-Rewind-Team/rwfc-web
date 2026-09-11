@@ -14,16 +14,14 @@ namespace RetroRewindWebsite.Controllers;
 public class RaceStatsController : ControllerBase
 {
     private readonly IRaceStatsService _raceStatsService;
-    private readonly ILogger<RaceStatsController> _logger;
 
     private const int MinPageSize = 5;
     private const int MaxPageSize = 50;
     private const int DefaultPageSize = 20;
 
-    public RaceStatsController(IRaceStatsService raceStatsService, ILogger<RaceStatsController> logger)
+    public RaceStatsController(IRaceStatsService raceStatsService)
     {
         _raceStatsService = raceStatsService;
-        _logger = logger;
     }
 
     [HttpGet("player/{pid}")]
@@ -38,24 +36,15 @@ public class RaceStatsController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = DefaultPageSize)
     {
-        try
-        {
-            page = Math.Max(1, page);
-            pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
 
-            var stats = await _raceStatsService.GetPlayerRaceStatsAsync(pid, days, courseId, engineClassId, page, pageSize);
-            if (stats == null)
-                return NotFound($"No race data found for player '{pid}'");
+        var stats = await _raceStatsService.GetPlayerRaceStatsAsync(pid, days, courseId, engineClassId, page, pageSize);
+        if (stats == null)
+            return NotFound($"No race data found for player '{pid}'");
 
-            Response.Headers.CacheControl = "public, max-age=60";
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving race stats for player {Pid}", pid);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving race stats");
-        }
+        Response.Headers.CacheControl = "public, max-age=60";
+        return Ok(stats);
     }
 
     [HttpGet("player/{pid}/full")]
@@ -64,21 +53,12 @@ public class RaceStatsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PlayerStatsDto>> GetPlayerFullStats(string pid)
     {
-        try
-        {
-            var stats = await _raceStatsService.GetPlayerFullStatsAsync(pid);
-            if (stats == null)
-                return NotFound($"Player '{pid}' not found");
+        var stats = await _raceStatsService.GetPlayerFullStatsAsync(pid);
+        if (stats == null)
+            return NotFound($"Player '{pid}' not found");
 
-            Response.Headers.CacheControl = "public, max-age=60";
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving full stats for player {Pid}", pid);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving player stats");
-        }
+        Response.Headers.CacheControl = "public, max-age=60";
+        return Ok(stats);
     }
 
     [HttpGet("player/{pid}/analytics")]
@@ -90,20 +70,11 @@ public class RaceStatsController : ControllerBase
         [FromQuery] int? days = null,
         [FromQuery] short? engineClassId = null)
     {
-        try
-        {
-            var analytics = await _raceStatsService.GetPlayerAnalyticsAsync(pid, days, engineClassId);
-            if (analytics == null)
-                return NotFound($"No race data found for player '{pid}'");
-            Response.Headers.CacheControl = "public, max-age=60";
-            return Ok(analytics);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving analytics for player {Pid}", pid);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving player analytics");
-        }
+        var analytics = await _raceStatsService.GetPlayerAnalyticsAsync(pid, days, engineClassId);
+        if (analytics == null)
+            return NotFound($"No race data found for player '{pid}'");
+        Response.Headers.CacheControl = "public, max-age=60";
+        return Ok(analytics);
     }
 
     [HttpGet("global")]
@@ -112,18 +83,9 @@ public class RaceStatsController : ControllerBase
     public async Task<ActionResult<GlobalRaceStatsDto>> GetGlobalRaceStats(
         [FromQuery] int? days = null)
     {
-        try
-        {
-            var stats = await _raceStatsService.GetGlobalRaceStatsAsync(days);
-            Response.Headers.CacheControl = "public, max-age=60";
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving global race stats");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving global race stats");
-        }
+        var stats = await _raceStatsService.GetGlobalRaceStatsAsync(days);
+        Response.Headers.CacheControl = "public, max-age=60";
+        return Ok(stats);
     }
 
     [HttpGet("races")]
@@ -140,22 +102,14 @@ public class RaceStatsController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = DefaultPageSize)
     {
-        try
-        {
-            page = Math.Max(1, page);
-            pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
 
-            var result = await _raceStatsService.GetRacesAsync(
-                roomId, raceNumber, courseId, engineClassId, friendCode,
-                UtcDateTime.From(from), UtcDateTime.From(to), page, pageSize);
-            Response.Headers.CacheControl = "public, max-age=60";
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving races");
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving races");
-        }
+        var result = await _raceStatsService.GetRacesAsync(
+            roomId, raceNumber, courseId, engineClassId, friendCode,
+            UtcDateTime.From(from), UtcDateTime.From(to), page, pageSize);
+        Response.Headers.CacheControl = "public, max-age=60";
+        return Ok(result);
     }
 
     [HttpGet("track/{courseId}/online-bests")]
@@ -167,26 +121,17 @@ public class RaceStatsController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = DefaultPageSize)
     {
-        try
-        {
-            // Narrowing an out-of-range courseId wraps, so the query would silently run against a
-            // different course rather than reporting bad input.
-            if (courseId is < short.MinValue or > short.MaxValue)
-                return BadRequest("Invalid courseId");
+        // Narrowing an out-of-range courseId wraps, so the query would silently run against a
+        // different course rather than reporting bad input.
+        if (courseId is < short.MinValue or > short.MaxValue)
+            return BadRequest("Invalid courseId");
 
-            page = Math.Max(1, page);
-            pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
-            var result = await _raceStatsService.GetTrackOnlineBestsAsync(
-                (short)courseId, engineClassId, page, pageSize);
-            Response.Headers.CacheControl = "public, max-age=120";
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving online bests for course {CourseId}", courseId);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving online bests");
-        }
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
+        var result = await _raceStatsService.GetTrackOnlineBestsAsync(
+            (short)courseId, engineClassId, page, pageSize);
+        Response.Headers.CacheControl = "public, max-age=120";
+        return Ok(result);
     }
 
     [HttpGet("player/{pid}/online-bests")]
@@ -195,20 +140,11 @@ public class RaceStatsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<PlayerOnlineBestDto>>> GetPlayerOnlineBests(string pid)
     {
-        try
-        {
-            var result = await _raceStatsService.GetPlayerOnlineBestsAsync(pid);
-            if (result == null)
-                return NotFound($"Player '{pid}' not found");
-            Response.Headers.CacheControl = "public, max-age=120";
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving online bests for player {Pid}", pid);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving player online bests");
-        }
+        var result = await _raceStatsService.GetPlayerOnlineBestsAsync(pid);
+        if (result == null)
+            return NotFound($"Player '{pid}' not found");
+        Response.Headers.CacheControl = "public, max-age=120";
+        return Ok(result);
     }
 
 }

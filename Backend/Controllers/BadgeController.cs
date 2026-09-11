@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using RetroRewindWebsite.Filters;
 using RetroRewindWebsite.Models.DTOs.Player;
 using RetroRewindWebsite.Models.External;
 using RetroRewindWebsite.Repositories.Player;
@@ -30,20 +31,11 @@ public class BadgeController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<BadgeDto>> BadgesByPid(string pid)
     {
-        try
-        {
-            var player = await _playerRepository.GetByPidAsync(pid);
-            if (player == null)
-                return NotFound($"Player with PID '{pid}' not found");
+        var player = await _playerRepository.GetByPidAsync(pid);
+        if (player == null)
+            return NotFound($"Player with PID '{pid}' not found");
 
-            return Ok(new BadgeDto(player.Badges ?? []));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error querying badges for player with PID {Pid}", pid);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while querying the player");
-        }
+        return Ok(new BadgeDto(player.Badges ?? []));
     }
 
     [HttpPost("by-pids")]
@@ -72,8 +64,7 @@ public class BadgeController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error querying badges for players with PIDs {Pids}", request.Pids);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while querying the players");
+            return ApiExceptionFilter.ServerError();
         }
     }
 
@@ -82,16 +73,7 @@ public class BadgeController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<BatchBadgeDto>> AllBadges()
     {
-        try
-        {
-            var badges = await _playerRepository.GetAllBadgedPlayersAsync();
-            return Ok(new BatchBadgeDto(badges));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error querying all badged players");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while querying the badges");
-        }
+        var badges = await _playerRepository.GetAllBadgedPlayersAsync();
+        return Ok(new BatchBadgeDto(badges));
     }
 }

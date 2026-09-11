@@ -5,6 +5,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi;
 using Npgsql;
 using RetroRewindWebsite.Data;
+using RetroRewindWebsite.Filters;
 using RetroRewindWebsite.HealthChecks;
 using RetroRewindWebsite.Models.Domain;
 using RetroRewindWebsite.Repositories.Multiplier;
@@ -186,7 +187,11 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 
 // ===== CONTROLLERS =====
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    // Every action used to carry its own try/catch returning a 500. This does it in one place.
+    options.Filters.Add<ApiExceptionFilter>();
+});
 
 // ===== OPENAPI / SCALAR =====
 builder.Services.AddOpenApi(options =>

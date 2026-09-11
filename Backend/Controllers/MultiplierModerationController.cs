@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using RetroRewindWebsite.Filters;
 using RetroRewindWebsite.Models.DTOs.Multiplier;
 using RetroRewindWebsite.Services.Application;
 
@@ -35,8 +36,7 @@ public class MultiplierModerationController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating multiplier for channel {Channel}", request.Channel);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while creating the multiplier");
+            return ApiExceptionFilter.ServerError();
         }
     }
 
@@ -45,17 +45,8 @@ public class MultiplierModerationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<MultiplierListResultDto>> GetAll([FromQuery] string? channel)
     {
-        try
-        {
-            var result = await _multiplierService.GetAllAsync(channel);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error listing multipliers for channel {Channel}", channel);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while listing multipliers");
-        }
+        var result = await _multiplierService.GetAllAsync(channel);
+        return Ok(result);
     }
 
     [HttpGet("{id:int}")]
@@ -64,17 +55,8 @@ public class MultiplierModerationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<MultiplierDto>> GetById(int id)
     {
-        try
-        {
-            var result = await _multiplierService.GetByIdAsync(id);
-            return result == null ? NotFound($"Multiplier with id {id} not found") : Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving multiplier {Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving the multiplier");
-        }
+        var result = await _multiplierService.GetByIdAsync(id);
+        return result == null ? NotFound($"Multiplier with id {id} not found") : Ok(result);
     }
 
     [HttpPut("{id:int}")]
@@ -83,17 +65,8 @@ public class MultiplierModerationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<MultiplierResultDto>> Update(int id, [FromBody] UpdateMultiplierRequest request)
     {
-        try
-        {
-            var result = await _multiplierService.UpdateAsync(id, request);
-            return result.Success ? Ok(result) : BadRequest(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating multiplier {Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while updating the multiplier");
-        }
+        var result = await _multiplierService.UpdateAsync(id, request);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
     [HttpDelete("{id:int}")]
@@ -102,16 +75,7 @@ public class MultiplierModerationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<MultiplierDeletionResultDto>> Delete(int id)
     {
-        try
-        {
-            var result = await _multiplierService.DeleteAsync(id);
-            return result.Success ? Ok(result) : BadRequest(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting multiplier {Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while deleting the multiplier");
-        }
+        var result = await _multiplierService.DeleteAsync(id);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 }

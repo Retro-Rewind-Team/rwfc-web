@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using RetroRewindWebsite.Filters;
 using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs.TimeTrial;
 using RetroRewindWebsite.Services.Application;
@@ -84,8 +85,7 @@ public class TimeTrialModerationController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error submitting ghost for track {TrackId}", request.TrackId);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while submitting the ghost");
+            return ApiExceptionFilter.ServerError();
         }
     }
 
@@ -95,20 +95,11 @@ public class TimeTrialModerationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<GhostDeletionResultDto>> DeleteGhostSubmission(int id)
     {
-        try
-        {
-            var result = await _moderationService.DeleteGhostAsync(id);
-            if (result == null)
-                return NotFound(new GhostDeletionResultDto(false, $"Submission {id} not found"));
+        var result = await _moderationService.DeleteGhostAsync(id);
+        if (result == null)
+            return NotFound(new GhostDeletionResultDto(false, $"Submission {id} not found"));
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting ghost submission {SubmissionId}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while deleting the ghost submission");
-        }
+        return Ok(result);
     }
 
     [HttpGet("submissions/search")]
@@ -124,19 +115,10 @@ public class TimeTrialModerationController : ControllerBase
         [FromQuery] short? driftCategory = null,
         [FromQuery] int limit = 25)
     {
-        try
-        {
-            var result = await _moderationService.SearchGhostSubmissionsAsync(
-                ttProfileId, trackId, cc, glitch, shroomless, isFlap, driftCategory, limit);
+        var result = await _moderationService.SearchGhostSubmissionsAsync(
+            ttProfileId, trackId, cc, glitch, shroomless, isFlap, driftCategory, limit);
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error searching ghost submissions");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while searching submissions");
-        }
+        return Ok(result);
     }
 
     [HttpGet("bkt")]
@@ -153,29 +135,20 @@ public class TimeTrialModerationController : ControllerBase
         [FromQuery] string? drift = null,
         [FromQuery] string? driftCategory = null)
     {
-        try
-        {
-            var ccError = TimeTrialValidation.ValidateCc(cc);
-            if (ccError != null) return BadRequest(ccError);
+        var ccError = TimeTrialValidation.ValidateCc(cc);
+        if (ccError != null) return BadRequest(ccError);
 
-            var (shroomlessFilter, minVehicleId, maxVehicleId, driftTypeFilter, driftCategoryFilter) =
-                TimeTrialValidation.ParseCategoryFiltersWithDrift(shroomless, vehicle, drift, driftCategory);
+        var (shroomlessFilter, minVehicleId, maxVehicleId, driftTypeFilter, driftCategoryFilter) =
+            TimeTrialValidation.ParseCategoryFiltersWithDrift(shroomless, vehicle, drift, driftCategory);
 
-            var bkt = await _moderationService.GetBestKnownTimeAsync(
-                trackId, cc, nonGlitchOnly, shroomlessFilter,
-                minVehicleId, maxVehicleId, driftTypeFilter, driftCategoryFilter);
+        var bkt = await _moderationService.GetBestKnownTimeAsync(
+            trackId, cc, nonGlitchOnly, shroomlessFilter,
+            minVehicleId, maxVehicleId, driftTypeFilter, driftCategoryFilter);
 
-            if (bkt == null)
-                return NotFound("No times found matching the specified filters");
+        if (bkt == null)
+            return NotFound("No times found matching the specified filters");
 
-            return Ok(bkt);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving BKT for track {TrackId} {CC}cc", trackId, cc);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving the best known time");
-        }
+        return Ok(bkt);
     }
 
     // ===== TT PROFILE ENDPOINTS =====
@@ -187,27 +160,18 @@ public class TimeTrialModerationController : ControllerBase
     public async Task<ActionResult<ProfileCreationResultDto>> CreateTTProfile(
         [FromBody] CreateTTProfileRequest request)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-            var validation = ValidateDisplayName(request.DisplayName, out var displayName);
-            if (validation != null) return validation;
+        var validation = ValidateDisplayName(request.DisplayName, out var displayName);
+        if (validation != null) return validation;
 
-            var result = await _moderationService.CreateProfileAsync(displayName, request.CountryCode);
+        var result = await _moderationService.CreateProfileAsync(displayName, request.CountryCode);
 
-            if (!result.Success)
-                return BadRequest(result);
+        if (!result.Success)
+            return BadRequest(result);
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating TT profile");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while creating the profile");
-        }
+        return Ok(result);
     }
 
     [HttpGet("profiles")]
@@ -215,17 +179,8 @@ public class TimeTrialModerationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ProfileListResultDto>> GetAllTTProfiles()
     {
-        try
-        {
-            var result = await _moderationService.GetAllProfilesAsync();
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving TT profiles");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving profiles");
-        }
+        var result = await _moderationService.GetAllProfilesAsync();
+        return Ok(result);
     }
 
     [HttpGet("profile/{id}")]
@@ -234,20 +189,11 @@ public class TimeTrialModerationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ProfileViewResultDto>> GetTTProfile(int id)
     {
-        try
-        {
-            var result = await _moderationService.GetProfileAsync(id);
-            if (result == null)
-                return NotFound(new ProfileViewResultDto(false, $"Profile {id} not found"));
+        var result = await _moderationService.GetProfileAsync(id);
+        if (result == null)
+            return NotFound(new ProfileViewResultDto(false, $"Profile {id} not found"));
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving TT profile {ProfileId}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving the profile");
-        }
+        return Ok(result);
     }
 
     [HttpPut("profile/{id}")]
@@ -258,34 +204,25 @@ public class TimeTrialModerationController : ControllerBase
     public async Task<ActionResult<ProfileUpdateResultDto>> UpdateTTProfile(
         int id, [FromBody] UpdateTTProfileRequest request)
     {
-        try
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        string? displayName = null;
+        if (!string.IsNullOrWhiteSpace(request.DisplayName))
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            string? displayName = null;
-            if (!string.IsNullOrWhiteSpace(request.DisplayName))
-            {
-                var validation = ValidateDisplayName(request.DisplayName, out var trimmed);
-                if (validation != null) return validation;
-                displayName = trimmed;
-            }
-
-            var result = await _moderationService.UpdateProfileAsync(id, displayName, request.CountryCode);
-            if (result == null)
-                return NotFound(new ProfileUpdateResultDto(false, $"Profile {id} not found"));
-
-            if (!result.Success)
-                return BadRequest(result);
-
-            return Ok(result);
+            var validation = ValidateDisplayName(request.DisplayName, out var trimmed);
+            if (validation != null) return validation;
+            displayName = trimmed;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating TT profile {ProfileId}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while updating the profile");
-        }
+
+        var result = await _moderationService.UpdateProfileAsync(id, displayName, request.CountryCode);
+        if (result == null)
+            return NotFound(new ProfileUpdateResultDto(false, $"Profile {id} not found"));
+
+        if (!result.Success)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 
     [HttpDelete("profile/{id}")]
@@ -295,23 +232,14 @@ public class TimeTrialModerationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ProfileDeletionResultDto>> DeleteTTProfile(int id)
     {
-        try
-        {
-            var result = await _moderationService.DeleteProfileAsync(id);
-            if (result == null)
-                return NotFound(new ProfileDeletionResultDto(false, $"Profile {id} not found"));
+        var result = await _moderationService.DeleteProfileAsync(id);
+        if (result == null)
+            return NotFound(new ProfileDeletionResultDto(false, $"Profile {id} not found"));
 
-            if (!result.Success)
-                return BadRequest(result);
+        if (!result.Success)
+            return BadRequest(result);
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting TT profile {ProfileId}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while deleting the profile");
-        }
+        return Ok(result);
     }
 
     // ===== HELPER METHODS =====

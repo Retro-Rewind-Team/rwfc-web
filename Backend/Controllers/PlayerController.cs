@@ -17,12 +17,10 @@ public class PlayerController : ControllerBase
     private const int MaxHistoryCount = 200;
 
     private readonly IPlayerService _playerService;
-    private readonly ILogger<PlayerController> _logger;
 
-    public PlayerController(IPlayerService playerService, ILogger<PlayerController> logger)
+    public PlayerController(IPlayerService playerService)
     {
         _playerService = playerService;
-        _logger = logger;
     }
 
     // ===== PLAYER ENDPOINTS =====
@@ -33,20 +31,11 @@ public class PlayerController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PlayerDto>> GetPlayer(string fc)
     {
-        try
-        {
-            var player = await _playerService.GetPlayerAsync(fc);
-            if (player == null)
-                return NotFound($"Player with friend code '{fc}' not found");
+        var player = await _playerService.GetPlayerAsync(fc);
+        if (player == null)
+            return NotFound($"Player with friend code '{fc}' not found");
 
-            return Ok(player);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving player {FriendCode}", fc);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving player data");
-        }
+        return Ok(player);
     }
 
     [HttpGet("player/{fc}/history")]
@@ -60,38 +49,29 @@ public class PlayerController : ControllerBase
         [FromQuery] DateTime? from,
         [FromQuery] DateTime? to)
     {
-        try
+        VRHistoryRangeResponseDto? response;
+
+        if (from.HasValue || to.HasValue)
         {
-            VRHistoryRangeResponseDto? response;
+            var now = DateTime.UtcNow;
+            var resolvedFrom = UtcDateTime.From(from) ?? now.AddDays(-30);
+            var resolvedTo = UtcDateTime.From(to) ?? now;
 
-            if (from.HasValue || to.HasValue)
-            {
-                var now = DateTime.UtcNow;
-                var resolvedFrom = UtcDateTime.From(from) ?? now.AddDays(-30);
-                var resolvedTo = UtcDateTime.From(to) ?? now;
+            if (resolvedTo > now) resolvedTo = now;
+            if (resolvedFrom > now) return BadRequest("'from' date cannot be in the future");
+            if (resolvedFrom > resolvedTo) (resolvedFrom, resolvedTo) = (resolvedTo, resolvedFrom);
 
-                if (resolvedTo > now) resolvedTo = now;
-                if (resolvedFrom > now) return BadRequest("'from' date cannot be in the future");
-                if (resolvedFrom > resolvedTo) (resolvedFrom, resolvedTo) = (resolvedTo, resolvedFrom);
-
-                response = await _playerService.GetPlayerHistoryAsync(fc, resolvedFrom, resolvedTo);
-            }
-            else
-            {
-                response = await _playerService.GetPlayerHistoryAsync(fc, days);
-            }
-
-            if (response == null)
-                return NotFound($"Player with friend code '{fc}' not found");
-
-            return Ok(response);
+            response = await _playerService.GetPlayerHistoryAsync(fc, resolvedFrom, resolvedTo);
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogError(ex, "Error retrieving VR history for player {FriendCode}", fc);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving VR history");
+            response = await _playerService.GetPlayerHistoryAsync(fc, days);
         }
+
+        if (response == null)
+            return NotFound($"Player with friend code '{fc}' not found");
+
+        return Ok(response);
     }
 
     [HttpGet("player/{fc}/history/recent")]
@@ -102,23 +82,14 @@ public class PlayerController : ControllerBase
         string fc,
         [FromQuery] int count = 50)
     {
-        try
-        {
-            // A negative count reached Take() unguarded, which throws.
-            count = Math.Clamp(count, MinHistoryCount, MaxHistoryCount);
+        // A negative count reached Take() unguarded, which throws.
+        count = Math.Clamp(count, MinHistoryCount, MaxHistoryCount);
 
-            var history = await _playerService.GetPlayerRecentHistoryAsync(fc, count);
-            if (history == null)
-                return NotFound($"Player with friend code '{fc}' not found");
+        var history = await _playerService.GetPlayerRecentHistoryAsync(fc, count);
+        if (history == null)
+            return NotFound($"Player with friend code '{fc}' not found");
 
-            return Ok(history);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving recent VR history for player {FriendCode}", fc);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving recent VR history");
-        }
+        return Ok(history);
     }
 
     // ===== LEGACY ENDPOINTS =====
@@ -130,19 +101,10 @@ public class PlayerController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PlayerDto>> GetLegacyPlayer(string friendCode)
     {
-        try
-        {
-            var legacyPlayer = await _playerService.GetLegacyPlayerAsync(friendCode);
-            if (legacyPlayer == null)
-                return NotFound($"Player with friend code '{friendCode}' not found in legacy snapshot");
+        var legacyPlayer = await _playerService.GetLegacyPlayerAsync(friendCode);
+        if (legacyPlayer == null)
+            return NotFound($"Player with friend code '{friendCode}' not found in legacy snapshot");
 
-            return Ok(legacyPlayer);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving legacy player {FriendCode}", friendCode);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving legacy player data");
-        }
+        return Ok(legacyPlayer);
     }
 }

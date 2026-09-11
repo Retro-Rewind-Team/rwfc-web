@@ -14,7 +14,6 @@ namespace RetroRewindWebsite.Controllers;
 public class TimeTrialController : ControllerBase
 {
     private readonly ITimeTrialService _timeTrialService;
-    private readonly ILogger<TimeTrialController> _logger;
 
     private const int MinTopCount = 1;
     private const int MaxTopCount = 50;
@@ -24,10 +23,9 @@ public class TimeTrialController : ControllerBase
     private const int MaxPageSize = 100;
     private const int DefaultPageSize = 10;
 
-    public TimeTrialController(ITimeTrialService timeTrialService, ILogger<TimeTrialController> logger)
+    public TimeTrialController(ITimeTrialService timeTrialService)
     {
         _timeTrialService = timeTrialService;
-        _logger = logger;
     }
 
     // ===== TRACK ENDPOINTS =====
@@ -37,20 +35,11 @@ public class TimeTrialController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<TrackDto>>> GetAllTracks()
     {
-        try
-        {
-            var result = await _timeTrialService.GetAllTracksAsync();
-            // Set after the await: a header assigned first still rides on the 500 the catch
-            // below produces, telling intermediaries to cache an error.
-            Response.Headers.CacheControl = "public, max-age=3600";
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving tracks");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving tracks");
-        }
+        var result = await _timeTrialService.GetAllTracksAsync();
+        // Set after the await: a header assigned first still rides on the 500 the exception
+        // filter produces, telling intermediaries to cache an error.
+        Response.Headers.CacheControl = "public, max-age=3600";
+        return Ok(result);
     }
 
     [HttpGet("tracks/{id}")]
@@ -59,21 +48,12 @@ public class TimeTrialController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<TrackDto>> GetTrack(int id)
     {
-        try
-        {
-            var track = await _timeTrialService.GetTrackAsync(id);
-            if (track == null)
-                return NotFound($"Track with ID {id} not found");
+        var track = await _timeTrialService.GetTrackAsync(id);
+        if (track == null)
+            return NotFound($"Track with ID {id} not found");
 
-            Response.Headers.CacheControl = "public, max-age=3600";
-            return Ok(track);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving track {TrackId}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving track");
-        }
+        Response.Headers.CacheControl = "public, max-age=3600";
+        return Ok(track);
     }
 
     // ===== LEADERBOARD ENDPOINTS =====
@@ -92,31 +72,22 @@ public class TimeTrialController : ControllerBase
         [FromQuery] int page = MinPage,
         [FromQuery] int pageSize = DefaultPageSize)
     {
-        try
-        {
-            var ccError = TimeTrialValidation.ValidateCc(cc);
-            if (ccError != null) return BadRequest(ccError);
+        var ccError = TimeTrialValidation.ValidateCc(cc);
+        if (ccError != null) return BadRequest(ccError);
 
-            page = Math.Max(MinPage, page);
-            pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
+        page = Math.Max(MinPage, page);
+        pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
 
-            var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
+        var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
 
-            var result = await _timeTrialService.GetLeaderboardAsync(
-                trackId, cc, glitchAllowed, shroomlessFilter, vehicle, vehicleMin, vehicleMax, page, pageSize);
+        var result = await _timeTrialService.GetLeaderboardAsync(
+            trackId, cc, glitchAllowed, shroomlessFilter, vehicle, vehicleMin, vehicleMax, page, pageSize);
 
-            if (result == null)
-                return NotFound($"Track with ID {trackId} not found");
+        if (result == null)
+            return NotFound($"Track with ID {trackId} not found");
 
-            Response.Headers.CacheControl = "public, max-age=30";
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving leaderboard for track {TrackId} {CC}cc", trackId, cc);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving leaderboard");
-        }
+        Response.Headers.CacheControl = "public, max-age=30";
+        return Ok(result);
     }
 
     [HttpGet("leaderboard/flap")]
@@ -133,31 +104,22 @@ public class TimeTrialController : ControllerBase
         [FromQuery] int page = MinPage,
         [FromQuery] int pageSize = DefaultPageSize)
     {
-        try
-        {
-            var ccError = TimeTrialValidation.ValidateCc(cc);
-            if (ccError != null) return BadRequest(ccError);
+        var ccError = TimeTrialValidation.ValidateCc(cc);
+        if (ccError != null) return BadRequest(ccError);
 
-            page = Math.Max(MinPage, page);
-            pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
+        page = Math.Max(MinPage, page);
+        pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
 
-            var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
+        var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
 
-            var result = await _timeTrialService.GetFlapLeaderboardAsync(
-                trackId, cc, glitchAllowed, shroomlessFilter, vehicle, vehicleMin, vehicleMax, page, pageSize);
+        var result = await _timeTrialService.GetFlapLeaderboardAsync(
+            trackId, cc, glitchAllowed, shroomlessFilter, vehicle, vehicleMin, vehicleMax, page, pageSize);
 
-            if (result == null)
-                return NotFound($"Track with ID {trackId} not found");
+        if (result == null)
+            return NotFound($"Track with ID {trackId} not found");
 
-            Response.Headers.CacheControl = "public, max-age=30";
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving flap leaderboard for track {TrackId} {CC}cc", trackId, cc);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving flap leaderboard");
-        }
+        Response.Headers.CacheControl = "public, max-age=30";
+        return Ok(result);
     }
 
     [HttpGet("leaderboard/top")]
@@ -172,29 +134,20 @@ public class TimeTrialController : ControllerBase
         [FromQuery] string? vehicle = null,
         [FromQuery] int count = DefaultTopCount)
     {
-        try
-        {
-            var ccError = TimeTrialValidation.ValidateCc(cc);
-            if (ccError != null) return BadRequest(ccError);
+        var ccError = TimeTrialValidation.ValidateCc(cc);
+        if (ccError != null) return BadRequest(ccError);
 
-            count = Math.Clamp(count, MinTopCount, MaxTopCount);
+        count = Math.Clamp(count, MinTopCount, MaxTopCount);
 
-            var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
+        var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
 
-            var result = await _timeTrialService.GetTopTimesAsync(
-                trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax, count);
+        var result = await _timeTrialService.GetTopTimesAsync(
+            trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax, count);
 
-            // Set after the await: a header assigned first still rides on the 500 the catch
-            // below produces, telling intermediaries to cache an error.
-            Response.Headers.CacheControl = "public, max-age=30";
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving top times for track {TrackId} {CC}cc", trackId, cc);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving top times");
-        }
+        // Set after the await: a header assigned first still rides on the 500 the exception
+        // filter produces, telling intermediaries to cache an error.
+        Response.Headers.CacheControl = "public, max-age=30";
+        return Ok(result);
     }
 
     // ===== WORLD RECORD ENDPOINTS =====
@@ -211,28 +164,19 @@ public class TimeTrialController : ControllerBase
         [FromQuery] string? shroomless = null,
         [FromQuery] string? vehicle = null)
     {
-        try
-        {
-            var ccError = TimeTrialValidation.ValidateCc(cc);
-            if (ccError != null) return BadRequest(ccError);
+        var ccError = TimeTrialValidation.ValidateCc(cc);
+        if (ccError != null) return BadRequest(ccError);
 
-            var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
+        var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
 
-            var result = await _timeTrialService.GetWorldRecordAsync(
-                trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax);
+        var result = await _timeTrialService.GetWorldRecordAsync(
+            trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax);
 
-            if (result == null)
-                return NotFound($"No world record found for track {trackId} at {cc}cc");
+        if (result == null)
+            return NotFound($"No world record found for track {trackId} at {cc}cc");
 
-            Response.Headers.CacheControl = "public, max-age=30";
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving world record for track {TrackId} {CC}cc", trackId, cc);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving world record");
-        }
+        Response.Headers.CacheControl = "public, max-age=30";
+        return Ok(result);
     }
 
     [HttpGet("worldrecord/history")]
@@ -246,27 +190,18 @@ public class TimeTrialController : ControllerBase
         [FromQuery] string? shroomless = null,
         [FromQuery] string? vehicle = null)
     {
-        try
-        {
-            var ccError = TimeTrialValidation.ValidateCc(cc);
-            if (ccError != null) return BadRequest(ccError);
+        var ccError = TimeTrialValidation.ValidateCc(cc);
+        if (ccError != null) return BadRequest(ccError);
 
-            var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
+        var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
 
-            var result = await _timeTrialService.GetWorldRecordHistoryAsync(
-                trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax);
+        var result = await _timeTrialService.GetWorldRecordHistoryAsync(
+            trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax);
 
-            // Set after the await: a header assigned first still rides on the 500 the catch
-            // below produces, telling intermediaries to cache an error.
-            Response.Headers.CacheControl = "public, max-age=30";
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving WR history for track {TrackId} {CC}cc", trackId, cc);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving world record history");
-        }
+        // Set after the await: a header assigned first still rides on the 500 the exception
+        // filter produces, telling intermediaries to cache an error.
+        Response.Headers.CacheControl = "public, max-age=30";
+        return Ok(result);
     }
 
     [HttpGet("worldrecord/history/flap")]
@@ -280,27 +215,18 @@ public class TimeTrialController : ControllerBase
         [FromQuery] string? shroomless = null,
         [FromQuery] string? vehicle = null)
     {
-        try
-        {
-            var ccError = TimeTrialValidation.ValidateCc(cc);
-            if (ccError != null) return BadRequest(ccError);
+        var ccError = TimeTrialValidation.ValidateCc(cc);
+        if (ccError != null) return BadRequest(ccError);
 
-            var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
+        var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
 
-            var result = await _timeTrialService.GetFlapWorldRecordHistoryAsync(
-                trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax);
+        var result = await _timeTrialService.GetFlapWorldRecordHistoryAsync(
+            trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax);
 
-            // Set after the await: a header assigned first still rides on the 500 the catch
-            // below produces, telling intermediaries to cache an error.
-            Response.Headers.CacheControl = "public, max-age=30";
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving flap WR history for track {TrackId} {CC}cc", trackId, cc);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving flap world record history");
-        }
+        // Set after the await: a header assigned first still rides on the 500 the exception
+        // filter produces, telling intermediaries to cache an error.
+        Response.Headers.CacheControl = "public, max-age=30";
+        return Ok(result);
     }
 
     [HttpGet("worldrecords/all")]
@@ -313,27 +239,18 @@ public class TimeTrialController : ControllerBase
         [FromQuery] string? shroomless = null,
         [FromQuery] string? vehicle = null)
     {
-        try
-        {
-            var ccError = TimeTrialValidation.ValidateCc(cc);
-            if (ccError != null) return BadRequest(ccError);
+        var ccError = TimeTrialValidation.ValidateCc(cc);
+        if (ccError != null) return BadRequest(ccError);
 
-            var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
+        var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
 
-            var result = await _timeTrialService.GetAllWorldRecordsAsync(
-                cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax);
+        var result = await _timeTrialService.GetAllWorldRecordsAsync(
+            cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax);
 
-            // Set after the await: a header assigned first still rides on the 500 the catch
-            // below produces, telling intermediaries to cache an error.
-            Response.Headers.CacheControl = "public, max-age=30";
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving all world records");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving world records");
-        }
+        // Set after the await: a header assigned first still rides on the 500 the exception
+        // filter produces, telling intermediaries to cache an error.
+        Response.Headers.CacheControl = "public, max-age=30";
+        return Ok(result);
     }
 
     // ===== FLAP ENDPOINT =====
@@ -350,32 +267,23 @@ public class TimeTrialController : ControllerBase
         [FromQuery] string? shroomless = null,
         [FromQuery] string? vehicle = null)
     {
-        try
-        {
-            var ccError = TimeTrialValidation.ValidateCc(cc);
-            if (ccError != null) return BadRequest(ccError);
+        var ccError = TimeTrialValidation.ValidateCc(cc);
+        if (ccError != null) return BadRequest(ccError);
 
-            var track = await _timeTrialService.GetTrackAsync(trackId);
-            if (track == null)
-                return NotFound($"Track with ID {trackId} not found");
+        var track = await _timeTrialService.GetTrackAsync(trackId);
+        if (track == null)
+            return NotFound($"Track with ID {trackId} not found");
 
-            var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
+        var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
 
-            var result = await _timeTrialService.GetFastestLapAsync(
-                trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax);
+        var result = await _timeTrialService.GetFastestLapAsync(
+            trackId, cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax);
 
-            if (result == null)
-                return NotFound("No lap times found for the specified category");
+        if (result == null)
+            return NotFound("No lap times found for the specified category");
 
-            Response.Headers.CacheControl = "public, max-age=30";
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving FLAP for track {TrackId} {CC}cc", trackId, cc);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving fastest lap");
-        }
+        Response.Headers.CacheControl = "public, max-age=30";
+        return Ok(result);
     }
 
     // ===== GHOST DOWNLOAD ENDPOINT =====
@@ -386,20 +294,11 @@ public class TimeTrialController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DownloadGhost(int id)
     {
-        try
-        {
-            var info = await _timeTrialService.GetGhostDownloadInfoAsync(id);
-            if (info == null)
-                return NotFound("Ghost file not found");
+        var info = await _timeTrialService.GetGhostDownloadInfoAsync(id);
+        if (info == null)
+            return NotFound("Ghost file not found");
 
-            return File(info.Value.Data, "application/octet-stream", info.Value.FileName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error downloading ghost {GhostId}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while downloading ghost file");
-        }
+        return File(info.Value.Data, "application/octet-stream", info.Value.FileName);
     }
 
     // ===== PROFILE ENDPOINTS =====
@@ -410,21 +309,12 @@ public class TimeTrialController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<TTProfileDto>> GetProfile(int ttProfileId)
     {
-        try
-        {
-            var profile = await _timeTrialService.GetProfileAsync(ttProfileId);
-            if (profile == null)
-                return NotFound($"Profile not found for ID {ttProfileId}");
+        var profile = await _timeTrialService.GetProfileAsync(ttProfileId);
+        if (profile == null)
+            return NotFound($"Profile not found for ID {ttProfileId}");
 
-            Response.Headers.CacheControl = "public, max-age=30";
-            return Ok(profile);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving profile {ProfileId}", ttProfileId);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving profile");
-        }
+        Response.Headers.CacheControl = "public, max-age=30";
+        return Ok(profile);
     }
 
     [HttpGet("profile/{ttProfileId}/submissions")]
@@ -442,34 +332,25 @@ public class TimeTrialController : ControllerBase
         [FromQuery] int page = MinPage,
         [FromQuery] int pageSize = DefaultPageSize)
     {
-        try
+        if (cc.HasValue)
         {
-            if (cc.HasValue)
-            {
-                var ccError = TimeTrialValidation.ValidateCc(cc.Value);
-                if (ccError != null) return BadRequest(ccError);
-            }
-
-            page = Math.Max(MinPage, page);
-            pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
-
-            var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
-
-            var result = await _timeTrialService.GetProfileSubmissionsAsync(
-                ttProfileId, trackId, cc, glitch, shroomlessFilter, vehicleMin, vehicleMax, page, pageSize);
-
-            if (result == null)
-                return NotFound($"Profile not found for ID {ttProfileId}");
-
-            Response.Headers.CacheControl = "public, max-age=30";
-            return Ok(result);
+            var ccError = TimeTrialValidation.ValidateCc(cc.Value);
+            if (ccError != null) return BadRequest(ccError);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving submissions for profile {ProfileId}", ttProfileId);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving submissions");
-        }
+
+        page = Math.Max(MinPage, page);
+        pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
+
+        var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
+
+        var result = await _timeTrialService.GetProfileSubmissionsAsync(
+            ttProfileId, trackId, cc, glitch, shroomlessFilter, vehicleMin, vehicleMax, page, pageSize);
+
+        if (result == null)
+            return NotFound($"Profile not found for ID {ttProfileId}");
+
+        Response.Headers.CacheControl = "public, max-age=30";
+        return Ok(result);
     }
 
     [HttpGet("profile/{ttProfileId}/stats")]
@@ -478,21 +359,12 @@ public class TimeTrialController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<TTPlayerStatsDto>> GetPlayerStats(int ttProfileId)
     {
-        try
-        {
-            var stats = await _timeTrialService.GetPlayerStatsAsync(ttProfileId);
-            if (stats == null)
-                return NotFound($"Profile not found for ID {ttProfileId}");
+        var stats = await _timeTrialService.GetPlayerStatsAsync(ttProfileId);
+        if (stats == null)
+            return NotFound($"Profile not found for ID {ttProfileId}");
 
-            Response.Headers.CacheControl = "public, max-age=30";
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving stats for profile {ProfileId}", ttProfileId);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving player stats");
-        }
+        Response.Headers.CacheControl = "public, max-age=30";
+        return Ok(stats);
     }
 
     [HttpGet("rankings")]
@@ -508,33 +380,24 @@ public class TimeTrialController : ControllerBase
         [FromQuery] int page = MinPage,
         [FromQuery] int pageSize = DefaultPageSize)
     {
-        try
-        {
-            var ccError = TimeTrialValidation.ValidateCc(cc);
-            if (ccError != null) return BadRequest(ccError);
+        var ccError = TimeTrialValidation.ValidateCc(cc);
+        if (ccError != null) return BadRequest(ccError);
 
-            if (trackCategory != null && trackCategory != "retro" && trackCategory != "custom")
-                return BadRequest("trackCategory must be 'retro', 'custom', or omitted");
+        if (trackCategory != null && trackCategory != "retro" && trackCategory != "custom")
+            return BadRequest("trackCategory must be 'retro', 'custom', or omitted");
 
-            page = Math.Max(MinPage, page);
-            pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
+        page = Math.Max(MinPage, page);
+        pageSize = Math.Clamp(pageSize, MinPageSize, MaxPageSize);
 
-            var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
+        var (shroomlessFilter, vehicleMin, vehicleMax) = TimeTrialValidation.ParseCategoryFilters(shroomless, vehicle);
 
-            var result = await _timeTrialService.GetPlayerRankingsAsync(
-                cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax, trackCategory, page, pageSize);
+        var result = await _timeTrialService.GetPlayerRankingsAsync(
+            cc, glitchAllowed, shroomlessFilter, vehicleMin, vehicleMax, trackCategory, page, pageSize);
 
-            // Set after the await: a header assigned first still rides on the 500 the catch
-            // below produces, telling intermediaries to cache an error.
-            Response.Headers.CacheControl = "public, max-age=30";
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving TT player rankings CC {CC} glitch {GlitchAllowed}", cc, glitchAllowed);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving player rankings");
-        }
+        // Set after the await: a header assigned first still rides on the 500 the exception
+        // filter produces, telling intermediaries to cache an error.
+        Response.Headers.CacheControl = "public, max-age=30";
+        return Ok(result);
     }
 
 }

@@ -13,12 +13,10 @@ namespace RetroRewindWebsite.Controllers;
 public class MultiplierController : ControllerBase
 {
     private readonly IMultiplierService _multiplierService;
-    private readonly ILogger<MultiplierController> _logger;
 
-    public MultiplierController(IMultiplierService multiplierService, ILogger<MultiplierController> logger)
+    public MultiplierController(IMultiplierService multiplierService)
     {
         _multiplierService = multiplierService;
-        _logger = logger;
     }
 
     /// <summary>

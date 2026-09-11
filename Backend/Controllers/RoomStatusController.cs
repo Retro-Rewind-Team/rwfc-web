@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using RetroRewindWebsite.Filters;
 using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs.Player;
 using RetroRewindWebsite.Models.DTOs.Room;
@@ -46,26 +47,17 @@ public class RoomStatusController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<RoomStatusResponseDto>> GetRoomStatus()
     {
-        try
-        {
-            var response = await _roomStatusService.GetLatestStatusAsync();
+        var response = await _roomStatusService.GetLatestStatusAsync();
 
-            if (response == null)
-                return NotFound("No room data available yet. The system may still be initializing.");
+        if (response == null)
+            return NotFound("No room data available yet. The system may still be initializing.");
 
-            var (minId, maxId) = await _roomStatusService.GetSnapshotIdBoundsAsync();
-            response = response with { MinimumId = minId, MaximumId = maxId };
+        var (minId, maxId) = await _roomStatusService.GetSnapshotIdBoundsAsync();
+        response = response with { MinimumId = minId, MaximumId = maxId };
 
-            Response.Headers.CacheControl = "public, max-age=10";
+        Response.Headers.CacheControl = "public, max-age=10";
 
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving room status");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving room status");
-        }
+        return Ok(response);
     }
 
     [HttpGet("{id:int}")]
@@ -74,33 +66,24 @@ public class RoomStatusController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<RoomStatusResponseDto>> GetRoomStatusById(int id)
     {
-        try
+        var (minId, maxId) = await _roomStatusService.GetSnapshotIdBoundsAsync();
+
+        var response = await _roomStatusService.GetStatusByDbIdAsync(id);
+
+        if (response == null)
         {
-            var (minId, maxId) = await _roomStatusService.GetSnapshotIdBoundsAsync();
+            if (maxId == 0)
+                return NotFound("No room data available yet.");
 
-            var response = await _roomStatusService.GetStatusByDbIdAsync(id);
-
-            if (response == null)
-            {
-                if (maxId == 0)
-                    return NotFound("No room data available yet.");
-
-                return NotFound($"Snapshot with ID {id} not found. Available range: {minId} to {maxId}");
-            }
-
-            // Populate min/max on the response so the frontend can update its navigation bounds
-            response = response with { MinimumId = minId, MaximumId = maxId };
-
-            Response.Headers.CacheControl = "public, max-age=60";
-
-            return Ok(response);
+            return NotFound($"Snapshot with ID {id} not found. Available range: {minId} to {maxId}");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving room status by ID {Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving room status");
-        }
+
+        // Populate min/max on the response so the frontend can update its navigation bounds
+        response = response with { MinimumId = minId, MaximumId = maxId };
+
+        Response.Headers.CacheControl = "public, max-age=60";
+
+        return Ok(response);
     }
 
     [HttpGet("stats")]
@@ -108,18 +91,9 @@ public class RoomStatusController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<RoomStatusStatsDto>> GetStats()
     {
-        try
-        {
-            var stats = await _roomStatusService.GetStatsAsync();
-            Response.Headers.CacheControl = "public, max-age=10";
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving room status stats");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving stats");
-        }
+        var stats = await _roomStatusService.GetStatsAsync();
+        Response.Headers.CacheControl = "public, max-age=10";
+        return Ok(stats);
     }
 
     [HttpGet("pcount")]
@@ -165,26 +139,17 @@ public class RoomStatusController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<RoomStatusResponseDto>> GetNearest([FromQuery] DateTime timestamp)
     {
-        try
-        {
-            var (minId, maxId) = await _roomStatusService.GetSnapshotIdBoundsAsync();
+        var (minId, maxId) = await _roomStatusService.GetSnapshotIdBoundsAsync();
 
-            var response = await _roomStatusService.GetNearestStatusAsync(UtcDateTime.From(timestamp));
+        var response = await _roomStatusService.GetNearestStatusAsync(UtcDateTime.From(timestamp));
 
-            if (response == null)
-                return NotFound("No snapshots available.");
+        if (response == null)
+            return NotFound("No snapshots available.");
 
-            response = response with { MinimumId = minId, MaximumId = maxId };
+        response = response with { MinimumId = minId, MaximumId = maxId };
 
-            Response.Headers.CacheControl = "public, max-age=60";
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving nearest snapshot");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving the nearest snapshot");
-        }
+        Response.Headers.CacheControl = "public, max-age=60";
+        return Ok(response);
     }
 
     [HttpGet("history")]
@@ -197,36 +162,27 @@ public class RoomStatusController : ControllerBase
         [FromQuery] DateTime? from = null,
         [FromQuery] DateTime? to = null)
     {
-        try
+        if (page < 1) return BadRequest("Page must be >= 1.");
+        if (pageSize is < 1 or > 1440) return BadRequest("pageSize must be between 1 and 1440.");
+
+        if (from.HasValue && to.HasValue)
         {
-            if (page < 1) return BadRequest("Page must be >= 1.");
-            if (pageSize is < 1 or > 1440) return BadRequest("pageSize must be between 1 and 1440.");
+            if (from.Value > to.Value)
+                return BadRequest("'from' must be earlier than 'to'.");
 
-            if (from.HasValue && to.HasValue)
-            {
-                if (from.Value > to.Value)
-                    return BadRequest("'from' must be earlier than 'to'.");
+            // Each snapshot carries its full room list as JSON and one is stored per minute,
+            // so an unbounded range meant loading the entire history into memory.
+            if (to.Value - from.Value > MaxHistoryRange)
+                return BadRequest($"Date range must not exceed {MaxHistoryRange.TotalDays:0} days.");
 
-                // Each snapshot carries its full room list as JSON and one is stored per minute,
-                // so an unbounded range meant loading the entire history into memory.
-                if (to.Value - from.Value > MaxHistoryRange)
-                    return BadRequest($"Date range must not exceed {MaxHistoryRange.TotalDays:0} days.");
-
-                var range = await _roomStatusService.GetSnapshotsByDateRangeAsync(UtcDateTime.From(from.Value), UtcDateTime.From(to.Value));
-                Response.Headers.CacheControl = "public, max-age=60";
-                return Ok(range);
-            }
-
-            var result = await _roomStatusService.GetSnapshotHistoryAsync(page, pageSize);
+            var range = await _roomStatusService.GetSnapshotsByDateRangeAsync(UtcDateTime.From(from.Value), UtcDateTime.From(to.Value));
             Response.Headers.CacheControl = "public, max-age=60";
-            return Ok(result);
+            return Ok(range);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving room snapshot history");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving snapshot history");
-        }
+
+        var result = await _roomStatusService.GetSnapshotHistoryAsync(page, pageSize);
+        Response.Headers.CacheControl = "public, max-age=60";
+        return Ok(result);
     }
 
     [HttpGet("analytics")]
@@ -235,18 +191,9 @@ public class RoomStatusController : ControllerBase
     public async Task<ActionResult<List<PlayerCountDataPointDto>>> GetAnalytics(
         [FromQuery] int? days = null)
     {
-        try
-        {
-            var series = await _roomStatusService.GetPlayerCountSeriesAsync(days);
-            Response.Headers.CacheControl = "public, max-age=120";
-            return Ok(series);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving room analytics");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving room analytics");
-        }
+        var series = await _roomStatusService.GetPlayerCountSeriesAsync(days);
+        Response.Headers.CacheControl = "public, max-age=120";
+        return Ok(series);
     }
 
     [HttpPost("refresh")]
@@ -254,20 +201,11 @@ public class RoomStatusController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> ForceRefresh()
     {
-        try
-        {
-            // No snapshot: this endpoint is anonymous, so persisting here would let callers
-            // insert RoomSnapshots rows off the background service's fixed cadence and skew
-            // the activity history.
-            await _roomStatusService.RefreshRoomDataAsync(persistSnapshot: false);
-            return Ok(new { message = "Room data refresh initiated" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error forcing room data refresh");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while refreshing room data");
-        }
+        // No snapshot: this endpoint is anonymous, so persisting here would let callers
+        // insert RoomSnapshots rows off the background service's fixed cadence and skew
+        // the activity history.
+        await _roomStatusService.RefreshRoomDataAsync(persistSnapshot: false);
+        return Ok(new { message = "Room data refresh initiated" });
     }
 
     // ===== MII ENDPOINTS =====
@@ -278,24 +216,15 @@ public class RoomStatusController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> GetMiiImage(string fc)
     {
-        try
-        {
-            var imageBytes = await _roomStatusService.GetMiiImageBytesAsync(fc);
+        var imageBytes = await _roomStatusService.GetMiiImageBytesAsync(fc);
 
-            if (imageBytes == null)
-                return NotFound($"Mii image not available for friend code '{fc}'");
+        if (imageBytes == null)
+            return NotFound($"Mii image not available for friend code '{fc}'");
 
-            Response.Headers.CacheControl = "public, max-age=3600";
-            Response.Headers.ETag = $"\"{Convert.ToHexString(MD5.HashData(imageBytes))}\"";
+        Response.Headers.CacheControl = "public, max-age=3600";
+        Response.Headers.ETag = $"\"{Convert.ToHexString(MD5.HashData(imageBytes))}\"";
 
-            return File(imageBytes, "image/png");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving Mii image for {FriendCode}", fc);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving the Mii image");
-        }
+        return File(imageBytes, "image/png");
     }
 
     [HttpPost("miis/batch")]
@@ -321,8 +250,7 @@ public class RoomStatusController : ControllerBase
         {
             _logger.LogError(ex, "Error retrieving batch Mii images for {Count} friend codes",
                 request.FriendCodes?.Count ?? 0);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving Mii images");
+            return ApiExceptionFilter.ServerError();
         }
     }
 }
