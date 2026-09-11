@@ -21,25 +21,26 @@ import { Meta, Title } from "@solidjs/meta";
 import { ROOM_BROWSER_META } from "../../constants/pageMeta";
 
 export default function RoomStatusPage() {
+    // Declared before useRoomStatus so its pausePolling accessor is safe to call immediately.
+    const [highlightFc, setHighlightFc] = createSignal("");
+    const activeFc = createMemo(() => {
+        const fc = highlightFc().trim();
+        return /^\d{4}-\d{4}-\d{4}$/.test(fc) ? fc : undefined;
+    });
+
     const {
         state: { isLatest, canGoForward, canGoBackward, currentDateTimeLocal },
         queries: { statsQuery, roomStatusQuery },
         nav: { goForward, goBackward, goToLatest, goToOldest, jumpByMinutes, goToDateTime },
         utils: { getAllFriendCodes, getRoomUptime },
-    } = useRoomStatus();
+    } = useRoomStatus({ pausePolling: () => !!activeFc() });
 
     const miiLoader = useMiiLoader();
     const [tick, setTick] = createSignal(0);
     const [isJumping, setIsJumping] = createSignal(false);
-    const [highlightFc, setHighlightFc] = createSignal("");
     const [sortByVR, setSortByVR] = createSignal(false);
     const [hidePrivate, setHidePrivate] = createSignal(false);
     const [hideFull, setHideFull] = createSignal(false);
-
-    const activeFc = createMemo(() => {
-        const fc = highlightFc().trim();
-        return /^\d{4}-\d{4}-\d{4}$/.test(fc) ? fc : undefined;
-    });
 
     const playersOnlineValue = createMemo(() =>
         isLatest()
@@ -71,19 +72,6 @@ export default function RoomStatusPage() {
             if (isLatest()) setTick((t) => t + 1);
         }, 1000);
         onCleanup(() => clearInterval(interval));
-    });
-
-    // Auto-refresh when viewing latest, paused while a FC is highlighted
-    createEffect(() => {
-        let refreshInterval: ReturnType<typeof setInterval> | undefined;
-        if (isLatest() && !activeFc()) {
-            refreshInterval = setInterval(() => {
-                roomStatusQuery.refetch();
-            }, 10000);
-        }
-        onCleanup(() => {
-            if (refreshInterval) clearInterval(refreshInterval);
-        });
     });
 
     // Load Miis when rooms change. Loaded through the room endpoint, which reads Mii data from the

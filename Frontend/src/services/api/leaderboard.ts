@@ -23,11 +23,11 @@ export const leaderboardApi = {
     },
 
     async getPlayer(friendCode: string): Promise<Player> {
-        return apiRequest<Player>(`/leaderboard/player/${friendCode}`);
+        return apiRequest<Player>(`/leaderboard/player/${encodeURIComponent(friendCode)}`);
     },
 
     async getLegacyPlayer(friendCode: string): Promise<Player> {
-        return apiRequest<Player>(`/leaderboard/legacy/player/${friendCode}`);
+        return apiRequest<Player>(`/leaderboard/legacy/player/${encodeURIComponent(friendCode)}`);
     },
 
     async getStats(): Promise<LeaderboardStats> {
@@ -40,8 +40,8 @@ export const leaderboardApi = {
     ): Promise<VRHistoryResponse> {
         const url =
             days === null
-                ? `/leaderboard/player/${friendCode}/history`
-                : `/leaderboard/player/${friendCode}/history?days=${days}`;
+                ? `/leaderboard/player/${encodeURIComponent(friendCode)}/history`
+                : `/leaderboard/player/${encodeURIComponent(friendCode)}/history?days=${days}`;
         return apiRequest<VRHistoryResponse>(url);
     },
 
@@ -54,18 +54,18 @@ export const leaderboardApi = {
             from: from.toISOString(),
             to: to.toISOString(),
         });
-        return apiRequest<VRHistoryResponse>(`/leaderboard/player/${friendCode}/history?${params}`);
+        return apiRequest<VRHistoryResponse>(`/leaderboard/player/${encodeURIComponent(friendCode)}/history?${params}`);
     },
 
     async getPlayerRecentHistory(friendCode: string, count = 50): Promise<VRHistoryEntry[]> {
         return apiRequest<VRHistoryEntry[]>(
-            `/leaderboard/player/${friendCode}/history/recent?count=${count}`,
+            `/leaderboard/player/${encodeURIComponent(friendCode)}/history/recent?count=${count}`,
         );
     },
 
     async getPlayerMii(friendCode: string): Promise<MiiResponse | null> {
         try {
-            return await apiRequest<MiiResponse>(`/leaderboard/player/${friendCode}/mii`);
+            return await apiRequest<MiiResponse>(`/leaderboard/player/${encodeURIComponent(friendCode)}/mii`);
         } catch (error) {
             if (error instanceof ApiError && error.status === 404) {
                 return null;
@@ -78,7 +78,11 @@ export const leaderboardApi = {
         return batchMiis("/leaderboard/miis/batch", friendCodes);
     },
 
-    async getDiscordMemberCount(): Promise<number> {
+    /**
+     * Returns null when Discord cannot be reached, rather than a made-up number. The caller shows
+     * a placeholder instead, the same as every other stat that has not loaded.
+     */
+    async getDiscordMemberCount(): Promise<number | null> {
         try {
             const response = await fetch(
                 "https://discord.com/api/v10/invites/retrorewind?with_counts=true",
@@ -92,7 +96,7 @@ export const leaderboardApi = {
             return data.approximate_member_count;
         } catch (error) {
             console.warn("Failed to load Discord member count:", error);
-            return 8000; // Fallback
+            return null;
         }
     },
 
@@ -162,7 +166,7 @@ export const leaderboardApi = {
     async getDiscordInviteIcon(inviteUrl: string): Promise<string | null> {
         try {
             const code = inviteUrl.split("/").filter(Boolean).pop();
-            const response = await fetch(`https://discord.com/api/v10/invites/${code}`);
+            const response = await fetch(`https://discord.com/api/v10/invites/${encodeURIComponent(code ?? "")}`);
 
             if (!response.ok) {
                 throw new Error("Failed to fetch Discord invite");
@@ -177,7 +181,7 @@ export const leaderboardApi = {
             }
 
             const extension = icon.startsWith("a_") ? "gif" : "png";
-            return `https://cdn.discordapp.com/icons/${guildId}/${icon}.${extension}`;
+            return `https://cdn.discordapp.com/icons/${encodeURIComponent(guildId)}/${encodeURIComponent(icon)}.${extension}`;
         } catch (error) {
             console.warn("Failed to load Discord invite icon:", error);
             return null;

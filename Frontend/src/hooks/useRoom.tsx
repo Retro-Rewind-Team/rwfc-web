@@ -1,4 +1,4 @@
-import { createMemo, createSignal, onMount } from "solid-js";
+import { createEffect, createMemo, createSignal, onMount } from "solid-js";
 import { useSearchParams } from "@solidjs/router";
 import { useQuery } from "@tanstack/solid-query";
 import { roomStatusApi } from "../services/api";
@@ -9,8 +9,13 @@ import { queryKeys } from "../constants/queryKeys";
  * (forward/backward/jump), datetime seeking, and friend code collection.
  * Reads a `time` (unix seconds) URL search param once on mount to deep-link
  * into a specific historical snapshot.
+ *
+ * @param options.pausePolling Stops the live refetch while it returns true. The room browser uses
+ * this while a friend code is highlighted. It exists so there is one timer on this query: the page
+ * used to run its own 10s setInterval calling refetch(), on top of this refetchInterval, and so
+ * sent twice the requests it needed.
  */
-export function useRoomStatus() {
+export function useRoomStatus(options: { pausePolling?: () => boolean } = {}) {
     const [searchParams] = useSearchParams();
 
     // undefined = live (latest), number = specific DB snapshot ID
@@ -27,18 +32,26 @@ export function useRoomStatus() {
 
     const roomStatusQuery = useQuery(() => ({
         queryKey: queryKeys.room(currentId()),
-        queryFn: async () => {
+        queryFn: () => {
             const id = currentId();
-            const data =
-                id === undefined
-                    ? await roomStatusApi.getLatestRoomStatus()
-                    : await roomStatusApi.getRoomStatusById(id);
-            setMinId(data.minimumId);
-            setMaxId(data.maximumId);
-            return data;
+            return id === undefined
+                ? roomStatusApi.getLatestRoomStatus()
+                : roomStatusApi.getRoomStatusById(id);
         },
-        refetchInterval: () => (currentId() === undefined ? 10000 : false),
+        refetchInterval: () =>
+            currentId() === undefined && !options.pausePolling?.() ? 10000 : false,
     }));
+
+    // Tracking the bounds here rather than inside queryFn: a query function runs only when a fetch
+    // actually happens, so a cache hit left these stale, and a background refetch or retry wrote to
+    // them at times unrelated to what is on screen. An effect on the data covers every case.
+    createEffect(() => {
+        const data = roomStatusQuery.data;
+        if (!data) return;
+
+        setMinId(data.minimumId);
+        setMaxId(data.maximumId);
+    });
 
     const isLatest = createMemo(() => currentId() === undefined);
 

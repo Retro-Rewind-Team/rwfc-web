@@ -133,7 +133,7 @@ export default function HomePage() {
                             colorScheme="emerald"
                         />
                         <StatCard
-                            value={discordQuery.data?.toLocaleString() ?? "20,000+"}
+                            value={discordQuery.data?.toLocaleString() ?? "..."}
                             label="Discord Members"
                             colorScheme="blue"
                         />
