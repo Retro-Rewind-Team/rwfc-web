@@ -351,7 +351,9 @@ public class PlayerRepository : IPlayerRepository, IPlayerMiiRepository, ILegacy
         if (vrGains == null || vrGains.Count == 0)
             return;
 
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        // await using: the transaction is IAsyncDisposable, and a sync using disposes it on the
+        // synchronous path, which can block the thread on the rollback or release.
+        await using var transaction = await _context.Database.BeginTransactionAsync();
 
         try
         {

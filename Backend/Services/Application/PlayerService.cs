@@ -40,22 +40,39 @@ public class PlayerService : IPlayerService
             return null;
 
         var toDate = DateTime.UtcNow;
-        List<VRHistoryEntity> history;
-        DateTime fromDate;
+        var fromDate = days.HasValue ? toDate.AddDays(-days.Value) : DateTime.MinValue;
 
-        if (days.HasValue)
-        {
-            fromDate = toDate.AddDays(-days.Value);
-            history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, fromDate, toDate);
-        }
-        else
-        {
-            // No window requested: fetch all history and derive fromDate from the earliest entry
-            fromDate = DateTime.MinValue;
-            history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, fromDate, toDate);
+        var history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, fromDate, toDate);
+
+        // No window requested: report the range actually covered rather than DateTime.MinValue.
+        if (!days.HasValue)
             fromDate = history.Count > 0 ? history.Min(h => h.Date) : toDate;
-        }
 
+        return BuildHistoryRange(player, history, fromDate, toDate);
+    }
+
+    public async Task<VRHistoryRangeResponseDto?> GetPlayerHistoryAsync(string fc, DateTime from, DateTime to)
+    {
+        var player = await _playerRepository.GetByFcAsync(fc);
+        if (player == null)
+            return null;
+
+        var history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, from, to);
+
+        return BuildHistoryRange(player, history, from, to);
+    }
+
+    /// <summary>
+    /// Shared tail of the two history overloads, which differ only in how they arrive at their date
+    /// range. Everything from here on was duplicated between them, minus the comments, which only
+    /// one copy carried.
+    /// </summary>
+    private static VRHistoryRangeResponseDto BuildHistoryRange(
+        PlayerEntity player,
+        List<VRHistoryEntity> history,
+        DateTime fromDate,
+        DateTime toDate)
+    {
         var historyDtos = history
             .Select(PlayerMapper.ToVRHistoryDto)
             .OrderBy(h => h.Date)
@@ -86,47 +103,6 @@ public class PlayerService : IPlayerService
             PlayerId: player.Pid,
             FromDate: fromDate,
             ToDate: toDate,
-            History: historyDtos,
-            TotalVRChange: endingVR - startingVR,
-            StartingVR: startingVR,
-            EndingVR: endingVR
-        );
-    }
-
-    public async Task<VRHistoryRangeResponseDto?> GetPlayerHistoryAsync(string fc, DateTime from, DateTime to)
-    {
-        var player = await _playerRepository.GetByFcAsync(fc);
-        if (player == null)
-            return null;
-
-        var history = await _vrHistoryRepository.GetPlayerHistoryAsync(player.Pid, from, to);
-
-        var historyDtos = history
-            .Select(PlayerMapper.ToVRHistoryDto)
-            .OrderBy(h => h.Date)
-            .ToList();
-
-        var startingVR = historyDtos.Count > 0
-            ? historyDtos.First().TotalVR - historyDtos.First().VRChange
-            : player.Ev;
-        var endingVR = historyDtos.Count > 0
-            ? historyDtos.Last().TotalVR
-            : player.Ev;
-
-        if (historyDtos.Count > 0)
-        {
-            var initialEntry = new VRHistoryDto(
-                Date: historyDtos.First().Date.AddSeconds(-1),
-                VRChange: 0,
-                TotalVR: startingVR
-            );
-            historyDtos.Insert(0, initialEntry);
-        }
-
-        return new VRHistoryRangeResponseDto(
-            PlayerId: player.Pid,
-            FromDate: from,
-            ToDate: to,
             History: historyDtos,
             TotalVRChange: endingVR - startingVR,
             StartingVR: startingVR,

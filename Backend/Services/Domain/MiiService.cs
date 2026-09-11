@@ -7,7 +7,8 @@ using System.Runtime.InteropServices;
 namespace RetroRewindWebsite.Services.Domain;
 
 /// <summary>
-/// Fetches and caches Mii avatar images from RiiConnect24, applying size normalization and per-friend-code request throttling.
+/// Fetches and caches Mii avatar images from Nintendo's Mii Studio (studio.mii.nintendo.com),
+/// applying size normalization and per-friend-code request throttling.
 /// </summary>
 public class MiiService : IMiiService
 {
