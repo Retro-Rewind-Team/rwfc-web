@@ -15,8 +15,7 @@ const MARGIN = 8;
 /** How far a finger may travel between touchstart and touchend and still count as a tap. */
 const TAP_SLOP_PX = 10;
 
-const FOCUSABLE_SELECTOR =
-    'a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])';
+const FOCUSABLE_SELECTOR = 'a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])';
 
 export default function Tooltip(props: TooltipProps) {
     const [visible, setVisible] = createSignal(false);

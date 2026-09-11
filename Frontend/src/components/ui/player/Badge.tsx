@@ -1,4 +1,3 @@
-import { Show } from "solid-js";
 import { BadgeId, badgeInfo } from "../../../constants/badgeData";
 import Tooltip from "../../common/Tooltip";
 import WhWzDevBadge from "./badges/WhWzDevBadge";
@@ -16,7 +15,6 @@ import MedalBadge from "./badges/MedalBadge";
 interface BadgeProps {
     variant: number;
     size?: "sm" | "md" | "lg";
-    showLabel?: boolean;
 }
 
 function BadgeSVG(props: { variant: number }) {
@@ -62,21 +60,16 @@ export default function Badge(props: BadgeProps) {
     };
 
     return (
-        <div class="inline-flex items-center gap-2 group">
-            <Tooltip text={info().tooltip}>
-                <div
-                    class={`${sizeClass()} flex-shrink-0 transition-all duration-300 ease-out group-hover:scale-105 group-hover:-translate-y-0.5 hover:shadow-xl cursor-pointer`}
-                >
-                    <BadgeSVG variant={props.variant} />
-                </div>
-            </Tooltip>
-
-            {/* Label */}
-            <Show when={props.showLabel}>
-                <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 tracking-tight">
-                    {info().label}
-                </span>
-            </Show>
-        </div>
+        // The wrapper div and its `group` existed to lay out a label beside the badge. No caller
+        // ever asked for that label, so the hover effects move onto the badge itself. Dropped with
+        // it: cursor-pointer, which promised a click nothing handles, and hover:shadow-xl, which
+        // drew a rectangular shadow around a transparent square.
+        <Tooltip text={info().tooltip}>
+            <div
+                class={`${sizeClass()} flex-shrink-0 transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-0.5`}
+            >
+                <BadgeSVG variant={props.variant} />
+            </div>
+        </Tooltip>
     );
 }

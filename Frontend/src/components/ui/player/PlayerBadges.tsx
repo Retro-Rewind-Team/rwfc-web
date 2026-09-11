@@ -5,7 +5,6 @@ import { badgeInfo } from "../../../constants/badgeData";
 interface PlayerBadgesProps {
     badges: number[] | null | undefined;
     size?: "sm" | "md" | "lg";
-    showLabels?: boolean;
 }
 
 export default function PlayerBadges(props: PlayerBadgesProps) {
@@ -14,11 +13,7 @@ export default function PlayerBadges(props: PlayerBadgesProps) {
     return (
         <Show when={badges().length > 0}>
             <div class="inline-flex items-center gap-1.5 flex-wrap">
-                <For each={badges()}>
-                    {(badge) => (
-                        <Badge variant={badge} size={props.size} showLabel={props.showLabels} />
-                    )}
-                </For>
+                <For each={badges()}>{(badge) => <Badge variant={badge} size={props.size} />}</For>
             </div>
         </Show>
     );

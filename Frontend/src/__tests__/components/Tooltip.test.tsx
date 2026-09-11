@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@solidjs/testing-library";
+import { JSX } from "solid-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Tooltip from "../../components/common/Tooltip";
 
@@ -13,7 +14,7 @@ describe("Tooltip", () => {
     const tip = () => screen.queryByRole("tooltip");
     const trigger = () => screen.getByTestId("trigger").parentElement!;
 
-    const renderTooltip = (children?: () => Element) =>
+    const renderTooltip = (children?: () => JSX.Element) =>
         render(() => (
             <Tooltip text={TEXT}>
                 {children ? children() : <span data-testid="trigger">badge</span>}
