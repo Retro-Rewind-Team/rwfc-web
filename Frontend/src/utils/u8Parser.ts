@@ -1,3 +1,5 @@
+import { ByteWriter } from "./byteWriter";
+
 import type { U8Archive, U8Node } from "../types/tools";
 
 /**
@@ -99,7 +101,10 @@ export function replaceBrfntInU8(
     const header = new Uint8Array(u8.subarray(0, dataOffset));
     const headerView = new DataView(header.buffer, header.byteOffset, header.byteLength);
 
-    const dataBytes: number[] = [];
+    // Sized from the source archive, since the rebuilt data section is close to it in size: a
+    // font swap changes one file. This used to accumulate into a number[], eight boxed bytes per
+    // real byte, for an archive that can run to several megabytes.
+    const dataBytes = new ByteWriter(Math.max(4096, u8.length));
 
     function currentOffset(): number {
         return header.length + dataBytes.length;
@@ -108,7 +113,7 @@ export function replaceBrfntInU8(
     function padToAlignment(alignment: number): void {
         const offset = currentOffset();
         const pad = (alignment - (offset % alignment)) & (alignment - 1);
-        for (let i = 0; i < pad; i++) dataBytes.push(0x00);
+        dataBytes.pushRepeat(0x00, pad);
     }
 
     for (let idx = 1; idx < nodes.length; idx++) {
@@ -129,12 +134,10 @@ export function replaceBrfntInU8(
         headerView.setUint32(nodeHeaderOff + 4, newOffset, false);
         headerView.setUint32(nodeHeaderOff + 8, fileData.length, false);
 
-        for (let i = 0; i < fileData.length; i++) {
-            dataBytes.push(fileData[i]);
-        }
+        dataBytes.pushFrom(fileData, 0, fileData.length);
     }
 
-    const dataArr = new Uint8Array(dataBytes);
+    const dataArr = dataBytes.toUint8Array();
     const newU8 = new Uint8Array(header.length + dataArr.length);
     newU8.set(header, 0);
     newU8.set(dataArr, header.length);

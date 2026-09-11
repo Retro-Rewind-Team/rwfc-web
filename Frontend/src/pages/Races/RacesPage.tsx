@@ -20,7 +20,7 @@ const didNotFinish = (entry: RaceEntry) => entry.finishPos === DNF;
 
 function RaceCard(props: { race: RaceResult }) {
     const date = () =>
-        new Date(props.race.timestamp).toLocaleString("nl-NL", {
+        new Date(props.race.timestamp).toLocaleString(undefined, {
             day: "2-digit",
             month: "2-digit",
             year: "numeric",

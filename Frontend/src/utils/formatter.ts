@@ -2,12 +2,16 @@ import { type LucideIcon, Medal, Trophy } from "lucide-solid";
 import { getDriftCategoryName, getDriftTypeName } from "../constants/marioKartMappings";
 
 /** Formats an ISO date string as DD/MM/YYYY. */
+/**
+ * Formats a date in the visitor's own locale.
+ *
+ * The site had three conventions at once: a hand-rolled DD/MM/YYYY here, a hardcoded nl-NL in five
+ * components and an en-US in a sixth, so the same date read differently depending on which screen
+ * you were on. Passing no locale defers to the reader's browser, which is the right answer for an
+ * international community and means nobody has to agree on a house style.
+ */
 export function formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    const day = date.getDate().toString().padStart(2, "0");
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+    return new Date(dateString).toLocaleDateString();
 }
 
 /** Returns a compact drift label, e.g. "Manual Inside" or "Hybrid Outside". */

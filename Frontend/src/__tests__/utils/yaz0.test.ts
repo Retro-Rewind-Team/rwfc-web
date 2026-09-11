@@ -21,7 +21,10 @@ describe("yaz0", () => {
     roundTrips("a single byte", new Uint8Array([0x42]));
 
     // No repeats, so nothing can be back-referenced.
-    roundTrips("incompressible data", Uint8Array.from({ length: 256 }, (_, i) => i));
+    roundTrips(
+        "incompressible data",
+        Uint8Array.from({ length: 256 }, (_, i) => i),
+    );
 
     // Long runs are the case back-references exist for.
     roundTrips("a long run of one value", new Uint8Array(1000).fill(0xab));
@@ -63,5 +66,81 @@ describe("yaz0", () => {
 
         expect(decompressed.byteOffset).toBe(0);
         expect(decompressed.buffer.byteLength).toBe(decompressed.length);
+    });
+});
+
+describe("yaz0Decompress bounds checking", () => {
+    /** Builds a Yaz0 stream with one group whose single entry is the given back-reference. */
+    const streamWithBackRef = (declaredSize: number, dist: number, nibbleLength: number) => {
+        const distMinus1 = dist - 1;
+        return new Uint8Array([
+            0x59,
+            0x61,
+            0x7a,
+            0x30, // 'Yaz0'
+            (declaredSize >>> 24) & 0xff,
+            (declaredSize >>> 16) & 0xff,
+            (declaredSize >>> 8) & 0xff,
+            declaredSize & 0xff,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0x00, // control byte: first entry is a back-reference
+            (nibbleLength << 4) | ((distMinus1 >> 8) & 0x0f),
+            distMinus1 & 0xff,
+        ]);
+    };
+
+    it("rejects a back-reference pointing before the start of the output", () => {
+        // Nothing has been written yet, so any distance reaches behind the buffer. This used to
+        // read undefined, store 0 and carry on, producing a silently corrupt file.
+        expect(() => yaz0Decompress(streamWithBackRef(16, 1, 3))).toThrow(
+            /before the start of the output/,
+        );
+    });
+
+    it("rejects a back-reference running past the declared output size", () => {
+        // Declared size 4, so the loop keeps going after the literal, but the run is 17 bytes.
+        // A size of 1 would exit the loop before the reference was ever read.
+        const stream = new Uint8Array([
+            0x59,
+            0x61,
+            0x7a,
+            0x30,
+            0,
+            0,
+            0,
+            4,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            // One control byte covers eight entries: bit 7 set makes the first a literal, and the
+            // zero in bit 6 makes the second a back-reference read from the next two bytes.
+            0x80,
+            0x41, // the literal
+            0xf0, // length nibble 15, so a run of 17
+            0x00, // distance 1
+        ]);
+
+        expect(() => yaz0Decompress(stream)).toThrow(/past the declared output size/);
+    });
+
+    it("still accepts a back-reference that sits exactly at the boundary", () => {
+        // A valid overlapping run: one literal, then a length-3 reference to distance 1.
+        const stream = new Uint8Array([
+            0x59, 0x61, 0x7a, 0x30, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0x80, 0x41, 0x10, 0x00,
+        ]);
+
+        expect(Array.from(yaz0Decompress(stream))).toEqual([0x41, 0x41, 0x41, 0x41]);
     });
 });

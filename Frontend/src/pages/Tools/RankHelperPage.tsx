@@ -155,8 +155,10 @@ function StatRow(props: { label: string; value: string; norm: number; max: strin
 }
 
 function LicensePanel(props: { stats: LicenseStats; vrWarning?: boolean }) {
-    const score = (): LicenseScore => computeScore(props.stats);
-    const needs = (): RankNeeds | null => computeNeeds(props.stats);
+    // Memos, not plain functions: score() is read ten times in the markup below and needs() twice,
+    // so each render recomputed the whole thing once per read.
+    const score = createMemo((): LicenseScore => computeScore(props.stats));
+    const needs = createMemo((): RankNeeds | null => computeNeeds(props.stats));
 
     const totalVs = () => props.stats.vsWins + props.stats.vsLosses;
     const winPct = () =>
