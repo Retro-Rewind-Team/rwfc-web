@@ -12,21 +12,28 @@ public class RaceResultEntityConfiguration : IEntityTypeConfiguration<RaceResult
               .IsUnique()
               .HasDatabaseName("IX_RaceResults_RoomId_RaceNumber_ProfileId");
 
+        // Index set trimmed against production idx_scan counts on 2026-09-11. Five indexes that
+        // the planner had never once chosen were removed; the counts behind each decision are in
+        // the migration that dropped them. CharacterId and VehicleId were only ever grouped by,
+        // never filtered on, and IsPublic and Rk match almost every row.
         entity.HasIndex(e => e.ProfileId);
         entity.HasIndex(e => e.CourseId);
         entity.HasIndex(e => e.RaceTimestamp);
-        entity.HasIndex(e => e.CharacterId);
-        entity.HasIndex(e => e.VehicleId);
 
         entity.HasIndex(e => new { e.CourseId, e.EngineClassId });
-        entity.HasIndex(e => new { e.CourseId, e.FinishTime });
-        entity.HasIndex(e => new { e.ProfileId, e.CourseId });
-        entity.HasIndex(e => new { e.ProfileId, e.CharacterId });
-        entity.HasIndex(e => new { e.ProfileId, e.VehicleId });
-        entity.HasIndex(e => new { e.ProfileId, e.RaceTimestamp });
 
-        entity.HasIndex(e => e.IsPublic);
-        entity.HasIndex(e => e.Rk);
+        // Zero scans in production, but only because the Online Bests page it serves is currently
+        // unrouted. Kept deliberately rather than dropped with the rest.
+        entity.HasIndex(e => new { e.CourseId, e.FinishTime });
+
+        entity.HasIndex(e => new { e.ProfileId, e.CourseId });
+
+        // The busiest index on the table: UpdatePlayerVehiclePreferencesAsync groups race results
+        // by vehicle per profile on every sync tick. There is no character equivalent, which is
+        // why the matching CharacterId composite was dropped.
+        entity.HasIndex(e => new { e.ProfileId, e.VehicleId });
+
+        entity.HasIndex(e => new { e.ProfileId, e.RaceTimestamp });
 
         // Supports the distinct race count query (GetTotalRaceCountAsync).
         entity.HasIndex(e => new { e.RoomId, e.RaceNumber })
