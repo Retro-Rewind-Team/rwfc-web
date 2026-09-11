@@ -446,9 +446,6 @@ export const teamData: Record<string, TeamMember[]> = {
         team.Gab.withRole("Lead Retro WFC and Discord Administrator").withForge(
             "https://github.com/GABRlEL",
         ),
-        team.Lami.withRole("Retro WFC & Bot Developer")
-            .withDonation("https://ko-fi.com/lilousky")
-            .withForge("https://github.com/LamiLemmy"),
     ],
     "Team WheelWizard": [
         team.Patchzy.withRole("WheelWizard Creator & Developer").withForge(
@@ -511,6 +508,9 @@ export const teamData: Record<string, TeamMember[]> = {
         team.Rambo.withRole("Extended Teams & Other Features").withForge(
             "https://github.com/EpicUsername12",
         ),
+        team.Lami
+            .withRole("Retro WFC & Bot Developer")
+            .withForge("https://github.com/LamiLemmy"),
         team.Bodacious.withRole("Nunchuck Viewer"),
         team.Zeroara.withRole("Retro Rewind Contributor").withForge("https://github.com/ImZeraora"),
         team.Eppe.withRole("Language System Improvements"),
