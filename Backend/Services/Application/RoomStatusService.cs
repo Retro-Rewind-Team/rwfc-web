@@ -6,7 +6,6 @@ using RetroRewindWebsite.Repositories.Room;
 using RetroRewindWebsite.Repositories.TimeTrial;
 using RetroRewindWebsite.Services.Domain;
 using RetroRewindWebsite.Services.External;
-using System.Collections.Concurrent;
 
 namespace RetroRewindWebsite.Services.Application;
 
@@ -18,8 +17,10 @@ public class RoomStatusService : IRoomStatusService
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger<RoomStatusService> _logger;
 
-    // In-memory cache: only used for the live (latest) snapshot
-    private readonly ConcurrentQueue<RoomStatusSnapshot> _liveCache = new();
+    // The latest snapshot, and only ever the latest. This was a ConcurrentQueue trimmed to one
+    // entry, so every read enumerated a queue to reach its single item and every write was an
+    // Enqueue followed by a separate TryDequeue. A reference assignment is atomic on its own.
+    private volatile RoomStatusSnapshot? _liveSnapshot;
     private readonly SemaphoreSlim _refreshLock = new(1, 1);
 
     // In-memory peak tracking, loaded from DB at startup, updated on each new peak
@@ -37,7 +38,6 @@ public class RoomStatusService : IRoomStatusService
     private volatile int _cachedMaxId;
     private DateTime _idBoundsLoadedAt;
 
-    private const int LiveCacheSize = 1;
     private const int RefreshTimeoutSeconds = 5;
     private const int TrackNameCacheMinutes = 10;
     private const int IdBoundsCacheSeconds = 60;
@@ -54,7 +54,7 @@ public class RoomStatusService : IRoomStatusService
 
     public Task<RoomStatusResponseDto?> GetLatestStatusAsync()
     {
-        var latest = _liveCache.LastOrDefault();
+        var latest = _liveSnapshot;
         if (latest == null)
         {
             _logger.LogWarning("No live snapshot available yet");
@@ -66,7 +66,7 @@ public class RoomStatusService : IRoomStatusService
 
     public Task<RoomStatusStatsDto> GetStatsAsync()
     {
-        var latest = _liveCache.LastOrDefault();
+        var latest = _liveSnapshot;
 
         var totalPlayers = latest?.Rooms.Sum(r => r.Players.Count) ?? 0;
         var totalRooms = latest?.Rooms.Count ?? 0;
@@ -182,7 +182,7 @@ public class RoomStatusService : IRoomStatusService
 
     public async Task<byte[]?> GetMiiImageBytesAsync(string friendCode)
     {
-        var latest = _liveCache.LastOrDefault();
+        var latest = _liveSnapshot;
         if (latest == null) return null;
 
         var miiData = FindMiiDataInRooms(latest.Rooms, friendCode);
@@ -198,7 +198,7 @@ public class RoomStatusService : IRoomStatusService
 
     public async Task<Dictionary<string, string>> GetMiiImageBatchAsync(IReadOnlyList<string> friendCodes)
     {
-        var latest = _liveCache.LastOrDefault();
+        var latest = _liveSnapshot;
         if (latest == null) return [];
 
         var miiDataLookup = BuildMiiDataLookup(latest.Rooms);
@@ -301,7 +301,7 @@ public class RoomStatusService : IRoomStatusService
             }
 
             // On DB failure keep the previous DbId so the live cache doesn't advertise an invalid ID
-            var resolvedDbId = dbId ?? _liveCache.LastOrDefault()?.DbId ?? 0;
+            var resolvedDbId = dbId ?? _liveSnapshot?.DbId ?? 0;
 
             // Update live cache regardless of whether we persisted
             UpdateLiveCache(new RoomStatusSnapshot
@@ -361,12 +361,7 @@ public class RoomStatusService : IRoomStatusService
         }
     }
 
-    private void UpdateLiveCache(RoomStatusSnapshot snapshot)
-    {
-        _liveCache.Enqueue(snapshot);
-        while (_liveCache.Count > LiveCacheSize)
-            _liveCache.TryDequeue(out _);
-    }
+    private void UpdateLiveCache(RoomStatusSnapshot snapshot) => _liveSnapshot = snapshot;
 
     private static string? FindMiiDataInRooms(List<RoomDto> rooms, string friendCode)
     {

@@ -14,18 +14,15 @@ namespace RetroRewindWebsite.Controllers;
 public class LeaderboardController : ControllerBase
 {
     private readonly ILeaderboardService _leaderboardService;
-    private readonly ILogger<LeaderboardController> _logger;
 
     private const int MinTopPlayersCount = 1;
     private const int MaxTopPlayersCount = 100;
     private const int DefaultTopPlayersCount = 10;
 
     public LeaderboardController(
-        ILeaderboardService leaderboardService,
-        ILogger<LeaderboardController> logger)
+        ILeaderboardService leaderboardService)
     {
         _leaderboardService = leaderboardService;
-        _logger = logger;
     }
 
     // ===== LEADERBOARD ENDPOINTS =====
@@ -36,18 +33,9 @@ public class LeaderboardController : ControllerBase
     public async Task<ActionResult<LeaderboardResponseDto>> GetLeaderboard(
         [FromQuery] LeaderboardRequest request)
     {
-        try
-        {
-            var response = await _leaderboardService.GetLeaderboardAsync(request);
-            Response.Headers.CacheControl = "public, max-age=60";
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving leaderboard data");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving leaderboard data");
-        }
+        var response = await _leaderboardService.GetLeaderboardAsync(request);
+        Response.Headers.CacheControl = "public, max-age=60";
+        return Ok(response);
     }
 
     [HttpGet("in-game")]
@@ -56,21 +44,12 @@ public class LeaderboardController : ControllerBase
     public async Task<ActionResult<LeaderboardInGameResponseDto>> GetLeaderboardInGame(
         [FromQuery] int page = 1)
     {
-        try
-        {
-            // Unvalidated, so a negative or huge page reached the offset calculation directly.
-            page = Math.Max(1, page);
+        // Unvalidated, so a negative or huge page reached the offset calculation directly.
+        page = Math.Max(1, page);
 
-            var response = await _leaderboardService.GetLeaderboardInGameAsync(page);
-            Response.Headers.CacheControl = "public, max-age=60";
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving in-game leaderboard data");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving in-game leaderboard data");
-        }
+        var response = await _leaderboardService.GetLeaderboardInGameAsync(page);
+        Response.Headers.CacheControl = "public, max-age=60";
+        return Ok(response);
     }
 
     [HttpGet("top/{count}")]
@@ -78,19 +57,10 @@ public class LeaderboardController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<PlayerDto>>> GetTopPlayers(int count = DefaultTopPlayersCount)
     {
-        try
-        {
-            count = Math.Clamp(count, MinTopPlayersCount, MaxTopPlayersCount);
-            var players = await _leaderboardService.GetTopPlayersAsync(count);
-            Response.Headers.CacheControl = "public, max-age=60";
-            return Ok(players);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving top {Count} players", count);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving top players");
-        }
+        count = Math.Clamp(count, MinTopPlayersCount, MaxTopPlayersCount);
+        var players = await _leaderboardService.GetTopPlayersAsync(count);
+        Response.Headers.CacheControl = "public, max-age=60";
+        return Ok(players);
     }
 
     [HttpGet("top/in-game/{count}")]
@@ -98,19 +68,10 @@ public class LeaderboardController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<InGamePlayerDto>>> GetTopPlayersInGame(int count = DefaultTopPlayersCount)
     {
-        try
-        {
-            count = Math.Clamp(count, MinTopPlayersCount, MaxTopPlayersCount);
-            var players = await _leaderboardService.GetTopPlayersInGameAsync(count);
-            Response.Headers.CacheControl = "public, max-age=60";
-            return Ok(players);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving top {Count} in-game players", count);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving top players");
-        }
+        count = Math.Clamp(count, MinTopPlayersCount, MaxTopPlayersCount);
+        var players = await _leaderboardService.GetTopPlayersInGameAsync(count);
+        Response.Headers.CacheControl = "public, max-age=60";
+        return Ok(players);
     }
 
     [HttpGet("stats")]
@@ -118,18 +79,9 @@ public class LeaderboardController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<LeaderboardStatsDto>> GetStats()
     {
-        try
-        {
-            var stats = await _leaderboardService.GetStatsAsync();
-            Response.Headers.CacheControl = "public, max-age=60";
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving leaderboard stats");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving stats");
-        }
+        var stats = await _leaderboardService.GetStatsAsync();
+        Response.Headers.CacheControl = "public, max-age=60";
+        return Ok(stats);
     }
 
     // ===== LEGACY ENDPOINTS =====
@@ -139,18 +91,9 @@ public class LeaderboardController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<bool>> IsLegacyAvailable()
     {
-        try
-        {
-            var hasSnapshot = await _leaderboardService.HasLegacySnapshotAsync();
-            Response.Headers.CacheControl = "public, max-age=300";
-            return Ok(hasSnapshot);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error checking legacy snapshot availability");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while checking legacy snapshot");
-        }
+        var hasSnapshot = await _leaderboardService.HasLegacySnapshotAsync();
+        Response.Headers.CacheControl = "public, max-age=300";
+        return Ok(hasSnapshot);
     }
 
     [HttpGet("legacy")]
@@ -160,17 +103,8 @@ public class LeaderboardController : ControllerBase
     public async Task<ActionResult<LeaderboardResponseDto>> GetLegacyLeaderboard(
         [FromQuery] LeaderboardRequest request)
     {
-        try
-        {
-            var response = await _leaderboardService.GetLegacyLeaderboardAsync(request);
-            Response.Headers.CacheControl = "public, max-age=300";
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving legacy leaderboard data");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving legacy leaderboard data");
-        }
+        var response = await _leaderboardService.GetLegacyLeaderboardAsync(request);
+        Response.Headers.CacheControl = "public, max-age=300";
+        return Ok(response);
     }
 }

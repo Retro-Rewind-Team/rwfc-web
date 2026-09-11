@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using RetroRewindWebsite.Filters;
 using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.Domain;
 using RetroRewindWebsite.Models.DTOs.Player;
@@ -48,8 +49,7 @@ public class PlayerModerationController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error flagging player with PID {Pid}", request.Pid);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while flagging the player");
+            return ApiExceptionFilter.ServerError();
         }
     }
 
@@ -74,8 +74,7 @@ public class PlayerModerationController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error unflagging player with PID {Pid}", request.Pid);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while unflagging the player");
+            return ApiExceptionFilter.ServerError();
         }
     }
 
@@ -100,8 +99,7 @@ public class PlayerModerationController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error banning player with PID {Pid}", request.Pid);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while banning the player");
+            return ApiExceptionFilter.ServerError();
         }
     }
 
@@ -111,20 +109,11 @@ public class PlayerModerationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<SuspiciousJumpsResultDto>> GetSuspiciousJumps(string pid)
     {
-        try
-        {
-            var result = await _moderationService.GetSuspiciousJumpsAsync(pid);
-            if (result == null)
-                return NotFound($"Player with PID '{pid}' not found");
+        var result = await _moderationService.GetSuspiciousJumpsAsync(pid);
+        if (result == null)
+            return NotFound($"Player with PID '{pid}' not found");
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving suspicious jumps for PID {Pid}", pid);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving suspicious jumps");
-        }
+        return Ok(result);
     }
 
     [HttpPost("swap")]
@@ -155,8 +144,7 @@ public class PlayerModerationController : ControllerBase
         {
             _logger.LogError(ex, "Error swapping stats between PID {SourcePid} and PID {TargetPid}",
                 request.SourcePid, request.TargetPid);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while swapping player stats");
+            return ApiExceptionFilter.ServerError();
         }
     }
 
@@ -203,8 +191,7 @@ public class PlayerModerationController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding badge to player with PID {Pid}", request.Pid);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while adding a badge to the player");
+            return ApiExceptionFilter.ServerError();
         }
     }
 
@@ -232,8 +219,7 @@ public class PlayerModerationController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error removing badge from player with PID {Pid}", request.Pid);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while removing a badge from the player");
+            return ApiExceptionFilter.ServerError();
         }
     }
 }

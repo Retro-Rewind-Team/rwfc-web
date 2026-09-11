@@ -36,29 +36,20 @@ public class MiiController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<MiiResponseDto>> GetPlayerMii(string fc)
     {
-        try
-        {
-            var miiImage = await _miiBatchService.GetPlayerMiiAsync(fc);
-            if (miiImage == null)
-                return NotFound($"Mii image not found for player with friend code '{fc}'");
+        var miiImage = await _miiBatchService.GetPlayerMiiAsync(fc);
+        if (miiImage == null)
+            return NotFound($"Mii image not found for player with friend code '{fc}'");
 
-            Response.Headers.CacheControl = "public, max-age=3600";
+        Response.Headers.CacheControl = "public, max-age=3600";
 
-            // Stored data, not request data, but a malformed row should not turn a cache header
-            // into a 500. Skip the ETag rather than fail the response.
-            if (TryDecodeBase64(miiImage, out var cachedBytes))
-                Response.Headers.ETag = $"\"{Convert.ToHexString(MD5.HashData(cachedBytes))}\"";
-            else
-                _logger.LogWarning("Cached Mii image for {FriendCode} is not valid base64", fc);
+        // Stored data, not request data, but a malformed row should not turn a cache header
+        // into a 500. Skip the ETag rather than fail the response.
+        if (TryDecodeBase64(miiImage, out var cachedBytes))
+            Response.Headers.ETag = $"\"{Convert.ToHexString(MD5.HashData(cachedBytes))}\"";
+        else
+            _logger.LogWarning("Cached Mii image for {FriendCode} is not valid base64", fc);
 
-            return Ok(new MiiResponseDto(fc, miiImage));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving Mii for player {FriendCode}", fc);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving Mii image");
-        }
+        return Ok(new MiiResponseDto(fc, miiImage));
     }
 
     [HttpGet("player/{fc}/mii/image")]
@@ -67,29 +58,20 @@ public class MiiController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetPlayerMiiImage(string fc)
     {
-        try
+        var miiImage = await _miiBatchService.GetPlayerMiiAsync(fc);
+        if (miiImage == null)
+            return NotFound($"Mii image not found for player with friend code '{fc}'");
+
+        if (!TryDecodeBase64(miiImage, out var imageBytes))
         {
-            var miiImage = await _miiBatchService.GetPlayerMiiAsync(fc);
-            if (miiImage == null)
-                return NotFound($"Mii image not found for player with friend code '{fc}'");
-
-            if (!TryDecodeBase64(miiImage, out var imageBytes))
-            {
-                _logger.LogWarning("Cached Mii image for {FriendCode} is not valid base64", fc);
-                return NotFound($"Mii image for player with friend code '{fc}' is unreadable");
-            }
-
-            Response.Headers.CacheControl = "public, max-age=3600";
-            Response.Headers.ETag = $"\"{Convert.ToHexString(MD5.HashData(imageBytes))}\"";
-
-            return File(imageBytes, "image/png");
+            _logger.LogWarning("Cached Mii image for {FriendCode} is not valid base64", fc);
+            return NotFound($"Mii image for player with friend code '{fc}' is unreadable");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving Mii for player {FriendCode}", fc);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving Mii image");
-        }
+
+        Response.Headers.CacheControl = "public, max-age=3600";
+        Response.Headers.ETag = $"\"{Convert.ToHexString(MD5.HashData(imageBytes))}\"";
+
+        return File(imageBytes, "image/png");
     }
 
     [HttpGet("player/{fc}/mii/download")]
@@ -98,29 +80,20 @@ public class MiiController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DownloadPlayerMii(string fc)
     {
-        try
+        var player = await _playerService.GetPlayerMiiDownloadAsync(fc);
+        if (player == null)
+            return NotFound($"Player with friend code '{fc}' not found");
+
+        if (string.IsNullOrEmpty(player.MiiData))
+            return NotFound($"No Mii data available for player with friend code '{fc}'");
+
+        if (!TryDecodeBase64(player.MiiData, out var miiBytes))
         {
-            var player = await _playerService.GetPlayerMiiDownloadAsync(fc);
-            if (player == null)
-                return NotFound($"Player with friend code '{fc}' not found");
-
-            if (string.IsNullOrEmpty(player.MiiData))
-                return NotFound($"No Mii data available for player with friend code '{fc}'");
-
-            if (!TryDecodeBase64(player.MiiData, out var miiBytes))
-            {
-                _logger.LogWarning("Stored Mii data for {FriendCode} is not valid base64", fc);
-                return NotFound($"Mii data for player with friend code '{fc}' is unreadable");
-            }
-
-            return File(miiBytes, "application/octet-stream", $"{player.Name}.mii");
+            _logger.LogWarning("Stored Mii data for {FriendCode} is not valid base64", fc);
+            return NotFound($"Mii data for player with friend code '{fc}' is unreadable");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error downloading Mii for player {FriendCode}", fc);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while downloading Mii file");
-        }
+
+        return File(miiBytes, "application/octet-stream", $"{player.Name}.mii");
     }
 
     [HttpPost("miis/batch")]
@@ -158,8 +131,7 @@ public class MiiController : ControllerBase
         {
             _logger.LogError(ex, "Error retrieving batch Mii images for {Count} friend codes",
                 request.FriendCodes?.Count ?? 0);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving Mii images");
+            return ApiExceptionFilter.ServerError();
         }
     }
 
@@ -201,8 +173,7 @@ public class MiiController : ControllerBase
         {
             _logger.LogError(ex, "Error retrieving batch Mii images for {Count} legacy friend codes",
                 request.FriendCodes?.Count ?? 0);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                "An error occurred while retrieving Mii images");
+            return ApiExceptionFilter.ServerError();
         }
     }
     /// <summary>
