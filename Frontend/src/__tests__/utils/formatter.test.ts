@@ -1,6 +1,7 @@
 ﻿import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Medal, Trophy } from "lucide-solid";
 import {
+    formatAverageLap,
     formatDate,
     formatLastSeen,
     formatTimestamp,
@@ -158,5 +159,35 @@ describe("formatLastSeen", () => {
     it("returns 'N weeks ago' for 2+ weeks", () => {
         vi.setSystemTime(new Date("2024-06-29T12:00:00Z"));
         expect(formatLastSeen(BASE)).toBe("2 weeks ago");
+    });
+});
+
+describe("formatAverageLap", () => {
+    const laps = (...ms: number[]) => ms.map((timeMs) => ({ timeMs }));
+
+    it("averages the laps and formats as m:ss.mmm", () => {
+        // 90.000s and 92.000s average to 91.000s.
+        expect(formatAverageLap(laps(90_000, 92_000))).toBe("1:31.000");
+    });
+
+    it("returns N/A for no laps rather than dividing by zero", () => {
+        expect(formatAverageLap([])).toBe("N/A");
+    });
+
+    it("pads the seconds so a sub-ten-second remainder is not misread", () => {
+        // 65.4s must render 1:05.400, not 1:5.400.
+        expect(formatAverageLap(laps(65_400))).toBe("1:05.400");
+    });
+
+    it("keeps millisecond precision", () => {
+        expect(formatAverageLap(laps(61_001, 61_003))).toBe("1:01.002");
+    });
+
+    it("handles a single lap", () => {
+        expect(formatAverageLap(laps(123_456))).toBe("2:03.456");
+    });
+
+    it("handles an average under a minute", () => {
+        expect(formatAverageLap(laps(9_500))).toBe("0:09.500");
     });
 });
