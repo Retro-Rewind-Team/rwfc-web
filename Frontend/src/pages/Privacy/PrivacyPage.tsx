@@ -79,11 +79,6 @@ export default function PrivacyPage() {
                                 <span class="text-blue-600 mr-2 mt-1">•</span>
                                 Your Discord profile (if you choose to link your account)
                             </li>
-                            <li class="flex items-start">
-                                <span class="text-blue-600 mr-2 mt-1">•</span>
-                                Your Mii, which may contain the name you have set in your console
-                                and your MAC address
-                            </li>
                         </ul>
                     </div>
                 </div>
