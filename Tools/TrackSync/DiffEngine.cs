@@ -26,6 +26,12 @@ public static class DiffEngine
         if (dbDuplicates.Count > 0)
             throw new InvalidOperationException($"Duplicate track names in DB: {string.Join(", ", dbDuplicates)}");
 
+        // SortOrder is the 1-based data row, so the file line is SortOrder + 1 (header is line 1).
+        var csvDuplicates = csvEntries.GroupBy(e => e.Name).Where(g => g.Count() > 1)
+            .Select(g => $"{g.Key} (lines {string.Join(", ", g.Select(e => e.SortOrder + 1).Distinct())})").ToList();
+        if (csvDuplicates.Count > 0)
+            throw new InvalidOperationException($"Duplicate track names in CSV: {string.Join("; ", csvDuplicates)}");
+
         var csvByName = csvEntries.ToDictionary(e => e.Name);
         var dbByName  = dbTracks.ToDictionary(t => t.Name);
 

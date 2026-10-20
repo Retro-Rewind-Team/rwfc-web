@@ -1,4 +1,4 @@
-﻿using Shouldly;
+using Shouldly;
 using TrackSync;
 using Xunit;
 
@@ -145,6 +145,19 @@ public class DiffEngineTests
             Track(2, "Track A", 257, 2)
         };
         Should.Throw<InvalidOperationException>(() => DiffEngine.Compute(csv, db));
+    }
+
+    [Fact]
+    public void Compute_DuplicateNamesInCsv_ThrowsNamingTheLines()
+    {
+        var csv = new List<CsvTrackEntry>
+        {
+            new("Track A", 256, 1),
+            new("Track B", 257, 2),
+            new("Track A", 573, 3)
+        };
+        var ex = Should.Throw<InvalidOperationException>(() => DiffEngine.Compute(csv, []));
+        ex.Message.ShouldContain("Track A (lines 2, 4)");
     }
 
     [Fact]
