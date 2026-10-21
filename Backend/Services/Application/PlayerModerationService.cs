@@ -175,6 +175,7 @@ public class PlayerModerationService : IPlayerModerationService
             var srcFlagReason = source.FlagReason;
             var srcUnflagReason = source.UnflagReason;
             var srcIsBanned = source.IsBanned;
+            var srcBadges = source.Badges?.ToList();
 
             // --- Write target's stats onto source ---
             source.Ev = target.Ev;
@@ -186,6 +187,7 @@ public class PlayerModerationService : IPlayerModerationService
             source.FlagReason = target.FlagReason;
             source.UnflagReason = target.UnflagReason;
             source.IsBanned = target.IsBanned;
+            source.Badges = target.Badges?.ToList();
 
             // --- Write source's saved stats onto target ---
             target.Ev = srcEv;
@@ -197,6 +199,7 @@ public class PlayerModerationService : IPlayerModerationService
             target.FlagReason = srcFlagReason;
             target.UnflagReason = srcUnflagReason;
             target.IsBanned = srcIsBanned;
+            target.Badges = srcBadges;
 
             // --- Swap VR history records ---
             // Both PIDs exist in the Players table throughout this transaction, so neither
@@ -246,6 +249,11 @@ public class PlayerModerationService : IPlayerModerationService
 
         // Ranks depend on Ev, so recalculate after the swap
         await _playerRepository.UpdatePlayerRanksAsync();
+
+        // Race results moved, so each player's kart/bike majority and their rank within it are
+        // stale until the next background run. Refresh just the two swapped players, then the ranks.
+        await _playerRepository.UpdatePlayerVehiclePreferencesAsync([sourceProfileId, targetProfileId]);
+        await _playerRepository.UpdatePlayerVehicleRanksAsync();
 
         _logger.LogWarning(
             "Player stats swapped: {SourceName} ({SourcePid}) <-> {TargetName} ({TargetPid}) - Reason: {Reason}",

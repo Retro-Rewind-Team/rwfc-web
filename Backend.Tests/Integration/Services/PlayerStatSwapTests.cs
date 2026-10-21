@@ -49,10 +49,16 @@ public class PlayerStatSwapTests : IAsyncLifetime
         source.VRGainLast24Hours = 250;
         source.VRGainLastWeek = 900;
         source.VRGainLastMonth = 1800;
+        source.Badges = [1, 2];
+
+        // The target has a different badge set, so a swap that skipped badges (or copied one
+        // side onto both) is distinguishable from a correct one.
+        var target = NewPlayer(TargetPid, "SwapTarget", TargetFc, ev: 1000);
+        target.Badges = [7];
 
         db.Players.AddRange(
             source,
-            NewPlayer(TargetPid, "SwapTarget", TargetFc, ev: 1000),
+            target,
             NewPlayer("swap-nan-a", "NonNumericA", "0000-0000-8001", ev: 100),
             NewPlayer("swap-nan-b", "NonNumericB", "0000-0000-8002", ev: 200));
 
@@ -195,6 +201,10 @@ public class PlayerStatSwapTests : IAsyncLifetime
         target.VRGainLast24Hours.ShouldBe(250);
         target.VRGainLastWeek.ShouldBe(900);
         target.VRGainLastMonth.ShouldBe(1800);
+
+        // Badges are earned on the stats being moved, so they follow them.
+        source.Badges.ShouldBe([7]);
+        target.Badges.ShouldBe([1, 2]);
 
         // Identity stays put; only the stats move.
         source.Name.ShouldBe("SwapSource");
