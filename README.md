@@ -48,6 +48,31 @@ The frontend and backend run as separate processes. In development the frontend 
 
 ---
 
+## Run with Docker (optional)
+
+With Docker Desktop running, start all three services from the repository root:
+
+```bash
+docker compose up -d --build
+```
+
+Open http://localhost:3000. Docker uses the existing HTTP API port at
+http://localhost:5092 (API documentation: http://localhost:5092/scalar).
+The local setup instructions below remain unchanged; Docker supplies its own
+settings without requiring local environment files or installed runtimes.
+The frontend runs Vite; rebuild after changing source files.
+Database migrations run automatically, and data persists in a Docker volume.
+This setup uses development credentials and exposes services on localhost only.
+
+```bash
+docker compose logs -f    # View service logs
+docker compose down       # Stop services; keep database data
+```
+
+Stop the Docker stack before running the app directly, since both use the same ports.
+
+---
+
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
