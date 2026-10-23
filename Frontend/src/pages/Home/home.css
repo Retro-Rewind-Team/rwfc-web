@@ -1,0 +1,557 @@
+.rewind-home {
+    background: #080b10;
+    color: #f7f8fa;
+    --home-muted: #99a3b3;
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+.rewind-home * {
+    box-sizing: border-box;
+}
+.rewind-home a {
+    text-decoration: none;
+}
+.rewind-home a:focus-visible,
+.rewind-home button:focus-visible {
+    outline: 3px solid #ffcf24;
+    outline-offset: 5px;
+}
+.rewind-home .home-wrap {
+    width: min(1280px, calc(100% - 96px));
+    margin-inline: auto;
+}
+.rewind-home .home-header {
+    border-bottom: 1px solid #ffffff26;
+    background: #080b10;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+.rewind-home .home-header::before {
+    content: "";
+    display: block;
+    height: 4px;
+    background: linear-gradient(
+        90deg,
+        #ff4545,
+        #ffb63f,
+        #f4e83f,
+        #5ed786,
+        #38bfea,
+        #5961ff,
+        #c767ee,
+        #ff4545
+    );
+    background-size: 200% 100%;
+    animation: home-rainbow-flow 12s linear infinite;
+}
+@keyframes home-rainbow-flow {
+    from {
+        background-position: 0% 50%;
+    }
+    to {
+        background-position: 200% 50%;
+    }
+}
+.rewind-home .home-nav {
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    justify-content: flex-start;
+}
+.rewind-home .home-wordmark {
+    color: #fff;
+    font-size: 25px;
+    font-weight: 950;
+    letter-spacing: -1.2px;
+    white-space: nowrap;
+}
+.rewind-home .home-wordmark span {
+    color: #ffcf24;
+    margin-left: 5px;
+}
+.rewind-home .home-desktop-nav {
+    margin-left: auto;
+    display: flex;
+    gap: 28px;
+}
+.rewind-home .home-desktop-nav a {
+    color: #a6b0c0;
+    font-size: 14px;
+    font-weight: 550;
+    transition: color 0.2s;
+}
+.rewind-home .home-desktop-nav a:hover {
+    color: #fff;
+}
+.rewind-home .home-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 49px;
+    border-radius: 999px;
+    padding: 13px 24px;
+    color: #080b10;
+    background: #fff;
+    font-size: 14px;
+    font-weight: 750;
+    transition:
+        background 0.2s,
+        transform 0.2s;
+}
+.rewind-home .home-button:hover {
+    transform: translateY(-2px);
+    background: #e5e7eb;
+}
+.rewind-home .home-button-yellow {
+    background: #ffcf24;
+}
+.rewind-home .home-button-yellow:hover {
+    background: #ffe068;
+}
+.rewind-home .home-button-glass {
+    color: #fff;
+    background: #ffffff12;
+    border: 1px solid #ffffff4a;
+    backdrop-filter: blur(12px);
+}
+.rewind-home .home-button-glass:hover {
+    background: #ffffff28;
+}
+.rewind-home .home-menu-toggle {
+    display: none;
+    color: white;
+    background: transparent;
+    border: 0;
+    padding: 10px;
+}
+.rewind-home .home-mobile-nav {
+    display: grid;
+    padding: 0 24px 20px;
+    gap: 6px;
+}
+.rewind-home .home-mobile-nav a {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px;
+    color: #d9dfeb;
+}
+.rewind-home .home-hero {
+    position: relative;
+    height: clamp(340px, 36vh, 410px);
+    overflow: hidden;
+    background: #252d23;
+}
+.rewind-home .home-hero-image {
+    position: absolute;
+    width: 100%;
+    /* Crop the thin emulator overlay captured at the top of the source image. */
+    top: -24px;
+    height: calc(100% + 24px);
+    object-fit: cover;
+    object-position: 42% 50%;
+}
+.rewind-home .home-hero-shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(5, 8, 12, 0.88) 0%,
+        rgba(5, 8, 12, 0.66) 28%,
+        rgba(5, 8, 12, 0.12) 65%
+    );
+}
+.rewind-home .home-hero-content {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding-block: 28px;
+}
+.rewind-home .home-eyebrow {
+    color: #ffcf24;
+    font-size: 11px;
+    letter-spacing: 2.2px;
+    font-weight: 750;
+    margin: 0 0 22px;
+    line-height: 1.5;
+}
+.rewind-home h1 {
+    font-size: clamp(40px, 4.2vw, 60px);
+    line-height: 1.01;
+    letter-spacing: -2px;
+    font-weight: 900;
+    margin: 0;
+}
+.rewind-home h1 span {
+    color: #ffcf24;
+}
+.rewind-home .home-hero-description {
+    max-width: 490px;
+    color: #d3d8df;
+    font-size: 15px;
+    line-height: 1.7;
+    margin: 16px 0 22px;
+}
+.rewind-home .home-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.rewind-home .home-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1.35fr;
+    padding: 35px 0 40px;
+    border-bottom: 1px solid #ffffff15;
+    gap: 30px;
+}
+.rewind-home .home-stats > div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.rewind-home .home-stats strong {
+    font-size: 32px;
+    letter-spacing: -1px;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+}
+.rewind-home .home-stats span {
+    font-size: 12px;
+    color: var(--home-muted);
+}
+.rewind-home .home-community-link {
+    border-left: 1px solid #ffffff20;
+    padding-left: 35px;
+    display: flex;
+    align-items: center;
+}
+.rewind-home .home-community-link b {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #fff;
+    margin-top: 9px;
+    font-size: 14px;
+    font-weight: 650;
+}
+.rewind-home .home-explore {
+    padding-block: 80px;
+}
+.rewind-home .home-section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 30px;
+    margin-bottom: 34px;
+}
+.rewind-home h2 {
+    font-size: clamp(30px, 3vw, 43px);
+    line-height: 1.16;
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    margin: 0;
+}
+.rewind-home .home-section-heading .home-eyebrow {
+    margin-bottom: 15px;
+}
+.rewind-home .home-section-heading > p {
+    color: var(--home-muted);
+    font-size: 14px;
+    line-height: 1.8;
+    margin: 0 0 3px;
+}
+.rewind-home .home-card-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+.rewind-home .home-feature-card {
+    display: flex;
+    flex-direction: column;
+    padding: 27px;
+    min-height: 310px;
+    border: 1px solid #ffffff13;
+    border-radius: 14px;
+    background: #11151d;
+    color: #fff;
+    position: relative;
+    transition:
+        transform 0.2s,
+        border-color 0.2s;
+}
+.rewind-home .home-feature-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--card-accent);
+}
+.rewind-home .home-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--card-accent);
+    margin-bottom: 32px;
+}
+.rewind-home .home-card-top span {
+    color: #59616f;
+    font-size: 11px;
+}
+.rewind-home .home-card-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--card-accent);
+    margin: 0 0 9px;
+}
+.rewind-home h3 {
+    font-size: 19px;
+    letter-spacing: -0.4px;
+    font-weight: 700;
+    margin: 0 0 13px;
+}
+.rewind-home .home-card-description {
+    color: var(--home-muted);
+    font-size: 13px;
+    line-height: 1.75;
+    margin: 0 0 30px;
+}
+.rewind-home .home-card-arrow {
+    margin-top: auto;
+    align-self: flex-end;
+    color: #d1d7e1;
+}
+.rewind-home .home-footer {
+    border-top: 1px solid #ffffff15;
+    background: #0b0e14;
+}
+.rewind-home .home-footer-inner {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    padding-block: 28px;
+    flex-wrap: wrap;
+}
+.rewind-home .home-footer p {
+    color: #6f798a;
+    font-size: 11px;
+    margin: 0;
+}
+.rewind-home .home-footer nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px;
+    margin-left: auto;
+}
+.rewind-home .home-footer nav a {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #99a3b3;
+    font-size: 11px;
+}
+.rewind-home .home-footer nav a:hover {
+    color: #fff;
+}
+.rewind-home .home-skip {
+    position: absolute;
+    left: 20px;
+    top: -100px;
+    z-index: 10;
+    background: #ffcf24;
+    color: #080b10;
+    padding: 12px;
+}
+.rewind-home .home-skip:focus {
+    top: 12px;
+}
+@media (min-width: 1800px) {
+    .rewind-home .home-hero-content {
+        width: min(1440px, calc(100% - 140px));
+    }
+}
+@media (max-width: 1100px) {
+    .rewind-home .home-desktop-nav {
+        gap: 16px;
+    }
+    .rewind-home .home-desktop-nav a {
+        font-size: 12px;
+    }
+    .rewind-home .home-nav {
+        gap: 20px;
+    }
+    .rewind-home .home-wordmark {
+        font-size: 21px;
+    }
+    .rewind-home .home-nav-download {
+        padding: 12px 18px;
+        font-size: 12px;
+    }
+    .rewind-home .home-card-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .rewind-home .home-feature-card {
+        min-height: 280px;
+    }
+}
+@media (max-width: 760px) {
+    .rewind-home .home-wrap {
+        width: calc(100% - 40px);
+    }
+    .rewind-home .home-nav {
+        min-height: 76px;
+    }
+    .rewind-home .home-desktop-nav,
+    .rewind-home .home-nav-download {
+        display: none;
+    }
+    .rewind-home .home-menu-toggle {
+        display: block;
+    }
+    .rewind-home .home-wordmark {
+        font-size: 23px;
+    }
+    .rewind-home .home-hero {
+        height: 360px;
+    }
+    .rewind-home .home-hero-shade {
+        background: linear-gradient(90deg, #080b10c9, #080b1060);
+    }
+    .rewind-home .home-hero-content {
+        padding-block: 24px;
+    }
+    .rewind-home h1 {
+        font-size: 44px;
+        letter-spacing: -1.8px;
+    }
+    .rewind-home .home-hero-description {
+        max-width: 340px;
+        font-size: 15px;
+    }
+    .rewind-home .home-eyebrow {
+        font-size: 10px;
+        letter-spacing: 1.6px;
+    }
+    .rewind-home .home-stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        padding-block: 20px 30px;
+    }
+    .rewind-home .home-stats strong {
+        font-size: 25px;
+    }
+    .rewind-home .home-stats span {
+        font-size: 10px;
+    }
+    .rewind-home .home-community-link {
+        grid-column: 1/-1;
+        border-left: 0;
+        border-top: 1px solid #ffffff15;
+        padding: 20px 0 0;
+        margin-top: 10px;
+    }
+    .rewind-home .home-explore {
+        padding-block: 50px;
+    }
+    .rewind-home .home-section-heading {
+        display: block;
+    }
+    .rewind-home .home-section-heading > p {
+        margin-top: 18px;
+    }
+    .rewind-home .home-footer-inner {
+        gap: 20px;
+        padding-block: 35px;
+    }
+    .rewind-home .home-footer nav {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+@media (max-width: 420px) {
+    .rewind-home .home-card-grid {
+        grid-template-columns: 1fr;
+    }
+    .rewind-home .home-feature-card {
+        min-height: 250px;
+    }
+    .rewind-home h1 {
+        font-size: 40px;
+    }
+    .rewind-home .home-button {
+        padding: 12px 17px;
+        font-size: 12px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .rewind-home * {
+        transition: none !important;
+    }
+}
+
+.rewind-home .home-footer .home-footer-legal {
+    order: -1;
+    flex: 1;
+    min-width: 240px;
+    font-size: 10px;
+    color: #6f798a;
+}
+
+.rewind-home .home-header-logo {
+    width: 180px;
+    height: 80px;
+    object-fit: contain;
+    display: block;
+}
+.rewind-home .home-discord-icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+}
+.rewind-home .home-menu-toggle {
+    margin-left: auto;
+}
+
+.rewind-home .home-about {
+    border-top: 1px solid #ffffff15;
+    padding-block: 48px 60px;
+}
+.rewind-home .home-about h2 {
+    font-size: 30px;
+    margin-bottom: 28px;
+}
+.rewind-home .home-about-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 40px;
+}
+.rewind-home .home-about h3 {
+    font-size: 16px;
+    margin-bottom: 12px;
+}
+.rewind-home .home-about p {
+    color: var(--home-muted);
+    font-size: 14px;
+    line-height: 1.8;
+    margin: 0;
+}
+@media (max-width: 760px) {
+    .rewind-home .home-about-grid {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
+    .rewind-home .home-about {
+        padding-block: 36px 40px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .rewind-home .home-header::before {
+        animation: none;
+    }
+}
