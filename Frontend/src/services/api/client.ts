@@ -23,6 +23,8 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
         // object wholesale and lost the Content-Type default. Every POST happened to pass its own,
         // which is the only reason this never surfaced.
         const response = await fetch(url, {
+            // Local seeds must be visible even when an earlier empty response was cached.
+            cache: import.meta.env.DEV ? "no-store" : "default",
             ...options,
             headers: {
                 "Content-Type": "application/json",
