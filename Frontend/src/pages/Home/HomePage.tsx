@@ -1,6 +1,6 @@
-import { createMemo, createSignal } from "solid-js";
+import { createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
-import { ArrowUpRight, Download, Menu, MonitorPlay, Timer, Trophy, X, Zap } from "lucide-solid";
+import { ArrowUpRight, Download, MonitorPlay, Timer, Trophy, Zap } from "lucide-solid";
 import { leaderboardApi } from "../../services/api/leaderboard";
 import { roomStatusApi } from "../../services/api/room";
 import { timeTrialApi } from "../../services/api/timeTrial";
@@ -49,6 +49,28 @@ const destinations = [
 
 export default function HomePage() {
     const [menuOpen, setMenuOpen] = createSignal(false);
+    const [headerHidden, setHeaderHidden] = createSignal(false);
+    const [atPageTop, setAtPageTop] = createSignal(true);
+    let headerElement: HTMLElement | undefined;
+
+    onMount(() => {
+        let previousY = Math.max(0, window.scrollY);
+        setAtPageTop(previousY === 0);
+        const handleScroll = () => {
+            const currentY = Math.max(0, window.scrollY);
+            setAtPageTop(currentY === 0);
+            // Keep navigation visible while its menu or keyboard focus is active.
+            if (currentY <= (headerElement?.offsetHeight ?? 0) || currentY < previousY || menuOpen() ||
+                headerElement?.contains(document.activeElement)) {
+                setHeaderHidden(false);
+            } else if (currentY > previousY) {
+                setHeaderHidden(true);
+            }
+            previousY = currentY;
+        };
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        onCleanup(() => window.removeEventListener("scroll", handleScroll));
+    });
     const pcountQuery = useQuery(() => ({
         queryKey: queryKeys.pcount,
         queryFn: () => roomStatusApi.getPlayerCount(),
@@ -82,7 +104,10 @@ export default function HomePage() {
             <a class="home-skip" href="#main-content">
                 Skip to content
             </a>
-            <header class="home-header">
+            <header class="home-header" ref={(element) => { headerElement = element; }}
+                classList={{ "home-header-hidden": headerHidden(), "home-header-at-top": atPageTop() }}
+                onFocusIn={() => setHeaderHidden(false)}
+            >
                 <div class="home-nav home-wrap">
                     <A href="/" class="home-wordmark" aria-label="Retro Rewind home">
                         <img
@@ -102,13 +127,18 @@ export default function HomePage() {
                     </A>
                     <button
                         class="home-menu-toggle"
+                        classList={{ "is-open": menuOpen() }}
                         type="button"
                         aria-label={menuOpen() ? "Close navigation" : "Open navigation"}
                         aria-expanded={menuOpen()}
                         aria-controls="home-mobile-nav"
                         onClick={() => setMenuOpen(!menuOpen())}
                     >
-                        {menuOpen() ? <X /> : <Menu />}
+                        <span class="home-menu-bars" aria-hidden="true">
+                            <span />
+                            <span />
+                            <span />
+                        </span>
                     </button>
                 </div>
                 {menuOpen() && (
@@ -213,20 +243,21 @@ export default function HomePage() {
                             </h2>
                         </div>
                     </div>
-                    <div class="home-card-grid">
+                    <div class="home-feature-list">
                         {destinations.map((card, index) => (
                             <A
                                 href={card.href}
-                                class="home-feature-card"
+                                class="home-feature-row"
                                 style={{ "--card-accent": card.color }}
                             >
-                                <div class="home-card-top">
+                                <span class="home-feature-number">0{index + 1}</span>
+                                <span class="home-feature-icon">
                                     <card.icon size={26} strokeWidth={1.5} />
-                                    <span>0{index + 1}</span>
+                                </span>
+                                <div class="home-feature-copy">
+                                    <h3>{card.title}</h3>
+                                    <p class="home-card-description">{card.description}</p>
                                 </div>
-                                <p class="home-card-label">{card.label}</p>
-                                <h3>{card.title}</h3>
-                                <p class="home-card-description">{card.description}</p>
                                 <span class="home-card-arrow" aria-hidden="true">
                                     <ArrowUpRight size={21} />
                                 </span>
