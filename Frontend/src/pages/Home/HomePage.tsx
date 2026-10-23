@@ -1,4 +1,4 @@
-import { createMemo, createSignal, onCleanup, onMount } from "solid-js";
+import { createMemo } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { ArrowUpRight, Download, MonitorPlay, Timer, Trophy, Zap } from "lucide-solid";
 import { leaderboardApi } from "../../services/api/leaderboard";
@@ -48,29 +48,6 @@ const destinations = [
 ];
 
 export default function HomePage() {
-    const [menuOpen, setMenuOpen] = createSignal(false);
-    const [headerHidden, setHeaderHidden] = createSignal(false);
-    const [atPageTop, setAtPageTop] = createSignal(true);
-    let headerElement: HTMLElement | undefined;
-
-    onMount(() => {
-        let previousY = Math.max(0, window.scrollY);
-        setAtPageTop(previousY === 0);
-        const handleScroll = () => {
-            const currentY = Math.max(0, window.scrollY);
-            setAtPageTop(currentY === 0);
-            // Keep navigation visible while its menu or keyboard focus is active.
-            if (currentY <= (headerElement?.offsetHeight ?? 0) || currentY < previousY || menuOpen() ||
-                headerElement?.contains(document.activeElement)) {
-                setHeaderHidden(false);
-            } else if (currentY > previousY) {
-                setHeaderHidden(true);
-            }
-            previousY = currentY;
-        };
-        window.addEventListener("scroll", handleScroll, { passive: true });
-        onCleanup(() => window.removeEventListener("scroll", handleScroll));
-    });
     const pcountQuery = useQuery(() => ({
         queryKey: queryKeys.pcount,
         queryFn: () => roomStatusApi.getPlayerCount(),
@@ -94,74 +71,13 @@ export default function HomePage() {
             tracksQuery.data?.filter(
                 (track) =>
                     !track.isHidden && (track.category === "retro" || track.category === "custom"),
-            ).length ?? 0,
+            ).length,
     );
 
     return (
         <div class="rewind-home">
             <Title>{HOME_META.title}</Title>
             <Meta name="description" content={HOME_META.description} />
-            <a class="home-skip" href="#main-content">
-                Skip to content
-            </a>
-            <header class="home-header" ref={(element) => { headerElement = element; }}
-                classList={{ "home-header-hidden": headerHidden(), "home-header-at-top": atPageTop() }}
-                onFocusIn={() => setHeaderHidden(false)}
-            >
-                <div class="home-nav home-wrap">
-                    <A href="/" class="home-wordmark" aria-label="Retro Rewind home">
-                        <img
-                            class="home-header-logo"
-                            src="/RetroRewindLogo.png"
-                            alt="Retro Rewind"
-                        />
-                    </A>
-                    <nav class="home-desktop-nav" aria-label="Main navigation">
-                        <A href="/vr">VR Leaderboard</A>
-                        <A href="/tt">Time Trials</A>
-                        <A href="/rooms">Rooms</A>
-                        <A href="/team">Team</A>
-                    </nav>
-                    <A href="/downloads" class="home-button home-nav-download">
-                        Get Retro Rewind <Download size={16} />
-                    </A>
-                    <button
-                        class="home-menu-toggle"
-                        classList={{ "is-open": menuOpen() }}
-                        type="button"
-                        aria-label={menuOpen() ? "Close navigation" : "Open navigation"}
-                        aria-expanded={menuOpen()}
-                        aria-controls="home-mobile-nav"
-                        onClick={() => setMenuOpen(!menuOpen())}
-                    >
-                        <span class="home-menu-bars" aria-hidden="true">
-                            <span />
-                            <span />
-                            <span />
-                        </span>
-                    </button>
-                </div>
-                {menuOpen() && (
-                    <nav
-                        id="home-mobile-nav"
-                        class="home-mobile-nav"
-                        aria-label="Mobile navigation"
-                    >
-                        {[
-                            ["/vr", "VR Leaderboard"],
-                            ["/tt", "Time Trials"],
-                            ["/rooms", "Rooms"],
-                            ["/team", "Team"],
-                            ["/downloads", "Downloads"],
-                        ].map(([href, label]) => (
-                            <A href={href} onClick={() => setMenuOpen(false)}>
-                                {label}
-                                <ArrowUpRight size={16} />
-                            </A>
-                        ))}
-                    </nav>
-                )}
-            </header>
             <main id="main-content">
                 <section class="home-hero" aria-labelledby="home-title">
                     <img
@@ -201,7 +117,7 @@ export default function HomePage() {
                         <span>Registered players</span>
                     </div>
                     <div>
-                        <strong>{totalTrackCount().toLocaleString()}</strong>
+                        <strong>{totalTrackCount()?.toLocaleString() ?? "—"}</strong>
                         <span>Available tracks</span>
                     </div>
                     <div>
@@ -236,11 +152,7 @@ export default function HomePage() {
                 <section class="home-explore home-wrap" aria-labelledby="home-explore-title">
                     <div class="home-section-heading">
                         <div>
-                            <p class="home-eyebrow">THE NEXT RACE IS YOURS</p>
-                            <h2 id="home-explore-title">
-                                A little competition.
-                                <br />A lot of good company.
-                            </h2>
+                            <h2 id="home-explore-title">Explore Features &amp; Tools</h2>
                         </div>
                     </div>
                     <div class="home-feature-list">

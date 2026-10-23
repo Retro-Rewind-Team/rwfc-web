@@ -1,7 +1,22 @@
 .rewind-home {
-    background: #080b10;
-    color: #f7f8fa;
+    --home-bg: #080b10;
+    --home-header-bg: #080b10;
+    --home-text: #f7f8fa;
     --home-muted: #99a3b3;
+    --home-nav: #a6b0c0;
+    --home-secondary: #d9dfeb;
+    --home-panel: #10161f;
+    --home-footer-bg: #0b0e14;
+    --home-field: #ffffff08;
+    --home-line: #ffffff20;
+    --home-line-soft: #ffffff15;
+    --home-line-strong: #ffffff26;
+    --home-hover: #ffffff0c;
+    --home-row-hover: #ffffff04;
+    --home-shadow: 0 20px 50px #0008;
+    --home-accent-gradient: linear-gradient(135deg, #c8f51c, #ffcf24);
+    background: var(--home-bg);
+    color: var(--home-text);
     font-family:
         Inter,
         -apple-system,
@@ -25,8 +40,8 @@
     margin-inline: auto;
 }
 .rewind-home .home-header {
-    border-bottom: 1px solid #ffffff26;
-    background: #080b10;
+    border-bottom: 1px solid var(--home-line-strong);
+    background: var(--home-bg);
     position: sticky;
     top: 0;
     z-index: 50;
@@ -65,7 +80,7 @@
     justify-content: flex-start;
 }
 .rewind-home .home-wordmark {
-    color: #fff;
+    color: var(--home-text);
     font-size: 25px;
     font-weight: 950;
     letter-spacing: -1.2px;
@@ -76,18 +91,88 @@
     margin-left: 5px;
 }
 .rewind-home .home-desktop-nav {
-    margin-left: auto;
     display: flex;
     gap: 28px;
+    align-items: center;
 }
-.rewind-home .home-desktop-nav a {
-    color: #a6b0c0;
+.rewind-home .home-desktop-nav > a,
+.rewind-home .home-explore-toggle {
+    color: var(--home-nav);
     font-size: 14px;
     font-weight: 550;
     transition: color 0.2s;
 }
-.rewind-home .home-desktop-nav a:hover {
-    color: #fff;
+.rewind-home .home-desktop-nav > a:hover,
+.rewind-home .home-explore-toggle:hover,
+.rewind-home .home-explore-toggle[aria-expanded="true"] {
+    color: var(--home-text);
+}
+.rewind-home .home-explore-menu {
+    position: relative;
+}
+.rewind-home .home-explore-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 0;
+    padding: 8px 0;
+    cursor: pointer;
+    font-family: inherit;
+}
+.rewind-home .home-explore-toggle svg {
+    transition: transform 0.2s;
+}
+.rewind-home .home-explore-toggle[aria-expanded="true"] svg {
+    transform: rotate(180deg);
+}
+.rewind-home .home-explore-panel {
+    position: absolute;
+    top: calc(100% + 20px);
+    right: 0;
+    width: 560px;
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr 1fr;
+    gap: 24px;
+    padding: 24px;
+    border: 1px solid var(--home-line);
+    border-radius: 14px;
+    background: var(--home-panel);
+    box-shadow: var(--home-shadow);
+    animation: home-menu-reveal 0.16s ease-out;
+    max-height: calc(100dvh - 110px);
+    overflow-y: auto;
+}
+.rewind-home .home-explore-appearance {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--home-line-soft);
+    margin-top: 10px;
+    padding-top: 10px;
+    font-size: 12px;
+    color: var(--home-muted);
+}
+.rewind-home .home-explore-group > p {
+    color: var(--home-muted);
+    font-size: 11px;
+    font-weight: 650;
+    margin: 0 0 10px;
+}
+.rewind-home .home-explore-group a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 9px 8px;
+    margin-inline: -8px;
+    border-radius: 6px;
+    color: var(--home-text);
+    font-size: 14px;
+    transition: background 0.2s;
+}
+.rewind-home .home-explore-group a:hover {
+    background: var(--home-hover);
 }
 .rewind-home .home-button {
     display: inline-flex;
@@ -116,7 +201,7 @@
     background: #ffe068;
 }
 .rewind-home .home-button-glass {
-    color: #fff;
+    color: var(--home-text);
     background: #ffffff12;
     border: 1px solid #ffffff4a;
     backdrop-filter: blur(12px);
@@ -126,21 +211,31 @@
 }
 .rewind-home .home-menu-toggle {
     display: none;
-    color: white;
+    color: var(--home-text);
     background: transparent;
     border: 0;
     padding: 10px;
 }
 .rewind-home .home-mobile-nav {
     display: grid;
+    background: var(--home-panel);
     padding: 0 24px 20px;
     gap: 6px;
+    max-height: calc(100dvh - 80px);
+    overflow-y: auto;
 }
 .rewind-home .home-mobile-nav a {
     display: flex;
     justify-content: space-between;
     padding: 12px;
-    color: #d9dfeb;
+    color: var(--home-secondary);
+}
+.rewind-home .home-mobile-explore {
+    display: grid;
+    gap: 20px;
+    padding: 20px 12px 0;
+    border-top: 1px solid var(--home-line);
+    margin-top: 10px;
 }
 .rewind-home .home-hero {
     position: relative;
@@ -210,7 +305,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1.35fr;
     padding: 35px 0 40px;
-    border-bottom: 1px solid #ffffff15;
+    border-bottom: 1px solid var(--home-line-soft);
     gap: 30px;
 }
 .rewind-home .home-stats > div {
@@ -229,7 +324,7 @@
     color: var(--home-muted);
 }
 .rewind-home .home-community-link {
-    border-left: 1px solid #ffffff20;
+    border-left: 1px solid var(--home-line);
     padding-left: 35px;
     display: flex;
     align-items: center;
@@ -238,7 +333,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    color: #fff;
+    color: var(--home-text);
     margin-top: 9px;
     font-size: 14px;
     font-weight: 650;
@@ -276,8 +371,8 @@
     margin: 0 0 13px;
 }
 .rewind-home .home-footer {
-    border-top: 1px solid #ffffff15;
-    background: #0b0e14;
+    border-top: 1px solid var(--home-line-soft);
+    background: var(--home-footer-bg);
 }
 .rewind-home .home-footer-inner {
     display: flex;
@@ -301,11 +396,11 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    color: #99a3b3;
+    color: var(--home-muted);
     font-size: 11px;
 }
 .rewind-home .home-footer nav a:hover {
-    color: #fff;
+    color: var(--home-text);
 }
 .rewind-home .home-skip {
     position: absolute;
@@ -328,7 +423,8 @@
     .rewind-home .home-desktop-nav {
         gap: 16px;
     }
-    .rewind-home .home-desktop-nav a {
+    .rewind-home .home-desktop-nav > a,
+    .rewind-home .home-explore-toggle {
         font-size: 12px;
     }
     .rewind-home .home-nav {
@@ -343,11 +439,8 @@
     }
 }
 @media (max-width: 760px) {
-    .rewind-home .home-wrap {
-        width: calc(100% - 40px);
-    }
-    .rewind-home .home-nav {
-        min-height: 64px;
+    .rewind-home .home-mobile-nav {
+        max-height: calc(100dvh - 120px);
     }
     .rewind-home .home-desktop-nav,
     .rewind-home .home-nav-download {
@@ -355,6 +448,19 @@
     }
     .rewind-home .home-menu-toggle {
         display: block;
+    }
+}
+@media (max-width: 760px) {
+    .rewind-home .home-wrap {
+        width: calc(100% - 40px);
+    }
+    .rewind-home .home-nav {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        min-height: 64px;
+        gap: 8px;
+        padding-block: 8px;
     }
     .rewind-home .home-wordmark {
         font-size: 23px;
@@ -394,7 +500,7 @@
     .rewind-home .home-community-link {
         grid-column: 1/-1;
         border-left: 0;
-        border-top: 1px solid #ffffff15;
+        border-top: 1px solid var(--home-line-soft);
         padding: 20px 0 0;
         margin-top: 10px;
     }
@@ -442,7 +548,7 @@
 .rewind-home .home-header-logo {
     width: 180px;
     height: 60px;
-    object-fit: contain;
+    object-fit: cover;
     display: block;
 }
 .rewind-home .home-discord-icon {
@@ -455,7 +561,7 @@
 }
 
 .rewind-home .home-about {
-    border-top: 1px solid #ffffff15;
+    border-top: 1px solid var(--home-line-soft);
     padding-block: 48px 60px;
 }
 .rewind-home .home-about h2 {
@@ -493,7 +599,7 @@
 }
 
 .rewind-home .home-feature-list {
-    border-top: 1px solid #ffffff20;
+    border-top: 1px solid var(--home-line);
 }
 .rewind-home .home-feature-row {
     display: grid;
@@ -501,12 +607,12 @@
     align-items: center;
     gap: 24px;
     padding: 28px 8px;
-    border-bottom: 1px solid #ffffff20;
-    color: #f7f8fa;
+    border-bottom: 1px solid var(--home-line);
+    color: var(--home-text);
     transition: background 0.2s;
 }
 .rewind-home .home-feature-row:hover {
-    background: #ffffff04;
+    background: var(--home-row-hover);
 }
 .rewind-home .home-feature-number {
     color: #687487;
@@ -588,7 +694,7 @@
 @media (max-width: 760px) {
     .rewind-home .home-header-logo {
         width: 155px;
-        height: 56px;
+        height: 44px;
     }
     .rewind-home .home-feature-row {
         grid-template-columns: 30px 1fr 24px;
@@ -610,7 +716,8 @@
     }
 }
 @media (prefers-reduced-motion: reduce) {
-    .rewind-home .home-mobile-nav {
+    .rewind-home .home-mobile-nav,
+    .rewind-home .home-explore-panel {
         animation: none;
     }
 }
@@ -623,5 +730,104 @@
     transform: translateY(-100%);
     pointer-events: none;
 }
-.rewind-home .home-header::before { opacity: 0; }
-.rewind-home .home-header-at-top::before { opacity: 1; }
+.rewind-home .home-header::before {
+    opacity: 0;
+}
+.rewind-home .home-header-at-top::before {
+    opacity: 1;
+}
+
+.site-header-shell {
+    background: var(--home-header-bg);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    transition: transform 240ms ease;
+}
+.site-header-shell .home-header {
+    background: var(--home-header-bg);
+    position: relative;
+    transform: none;
+}
+.site-header-shell.home-header-hidden {
+    transform: translateY(-100%);
+    pointer-events: none;
+}
+
+:root.light .rewind-home {
+    --home-bg: #ffffff;
+    --home-header-bg: #fafaf7;
+    --home-text: #172132;
+    --home-muted: #5d697a;
+    --home-nav: #4b586b;
+    --home-secondary: #334155;
+    --home-panel: #ffffff;
+    --home-footer-bg: #f7f9fb;
+    --home-field: #ffffff;
+    --home-line: #14203324;
+    --home-line-soft: #14203314;
+    --home-line-strong: #14203328;
+    --home-hover: #edf1f5;
+    --home-row-hover: #f7f9fb;
+    --home-shadow: 0 20px 50px #14203320;
+}
+.rewind-home .home-hero h1 {
+    color: #ffffff;
+}
+.rewind-home .home-hero h1 span {
+    background: var(--home-accent-gradient);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+}
+.rewind-home .home-hero .home-button-yellow,
+.rewind-home .home-hero .home-button-yellow:hover {
+    background: var(--home-accent-gradient);
+    color: #172000;
+}
+.rewind-home .home-hero .home-button-yellow:hover {
+    filter: brightness(1.05);
+}
+.rewind-home .home-button-glass {
+    color: #ffffff;
+}
+.rewind-home .home-explore-toggle,
+.rewind-home .home-menu-toggle {
+    color: var(--home-secondary);
+}
+.rewind-home .home-explore-toggle:hover,
+.rewind-home .home-explore-toggle[aria-expanded="true"] {
+    color: var(--home-text);
+}
+:root.light .rewind-home .home-nav-download {
+    background: #080b10;
+    color: #ffffff;
+}
+:root.light .rewind-home .home-nav-download:hover {
+    background: #202630;
+}
+.rewind-home .theme-cycle {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 34px;
+    padding: 7px 10px;
+    border: 1px solid var(--home-line-strong);
+    border-radius: 8px;
+    background: var(--home-field);
+    color: var(--home-text);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+.rewind-home .theme-cycle:hover {
+    background: var(--home-hover);
+}
+:root.light .rewind-home .home-feature-icon {
+    filter: brightness(0.65) saturate(1.3);
+}
+@media (prefers-reduced-motion: reduce) {
+    .site-header-shell {
+        transition: none;
+    }
+}
