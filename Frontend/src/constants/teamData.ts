@@ -431,24 +431,18 @@ const team = {
 
 export const teamData: Record<string, TeamMember[]> = {
     "Project Leader": [
-        team.ZPL.withRole("Creator & Project Leader").withDonation("https://ko-fi.com/zpl__"),
+        team.ZPL.withRole("Creator & Project Leader"),
     ],
     "Team Retro WFC": [
         team.Ppeb.withRole("Retro WFC & Bot Developer, Server Administrator")
-            .withDonation("https://ko-fi.com/ppebb")
             .withForge("https://github.com/ppebb"),
         team.Jacher.withRole("Server Administrator & Host, Channel Developer")
-            .withDonation("https://ko-fi.com/jacherr")
             .withForge("https://github.com/Jacherr"),
         team.Renverse.withRole("Server Co-Host")
-            .withForge("https://github.com/Renverse420")
-            .withDonation("https://streamlabs.com/renverse64/tip"),
+            .withForge("https://github.com/Renverse420"),
         team.Gab.withRole("Lead Retro WFC and Discord Administrator").withForge(
             "https://github.com/GABRlEL",
         ),
-        team.Lami.withRole("Retro WFC & Bot Developer")
-            .withDonation("https://ko-fi.com/lilousky")
-            .withForge("https://github.com/LamiLemmy"),
     ],
     "Team WheelWizard": [
         team.Patchzy.withRole("WheelWizard Creator & Developer").withForge(
@@ -511,6 +505,9 @@ export const teamData: Record<string, TeamMember[]> = {
         team.Rambo.withRole("Extended Teams & Other Features").withForge(
             "https://github.com/EpicUsername12",
         ),
+        team.Lami
+            .withRole("Retro WFC & Bot Developer")
+            .withForge("https://github.com/LamiLemmy"),
         team.Bodacious.withRole("Nunchuck Viewer"),
         team.Zeroara.withRole("Retro Rewind Contributor").withForge("https://github.com/ImZeraora"),
         team.Eppe.withRole("Language System Improvements"),
