@@ -1,5 +1,5 @@
 import { Heart, Users } from "lucide-solid";
-import { Show } from "solid-js";
+import { createSignal, Show } from "solid-js";
 import type { TeamMember } from "../../../types/team";
 
 interface TeamMemberCardProps {
@@ -9,8 +9,24 @@ interface TeamMemberCardProps {
 }
 
 export default function TeamMemberCard(props: TeamMemberCardProps) {
+    const [animate, setAnimate] = createSignal(false);
+    // Read at the moment of interaction, so a change to the OS setting applies without a reload.
+    const startAnimation = () => {
+        if (!props.member.animatedImage) return;
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        setAnimate(true);
+    };
+    const avatarSrc = () =>
+        animate() && props.member.animatedImage ? props.member.animatedImage : props.member.image;
+
     return (
-        <div class="h-full">
+        <div
+            class="h-full"
+            onMouseEnter={startAnimation}
+            onMouseLeave={() => setAnimate(false)}
+            onFocusIn={startAnimation}
+            onFocusOut={() => setAnimate(false)}
+        >
             <div class="bg-canvas rounded-lg p-6 border border-line hover:border-line-strong transition-colors h-full flex flex-col">
                 {/* Profile Picture */}
                 <div class="relative w-24 h-24 mx-auto mb-4">
@@ -24,9 +40,14 @@ export default function TeamMemberCard(props: TeamMemberCardProps) {
                             </div>
                         }
                     >
+                        {/* Avatars are 192px files (2x the 96px circle); most sit below the fold. */}
                         <img
-                            src={props.member.image!}
+                            src={avatarSrc()}
                             alt={props.member.name}
+                            width="96"
+                            height="96"
+                            loading="lazy"
+                            decoding="async"
                             class="w-full h-full rounded-full object-cover"
                         />
                     </Show>

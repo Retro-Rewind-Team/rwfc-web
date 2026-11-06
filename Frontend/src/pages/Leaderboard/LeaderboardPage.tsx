@@ -4,7 +4,7 @@ import { Meta, Title } from "@solidjs/meta";
 import { useLeaderboard } from "../../hooks";
 import { useLegacyLeaderboard } from "../../hooks/useLegacyLeaderboard";
 import { AlertBox, InlinePagination, LoadingSpinner } from "../../components/common";
-import { LeaderboardTable } from "../../components/ui";
+import LeaderboardTable from "../../components/ui/leaderboard/LeaderboardTable";
 import { VR_LEADERBOARD_META } from "../../constants/pageMeta";
 import PageHeader from "../../components/common/PageHeader";
 

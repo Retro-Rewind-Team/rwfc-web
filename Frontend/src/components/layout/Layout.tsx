@@ -21,6 +21,11 @@ export default function Layout(props: RouteSectionProps) {
                 tabindex="-1"
                 class="page-grid w-full flex-1 py-10 outline-none"
             >
+                {/*
+                  No <Suspense> here on purpose: pages other than Home are lazy chunks, which
+                  render fine without one, but solid-query suspends on reading `query.data` inside
+                  a boundary, which would replace every page's own loading state with a blank.
+                */}
                 {props.children}
             </main>
             <Footer />

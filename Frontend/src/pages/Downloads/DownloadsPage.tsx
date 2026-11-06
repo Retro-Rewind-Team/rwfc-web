@@ -9,7 +9,7 @@ import { OTHER_DISTRIBUTIONS, SITE_LINKS } from "../../constants/siteLinks";
 import { BrandIcon, ButtonLink, PageHeader, Section, TextLink } from "../../components/common";
 import { Download } from "lucide-solid";
 import VerifyMark from "../../components/common/VerifyMark";
-import { DistributionCard } from "../../components/ui";
+import DistributionCard from "../../components/ui/downloads/DistributionCard";
 import { PlatformGuide } from "../../components/ui/home";
 import { countTracks } from "../../utils/homeData";
 import { PLATFORM_GUIDES } from "../../constants/platformGuides";

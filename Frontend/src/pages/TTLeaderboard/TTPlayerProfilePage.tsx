@@ -4,7 +4,9 @@ import { Car, Flag, TriangleAlert, UserX } from "lucide-solid";
 import { Meta, Title } from "@solidjs/meta";
 import { useTTPlayer } from "../../hooks/useTTPlayer";
 import { CountryFlag, InlinePagination, LoadingSpinner } from "../../components/common";
-import { TTPlayerFilters, TTPlayerStatsCard, TTPlayerSubmissionsTable } from "../../components/ui";
+import TTPlayerFilters from "../../components/ui/timeTrial/TTPlayerFilters";
+import TTPlayerStatsCard from "../../components/ui/timeTrial/TTPlayerStatsCard";
+import TTPlayerSubmissionsTable from "../../components/ui/timeTrial/TTPlayerSubmissionsTable";
 import { DYNAMIC_META_DEFAULTS } from "../../constants/pageMeta";
 import PageHeader from "../../components/common/PageHeader";
 

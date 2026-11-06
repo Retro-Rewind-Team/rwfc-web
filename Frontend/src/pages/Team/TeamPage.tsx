@@ -4,7 +4,7 @@ import { teamData } from "../../constants/teamData";
 import { SECTION_COLORS } from "../../utils/constants";
 import { buttonClass } from "../../components/common/Button";
 import { useClipboard } from "../../hooks/useClipboard";
-import { TeamMemberCard } from "../../components/ui";
+import TeamMemberCard from "../../components/ui/team/TeamMemberCard";
 import type { TeamMember } from "../../types/team";
 import { Check, Heart } from "lucide-solid/icons/index";
 import { TEAM_META } from "../../constants/pageMeta";

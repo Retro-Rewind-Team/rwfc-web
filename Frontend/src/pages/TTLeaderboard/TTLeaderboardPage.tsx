@@ -4,7 +4,7 @@ import { Meta, Title } from "@solidjs/meta";
 import { Search, TriangleAlert, Trophy, Zap } from "lucide-solid";
 import { useTTTrackBrowser } from "../../hooks/useTTTrackBrowser";
 import { CountryFlag, LoadingSpinner } from "../../components/common";
-import { TTBrowserFilters } from "../../components/ui";
+import TTBrowserFilters from "../../components/ui/timeTrial/TTBrowserFilters";
 import {
     getCharacterName,
     getControllerName,

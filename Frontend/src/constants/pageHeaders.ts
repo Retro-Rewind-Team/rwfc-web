@@ -89,7 +89,7 @@ const SCREENSHOT = "16:9, at least 1600 x 900, PNG or WebP, captured in-game (Do
 export const PAGE_HEADERS: Record<PageKey, PageHeaderAsset> = {
     downloads: {
         art: {
-            src: "/RetroRewindLogo.png",
+            src: "/RetroRewindLogo.webp",
             width: 480,
             height: 270,
             alt: "Retro Rewind title art: the Mario Kart logo above the words Retro Rewind.",

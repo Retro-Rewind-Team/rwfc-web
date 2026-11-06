@@ -176,7 +176,7 @@ export default function Hero() {
                                   rows 93 to 184 of 270), so it is cropped to that strip.
                                 */}
                                 <img
-                                    src="/RetroRewindLogo.png"
+                                    src="/RetroRewindLogo.webp"
                                     width="480"
                                     height="270"
                                     alt="Retro Rewind title art: the Mario Kart logo above the words Retro Rewind in green and yellow lettering."

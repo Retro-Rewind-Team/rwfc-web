@@ -183,7 +183,7 @@ function HeaderArtSlot(props: { page: PageKey }) {
                     // The transparent logo floats with no box, cropped to its lettering (rows 93
                     // to 184 of 270); the title card shares the band's navy; screenshots are framed.
                     class={`block h-auto w-full ${
-                        art().src === "/RetroRewindLogo.png"
+                        art().src === "/RetroRewindLogo.webp"
                             ? "mx-auto aspect-[480/92] max-w-[36rem] object-cover"
                             : art().src === "/og-image.png"
                               ? "aspect-[10/3] object-cover sm:aspect-[1200/630]"

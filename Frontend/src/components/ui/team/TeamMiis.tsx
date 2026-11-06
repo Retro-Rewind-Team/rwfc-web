@@ -7,14 +7,14 @@ import { teamData } from "../../../constants/teamData";
  * If a member changes their picture to something that is not a Mii, swap them out here.
  */
 const HEADER_MIIS = [
-    "/profiles/ZPL.png",
-    "/profiles/jacher.png",
-    "/profiles/Patchzy.png",
-    "/profiles/Gab.png",
-    "/profiles/Mel.png",
-    "/profiles/WTBM.png",
-    "/profiles/matty.png",
-    "/profiles/Zeraora.png",
+    "/profiles/ZPL.webp",
+    "/profiles/jacher.webp",
+    "/profiles/Patchzy.webp",
+    "/profiles/Gab.webp",
+    "/profiles/Mel.webp",
+    "/profiles/WTBM.webp",
+    "/profiles/matty.webp",
+    "/profiles/Zeraora.webp",
 ];
 
 /*
@@ -37,8 +37,8 @@ export default function TeamMiis() {
                         <img
                             src={member.image}
                             alt=""
-                            width="270"
-                            height="270"
+                            width="192"
+                            height="192"
                             loading="eager"
                             decoding="async"
                             class="h-full w-full object-cover"

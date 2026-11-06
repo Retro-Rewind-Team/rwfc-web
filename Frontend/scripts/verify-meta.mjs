@@ -48,6 +48,14 @@ function checkFile(routePath, expectedTitle, expectedDescription, expectedCanoni
             `"${routePath}": expected canonical "${expectedCanonical}"`,
         );
     }
+    // Every page but Home is a lazy chunk. If App.tsx changes shape so generate-meta.mjs can no
+    // longer match a route, direct visits silently go back to a download waterfall; fail instead.
+    if (routePath !== "/") {
+        assert.ok(html.includes('rel="modulepreload"'), `"${routePath}": expected a modulepreload hint for its page`);
+    }
+    for (const [, href] of html.matchAll(/rel="modulepreload" crossorigin href="([^"]+)"/g)) {
+        assert.ok(existsSync(path.join(distDir, href)), `"${routePath}": preloaded ${href} does not exist`);
+    }
 }
 
 for (const route of routes) {

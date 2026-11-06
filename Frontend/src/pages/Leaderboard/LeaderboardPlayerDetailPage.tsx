@@ -6,17 +6,15 @@ import { usePlayer } from "../../hooks";
 import { API_BASE_URL } from "../../services/api/client";
 import { DYNAMIC_META_DEFAULTS } from "../../constants/pageMeta";
 import { formatLastSeen } from "../../utils";
-import {
-    MiiComponent,
-    PlayerAnalyticsCard,
-    PlayerBadges,
-    PlayerRaceStatsCard,
-    VehiclePreferenceBadge,
-    VRHistoryChartComponent,
-    VRStatsCard,
-    VRTierInfo,
-    VRTierNumberPlate,
-} from "../../components/ui";
+import MiiComponent from "../../components/ui/player/MiiComponent";
+import PlayerAnalyticsCard from "../../components/ui/player/PlayerAnalyticsCard";
+import PlayerBadges from "../../components/ui/player/PlayerBadges";
+import PlayerRaceStatsCard from "../../components/ui/player/PlayerRaceStatsCard";
+import VehiclePreferenceBadge from "../../components/ui/player/VehiclePreferenceBadge";
+import VRHistoryChartComponent from "../../components/ui/vrTier/VRHistoryChartComponent";
+import VRStatsCard from "../../components/ui/player/VRStatsCard";
+import VRTierInfo from "../../components/ui/vrTier/VRTierInfo";
+import VRTierNumberPlate from "../../components/ui/vrTier/VRTierNumberplate";
 import { LoadingSpinner, Tooltip } from "../../components/common";
 import PageHeader from "../../components/common/PageHeader";
 

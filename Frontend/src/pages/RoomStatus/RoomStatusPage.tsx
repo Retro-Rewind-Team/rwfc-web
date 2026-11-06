@@ -2,7 +2,8 @@ import { createEffect, createMemo, createSignal, For, onCleanup, Show } from "so
 import { useRoomStatus } from "../../hooks/useRoom";
 import { useMiiLoader } from "../../hooks/useMiiLoader";
 import { roomStatusApi } from "../../services/api/room";
-import { RoomCard, ServerActivityChart } from "../../components/ui";
+import RoomCard from "../../components/ui/room/RoomCard";
+import ServerActivityChart from "../../components/ui/room/ServerActivityChart";
 import { Tooltip } from "../../components/common";
 import { buttonClass } from "../../components/common/Button";
 import {

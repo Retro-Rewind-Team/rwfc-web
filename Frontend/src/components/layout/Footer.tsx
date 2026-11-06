@@ -49,7 +49,7 @@ export default function Footer() {
                     <div class="sm:col-span-3 lg:col-span-6">
                         <A href="/" class="inline-flex items-center gap-2.5 rounded-md">
                             <img
-                                src="/Logo.png"
+                                src="/logo-56.webp"
                                 alt=""
                                 width="24"
                                 height="24"
