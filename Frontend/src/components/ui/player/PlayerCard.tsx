@@ -60,8 +60,7 @@ const NAT_CONFIG: Record<NatStatus, { icon: LucideIcon; title: string; classes: 
     unknown: {
         icon: CircleQuestionMark,
         title: "NAT: Unknown - no connection data available.",
-        classes:
-            "bg-gray-100 dark:bg-gray-700/40 border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400",
+        classes: "bg-surface/40 border-gray-200 dark:border-gray-600 text-fg-subtle",
     },
 };
 
@@ -75,10 +74,10 @@ export default function PlayerCard(props: PlayerCardProps) {
     return (
         <A
             href={`/player/${props.player.friendCode}`}
-            class={`block rounded-xl p-3.5 border-2 transition-colors hover:shadow-md ${
+            class={`block rounded-lg p-3.5 border transition-colors ${
                 isHighlighted()
                     ? "bg-amber-50 dark:bg-amber-950/30 border-amber-400 dark:border-amber-500 ring-2 ring-amber-300 dark:ring-amber-600"
-                    : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600"
+                    : "bg-canvas border-line hover:border-blue-400 dark:hover:border-blue-600"
             }`}
         >
             <div class="flex items-center gap-3">
@@ -87,8 +86,8 @@ export default function PlayerCard(props: PlayerCardProps) {
                     <Show
                         when={props.player.mii}
                         fallback={
-                            <div class="w-14 h-14 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600">
-                                <span class="text-sm font-bold text-gray-500 dark:text-gray-400">
+                            <div class="w-14 h-14 bg-surface rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-600">
+                                <span class="text-sm font-semibold text-fg-subtle">
                                     {props.player.name.substring(0, 2).toUpperCase()}
                                 </span>
                             </div>
@@ -105,10 +104,10 @@ export default function PlayerCard(props: PlayerCardProps) {
 
                 {/* Player Info */}
                 <div class="flex-1 min-w-0">
-                    <div class="font-bold text-gray-900 dark:text-white truncate text-sm">
+                    <div class="font-semibold text-fg truncate text-sm">
                         {props.player.mii?.name || props.player.name}
                     </div>
-                    <code class="text-xs font-mono text-gray-500 dark:text-gray-400 block mb-1">
+                    <code class="text-xs font-mono text-fg-subtle block mb-1">
                         {props.player.friendCode}
                     </code>
                     <div class="flex items-center flex-wrap gap-1.5">

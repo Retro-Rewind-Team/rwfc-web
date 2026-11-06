@@ -35,16 +35,16 @@ export default function TTPlayerFilters(props: TTPlayerFiltersProps) {
         props.onGlitchFilterChange(v === "all" ? undefined : v === "glitch");
 
     return (
-        <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-6">
+        <div class="bg-canvas rounded-lg border border-line p-6">
             <div class="flex items-center gap-2 mb-4">
-                <SlidersHorizontal size={20} class="text-gray-400 dark:text-gray-500" />
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Filter Submissions</h2>
+                <SlidersHorizontal size={20} class="text-fg-subtle" />
+                <h2 class="text-xl font-semibold text-fg">Filter Submissions</h2>
             </div>
 
             <div class="space-y-4">
                 {/* Engine Class */}
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    <label class="block text-sm font-semibold text-fg-muted mb-2">
                         Engine Class
                     </label>
                     <ToggleGroup<CCOption>
@@ -53,15 +53,15 @@ export default function TTPlayerFilters(props: TTPlayerFiltersProps) {
                         size="sm"
                         options={[
                             { value: "all", label: "All" },
-                            { value: "150", label: "150cc", activeClass: "bg-blue-600" },
-                            { value: "200", label: "200cc", activeClass: "bg-blue-600" },
+                            { value: "150", label: "150cc", activeClass: "bg-accent" },
+                            { value: "200", label: "200cc", activeClass: "bg-accent" },
                         ]}
                     />
                 </div>
 
                 {/* Glitch/Shortcut */}
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    <label class="block text-sm font-semibold text-fg-muted mb-2">
                         Glitch/Shortcut
                     </label>
                     <ToggleGroup<GlitchOption>
@@ -73,16 +73,16 @@ export default function TTPlayerFilters(props: TTPlayerFiltersProps) {
                             {
                                 value: "non-glitch",
                                 label: "Non-Glitch",
-                                activeClass: "bg-blue-600",
+                                activeClass: "bg-accent",
                             },
-                            { value: "glitch", label: "Glitch", activeClass: "bg-blue-600" },
+                            { value: "glitch", label: "Glitch", activeClass: "bg-accent" },
                         ]}
                     />
                 </div>
 
                 {/* Vehicle Type */}
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    <label class="block text-sm font-semibold text-fg-muted mb-2">
                         Vehicle Type
                     </label>
                     <ToggleGroup<VehicleFilter>
@@ -99,13 +99,11 @@ export default function TTPlayerFilters(props: TTPlayerFiltersProps) {
 
                 {/* Shroomless */}
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Shroomless
-                    </label>
+                    <label class="block text-sm font-semibold text-fg-muted mb-2">Shroomless</label>
                     <ToggleGroup<ShroomlessFilter>
                         value={props.shroomlessFilter}
                         onChange={props.onShroomlessFilterChange}
-                        activeClass="bg-blue-600"
+                        activeClass="bg-accent"
                         size="sm"
                         options={[
                             { value: "all", label: "All" },
@@ -117,7 +115,7 @@ export default function TTPlayerFilters(props: TTPlayerFiltersProps) {
 
                 {/* Track Search */}
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    <label class="block text-sm font-semibold text-fg-muted mb-2">
                         Search Tracks
                     </label>
                     <div class="relative">
@@ -129,7 +127,7 @@ export default function TTPlayerFilters(props: TTPlayerFiltersProps) {
                             placeholder="Search by track name..."
                             value={props.searchQuery}
                             onInput={(e) => props.onSearchInput(e.target.value)}
-                            class="w-full pl-10 pr-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400"
+                            class="w-full pl-10 pr-4 py-2 border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-fg placeholder-gray-400"
                         />
                     </div>
                 </div>
@@ -138,7 +136,7 @@ export default function TTPlayerFilters(props: TTPlayerFiltersProps) {
                 <div>
                     <label
                         for="player-page-size"
-                        class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+                        class="block text-sm font-semibold text-fg-muted mb-2"
                     >
                         Results Per Page
                     </label>
@@ -146,7 +144,7 @@ export default function TTPlayerFilters(props: TTPlayerFiltersProps) {
                         id="player-page-size"
                         value={props.pageSize}
                         onChange={(e) => props.onPageSizeChange(parseInt(e.target.value))}
-                        class="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        class="w-full px-3 py-2 border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-fg"
                     >
                         <option value="10">10 submissions</option>
                         <option value="25">25 submissions</option>

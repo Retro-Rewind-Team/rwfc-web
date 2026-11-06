@@ -10,6 +10,7 @@ import { timeTrialApi } from "../../services/api";
 import PositionBadge from "../../components/ui/player/PositionBadge";
 import { Meta, Title } from "@solidjs/meta";
 import { RACES_META } from "../../constants/pageMeta";
+import PageHeader from "../../components/common/PageHeader";
 
 // The backend recomputes finishPos from finish times on ingest and uses 0 for a player who did
 // not finish. Reading that is exact; parsing it back out of the formatted time is not, because a
@@ -39,25 +40,25 @@ function RaceCard(props: { race: RaceResult }) {
         });
 
     return (
-        <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div class="bg-canvas rounded-lg border border-line overflow-hidden">
             {/* Header zone */}
-            <div class="bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3">
+            <div class="bg-surface border-b border-line px-4 py-3">
                 <div class="flex items-center justify-between gap-2 flex-wrap">
-                    <span class="font-bold text-gray-900 dark:text-white truncate text-base">
+                    <span class="font-semibold text-fg truncate text-base">
                         {props.race.trackName}
                     </span>
-                    <div class="flex items-center gap-2 flex-shrink-0 flex-wrap">
-                        <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 dark:bg-blue-500/25 dark:text-blue-200">
+                    <div class="flex min-w-0 flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-xs font-medium border-line text-fg-muted">
                             {props.race.engineClassId === 1 ? "200cc" : "150cc"}
                         </span>
                         <Show when={props.race.gameMode}>
-                            <span class="text-xs font-medium px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                            <span class="inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-xs font-medium border-line text-fg-muted">
                                 {props.race.gameMode}
                             </span>
                         </Show>
                         <Show when={props.race.isPublic !== null}>
                             <span
-                                class={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-md ${props.race.isPublic ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300" : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"}`}
+                                class={`inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-xs font-medium ${props.race.isPublic ? "border-transparent bg-accent-soft text-accent-text" : "border-line text-fg-muted"}`}
                             >
                                 <Show when={props.race.isPublic} fallback={<Lock size={10} />}>
                                     <Globe size={10} />
@@ -65,19 +66,19 @@ function RaceCard(props: { race: RaceResult }) {
                                 {props.race.isPublic ? "Public" : "Private"}
                             </span>
                         </Show>
-                        <span class="text-xs text-gray-500 dark:text-white/60">
+                        <span class="text-xs text-fg-subtle">
                             {props.race.participants.length} players
                         </span>
-                        <span class="text-xs text-gray-500 dark:text-white/60">{date()}</span>
+                        <span class="text-xs text-fg-subtle">{date()}</span>
                     </div>
                 </div>
             </div>
 
             {/* Body zone */}
-            <div class="px-4 py-4 overflow-x-auto overscroll-contain">
+            <div class="relative px-4 py-4 overflow-x-auto overscroll-contain">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="text-left text-xs text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-700">
+                        <tr class="text-left text-xs text-fg-subtle border-b border-line">
                             <th class="pb-1.5 font-medium w-8">Pos</th>
                             <th class="pb-1.5 font-medium">Player</th>
                             <th class="pb-1.5 font-medium hidden sm:table-cell">Character</th>
@@ -100,23 +101,23 @@ function RaceCard(props: { race: RaceResult }) {
                                             <Show
                                                 when={entry.friendCode}
                                                 fallback={
-                                                    <span class="text-gray-400 dark:text-gray-500 italic">
+                                                    <span class="text-fg-subtle italic">
                                                         {entry.name ?? "Unknown Player"}
                                                     </span>
                                                 }
                                             >
                                                 <A
                                                     href={`/player/${entry.friendCode}`}
-                                                    class="text-gray-800 dark:text-gray-200 hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
+                                                    class="text-fg hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
                                                 >
                                                     {entry.name}
                                                 </A>
                                             </Show>
                                         </td>
-                                        <td class="py-2.5 pr-3 text-gray-600 dark:text-gray-400 hidden sm:table-cell">
+                                        <td class="py-2.5 pr-3 text-fg-muted hidden sm:table-cell">
                                             {entry.characterName}
                                         </td>
-                                        <td class="py-2.5 pr-3 text-gray-600 dark:text-gray-400 hidden md:table-cell">
+                                        <td class="py-2.5 pr-3 text-fg-muted hidden md:table-cell">
                                             {entry.vehicleName}
                                         </td>
                                         <td class="py-2.5 text-right font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
@@ -160,195 +161,198 @@ export default function RacesPage() {
     }));
 
     return (
-        <div class="space-y-8">
-            <Title>{RACES_META.title}</Title>
-            <Meta name="description" content={RACES_META.description} />
-            <section class="py-12">
-                <div class="max-w-5xl mx-auto text-center">
-                    <h1 class="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4">
-                        Race Browser
-                    </h1>
-                    <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                        Browse all recorded races across Retro Rewind
-                    </p>
-                </div>
-            </section>
+        <>
+            <PageHeader
+                page="races"
+                title="Races"
+                description="Recorded online races from Retro WFC, with finishing positions, players and setups. Filter by track, engine class, room or player."
+            />
+            <div class="space-y-8">
+                <Title>{RACES_META.title}</Title>
+                <Meta name="description" content={RACES_META.description} />
 
-            {/* Filters -- hidden when deep-linked to a specific race */}
-            <Show when={!isDeepLinked()}>
-                <div class="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 p-4">
-                    <div class="flex flex-col gap-4">
-                        {/* Row 1: text search */}
-                        <div class="flex flex-col sm:flex-row gap-3">
-                            <div class="flex flex-col gap-1 flex-1">
-                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                    Player (friend code)
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="0000-0000-0000"
-                                    value={fcQuery()}
-                                    onInput={(e) => handleFcInput(e.currentTarget.value)}
-                                    class="text-sm px-3 py-2 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors w-full"
-                                    aria-label="Filter by player friend code"
-                                />
+                {/* Filters -- hidden when deep-linked to a specific race */}
+                <Show when={!isDeepLinked()}>
+                    <div class="bg-canvas rounded-lg border border-line p-4">
+                        <div class="flex flex-col gap-4">
+                            {/* Row 1: text search */}
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <div class="flex flex-col gap-1 flex-1">
+                                    <label class="text-xs font-medium text-fg-subtle">
+                                        Player (friend code)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="0000-0000-0000"
+                                        value={fcQuery()}
+                                        onInput={(e) => handleFcInput(e.currentTarget.value)}
+                                        class="text-sm px-3 py-2 border border-line rounded-lg bg-canvas text-fg placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors w-full"
+                                        aria-label="Filter by player friend code"
+                                    />
+                                </div>
+                                <div class="flex flex-col gap-1 flex-1">
+                                    <label class="text-xs font-medium text-fg-subtle">Track</label>
+                                    <select
+                                        value={courseId()?.toString() ?? ""}
+                                        onChange={(e) =>
+                                            setCourseId(
+                                                e.currentTarget.value
+                                                    ? parseInt(e.currentTarget.value)
+                                                    : undefined,
+                                            )
+                                        }
+                                        class="h-10 w-full min-w-0 rounded-md border border-line-strong bg-canvas px-3 text-sm text-fg transition-colors hover:border-fg-subtle"
+                                        aria-label="Filter by track"
+                                    >
+                                        <option value="">All tracks</option>
+                                        <For each={tracksQuery.data ?? []}>
+                                            {(track) => (
+                                                <option value={track.courseId.toString()}>
+                                                    {track.name}
+                                                </option>
+                                            )}
+                                        </For>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="flex flex-col gap-1 flex-1">
-                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                    Track
-                                </label>
-                                <select
-                                    value={courseId()?.toString() ?? ""}
-                                    onChange={(e) =>
-                                        setCourseId(
-                                            e.currentTarget.value
-                                                ? parseInt(e.currentTarget.value)
-                                                : undefined,
-                                        )
-                                    }
-                                    class="text-sm px-3 py-2 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors w-full"
-                                    aria-label="Filter by track"
-                                >
-                                    <option value="">All tracks</option>
-                                    <For each={tracksQuery.data ?? []}>
-                                        {(track) => (
-                                            <option value={track.courseId.toString()}>
-                                                {track.name}
-                                            </option>
-                                        )}
-                                    </For>
-                                </select>
-                            </div>
-                        </div>
 
-                        {/* Row 2: option filters */}
-                        <div class="flex flex-col sm:flex-row sm:items-end gap-3">
-                            <div class="flex flex-col gap-1">
-                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                    CC
-                                </label>
-                                <div class="flex gap-1">
-                                    {(
-                                        [
-                                            {
-                                                label: "All",
-                                                value: undefined as number | undefined,
-                                            },
-                                            { label: "150cc", value: 2 },
-                                            { label: "200cc", value: 1 },
-                                        ] as const
-                                    ).map((opt) => (
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setEngineClassId(opt.value);
+                            {/* Row 2: option filters */}
+                            <div class="flex flex-col sm:flex-row sm:items-end gap-3">
+                                <div class="flex flex-col gap-1">
+                                    <label class="text-xs font-medium text-fg-subtle">CC</label>
+                                    <div class="flex gap-1">
+                                        {(
+                                            [
+                                                {
+                                                    label: "All",
+                                                    value: undefined as number | undefined,
+                                                },
+                                                { label: "150cc", value: 2 },
+                                                { label: "200cc", value: 1 },
+                                            ] as const
+                                        ).map((opt) => (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setEngineClassId(opt.value);
+                                                    setCurrentPage(1);
+                                                }}
+                                                class={`px-3 py-2 text-xs rounded-lg border font-medium transition-colors ${
+                                                    engineClassId() === opt.value
+                                                        ? "border-accent bg-accent-soft text-accent-text"
+                                                        : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-fg-muted hover:border-gray-400 dark:hover:border-gray-500"
+                                                }`}
+                                            >
+                                                {opt.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3 sm:flex">
+                                    <div class="flex min-w-0 flex-col gap-1">
+                                        <label
+                                            for="races-from"
+                                            class="text-xs font-medium text-fg-subtle"
+                                        >
+                                            From
+                                        </label>
+                                        <input
+                                            id="races-from"
+                                            type="date"
+                                            value={from() ?? ""}
+                                            onInput={(e) => {
+                                                setFrom(e.currentTarget.value || undefined);
                                                 setCurrentPage(1);
                                             }}
-                                            class={`px-3 py-2 text-xs rounded-lg border-2 font-medium transition-colors ${
-                                                engineClassId() === opt.value
-                                                    ? "bg-gray-900 border-gray-900 text-white dark:bg-white dark:border-white dark:text-gray-900"
-                                                    : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500"
-                                            }`}
+                                            class="h-10 w-full min-w-0 rounded-md border border-line-strong bg-canvas px-3 text-sm text-fg transition-colors hover:border-fg-subtle"
+                                        />
+                                    </div>
+                                    <div class="flex min-w-0 flex-col gap-1">
+                                        <label
+                                            for="races-to"
+                                            class="text-xs font-medium text-fg-subtle"
                                         >
-                                            {opt.label}
-                                        </button>
-                                    ))}
+                                            To
+                                        </label>
+                                        <input
+                                            id="races-to"
+                                            type="date"
+                                            value={to() ?? ""}
+                                            onInput={(e) => {
+                                                setTo(e.currentTarget.value || undefined);
+                                                setCurrentPage(1);
+                                            }}
+                                            class="h-10 w-full min-w-0 rounded-md border border-line-strong bg-canvas px-3 text-sm text-fg transition-colors hover:border-fg-subtle"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="flex gap-3">
-                                <div class="flex flex-col gap-1">
-                                    <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                        From
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={from() ?? ""}
-                                        onInput={(e) => {
-                                            setFrom(e.currentTarget.value || undefined);
-                                            setCurrentPage(1);
-                                        }}
-                                        class="text-sm px-3 py-2 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
-                                    />
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                        To
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={to() ?? ""}
-                                        onInput={(e) => {
-                                            setTo(e.currentTarget.value || undefined);
-                                            setCurrentPage(1);
-                                        }}
-                                        class="text-sm px-3 py-2 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
-                                    />
-                                </div>
+                                <Show when={hasFilters()}>
+                                    <button
+                                        type="button"
+                                        onClick={clearFilters}
+                                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-medium bg-white dark:bg-gray-700 text-fg-muted hover:border-gray-400 dark:hover:border-gray-500 transition-colors self-end"
+                                    >
+                                        <X size={14} />
+                                        Clear
+                                    </button>
+                                </Show>
                             </div>
-
-                            <Show when={hasFilters()}>
-                                <button
-                                    type="button"
-                                    onClick={clearFilters}
-                                    class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border-2 border-gray-200 dark:border-gray-600 text-sm font-medium bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500 transition-colors self-end"
-                                >
-                                    <X size={14} />
-                                    Clear
-                                </button>
-                            </Show>
                         </div>
                     </div>
-                </div>
-            </Show>
+                </Show>
 
-            {/* Loading */}
-            <Show when={racesQuery.isLoading}>
-                <div class="flex items-center justify-center py-24 gap-4">
-                    <LoadingSpinner />
-                    <p class="text-gray-600 dark:text-gray-300">Loading races...</p>
-                </div>
-            </Show>
-
-            {/* Error */}
-            <Show when={racesQuery.isError}>
-                <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-red-200 dark:border-red-800 p-8 text-center space-y-4">
-                    <p class="text-red-600 dark:text-red-400 font-medium">Failed to load races.</p>
-                    <button
-                        type="button"
-                        onClick={() => racesQuery.refetch()}
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
-                    >
-                        Try Again
-                    </button>
-                </div>
-            </Show>
-
-            {/* Results */}
-            <Show when={racesQuery.data}>
-                {(data) => (
-                    <div class="space-y-6">
-                        <Show when={data().items.length === 0}>
-                            <p class="text-center text-gray-400 dark:text-gray-500 py-16">
-                                No races found matching these filters.
-                            </p>
-                        </Show>
-
-                        <For each={data().items}>{(race) => <RaceCard race={race} />}</For>
-
-                        <Show when={data().totalPages > 1}>
-                            <InlinePagination
-                                currentPage={currentPage()}
-                                totalPages={data().totalPages}
-                                pageSize={RACES_PAGE_SIZE}
-                                totalItems={data().totalCount}
-                                onPageChange={setCurrentPage}
-                                itemLabel="races"
-                            />
-                        </Show>
+                {/* Loading */}
+                <Show when={racesQuery.isLoading}>
+                    <div class="flex items-center justify-center py-24 gap-4">
+                        <LoadingSpinner />
+                        <p class="text-fg-muted">Loading races...</p>
                     </div>
-                )}
-            </Show>
-        </div>
+                </Show>
+
+                {/* Error */}
+                <Show when={racesQuery.isError}>
+                    <div class="bg-canvas rounded-lg border border-red-200 dark:border-red-800 p-8 text-center space-y-4">
+                        <p class="text-red-600 dark:text-red-400 font-medium">
+                            Failed to load races.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => racesQuery.refetch()}
+                            class="bg-accent hover:bg-accent-hover text-accent-fg font-semibold py-2 px-6 rounded-lg transition-colors"
+                        >
+                            Try Again
+                        </button>
+                    </div>
+                </Show>
+
+                {/* Results */}
+                <Show when={racesQuery.data}>
+                    {(data) => (
+                        <div class="space-y-6">
+                            <Show when={data().items.length === 0}>
+                                <p class="text-center text-fg-subtle py-16">
+                                    No races found matching these filters.
+                                </p>
+                            </Show>
+
+                            <For each={data().items}>{(race) => <RaceCard race={race} />}</For>
+
+                            <Show when={data().totalPages > 1}>
+                                <InlinePagination
+                                    currentPage={currentPage()}
+                                    totalPages={data().totalPages}
+                                    pageSize={RACES_PAGE_SIZE}
+                                    totalItems={data().totalCount}
+                                    onPageChange={setCurrentPage}
+                                    itemLabel="races"
+                                />
+                            </Show>
+                        </div>
+                    )}
+                </Show>
+            </div>
+        </>
     );
 }

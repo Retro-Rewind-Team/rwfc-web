@@ -451,7 +451,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                         <p class="text-gray-600 dark:text-gray-400 font-medium mb-2">
                             No VR history available
                         </p>
-                        <p class="text-gray-500 dark:text-gray-500 text-sm">
+                        <p class="text-fg-subtle text-sm">
                             No VR changes found for the selected period
                         </p>
                     </div>
@@ -524,15 +524,27 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                         <defs>
                             {/* Gradient for line */}
                             <linearGradient id={lineGradientId} x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stop-color="#3B82F6" />
-                                <stop offset="50%" stop-color="#8B5CF6" />
-                                <stop offset="100%" stop-color="#EC4899" />
+                                <stop offset="0%" style={{ "stop-color": "var(--accent)" }} />
+                                <stop offset="50%" style={{ "stop-color": "var(--accent)" }} />
+                                <stop offset="100%" style={{ "stop-color": "var(--accent)" }} />
                             </linearGradient>
 
                             {/* Gradient for area */}
                             <linearGradient id={areaGradientId} x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.3" />
-                                <stop offset="100%" stop-color="#EC4899" stop-opacity="0.05" />
+                                <stop
+                                    offset="0%"
+                                    style={{
+                                        "stop-color": "var(--accent)",
+                                        "stop-opacity": "0.14",
+                                    }}
+                                />
+                                <stop
+                                    offset="100%"
+                                    style={{
+                                        "stop-color": "var(--accent)",
+                                        "stop-opacity": "0.14",
+                                    }}
+                                />
                             </linearGradient>
                         </defs>
 
@@ -579,7 +591,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                             <path
                                 d={generatePath()}
                                 fill="none"
-                                stroke="#3B82F6"
+                                style={{ stroke: "var(--accent)" }}
                                 stroke-width="4"
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
@@ -767,10 +779,8 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                                                 width={tooltipWidth}
                                                 height={tooltipHeight}
                                                 rx="6"
-                                                fill="white"
-                                                stroke="#E5E7EB"
-                                                stroke-width="2"
-                                                class="dark:fill-gray-800 dark:stroke-gray-600"
+                                                stroke-width="1"
+                                                class="fill-canvas stroke-line"
                                                 style="pointer-events: none"
                                             />
                                             <text

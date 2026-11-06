@@ -21,6 +21,8 @@ import type { RatingFile } from "../../types/tools";
 import { AlertBox } from "../../components/common";
 import { Meta, Title } from "@solidjs/meta";
 import { RANK_HELPER_META } from "../../constants/pageMeta";
+import PageHeader from "../../components/common/PageHeader";
+import RankGlyphs from "../../components/ui/tools/RankGlyphs";
 
 /** Badge art cut from Retro Rewind's own font: the glyphs the game draws for ranks 1-9. */
 const rankIcon = (rank: number) => `/ranks/rank-${rank}.png`;
@@ -52,12 +54,10 @@ function ScoreGauge(props: { score: number; rank: number }) {
     return (
         <div class="space-y-2">
             <div class="flex justify-between items-baseline">
-                <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-medium">
-                    Rank Score
-                </span>
-                <span class="text-2xl font-bold tabular-nums text-gray-900 dark:text-white">
+                <span class="text-xs text-fg-subtle font-medium">Rank Score</span>
+                <span class="text-2xl font-semibold tabular-nums text-fg">
                     {props.score.toFixed(1)}
-                    <span class="text-sm font-normal text-gray-500 dark:text-gray-400">/100</span>
+                    <span class="text-sm font-normal text-fg-subtle">/100</span>
                 </span>
             </div>
             <div class="relative h-3 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
@@ -68,17 +68,10 @@ function ScoreGauge(props: { score: number; rank: number }) {
                     />
                 ))}
                 <div
-                    class="h-full rounded-full transition-all duration-500"
+                    class="h-full rounded-full transition-colors duration-500"
                     style={{
                         width: `${pct()}%`,
-                        background:
-                            props.rank >= 9
-                                ? "linear-gradient(90deg, #3b82f6, #a855f7, #eab308)"
-                                : props.rank >= 7
-                                  ? "linear-gradient(90deg, #3b82f6, #a855f7)"
-                                  : props.rank >= 4
-                                    ? "linear-gradient(90deg, #3b82f6, #6366f1)"
-                                    : "#3b82f6",
+                        background: "var(--accent)",
                     }}
                 />
             </div>
@@ -103,7 +96,7 @@ function RankBadge(props: { rank: number; large?: boolean }) {
         <Show
             when={props.rank >= 1 && props.rank <= 9}
             fallback={
-                <span class="inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-600 px-2.5 py-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <span class="inline-flex items-center rounded-lg border border-line-strong px-2.5 py-1 text-sm font-medium text-fg-subtle">
                     {label()}
                 </span>
             }
@@ -115,7 +108,7 @@ function RankBadge(props: { rank: number; large?: boolean }) {
                     class={props.large ? "h-16 w-auto" : "h-7 w-auto"}
                 />
                 <span
-                    class={`font-semibold text-gray-700 dark:text-gray-300 ${props.large ? "text-base" : "text-sm"}`}
+                    class={`font-semibold text-fg-muted ${props.large ? "text-base" : "text-sm"}`}
                 >
                     {label()}
                 </span>
@@ -128,15 +121,15 @@ function StatRow(props: { label: string; value: string; norm: number; max: strin
     return (
         <div class="space-y-1">
             <div class="flex justify-between text-xs">
-                <span class="text-gray-500 dark:text-gray-400">{props.label}</span>
-                <span class="font-mono text-gray-700 dark:text-gray-300">
+                <span class="text-fg-subtle">{props.label}</span>
+                <span class="font-mono text-fg-muted">
                     {props.value}
-                    <span class="text-gray-400 dark:text-gray-600"> / {props.max}</span>
+                    <span class="text-fg-subtle"> / {props.max}</span>
                 </span>
             </div>
             <div class="h-1.5 rounded-full bg-gray-200 dark:bg-gray-700">
                 <div
-                    class="h-full rounded-full bg-blue-500 transition-all duration-300"
+                    class="h-full rounded-full bg-accent transition-colors duration-300"
                     style={{ width: `${Math.min(100, props.norm)}%` }}
                 />
             </div>
@@ -159,10 +152,8 @@ function LicensePanel(props: { stats: LicenseStats; vrNote: string | null }) {
             {/* Top row: stats + rank */}
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {/* Stats */}
-                <div class="sm:col-span-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
-                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-                        License Stats
-                    </p>
+                <div class="sm:col-span-2 bg-canvas rounded-lg border border-line p-4 space-y-3">
+                    <p class="text-xs font-semibold text-fg-subtle mb-4">License Stats</p>
                     <StatRow
                         label="VR (display)"
                         value={vrDisplay(props.stats.vrPoints)}
@@ -199,7 +190,7 @@ function LicensePanel(props: { stats: LicenseStats; vrNote: string | null }) {
                         norm={score().dist1stNorm}
                         max={MAX_DIST1ST.toLocaleString()}
                     />
-                    <div class="pt-2 border-t border-gray-100 dark:border-gray-700 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                    <div class="pt-2 border-t border-line flex items-center gap-3 text-xs text-fg-subtle">
                         <span>
                             {totalVs().toLocaleString()} races total (
                             {props.stats.vsWins.toLocaleString()}W /{" "}
@@ -215,10 +206,8 @@ function LicensePanel(props: { stats: LicenseStats; vrNote: string | null }) {
                 </div>
 
                 {/* Rank card */}
-                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 flex flex-col items-center justify-center gap-3">
-                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Current Rank
-                    </p>
+                <div class="bg-canvas rounded-lg border border-line p-4 flex flex-col items-center justify-center gap-3">
+                    <p class="text-xs font-semibold text-fg-subtle">Current Rank</p>
                     <RankBadge rank={score().rank} large />
                     <div class="w-full">
                         <ScoreGauge score={score().score} rank={score().rank} />
@@ -235,7 +224,7 @@ function LicensePanel(props: { stats: LicenseStats; vrNote: string | null }) {
             <Show
                 when={needs() !== null}
                 fallback={
-                    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 text-center text-gray-500 dark:text-gray-400 text-sm">
+                    <div class="bg-canvas rounded-lg border border-line p-6 text-center text-fg-subtle text-sm">
                         Maximum rank achieved - nothing left to improve.
                     </div>
                 }
@@ -243,23 +232,23 @@ function LicensePanel(props: { stats: LicenseStats; vrNote: string | null }) {
                 {(_) => {
                     const n = needs()!;
                     return (
-                        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-                            <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        <div class="bg-canvas rounded-lg border border-line overflow-hidden">
+                            <div class="px-4 py-3 border-b border-line flex items-center justify-between">
+                                <p class="text-xs font-semibold text-fg-subtle">
                                     What-If: Reach Next Rank (threshold {n.threshold})
                                 </p>
                                 <RankBadge rank={score().rank + 1} />
                             </div>
                             <table class="w-full text-sm">
                                 <thead>
-                                    <tr class="border-b border-gray-100 dark:border-gray-700">
-                                        <th class="text-left px-4 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <tr class="border-b border-line">
+                                        <th class="text-left px-4 py-2 text-xs font-medium text-fg-subtle">
                                             Stat
                                         </th>
-                                        <th class="text-left px-4 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        <th class="text-left px-4 py-2 text-xs font-medium text-fg-subtle">
                                             Current
                                         </th>
-                                        <th class="text-left px-4 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        <th class="text-left px-4 py-2 text-xs font-medium text-fg-subtle">
                                             Needed (solo)
                                         </th>
                                         <th class="px-4 py-2" />
@@ -267,10 +256,8 @@ function LicensePanel(props: { stats: LicenseStats; vrNote: string | null }) {
                                 </thead>
                                 <tbody class="divide-y divide-gray-100 dark:divide-gray-700/60">
                                     <tr>
-                                        <td class="px-4 py-2.5 text-gray-700 dark:text-gray-300">
-                                            VR
-                                        </td>
-                                        <td class="px-4 py-2.5 font-mono text-gray-600 dark:text-gray-400">
+                                        <td class="px-4 py-2.5 text-fg-muted">VR</td>
+                                        <td class="px-4 py-2.5 font-mono text-fg-muted">
                                             {vrDisplay(props.stats.vrPoints)}
                                         </td>
                                         <td
@@ -287,10 +274,8 @@ function LicensePanel(props: { stats: LicenseStats; vrNote: string | null }) {
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td class="px-4 py-2.5 text-gray-700 dark:text-gray-300">
-                                            Win Rate
-                                        </td>
-                                        <td class="px-4 py-2.5 font-mono text-gray-600 dark:text-gray-400">
+                                        <td class="px-4 py-2.5 text-fg-muted">Win Rate</td>
+                                        <td class="px-4 py-2.5 font-mono text-fg-muted">
                                             {winPct()}%
                                         </td>
                                         <td
@@ -298,7 +283,7 @@ function LicensePanel(props: { stats: LicenseStats; vrNote: string | null }) {
                                         >
                                             {n.winPct.neededRaw.toFixed(1)}%
                                             <Show when={n.winPct.extraWins !== null}>
-                                                <span class="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                                                <span class="text-xs text-fg-subtle ml-1">
                                                     (+{n.winPct.extraWins} wins)
                                                 </span>
                                             </Show>
@@ -312,10 +297,10 @@ function LicensePanel(props: { stats: LicenseStats; vrNote: string | null }) {
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td class="px-4 py-2.5 text-gray-700 dark:text-gray-300">
+                                        <td class="px-4 py-2.5 text-fg-muted">
                                             1st-Place Finishes
                                         </td>
-                                        <td class="px-4 py-2.5 font-mono text-gray-600 dark:text-gray-400">
+                                        <td class="px-4 py-2.5 font-mono text-fg-muted">
                                             {props.stats.firsts.toLocaleString()}
                                         </td>
                                         <td
@@ -332,10 +317,8 @@ function LicensePanel(props: { stats: LicenseStats; vrNote: string | null }) {
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td class="px-4 py-2.5 text-gray-700 dark:text-gray-300">
-                                            Distance (km)
-                                        </td>
-                                        <td class="px-4 py-2.5 font-mono text-gray-600 dark:text-gray-400">
+                                        <td class="px-4 py-2.5 text-fg-muted">Distance (km)</td>
+                                        <td class="px-4 py-2.5 font-mono text-fg-muted">
                                             {fmtDist(props.stats.dist)}
                                         </td>
                                         <td
@@ -352,10 +335,10 @@ function LicensePanel(props: { stats: LicenseStats; vrNote: string | null }) {
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td class="px-4 py-2.5 text-gray-700 dark:text-gray-300">
+                                        <td class="px-4 py-2.5 text-fg-muted">
                                             Distance in 1st (km)
                                         </td>
-                                        <td class="px-4 py-2.5 font-mono text-gray-600 dark:text-gray-400">
+                                        <td class="px-4 py-2.5 font-mono text-fg-muted">
                                             {fmtDist(props.stats.dist1st)}
                                         </td>
                                         <td
@@ -373,7 +356,7 @@ function LicensePanel(props: { stats: LicenseStats; vrNote: string | null }) {
                                     </tr>
                                 </tbody>
                             </table>
-                            <div class="px-4 py-2.5 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400">
+                            <div class="px-4 py-2.5 border-t border-line text-xs text-fg-subtle">
                                 "Needed" values assume all other stats stay constant. Improve any
                                 stat to reduce requirements on the others.
                             </div>
@@ -487,62 +470,83 @@ export default function RankHelperPage() {
     };
 
     return (
-        <div class="max-w-3xl mx-auto space-y-6">
-            <Title>{RANK_HELPER_META.title}</Title>
-            <Meta name="description" content={RANK_HELPER_META.description} />
-            <div class="border-b border-gray-200 dark:border-gray-700 pb-6">
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-1">Rank Helper</h1>
-                <p class="text-gray-500 dark:text-gray-400 text-sm">
-                    Load your{" "}
-                    <code class="font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">
-                        rksys.dat
-                    </code>{" "}
-                    to see your license stats, rank score, and what you need to reach the next rank.
-                </p>
-            </div>
+        <>
+            <PageHeader
+                page="tools"
+                compact
+                crumbs={[{ label: "Tools", href: "/tools" }]}
+                title="Rank helper"
+                description={
+                    <>
+                        Load your{" "}
+                        <code class="rounded-sm bg-surface px-1 font-mono text-fg">rksys.dat</code>{" "}
+                        to see your license stats, rank score, and what you need to reach the next
+                        rank.
+                    </>
+                }
+                visual={<RankGlyphs />}
+            />
+            <div class="max-w-3xl space-y-6">
+                <Title>{RANK_HELPER_META.title}</Title>
+                <Meta name="description" content={RANK_HELPER_META.description} />
 
-            {/* Upload zones */}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* rksys.dat */}
-                <div
-                    class={`rounded-xl border-2 border-dashed p-6 text-center transition-all
+                {/* Upload zones */}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* rksys.dat */}
+                    <div
+                        class={`rounded-lg border border-dashed p-6 text-center transition-colors
                         ${
                             dragging() === "rksys"
-                                ? "border-blue-500 bg-blue-500/5"
+                                ? "border-blue-500 bg-accent/5"
                                 : rksysData()
                                   ? "border-green-500/60 bg-green-500/5"
                                   : fileError()
                                     ? "border-red-500/60 bg-red-500/5"
-                                    : "border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500"
+                                    : "border-line-strong hover:border-blue-400 dark:hover:border-blue-500"
                         }`}
-                    onDragOver={(e) => {
-                        e.preventDefault();
-                        setDragging("rksys");
-                    }}
-                    onDragLeave={() => setDragging(null)}
-                    onDrop={handleRksysDrop}
-                >
-                    <Show
-                        when={rksysData()}
-                        fallback={
-                            <Show
-                                when={fileError()}
-                                fallback={
+                        onDragOver={(e) => {
+                            e.preventDefault();
+                            setDragging("rksys");
+                        }}
+                        onDragLeave={() => setDragging(null)}
+                        onDrop={handleRksysDrop}
+                    >
+                        <Show
+                            when={rksysData()}
+                            fallback={
+                                <Show
+                                    when={fileError()}
+                                    fallback={
+                                        <label class="cursor-pointer block">
+                                            <Upload size={32} class="mx-auto mb-3 text-fg-subtle" />
+                                            <p class="font-semibold text-sm text-fg-muted mb-1">
+                                                1. rksys.dat
+                                            </p>
+                                            <p class="text-xs text-fg-subtle mb-4">
+                                                <code class="font-mono">
+                                                    riivolution/saves/RetroRewind6/rksys.dat
+                                                </code>
+                                            </p>
+                                            <span class="px-3 py-1.5 text-xs bg-accent hover:bg-accent-hover text-accent-fg font-medium rounded-lg transition-colors">
+                                                Choose file
+                                            </span>
+                                            <input
+                                                type="file"
+                                                accept=".dat"
+                                                onChange={handleRksysInput}
+                                                class="hidden"
+                                            />
+                                        </label>
+                                    }
+                                >
                                     <label class="cursor-pointer block">
-                                        <Upload
-                                            size={32}
-                                            class="mx-auto mb-3 text-gray-400 dark:text-gray-500"
-                                        />
-                                        <p class="font-semibold text-sm text-gray-700 dark:text-gray-300 mb-1">
-                                            1. rksys.dat
+                                        <XCircle size={32} class="mx-auto mb-3 text-red-500" />
+                                        <p class="font-semibold text-sm text-red-600 dark:text-red-400 mb-1">
+                                            {fileError()}
                                         </p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                                            <code class="font-mono">
-                                                riivolution/saves/RetroRewind6/rksys.dat
-                                            </code>
-                                        </p>
-                                        <span class="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
-                                            Choose file
+                                        <p class="text-xs text-fg-subtle mb-3">{fileName()}</p>
+                                        <span class="px-3 py-1.5 text-xs bg-accent hover:bg-accent-hover text-accent-fg font-medium rounded-lg transition-colors">
+                                            Try another file
                                         </span>
                                         <input
                                             type="file"
@@ -551,99 +555,98 @@ export default function RankHelperPage() {
                                             class="hidden"
                                         />
                                     </label>
-                                }
-                            >
-                                <label class="cursor-pointer block">
-                                    <XCircle size={32} class="mx-auto mb-3 text-red-500" />
-                                    <p class="font-semibold text-sm text-red-600 dark:text-red-400 mb-1">
-                                        {fileError()}
-                                    </p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                                        {fileName()}
-                                    </p>
-                                    <span class="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
-                                        Try another file
-                                    </span>
-                                    <input
-                                        type="file"
-                                        accept=".dat"
-                                        onChange={handleRksysInput}
-                                        class="hidden"
-                                    />
-                                </label>
-                            </Show>
-                        }
-                    >
-                        {(_) => {
-                            const data = rksysData()!;
-                            return (
-                                <label class="cursor-pointer block">
-                                    <CheckCircle size={32} class="mx-auto mb-2 text-green-500" />
-                                    <p class="font-semibold text-sm text-green-600 dark:text-green-400 font-mono truncate mb-0.5">
-                                        {fileName()}
-                                    </p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                                        Region: {data.region} · {activeLicenses().length} license
-                                        {activeLicenses().length !== 1 ? "s" : ""}
-                                    </p>
-                                    <span class="text-xs px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg">
-                                        Replace file
-                                    </span>
-                                    <input
-                                        type="file"
-                                        accept=".dat"
-                                        onChange={handleRksysInput}
-                                        class="hidden"
-                                    />
-                                </label>
-                            );
-                        }}
-                    </Show>
-                </div>
+                                </Show>
+                            }
+                        >
+                            {(_) => {
+                                const data = rksysData()!;
+                                return (
+                                    <label class="cursor-pointer block">
+                                        <CheckCircle
+                                            size={32}
+                                            class="mx-auto mb-2 text-green-500"
+                                        />
+                                        <p class="font-semibold text-sm text-green-600 dark:text-green-400 font-mono truncate mb-0.5">
+                                            {fileName()}
+                                        </p>
+                                        <p class="text-xs text-fg-subtle mb-2">
+                                            Region: {data.region} · {activeLicenses().length}{" "}
+                                            license
+                                            {activeLicenses().length !== 1 ? "s" : ""}
+                                        </p>
+                                        <span class="text-xs px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg">
+                                            Replace file
+                                        </span>
+                                        <input
+                                            type="file"
+                                            accept=".dat"
+                                            onChange={handleRksysInput}
+                                            class="hidden"
+                                        />
+                                    </label>
+                                );
+                            }}
+                        </Show>
+                    </div>
 
-                {/* RRRating.pul */}
-                <div
-                    class={`rounded-xl border-2 border-dashed p-6 text-center transition-all
+                    {/* RRRating.pul */}
+                    <div
+                        class={`rounded-lg border border-dashed p-6 text-center transition-colors
                         ${
                             dragging() === "pul"
-                                ? "border-blue-500 bg-blue-500/5"
+                                ? "border-blue-500 bg-accent/5"
                                 : ratingData()
                                   ? "border-green-500/60 bg-green-500/5"
                                   : pulError()
                                     ? "border-red-500/60 bg-red-500/5"
-                                    : "border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500"
+                                    : "border-line-strong hover:border-blue-400 dark:hover:border-blue-500"
                         }`}
-                    onDragOver={(e) => {
-                        e.preventDefault();
-                        setDragging("pul");
-                    }}
-                    onDragLeave={() => setDragging(null)}
-                    onDrop={handlePulDrop}
-                >
-                    <Show
-                        when={ratingData()}
-                        fallback={
-                            <Show
-                                when={pulError()}
-                                fallback={
-                                    <label class="cursor-pointer block">
-                                        <Upload
-                                            size={32}
-                                            class="mx-auto mb-3 text-gray-400 dark:text-gray-500"
-                                        />
-                                        <p class="font-semibold text-sm text-gray-700 dark:text-gray-300 mb-1">
-                                            2. RRRating.pul{" "}
-                                            <span class="font-normal text-gray-400">
-                                                (optional)
+                        onDragOver={(e) => {
+                            e.preventDefault();
+                            setDragging("pul");
+                        }}
+                        onDragLeave={() => setDragging(null)}
+                        onDrop={handlePulDrop}
+                    >
+                        <Show
+                            when={ratingData()}
+                            fallback={
+                                <Show
+                                    when={pulError()}
+                                    fallback={
+                                        <label class="cursor-pointer block">
+                                            <Upload size={32} class="mx-auto mb-3 text-fg-subtle" />
+                                            <p class="font-semibold text-sm text-fg-muted mb-1">
+                                                2. RRRating.pul{" "}
+                                                <span class="font-normal text-fg-subtle">
+                                                    (optional)
+                                                </span>
+                                            </p>
+                                            <p class="text-xs text-fg-subtle mb-4">
+                                                <code class="font-mono">
+                                                    riivolution/saves/RetroRewind6/RRRating.pul
+                                                </code>
+                                            </p>
+                                            <span class="px-3 py-1.5 text-xs bg-accent hover:bg-accent-hover text-accent-fg font-medium rounded-lg transition-colors">
+                                                Choose file
                                             </span>
+                                            <input
+                                                type="file"
+                                                accept=".pul"
+                                                onChange={handlePulInput}
+                                                class="hidden"
+                                            />
+                                        </label>
+                                    }
+                                >
+                                    <label class="cursor-pointer block">
+                                        <XCircle size={32} class="mx-auto mb-3 text-red-500" />
+                                        <p class="font-semibold text-sm text-red-600 dark:text-red-400 mb-1">
+                                            {pulError()}
                                         </p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                                            <code class="font-mono">
-                                                riivolution/saves/RetroRewind6/RRRating.pul
-                                            </code>
-                                        </p>
-                                        <span class="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
-                                            Choose file
+                                        <p class="text-xs text-fg-subtle mb-3">{pulFileName()}</p>
+                                        <span class="px-3 py-1.5 text-xs bg-accent hover:bg-accent-hover text-accent-fg font-medium rounded-lg transition-colors">
+                                            Try another file
                                         </span>
                                         <input
                                             type="file"
@@ -652,18 +655,18 @@ export default function RankHelperPage() {
                                             class="hidden"
                                         />
                                     </label>
-                                }
-                            >
+                                </Show>
+                            }
+                        >
+                            {(_) => (
                                 <label class="cursor-pointer block">
-                                    <XCircle size={32} class="mx-auto mb-3 text-red-500" />
-                                    <p class="font-semibold text-sm text-red-600 dark:text-red-400 mb-1">
-                                        {pulError()}
-                                    </p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                                    <CheckCircle size={32} class="mx-auto mb-2 text-green-500" />
+                                    <p class="font-semibold text-sm text-green-600 dark:text-green-400 font-mono truncate mb-0.5">
                                         {pulFileName()}
                                     </p>
-                                    <span class="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
-                                        Try another file
+                                    <p class="text-xs text-fg-subtle mb-2">VR overrides loaded</p>
+                                    <span class="text-xs px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg">
+                                        Replace file
                                     </span>
                                     <input
                                         type="file"
@@ -672,87 +675,66 @@ export default function RankHelperPage() {
                                         class="hidden"
                                     />
                                 </label>
-                            </Show>
-                        }
-                    >
-                        {(_) => (
-                            <label class="cursor-pointer block">
-                                <CheckCircle size={32} class="mx-auto mb-2 text-green-500" />
-                                <p class="font-semibold text-sm text-green-600 dark:text-green-400 font-mono truncate mb-0.5">
-                                    {pulFileName()}
-                                </p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                                    VR overrides loaded
-                                </p>
-                                <span class="text-xs px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg">
-                                    Replace file
-                                </span>
-                                <input
-                                    type="file"
-                                    accept=".pul"
-                                    onChange={handlePulInput}
-                                    class="hidden"
-                                />
-                            </label>
-                        )}
-                    </Show>
+                            )}
+                        </Show>
+                    </div>
                 </div>
-            </div>
 
-            {/* License tabs + content */}
-            <Show when={rksysData() !== null}>
-                {(_) => {
-                    const licenses = activeLicenses();
-                    return (
-                        <div class="space-y-4">
-                            {/* Tabs */}
-                            <div class="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
-                                <For each={licenses}>
-                                    {({ l, i }) => (
-                                        <button
-                                            type="button"
-                                            onClick={() => setActiveTab(i)}
-                                            class={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors truncate
+                {/* License tabs + content */}
+                <Show when={rksysData() !== null}>
+                    {(_) => {
+                        const licenses = activeLicenses();
+                        return (
+                            <div class="space-y-4">
+                                {/* Tabs */}
+                                <div class="flex gap-1 bg-surface rounded-lg p-1">
+                                    <For each={licenses}>
+                                        {({ l, i }) => (
+                                            <button
+                                                type="button"
+                                                onClick={() => setActiveTab(i)}
+                                                class={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors truncate
                                                 ${
                                                     activeTab() === i
-                                                        ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
-                                                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                                                        ? "bg-white dark:bg-gray-700 text-fg"
+                                                        : "text-fg-muted hover:text-gray-900 dark:hover:text-white"
                                                 }`}
-                                        >
-                                            {l.miiName || `License ${i + 1}`}
-                                        </button>
+                                            >
+                                                {l.miiName || `License ${i + 1}`}
+                                            </button>
+                                        )}
+                                    </For>
+                                </div>
+
+                                {/* Active license content */}
+                                <For each={licenses}>
+                                    {({ l, i, vrNote }) => (
+                                        <Show when={activeTab() === i}>
+                                            <LicensePanel stats={l} vrNote={vrNote} />
+                                        </Show>
                                     )}
                                 </For>
                             </div>
+                        );
+                    }}
+                </Show>
 
-                            {/* Active license content */}
-                            <For each={licenses}>
-                                {({ l, i, vrNote }) => (
-                                    <Show when={activeTab() === i}>
-                                        <LicensePanel stats={l} vrNote={vrNote} />
-                                    </Show>
-                                )}
-                            </For>
-                        </div>
-                    );
-                }}
-            </Show>
-
-            <AlertBox type="info" title="Notes">
-                <ul class="space-y-1 text-sm list-disc list-inside">
-                    <li>
-                        The rank score formula weights VR heavily (60%), with win rate, 1st
-                        finishes, and distance making up the rest.
-                    </li>
-                    <li>
-                        "Needed (solo)" shows the minimum value for that stat alone to hit the next
-                        rank threshold, assuming all other stats stay the same.
-                    </li>
-                    <li>
-                        At least {MIN_VS_FOR_RANK} races are required before a rank is assigned.
-                    </li>
-                </ul>
-            </AlertBox>
-        </div>
+                <AlertBox type="info" title="Notes">
+                    <ul class="space-y-1 text-sm list-disc list-inside">
+                        <li>
+                            The rank score formula weights VR heavily (60%), with win rate, 1st
+                            finishes, and distance making up the rest.
+                        </li>
+                        <li>
+                            "Needed (solo)" shows the minimum value for that stat alone to hit the
+                            next rank threshold, assuming all other stats stay the same.
+                        </li>
+                        <li>
+                            At least {MIN_VS_FOR_RANK} races are required before a rank is assigned.
+                        </li>
+                    </ul>
+                </AlertBox>
+            </div>
+        </>
     );
 }

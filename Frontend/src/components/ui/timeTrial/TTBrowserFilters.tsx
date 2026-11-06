@@ -26,14 +26,12 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
     const glitchValue = (): GlitchOption => (props.glitchAllowed ? "unrestricted" : "no-glitch");
 
     return (
-        <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div class="bg-canvas rounded-lg border border-line overflow-hidden">
             {/* Header */}
-            <div class="px-4 sm:px-6 py-4 bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+            <div class="px-4 sm:px-6 py-4 bg-surface border-b border-line">
                 <div class="flex items-center gap-3">
                     <div>
-                        <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-                            Browse Tracks
-                        </h2>
+                        <h2 class="text-xl sm:text-2xl font-semibold text-fg">Browse Tracks</h2>
                         <p class="text-gray-600 dark:text-white/80 text-xs sm:text-sm">
                             {props.selectedCC}cc •{" "}
                             {!props.glitchAllowed ? "Non-Glitch/Shortcut" : "Unrestricted"} •{" "}
@@ -53,11 +51,11 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
             </div>
 
             {/* Filters */}
-            <div class="bg-gray-50 dark:bg-gray-700/50 p-4 border-b-2 border-gray-200 dark:border-gray-700">
+            <div class="bg-surface p-4 border-b-2 border-line">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {/* Track Category */}
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                        <label class="block text-xs font-semibold text-fg-muted mb-1">
                             Track Category
                         </label>
                         <ToggleGroup<"retro" | "custom">
@@ -72,7 +70,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
 
                     {/* Engine Class */}
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                        <label class="block text-xs font-semibold text-fg-muted mb-1">
                             Engine Class
                         </label>
                         <ToggleGroup<CCOption>
@@ -87,7 +85,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
 
                     {/* Category Type */}
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                        <label class="block text-xs font-semibold text-fg-muted mb-1">
                             Category Type
                         </label>
                         <ToggleGroup<GlitchOption>
@@ -105,7 +103,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
 
                     {/* Vehicle Type */}
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                        <label class="block text-xs font-semibold text-fg-muted mb-1">
                             Vehicle Type
                         </label>
                         <ToggleGroup<VehicleFilter>
@@ -121,7 +119,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
 
                     {/* Shroomless */}
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                        <label class="block text-xs font-semibold text-fg-muted mb-1">
                             Shroomless
                         </label>
                         <ToggleGroup<ShroomlessFilter>
@@ -137,7 +135,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
 
                     {/* Search */}
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                        <label class="block text-xs font-semibold text-fg-muted mb-1">
                             Search Tracks
                         </label>
                         <div class="relative">
@@ -149,7 +147,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                                 placeholder="Search by track name..."
                                 value={props.searchQuery}
                                 onInput={(e) => props.onSearchInput(e.target.value)}
-                                class="w-full pl-9 pr-3 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 text-xs"
+                                class="w-full pl-9 pr-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-fg placeholder-gray-400 text-xs"
                             />
                         </div>
                     </div>

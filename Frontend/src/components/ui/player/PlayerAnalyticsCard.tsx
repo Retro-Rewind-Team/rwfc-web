@@ -29,7 +29,7 @@ function positionBarColor(pos: number) {
     if (pos === 1) return "bg-yellow-400";
     if (pos === 2) return "bg-gray-300";
     if (pos === 3) return "bg-amber-600";
-    return "bg-blue-400 dark:bg-blue-500";
+    return "bg-blue-400 ";
 }
 
 type SortKey = "races" | "winRate" | "avgPos";
@@ -74,14 +74,14 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
         Math.max(1, ...(analytics()?.racesByHour.map((h) => h.raceCount) ?? [1]));
 
     return (
-        <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700">
+        <div class="bg-canvas rounded-lg border border-line">
             <button
                 type="button"
                 onClick={toggle}
                 class="w-full flex items-center justify-between p-6 text-left"
                 aria-expanded={isOpen()}
             >
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Analytics</h2>
+                <h2 class="text-2xl font-semibold text-fg">Analytics</h2>
                 {isOpen() ? (
                     <ChevronUp size={20} class="text-gray-400 shrink-0" />
                 ) : (
@@ -90,7 +90,7 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
             </button>
 
             <Show when={isOpen()}>
-                <div class="px-6 pb-6 space-y-6 border-t border-gray-100 dark:border-gray-700 pt-4">
+                <div class="px-6 pb-6 space-y-6 border-t border-line pt-4">
                     {/* Filters */}
                     <div class="flex flex-wrap items-center gap-2 justify-end">
                         <div class="flex gap-1 text-xs">
@@ -104,10 +104,10 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
                                 <button
                                     type="button"
                                     onClick={() => handleEngineClassChange(opt.value)}
-                                    class={`px-2.5 py-1.5 rounded-lg border-2 font-medium transition-colors ${
+                                    class={`px-2.5 py-1.5 rounded-lg border font-medium transition-colors ${
                                         engineClassId() === opt.value
-                                            ? "bg-gray-900 border-gray-900 text-white dark:bg-white dark:border-white dark:text-gray-900"
-                                            : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500"
+                                            ? "border-accent bg-accent-soft text-accent-text"
+                                            : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-fg-muted hover:border-gray-400 dark:hover:border-gray-500"
                                     }`}
                                 >
                                     {opt.label}
@@ -120,10 +120,10 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
                                     <button
                                         type="button"
                                         onClick={() => handleDaysChange(opt.value)}
-                                        class={`px-2.5 py-1.5 rounded-lg border-2 text-xs font-medium transition-colors ${
+                                        class={`px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
                                             days() === opt.value
-                                                ? "bg-gray-900 border-gray-900 text-white dark:bg-white dark:border-white dark:text-gray-900"
-                                                : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500"
+                                                ? "border-accent bg-accent-soft text-accent-text"
+                                                : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-fg-muted hover:border-gray-400 dark:hover:border-gray-500"
                                         }`}
                                     >
                                         {opt.label}
@@ -137,13 +137,13 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
                     <Show when={analyticsQuery.isLoading}>
                         <div class="flex items-center justify-center py-12 gap-3">
                             <LoadingSpinner />
-                            <p class="text-gray-600 dark:text-gray-300">Loading analytics...</p>
+                            <p class="text-fg-muted">Loading analytics...</p>
                         </div>
                     </Show>
 
                     {/* No data */}
                     <Show when={!analyticsQuery.isLoading && !analytics()}>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm text-center py-6">
+                        <p class="text-fg-subtle text-sm text-center py-6">
                             No race data available for this player yet.
                         </p>
                     </Show>
@@ -152,52 +152,46 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
                         {/* Headline tiles */}
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div class="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 text-center">
-                                <div class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
+                                <div class="text-3xl font-semibold text-yellow-600 dark:text-yellow-400">
                                     {analytics()!.winRate.toFixed(1)}%
                                 </div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                    Win Rate
-                                </div>
+                                <div class="text-sm text-fg-subtle mt-1">Win Rate</div>
                             </div>
-                            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-center">
-                                <div class="text-3xl font-bold text-gray-900 dark:text-white">
+                            <div class="bg-surface rounded-lg p-4 text-center">
+                                <div class="text-3xl font-semibold text-fg">
                                     {totalRaces().toLocaleString()}
                                 </div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                    Races Analyzed
-                                </div>
+                                <div class="text-sm text-fg-subtle mt-1">Races Analyzed</div>
                             </div>
-                            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-center">
-                                <div class="text-3xl font-bold text-gray-900 dark:text-white">
+                            <div class="bg-surface rounded-lg p-4 text-center">
+                                <div class="text-3xl font-semibold text-fg">
                                     {analytics()!.trackPerformance.length}
                                 </div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                    Tracks Played
-                                </div>
+                                <div class="text-sm text-fg-subtle mt-1">Tracks Played</div>
                             </div>
                         </div>
 
                         {/* Position distribution */}
-                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 p-4">
-                            <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
+                        <div class="bg-canvas rounded-lg border border-line p-4">
+                            <h3 class="text-sm font-semibold text-fg-subtle mb-4">
                                 Finish Position Distribution
                             </h3>
                             <div class="space-y-2">
                                 <For each={analytics()!.finishPositionDistribution}>
                                     {(item: PositionCount) => (
                                         <div class="flex items-center gap-3">
-                                            <span class="text-xs text-gray-500 dark:text-gray-400 w-10 shrink-0 text-right">
+                                            <span class="text-xs text-fg-subtle w-10 shrink-0 text-right">
                                                 {positionLabel(item.position)}
                                             </span>
-                                            <div class="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-4 overflow-hidden">
+                                            <div class="flex-1 bg-surface rounded-full h-4 overflow-hidden">
                                                 <div
-                                                    class={`${positionBarColor(item.position)} h-full rounded-full transition-all`}
+                                                    class={`${positionBarColor(item.position)} h-full rounded-full transition-colors`}
                                                     style={{
                                                         width: `${Math.round((item.count / maxPosCount()) * 100)}%`,
                                                     }}
                                                 />
                                             </div>
-                                            <span class="text-xs font-medium text-gray-700 dark:text-gray-300 w-10 text-right shrink-0">
+                                            <span class="text-xs font-medium text-fg-muted w-10 text-right shrink-0">
                                                 {item.count}
                                             </span>
                                         </div>
@@ -209,7 +203,7 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
                         {/* Track performance table */}
                         <div>
                             <div class="flex items-center justify-between mb-3">
-                                <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                                <h3 class="text-sm font-semibold text-fg-subtle">
                                     Track Performance
                                 </h3>
                                 <div class="flex gap-1 text-xs">
@@ -223,10 +217,10 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
                                         <button
                                             type="button"
                                             onClick={() => setTrackSort(opt.value)}
-                                            class={`px-2.5 py-1.5 rounded-lg border-2 font-medium transition-colors ${
+                                            class={`px-2.5 py-1.5 rounded-lg border font-medium transition-colors ${
                                                 trackSort() === opt.value
-                                                    ? "bg-gray-900 border-gray-900 text-white dark:bg-white dark:border-white dark:text-gray-900"
-                                                    : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500"
+                                                    ? "border-accent bg-accent-soft text-accent-text"
+                                                    : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-fg-muted hover:border-gray-400 dark:hover:border-gray-500"
                                             }`}
                                         >
                                             {opt.label}
@@ -234,10 +228,10 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
                                     ))}
                                 </div>
                             </div>
-                            <div class="overflow-x-auto max-h-72 overflow-y-auto">
+                            <div class="relative overflow-x-auto max-h-72 overflow-y-auto">
                                 <table class="w-full text-sm">
-                                    <thead class="sticky top-0 z-10 bg-white dark:bg-gray-800">
-                                        <tr class="text-left text-xs text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-gray-700">
+                                    <thead class="sticky top-0 z-10 bg-canvas">
+                                        <tr class="text-left text-xs text-fg-subtle border-b border-line">
                                             <th class="pb-2 font-medium">Track</th>
                                             <th class="pb-2 font-medium text-right">Races</th>
                                             <th class="pb-2 font-medium text-right">Win %</th>
@@ -248,7 +242,7 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
                                         <For each={sortedTracks()}>
                                             {(track: TrackPerformance) => (
                                                 <tr
-                                                    class={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
+                                                    class={`hover:bg-surface transition-colors ${
                                                         track.lowSample ? "opacity-50" : ""
                                                     }`}
                                                     title={
@@ -257,16 +251,16 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
                                                             : undefined
                                                     }
                                                 >
-                                                    <td class="py-1.5 pr-3 text-gray-800 dark:text-gray-200 max-w-[160px] truncate">
+                                                    <td class="py-1.5 pr-3 text-fg max-w-[160px] truncate">
                                                         {track.trackName}
                                                     </td>
-                                                    <td class="py-1.5 pr-3 text-right text-gray-600 dark:text-gray-400">
+                                                    <td class="py-1.5 pr-3 text-right text-fg-muted">
                                                         {track.raceCount}
                                                     </td>
                                                     <td class="py-1.5 pr-3 text-right font-medium text-yellow-600 dark:text-yellow-400">
                                                         {track.winRate.toFixed(1)}%
                                                     </td>
-                                                    <td class="py-1.5 text-right text-gray-600 dark:text-gray-400">
+                                                    <td class="py-1.5 text-right text-fg-muted">
                                                         {track.avgFinishPos.toFixed(1)}
                                                     </td>
                                                 </tr>
@@ -281,25 +275,25 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             {/* By day */}
                             <div>
-                                <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+                                <h3 class="text-sm font-semibold text-fg-subtle mb-3">
                                     Races by Day of Week
                                 </h3>
                                 <div class="space-y-1.5">
                                     <For each={analytics()!.racesByDayOfWeek}>
                                         {(day) => (
                                             <div class="flex items-center gap-3">
-                                                <span class="text-xs text-gray-500 dark:text-gray-400 w-20 shrink-0">
+                                                <span class="text-xs text-fg-subtle w-20 shrink-0">
                                                     {day.dayName}
                                                 </span>
-                                                <div class="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+                                                <div class="flex-1 bg-surface rounded-full h-3 overflow-hidden">
                                                     <div
-                                                        class="bg-blue-500 dark:bg-blue-600 h-full rounded-full"
+                                                        class="bg-accent h-full rounded-full"
                                                         style={{
                                                             width: `${Math.round((day.raceCount / maxDayCount()) * 100)}%`,
                                                         }}
                                                     />
                                                 </div>
-                                                <span class="text-xs text-gray-600 dark:text-gray-400 w-8 text-right shrink-0">
+                                                <span class="text-xs text-fg-muted w-8 text-right shrink-0">
                                                     {day.raceCount}
                                                 </span>
                                             </div>
@@ -310,7 +304,7 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
 
                             {/* By hour */}
                             <div>
-                                <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+                                <h3 class="text-sm font-semibold text-fg-subtle mb-3">
                                     Races by Hour (UTC)
                                 </h3>
                                 <div class="relative h-24">
@@ -318,7 +312,7 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
                                         <For each={analytics()!.racesByHour}>
                                             {(hour) => (
                                                 <div
-                                                    class="flex-1 bg-blue-500 dark:bg-blue-600 rounded-t hover:bg-blue-400 dark:hover:bg-blue-500 transition-colors cursor-default"
+                                                    class="flex-1 bg-accent rounded-t hover:bg-blue-400 dark:hover:bg-accent transition-colors cursor-default"
                                                     style={{
                                                         height: `${Math.max(
                                                             2,
@@ -328,7 +322,7 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
                                                             ),
                                                         )}%`,
                                                     }}
-                                                    title={`${String(hour.hour).padStart(2, "0")}:00 — ${hour.raceCount} races`}
+                                                    title={`${String(hour.hour).padStart(2, "0")}:00, ${hour.raceCount} races`}
                                                 />
                                             )}
                                         </For>
@@ -339,7 +333,7 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
                                         {(hour) => (
                                             <div class="flex-1 text-center">
                                                 <Show when={hour.hour % 6 === 0}>
-                                                    <span class="text-xs text-gray-400 dark:text-gray-500">
+                                                    <span class="text-xs text-fg-subtle">
                                                         {String(hour.hour).padStart(2, "0")}
                                                     </span>
                                                 </Show>

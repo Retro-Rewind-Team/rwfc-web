@@ -10,15 +10,15 @@ interface TeamMemberCardProps {
 
 export default function TeamMemberCard(props: TeamMemberCardProps) {
     return (
-        <div class="w-full sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)] xl:w-[calc(25%-1.125rem)]">
-            <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors h-full flex flex-col">
+        <div class="h-full">
+            <div class="bg-canvas rounded-lg p-6 border border-line hover:border-line-strong transition-colors h-full flex flex-col">
                 {/* Profile Picture */}
                 <div class="relative w-24 h-24 mx-auto mb-4">
                     <Show
                         when={props.member.image}
                         fallback={
                             <div
-                                class={`w-full h-full rounded-full flex items-center justify-center text-white text-3xl font-bold ${props.roleColor?.accent || "bg-gray-400"}`}
+                                class={`w-full h-full rounded-full flex items-center justify-center text-white text-3xl font-semibold ${props.roleColor?.accent || "bg-gray-400"}`}
                             >
                                 {props.member.name.charAt(0).toUpperCase()}
                             </div>
@@ -27,18 +27,16 @@ export default function TeamMemberCard(props: TeamMemberCardProps) {
                         <img
                             src={props.member.image!}
                             alt={props.member.name}
-                            class="w-full h-full rounded-full object-cover shadow-sm"
+                            class="w-full h-full rounded-full object-cover"
                         />
                     </Show>
                 </div>
 
                 {/* Name */}
-                <h3 class="text-xl font-bold text-center mb-2 text-gray-900 dark:text-white">
-                    {props.member.name}
-                </h3>
+                <h3 class="text-xl font-semibold text-center mb-2 text-fg">{props.member.name}</h3>
 
                 {/* Role */}
-                <p class="text-sm text-gray-600 dark:text-gray-400 text-center mb-3 min-h-[40px]">
+                <p class="text-sm text-fg-muted text-center mb-3 min-h-[40px]">
                     {props.member.role}
                 </p>
 
@@ -46,7 +44,7 @@ export default function TeamMemberCard(props: TeamMemberCardProps) {
                 <button
                     type="button"
                     onClick={(e) => props.onCopy(props.member.discord, "Discord username", e)}
-                    class="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-300 font-mono bg-gray-50 dark:bg-gray-700/50 py-2 px-3 rounded-md border border-gray-200 dark:border-gray-600 mb-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500 w-full transition-colors"
+                    class="flex items-center justify-center gap-2 text-sm text-fg-muted font-mono bg-surface py-2 px-3 rounded-md border border-gray-200 dark:border-gray-600 mb-3 cursor-pointer hover:bg-surface hover:border-gray-300 dark:hover:border-gray-500 w-full transition-colors"
                     title="Click to copy Discord username"
                 >
                     {/* Discord SVG  */}
@@ -60,7 +58,7 @@ export default function TeamMemberCard(props: TeamMemberCardProps) {
                     <button
                         type="button"
                         onClick={(_) => open(props.member.forge!)}
-                        class="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-300 font-mono bg-gray-50 dark:bg-gray-700/50 py-2 px-3 rounded-md border border-gray-200 dark:border-gray-600 mb-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500 w-full transition-colors"
+                        class="flex items-center justify-center gap-2 text-sm text-fg-muted font-mono bg-surface py-2 px-3 rounded-md border border-gray-200 dark:border-gray-600 mb-3 cursor-pointer hover:bg-surface hover:border-gray-300 dark:hover:border-gray-500 w-full transition-colors"
                         title="Click to open Git"
                     >
                         <svg class="w-4 h-4 flex-shrink-0" viewBox="0 -2 100 100">
@@ -78,7 +76,7 @@ export default function TeamMemberCard(props: TeamMemberCardProps) {
                     <button
                         type="button"
                         onClick={(e) => props.onCopy(props.member.fc!, "friend code", e)}
-                        class="flex items-center justify-center gap-2 text-xs text-cyan-700 dark:text-cyan-300 mb-4 font-mono bg-cyan-50 dark:bg-cyan-900/20 py-2 px-3 rounded-md border border-cyan-200 dark:border-cyan-800 cursor-pointer hover:bg-cyan-100 dark:hover:bg-cyan-900/30 hover:border-cyan-300 dark:hover:border-cyan-700 w-full transition-colors"
+                        class="mb-4 flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-line bg-surface px-3 py-2 font-mono text-xs text-fg-muted transition-colors hover:border-line-strong hover:text-fg"
                         title="Click to copy friend code"
                     >
                         <Users size={14} class="flex-shrink-0" />
@@ -93,10 +91,11 @@ export default function TeamMemberCard(props: TeamMemberCardProps) {
                             href={props.member.donation!}
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="inline-flex items-center justify-center gap-2 w-full text-sm font-semibold px-4 py-2.5 rounded-md transition-colors bg-purple-600 hover:bg-purple-700 text-white"
+                            class="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-line-strong bg-canvas px-4 text-sm font-medium text-fg transition-colors hover:bg-surface"
                         >
-                            <Heart size={16} />
+                            <Heart size={16} aria-hidden="true" />
                             Support
+                            <span class="sr-only"> {props.member.name} (opens in a new tab)</span>
                         </a>
                     </Show>
                 </div>

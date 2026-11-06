@@ -6,7 +6,7 @@
         {
             "path": "/",
             "title": "Retro Rewind | Mario Kart Wii Custom Tracks & Online Racing",
-            "description": "A custom track distribution for Mario Kart Wii with every retro track plus tracks from Mario Kart 8, Tour, Arcade GP and Mario Kart World, connected to Retro WFC servers."
+            "description": "Mario Kart Wii custom tracks: every retro track plus tracks from Mario Kart 8, Tour, Arcade GP and World. Install on Wii or Dolphin and race on Retro WFC."
         },
         {
             "path": "/vr",
@@ -30,13 +30,13 @@
         },
         {
             "path": "/downloads",
-            "title": "Downloads & Tutorials | Retro Rewind",
-            "description": "Get everything you need to start racing on Retro Rewind, including the track pack, tools, and setup guides."
+            "title": "Downloads and Setup Guides | Retro Rewind",
+            "description": "Download the latest Retro Rewind release and follow the setup guide for Wii, Dolphin, PC, Steam Deck, Linux, macOS, Android or iOS."
         },
         {
             "path": "/team",
             "title": "The Retro Rewind Team | Retro Rewind",
-            "description": "Meet the people who make Retro Rewind possible."
+            "description": "Meet the people who make Retro Rewind possible, from the developers to the moderators, translators and contributors."
         },
         {
             "path": "/rules",
@@ -46,7 +46,7 @@
         {
             "path": "/privacy",
             "title": "Privacy Policy | Retro Rewind",
-            "description": "What data Retro WFC collects and how it's used."
+            "description": "What data Retro WFC collects when you play online, why it is collected and how it is used."
         },
         {
             "path": "/stats",
@@ -71,7 +71,7 @@
         {
             "path": "/tools/rating-editor",
             "title": "Rating Editor | Retro Rewind Tools",
-            "description": "Edit the VR and BR your RRRating.pul file stores for each profile."
+            "description": "Edit the VR and BR that your RRRating.pul save file stores for each Retro Rewind profile."
         },
         {
             "path": "/tools/vr-calculator",

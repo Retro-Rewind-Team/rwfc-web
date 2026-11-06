@@ -43,16 +43,16 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
     };
 
     return (
-        <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div class={`px-4 sm:px-6 py-4 ${isFlap() ? "bg-orange-500" : "bg-amber-500"}`}>
-                <h3 class="text-xl sm:text-2xl font-bold text-white">{title()}</h3>
-                <p class="text-xs sm:text-sm text-white/80">{subtitle()}</p>
+        <div class="bg-canvas rounded-lg border border-line overflow-hidden">
+            <div class="border-b border-line bg-surface px-4 py-4 sm:px-6">
+                <h3 class="type-heading text-fg">{title()}</h3>
+                <p class="mt-1 text-sm text-fg-muted">{subtitle()}</p>
             </div>
 
             <Show when={props.isLoading}>
                 <div class="p-12 text-center">
                     <LoadingSpinner />
-                    <p class="mt-4 text-gray-600 dark:text-gray-400">Loading history...</p>
+                    <p class="mt-4 text-fg-muted">Loading history...</p>
                 </div>
             </Show>
 
@@ -67,13 +67,11 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                     when={props.history!.length > 0}
                     fallback={
                         <div class="p-12 text-center">
-                            <div class="flex justify-center mb-4 text-gray-300 dark:text-gray-600">
+                            <div class="flex justify-center mb-4 text-fg-subtle">
                                 {isFlap() ? <Zap size={48} /> : <Trophy size={48} />}
                             </div>
-                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                                No History Yet
-                            </h3>
-                            <p class="text-gray-600 dark:text-gray-400">
+                            <h3 class="text-xl font-semibold text-fg mb-2">No History Yet</h3>
+                            <p class="text-fg-muted">
                                 {isFlap()
                                     ? "Flap records will appear here as they're set"
                                     : "World records will appear here as they're set"}
@@ -84,7 +82,7 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                     <div class="p-3 sm:p-6">
                         <div class="relative">
                             {/* Timeline line */}
-                            <div class="absolute left-6 sm:left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-amber-400 via-orange-500 to-red-600" />
+                            <div class="absolute left-6 sm:left-8 top-0 bottom-0 w-0.5 bg-line" />
 
                             <div class="space-y-6 sm:space-y-8">
                                 <For each={props.history!}>
@@ -109,7 +107,7 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                 <div
                                                     class={`absolute left-4 sm:left-6 top-3 w-4 h-4 sm:w-5 sm:h-5 rounded-full border-4 ${
                                                         isLatest
-                                                            ? "bg-yellow-400 border-yellow-300 shadow-lg shadow-yellow-400/50 animate-pulse"
+                                                            ? "bg-yellow-400 border-yellow-300 shadow-yellow-400/50 animate-pulse"
                                                             : isTied
                                                               ? "bg-gray-400 border-gray-300"
                                                               : "bg-amber-500 border-amber-400"
@@ -118,9 +116,9 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
 
                                                 {/* Record card */}
                                                 <div
-                                                    class={`bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 sm:p-4 border-2 transition-all hover:shadow-lg ${
+                                                    class={`bg-surface rounded-lg p-3 sm:p-4 border transition-colors ${
                                                         isLatest
-                                                            ? "border-yellow-400 shadow-md"
+                                                            ? "border-yellow-400"
                                                             : isTied
                                                               ? "border-gray-300 dark:border-gray-500"
                                                               : "border-gray-200 dark:border-gray-600"
@@ -140,20 +138,20 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                                     class={`text-2xl sm:text-3xl font-black ${
                                                                         isLatest
                                                                             ? "text-yellow-600 dark:text-yellow-400"
-                                                                            : "text-gray-900 dark:text-white"
+                                                                            : "text-fg"
                                                                     }`}
                                                                 >
                                                                     {getTimeDisplay(record)}
                                                                 </div>
 
                                                                 <Show when={!previousRecord}>
-                                                                    <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-md whitespace-nowrap">
+                                                                    <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-semibold rounded-md whitespace-nowrap">
                                                                         FIRST RECORD
                                                                     </span>
                                                                 </Show>
                                                                 <Show when={isTied}>
-                                                                    <div class="flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md">
-                                                                        <span class="text-xs sm:text-sm font-bold text-gray-600 dark:text-gray-300">
+                                                                    <div class="flex items-center gap-1 px-2 py-1 bg-surface rounded-md">
+                                                                        <span class="text-xs sm:text-sm font-semibold text-fg-muted">
                                                                             = Tied
                                                                         </span>
                                                                     </div>
@@ -164,7 +162,7 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                                             size={14}
                                                                             class="text-green-600 dark:text-green-400"
                                                                         />
-                                                                        <span class="text-xs sm:text-sm font-bold text-green-600 dark:text-green-400">
+                                                                        <span class="text-xs sm:text-sm font-semibold text-green-600 dark:text-green-400">
                                                                             {improvement}
                                                                         </span>
                                                                     </div>
@@ -173,7 +171,7 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
 
                                                             {/* Secondary time in flap mode */}
                                                             <Show when={isFlap()}>
-                                                                <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                                <div class="mt-1 text-xs text-fg-subtle">
                                                                     Finish:{" "}
                                                                     {record.finishTimeDisplay}
                                                                 </div>
@@ -215,15 +213,15 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                     {/* Player and Setup */}
                                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-3">
                                                         <div>
-                                                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+                                                            <div class="text-xs text-fg-subtle mb-1">
                                                                 Player
                                                             </div>
                                                             <div class="flex items-center gap-2">
                                                                 <div class="flex-1 min-w-0">
-                                                                    <div class="font-bold text-sm sm:text-base text-gray-900 dark:text-white truncate">
+                                                                    <div class="font-semibold text-sm sm:text-base text-fg truncate">
                                                                         {record.playerName}
                                                                     </div>
-                                                                    <div class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
+                                                                    <div class="text-xs sm:text-sm text-fg-muted truncate">
                                                                         {record.miiName}
                                                                     </div>
                                                                 </div>
@@ -237,22 +235,22 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                             </div>
                                                         </div>
                                                         <div>
-                                                            <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+                                                            <div class="text-xs text-fg-subtle mb-1">
                                                                 Setup
                                                             </div>
-                                                            <div class="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
+                                                            <div class="text-xs sm:text-sm font-medium text-fg">
                                                                 {getCharacterName(
                                                                     record.characterId,
                                                                 )}
                                                             </div>
-                                                            <div class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                                            <div class="text-xs sm:text-sm text-fg-muted">
                                                                 {getVehicleName(record.vehicleId)} •{" "}
                                                                 {getDriftInfo(
                                                                     record.driftType,
                                                                     record.driftCategory,
                                                                 )}
                                                             </div>
-                                                            <div class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                                            <div class="text-xs sm:text-sm text-fg-muted">
                                                                 {getControllerName(
                                                                     record.controllerType,
                                                                 )}
@@ -262,7 +260,7 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
 
                                                     {/* Date and Download */}
                                                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-3 border-t border-gray-200 dark:border-gray-600">
-                                                        <div class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                                        <div class="text-xs sm:text-sm text-fg-muted">
                                                             <span class="font-medium">Set on:</span>{" "}
                                                             {formatDate(record.dateSet)}
                                                         </div>
@@ -279,8 +277,8 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                             }
                                                             class={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-transparent text-xs font-medium rounded-md transition-colors w-full sm:w-auto ${
                                                                 record.hasGhostFile
-                                                                    ? "text-white bg-blue-600 hover:bg-blue-700"
-                                                                    : "text-gray-400 dark:text-gray-500 bg-gray-200 dark:bg-gray-700 cursor-not-allowed"
+                                                                    ? "text-accent-fg bg-accent hover:bg-accent-hover"
+                                                                    : "text-fg-subtle bg-gray-200 dark:bg-gray-700 cursor-not-allowed"
                                                             }`}
                                                         >
                                                             <Download size={14} />
@@ -297,31 +295,25 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
 
                         {/* Stats Summary */}
                         <Show when={props.history!.length > 1}>
-                            <div class="mt-6 sm:mt-8 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <div class="mt-6 sm:mt-8 p-3 sm:p-4 bg-surface rounded-lg border border-line">
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 text-center">
                                     <div>
-                                        <div class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                                        <div class="text-xl sm:text-2xl font-semibold text-fg">
                                             {props.history!.length}
                                         </div>
-                                        <div class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                                            Total
-                                        </div>
+                                        <div class="text-xs text-fg-muted">Total</div>
                                     </div>
                                     <div>
-                                        <div class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                                        <div class="text-xl sm:text-2xl font-semibold text-fg">
                                             {new Set(props.history!.map((r) => r.playerName)).size}
                                         </div>
-                                        <div class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                                            Players
-                                        </div>
+                                        <div class="text-xs text-fg-muted">Players</div>
                                     </div>
                                     <div>
-                                        <div class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                                        <div class="text-xl sm:text-2xl font-semibold text-fg">
                                             {getTimeDisplay(props.history![0])}
                                         </div>
-                                        <div class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                                            First
-                                        </div>
+                                        <div class="text-xs text-fg-muted">First</div>
                                     </div>
                                     <div>
                                         {/* Total delta */}
@@ -334,16 +326,14 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                             }
                                             fallback={
                                                 <>
-                                                    <div class="text-xl sm:text-2xl font-bold text-gray-500 dark:text-gray-400">
+                                                    <div class="text-xl sm:text-2xl font-semibold text-fg-subtle">
                                                         = Tied
                                                     </div>
-                                                    <div class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                                                        Total Δ
-                                                    </div>
+                                                    <div class="text-xs text-fg-muted">Total Δ</div>
                                                 </>
                                             }
                                         >
-                                            <div class="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
+                                            <div class="text-xl sm:text-2xl font-semibold text-green-600 dark:text-green-400">
                                                 {formatTimeImprovement(
                                                     getComparisonTime(
                                                         props.history![props.history!.length - 1],
@@ -351,9 +341,7 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                     getComparisonTime(props.history![0]),
                                                 )}
                                             </div>
-                                            <div class="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                                                Total Δ
-                                            </div>
+                                            <div class="text-xs text-fg-muted">Total Δ</div>
                                         </Show>
                                     </div>
                                 </div>

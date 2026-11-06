@@ -74,25 +74,21 @@ export default function OnlineBestsPage() {
     return (
         <div class="space-y-6">
             {/* Header */}
-            <div class="pb-6 border-b border-gray-200 dark:border-gray-700">
-                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                    Online Best Times
-                </h1>
-                <p class="text-lg text-gray-600 dark:text-gray-400">
-                    Fastest times achieved in actual online races
-                </p>
+            <div class="pb-6 border-b border-line">
+                <h1 class="type-display mb-3 text-fg">Online Best Times</h1>
+                <p class="text-lg text-fg-muted">Fastest times achieved in actual online races</p>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* Track selector */}
                 <div class="lg:col-span-1">
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-4">
+                    <div class="bg-canvas rounded-lg border border-line p-4">
                         <input
                             type="text"
                             placeholder="Search tracks..."
                             value={trackSearch()}
                             onInput={(e) => setTrackSearch(e.currentTarget.value)}
-                            class="w-full text-sm px-3 py-2 mb-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                            class="w-full text-sm px-3 py-2 mb-3 border border-line rounded-lg bg-canvas text-fg placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                         />
                         <Show when={tracksQuery.isLoading}>
                             <div class="flex justify-center py-4">
@@ -103,7 +99,7 @@ export default function OnlineBestsPage() {
                             <div class="space-y-4 max-h-[60vh] overflow-y-auto overscroll-contain">
                                 <Show when={retroTracks().length > 0}>
                                     <div>
-                                        <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1 px-2">
+                                        <p class="text-xs font-semibold text-fg-subtle mb-1 px-2">
                                             Retro
                                         </p>
                                         <For each={retroTracks()}>
@@ -115,8 +111,8 @@ export default function OnlineBestsPage() {
                                                     }
                                                     class={`w-full text-left text-sm px-2 py-1.5 rounded-lg transition-colors ${
                                                         selectedCourseId() === track.courseId
-                                                            ? "bg-blue-600 text-white"
-                                                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                            ? "bg-accent text-accent-fg"
+                                                            : "text-fg-muted hover:bg-surface"
                                                     }`}
                                                 >
                                                     {track.name}
@@ -127,7 +123,7 @@ export default function OnlineBestsPage() {
                                 </Show>
                                 <Show when={customTracks().length > 0}>
                                     <div>
-                                        <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1 px-2">
+                                        <p class="text-xs font-semibold text-fg-subtle mb-1 px-2">
                                             Custom
                                         </p>
                                         <For each={customTracks()}>
@@ -139,8 +135,8 @@ export default function OnlineBestsPage() {
                                                     }
                                                     class={`w-full text-left text-sm px-2 py-1.5 rounded-lg transition-colors ${
                                                         selectedCourseId() === track.courseId
-                                                            ? "bg-blue-600 text-white"
-                                                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                            ? "bg-accent text-accent-fg"
+                                                            : "text-fg-muted hover:bg-surface"
                                                     }`}
                                                 >
                                                     {track.name}
@@ -156,9 +152,9 @@ export default function OnlineBestsPage() {
 
                 {/* Results panel */}
                 <div class="lg:col-span-3">
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6">
+                    <div class="bg-canvas rounded-lg border border-line p-6">
                         <Show when={selectedCourseId() === null}>
-                            <div class="flex flex-col items-center justify-center py-24 gap-3 text-gray-400 dark:text-gray-500">
+                            <div class="flex flex-col items-center justify-center py-24 gap-3 text-fg-subtle">
                                 <Clock size={48} />
                                 <p class="text-lg font-medium">
                                     Select a track to see online best times
@@ -177,8 +173,8 @@ export default function OnlineBestsPage() {
                                                 onClick={() => handleCcChange(opt.value)}
                                                 class={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                                                     engineClassId() === opt.value
-                                                        ? "bg-blue-600 text-white"
-                                                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                                        ? "bg-accent text-accent-fg"
+                                                        : "bg-surface text-fg-muted hover:bg-gray-200 dark:hover:bg-gray-600"
                                                 }`}
                                             >
                                                 {opt.label}
@@ -187,7 +183,7 @@ export default function OnlineBestsPage() {
                                     </For>
                                 </div>
                                 <Show when={bestsQuery.data?.averageTimeDisplay}>
-                                    <span class="text-sm text-gray-500 dark:text-gray-400">
+                                    <span class="text-sm text-fg-subtle">
                                         Avg personal best:{" "}
                                         <span class="font-mono font-semibold text-gray-700 dark:text-gray-200">
                                             {bestsQuery.data!.averageTimeDisplay}
@@ -200,7 +196,7 @@ export default function OnlineBestsPage() {
                             <Show when={bestsQuery.isLoading}>
                                 <div class="flex items-center justify-center py-16 gap-4">
                                     <LoadingSpinner />
-                                    <p class="text-gray-600 dark:text-gray-300">Loading times...</p>
+                                    <p class="text-fg-muted">Loading times...</p>
                                 </div>
                             </Show>
 
@@ -212,7 +208,7 @@ export default function OnlineBestsPage() {
                                     bestsQuery.data.items.length === 0
                                 }
                             >
-                                <div class="flex flex-col items-center justify-center py-16 gap-3 text-gray-400 dark:text-gray-500">
+                                <div class="flex flex-col items-center justify-center py-16 gap-3 text-fg-subtle">
                                     <Trophy size={40} />
                                     <p>No online times recorded for this track yet</p>
                                 </div>
@@ -229,7 +225,7 @@ export default function OnlineBestsPage() {
                                 <div class="overflow-x-auto">
                                     <table class="w-full text-sm">
                                         <thead>
-                                            <tr class="text-left text-xs text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-gray-700">
+                                            <tr class="text-left text-xs text-fg-subtle border-b border-line">
                                                 <th class="pb-2 font-medium w-10">#</th>
                                                 <th class="pb-2 font-medium">Player</th>
                                                 <th class="pb-2 font-medium">Time</th>
@@ -242,22 +238,22 @@ export default function OnlineBestsPage() {
                                         <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                                             <For each={bestsQuery.data!.items}>
                                                 {(entry) => (
-                                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                                        <td class="py-2 pr-3 font-mono text-xs text-gray-400 dark:text-gray-500">
+                                                    <tr class="hover:bg-surface transition-colors">
+                                                        <td class="py-2 pr-3 font-mono text-xs text-fg-subtle">
                                                             {entry.rank}
                                                         </td>
                                                         <td class="py-2 pr-3">
                                                             <Show
                                                                 when={entry.fc}
                                                                 fallback={
-                                                                    <span class="font-medium text-gray-800 dark:text-gray-200">
+                                                                    <span class="font-medium text-fg">
                                                                         {entry.playerName}
                                                                     </span>
                                                                 }
                                                             >
                                                                 <A
                                                                     href={`/player/${entry.fc}`}
-                                                                    class="font-medium text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                                                    class="font-medium text-fg hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                                                                 >
                                                                     {entry.playerName}
                                                                 </A>
@@ -267,11 +263,11 @@ export default function OnlineBestsPage() {
                                                             {entry.finishTimeDisplay}
                                                         </td>
                                                         <td class="py-2 pr-3 hidden sm:table-cell">
-                                                            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                                                            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-surface text-fg-muted">
                                                                 {entry.gameMode}
                                                             </span>
                                                         </td>
-                                                        <td class="py-2 text-right text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                                                        <td class="py-2 text-right text-xs text-fg-subtle whitespace-nowrap">
                                                             {new Date(
                                                                 entry.achievedAt,
                                                             ).toLocaleDateString()}
@@ -285,17 +281,17 @@ export default function OnlineBestsPage() {
 
                                 {/* Pagination */}
                                 <Show when={bestsQuery.data!.totalPages > 1}>
-                                    <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex-wrap gap-3">
+                                    <div class="flex items-center justify-between mt-4 pt-4 border-t border-line flex-wrap gap-3">
                                         <div class="flex items-center gap-2">
                                             <button
                                                 type="button"
                                                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                                                 disabled={page() === 1}
-                                                class="px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                                class="px-3 py-1.5 rounded-lg text-sm font-medium bg-surface text-fg-muted hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                             >
                                                 Previous
                                             </button>
-                                            <span class="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+                                            <span class="flex items-center gap-1.5 text-sm text-fg-subtle">
                                                 Page
                                                 <input
                                                     type="number"
@@ -330,7 +326,7 @@ export default function OnlineBestsPage() {
                                                             setPage(v);
                                                         else e.target.value = String(page());
                                                     }}
-                                                    class="w-14 px-2 py-1 text-center text-sm border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                    class="w-14 px-2 py-1 text-center text-sm border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-fg focus:outline-none focus:border-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                 />
                                                 of {bestsQuery.data!.totalPages}
                                             </span>
@@ -345,12 +341,12 @@ export default function OnlineBestsPage() {
                                                     )
                                                 }
                                                 disabled={page() === bestsQuery.data!.totalPages}
-                                                class="px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                                class="px-3 py-1.5 rounded-lg text-sm font-medium bg-surface text-fg-muted hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                             >
                                                 Next
                                             </button>
                                         </div>
-                                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                                        <span class="text-sm text-fg-subtle">
                                             {bestsQuery.data!.totalCount.toLocaleString()} times
                                         </span>
                                     </div>

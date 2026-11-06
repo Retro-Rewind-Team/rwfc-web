@@ -56,26 +56,6 @@ export default function MiiComponent(props: Readonly<MiiComponentProps>) {
             .toUpperCase();
     };
 
-    const getGradientColors = () => {
-        const hash = props.friendCode.split("").reduce((a, b) => {
-            a = (a << 5) - a + b.charCodeAt(0);
-            return a & a;
-        }, 0);
-
-        const gradients = [
-            "from-blue-500 to-purple-600",
-            "from-purple-500 to-pink-600",
-            "from-green-500 to-blue-600",
-            "from-yellow-500 to-red-600",
-            "from-indigo-500 to-purple-600",
-            "from-pink-500 to-rose-600",
-            "from-cyan-500 to-blue-600",
-            "from-emerald-500 to-teal-600",
-        ];
-
-        return gradients[Math.abs(hash) % gradients.length];
-    };
-
     const getSpinnerSize = () => {
         const currentSize = size();
         if (currentSize === "sm") return "w-3 h-3";
@@ -84,20 +64,17 @@ export default function MiiComponent(props: Readonly<MiiComponentProps>) {
     };
 
     const LoadingSpinner = () => (
-        <div
-            class={`w-full h-full bg-gradient-to-br ${getGradientColors()} flex items-center justify-center`}
-        >
+        <div class={`w-full h-full bg-surface flex items-center justify-center`}>
             <div
-                class={`animate-spin rounded-full border-2 border-white border-t-transparent ${getSpinnerSize()}`}
+                class={`animate-spin rounded-full border border-fg-subtle border-t-transparent ${getSpinnerSize()}`}
             ></div>
         </div>
     );
 
     const FallbackAvatar = () => (
-        <div
-            class={`w-full h-full bg-gradient-to-br ${getGradientColors()} flex items-center justify-center`}
-        >
-            <span class="text-white font-bold select-none drop-shadow-sm">{getInitials()}</span>
+        <div class={`w-full h-full bg-surface flex items-center justify-center`}>
+            {/* A neutral tile: the initials identify the player without decorative colour. */}
+            <span class="text-fg-muted font-semibold select-none">{getInitials()}</span>
         </div>
     );
 
@@ -106,7 +83,7 @@ export default function MiiComponent(props: Readonly<MiiComponentProps>) {
     return (
         <div
             ref={(el) => (containerRef = el)}
-            class={`relative inline-flex items-center justify-center ${sizeClasses[size()]} rounded-full overflow-hidden shadow-sm ${props.className || ""}`}
+            class={`relative inline-flex items-center justify-center ${sizeClasses[size()]} rounded-full overflow-hidden ${props.className || ""}`}
         >
             <Show
                 when={currentMiiImage()}

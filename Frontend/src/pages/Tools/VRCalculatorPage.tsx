@@ -19,6 +19,7 @@ import { multiplierApi, type MultiplierChannel } from "../../services/api/multip
 import { AlertBox } from "../../components/common";
 import { Meta, Title } from "@solidjs/meta";
 import { VR_CALCULATOR_META } from "../../constants/pageMeta";
+import PageHeader from "../../components/common/PageHeader";
 
 const PLAYER_LIMIT = { min: 2, max: 12 };
 
@@ -138,497 +139,511 @@ export default function VRCalculatorPage() {
     const toggleMod = (key: ToggleModifier) => setMods((m) => ({ ...m, [key]: !m[key] }));
 
     return (
-        <div class="max-w-6xl mx-auto space-y-5">
-            <Title>{VR_CALCULATOR_META.title}</Title>
-            <Meta name="description" content={VR_CALCULATOR_META.description} />
-            <div class="border-b border-gray-200 dark:border-gray-700 pb-5">
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-1">VR Calculator</h1>
-                <p class="text-gray-500 dark:text-gray-400 text-sm">
-                    Simulate VR gains and losses using the actual game spline, caps, and modifiers.
-                </p>
-            </div>
+        <>
+            <PageHeader
+                page="tools"
+                compact
+                crumbs={[{ label: "Tools", href: "/tools" }]}
+                title="VR calculator"
+                description="Simulate VR gains and losses using the actual game spline, caps and modifiers."
+            />
+            <div class="space-y-5">
+                <Title>{VR_CALCULATOR_META.title}</Title>
+                <Meta name="description" content={VR_CALCULATOR_META.description} />
 
-            <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
-                {/* Race Setup */}
-                <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-4">
-                    <h2 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Race Setup
-                    </h2>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="space-y-1">
-                            <span class="text-xs text-gray-500 dark:text-gray-400">
-                                Players (2–12)
-                            </span>
-                            <input
-                                type="number"
-                                min="2"
-                                max="12"
-                                value={playerCount()}
-                                onInput={(e) => changeCount(parseInt(e.currentTarget.value) || 12)}
-                                class="w-full px-2 py-1.5 text-sm font-mono rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500"
-                            />
-                        </label>
-                        <label class="space-y-1">
-                            <span class="text-xs text-gray-500 dark:text-gray-400">Min VR</span>
-                            <input
-                                type="number"
-                                value={minDisplay()}
-                                onInput={(e) =>
-                                    setMinDisplay(
-                                        parseFloat(e.currentTarget.value) || MIN_DISPLAY_VR,
-                                    )
-                                }
-                                class="w-full px-2 py-1.5 text-sm font-mono rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500"
-                            />
-                        </label>
-                        <label class="space-y-1">
-                            <span class="text-xs text-gray-500 dark:text-gray-400">Max VR</span>
-                            <input
-                                type="number"
-                                value={maxDisplay()}
-                                onInput={(e) =>
-                                    setMaxDisplay(
-                                        parseFloat(e.currentTarget.value) || MAX_DISPLAY_VR,
-                                    )
-                                }
-                                class="w-full px-2 py-1.5 text-sm font-mono rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500"
-                            />
-                        </label>
-                    </div>
-
-                    <div class="space-y-2 pt-1 border-t border-gray-100 dark:border-gray-700">
-                        {[
-                            { label: "VR Mode Rules", val: vrMode(), set: setVrMode },
-                            { label: "All Disconnected", val: allDisc(), set: setAllDisc },
-                            { label: "Reverse Mode", val: reverseMode(), set: setReverseMode },
-                        ].map((opt) => (
-                            <label class="flex items-center gap-2.5 cursor-pointer">
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+                    {/* Race Setup */}
+                    <div class="lg:col-span-2 bg-canvas rounded-lg border border-line p-4 space-y-4">
+                        <h2 class="text-xs font-semibold text-fg-subtle">Race Setup</h2>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="space-y-1">
+                                <span class="text-xs text-fg-subtle">Players (2–12)</span>
                                 <input
-                                    type="checkbox"
-                                    checked={opt.val}
-                                    onChange={() => opt.set((v: boolean) => !v)}
-                                    class="w-4 h-4 rounded border-gray-300 text-blue-600"
+                                    type="number"
+                                    min="2"
+                                    max="12"
+                                    value={playerCount()}
+                                    onInput={(e) =>
+                                        changeCount(parseInt(e.currentTarget.value) || 12)
+                                    }
+                                    class="w-full px-2 py-1.5 text-sm font-mono rounded-lg border border-line-strong bg-canvas text-fg focus:ring-1 focus:ring-blue-500"
                                 />
-                                <span class="text-sm text-gray-700 dark:text-gray-300">
-                                    {opt.label}
-                                </span>
                             </label>
-                        ))}
-                    </div>
-
-                    <div class="flex gap-2 pt-1">
-                        <button
-                            type="button"
-                            onClick={seedDefaults}
-                            class="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                        >
-                            Reset VRs
-                        </button>
-                        <button
-                            type="button"
-                            onClick={resetOrder}
-                            class="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                        >
-                            Reset Order
-                        </button>
-                    </div>
-                </div>
-
-                {/* Modifiers */}
-                <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-4">
-                    <h2 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Multipliers
-                    </h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {TOGGLES.map((m) => (
-                            <label
-                                class={`flex items-center gap-2.5 p-2.5 rounded-lg cursor-pointer border transition-colors
-                                ${mods()[m.key] ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700" : "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"}`}
-                            >
+                            <label class="space-y-1">
+                                <span class="text-xs text-fg-subtle">Min VR</span>
                                 <input
-                                    type="checkbox"
-                                    checked={mods()[m.key]}
-                                    onChange={() => toggleMod(m.key)}
-                                    class="w-4 h-4 rounded border-gray-300 text-blue-600"
+                                    type="number"
+                                    value={minDisplay()}
+                                    onInput={(e) =>
+                                        setMinDisplay(
+                                            parseFloat(e.currentTarget.value) || MIN_DISPLAY_VR,
+                                        )
+                                    }
+                                    class="w-full px-2 py-1.5 text-sm font-mono rounded-lg border border-line-strong bg-canvas text-fg focus:ring-1 focus:ring-blue-500"
                                 />
-                                <span class="text-sm text-gray-700 dark:text-gray-300 flex-1">
-                                    {m.label}
-                                </span>
-                                <span
-                                    class={`text-xs font-mono px-1.5 py-0.5 rounded ${mods()[m.key] ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300" : "bg-gray-200 dark:bg-gray-700 text-gray-500"}`}
-                                >
-                                    {m.mult}
-                                </span>
                             </label>
-                        ))}
-                    </div>
+                            <label class="space-y-1">
+                                <span class="text-xs text-fg-subtle">Max VR</span>
+                                <input
+                                    type="number"
+                                    value={maxDisplay()}
+                                    onInput={(e) =>
+                                        setMaxDisplay(
+                                            parseFloat(e.currentTarget.value) || MAX_DISPLAY_VR,
+                                        )
+                                    }
+                                    class="w-full px-2 py-1.5 text-sm font-mono rounded-lg border border-line-strong bg-canvas text-fg focus:ring-1 focus:ring-blue-500"
+                                />
+                            </label>
+                        </div>
 
-                    <div class="flex flex-wrap items-center gap-x-3 gap-y-2 p-2.5 rounded-lg border bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700">
-                        <label class="flex items-center gap-2.5 flex-1 min-w-[10rem]">
-                            <span class="text-sm text-gray-700 dark:text-gray-300 flex-1">
-                                Server multiplier
-                            </span>
-                            <input
-                                type="number"
-                                min="0"
-                                step="0.05"
-                                value={mods().serverMultiplier}
-                                onInput={(e) => {
-                                    setServerEdited(true);
-                                    const value = parseFloat(e.currentTarget.value);
-                                    setMods((m) => ({ ...m, serverMultiplier: value }));
-                                }}
-                                class="w-20 px-2 py-1 text-sm font-mono rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500"
-                            />
-                        </label>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">{liveStatus()}</span>
-                        <Show when={serverEdited() && liveMultiplier() != null}>
+                        <div class="space-y-2 pt-1 border-t border-line">
+                            {[
+                                { label: "VR Mode Rules", val: vrMode(), set: setVrMode },
+                                { label: "All Disconnected", val: allDisc(), set: setAllDisc },
+                                { label: "Reverse Mode", val: reverseMode(), set: setReverseMode },
+                            ].map((opt) => (
+                                <label class="flex items-center gap-2.5 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={opt.val}
+                                        onChange={() => opt.set((v: boolean) => !v)}
+                                        class="w-4 h-4 rounded border-gray-300 text-blue-600"
+                                    />
+                                    <span class="text-sm text-fg-muted">{opt.label}</span>
+                                </label>
+                            ))}
+                        </div>
+
+                        <div class="flex gap-2 pt-1">
                             <button
                                 type="button"
-                                onClick={() => setServerEdited(false)}
-                                class="text-xs px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                                onClick={seedDefaults}
+                                class="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-surface text-fg-muted hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                             >
-                                Use live value
+                                Reset VRs
                             </button>
+                            <button
+                                type="button"
+                                onClick={resetOrder}
+                                class="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-surface text-fg-muted hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                            >
+                                Reset Order
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Modifiers */}
+                    <div class="lg:col-span-3 bg-canvas rounded-lg border border-line p-4 space-y-4">
+                        <h2 class="text-xs font-semibold text-fg-subtle">Multipliers</h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {TOGGLES.map((m) => (
+                                <label
+                                    class={`flex items-center gap-2.5 p-2.5 rounded-lg cursor-pointer border transition-colors
+                                ${mods()[m.key] ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700" : "bg-surface border-line hover:border-gray-300 dark:hover:border-gray-600"}`}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={mods()[m.key]}
+                                        onChange={() => toggleMod(m.key)}
+                                        class="w-4 h-4 rounded border-gray-300 text-blue-600"
+                                    />
+                                    <span class="text-sm text-fg-muted flex-1">{m.label}</span>
+                                    <span
+                                        class={`text-xs font-mono px-1.5 py-0.5 rounded ${mods()[m.key] ? "bg-accent-soft text-accent-text" : "bg-surface text-fg-muted"}`}
+                                    >
+                                        {m.mult}
+                                    </span>
+                                </label>
+                            ))}
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-2 p-2.5 rounded-lg border bg-surface border-line">
+                            <label class="flex items-center gap-2.5 flex-1 min-w-[10rem]">
+                                <span class="text-sm text-fg-muted flex-1">Server multiplier</span>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.05"
+                                    value={mods().serverMultiplier}
+                                    onInput={(e) => {
+                                        setServerEdited(true);
+                                        const value = parseFloat(e.currentTarget.value);
+                                        setMods((m) => ({ ...m, serverMultiplier: value }));
+                                    }}
+                                    class="w-20 px-2 py-1 text-sm font-mono rounded border border-line-strong bg-canvas text-fg focus:ring-1 focus:ring-blue-500"
+                                />
+                            </label>
+                            <span class="text-xs text-fg-subtle">{liveStatus()}</span>
+                            <Show when={serverEdited() && liveMultiplier() != null}>
+                                <button
+                                    type="button"
+                                    onClick={() => setServerEdited(false)}
+                                    class="text-xs px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-fg-muted hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                                >
+                                    Use live value
+                                </button>
+                            </Show>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-line">
+                            {[
+                                { label: "Base", value: `${mult().base.toFixed(2)}×` },
+                                { label: "Battle Bonus", value: `+${mult().battle.toFixed(3)}` },
+                                { label: "Server", value: `${mult().server.toFixed(2)}×` },
+                                { label: "Total", value: `${mult().total.toFixed(2)}×` },
+                            ].map((s) => (
+                                <div class="bg-surface rounded-lg p-2.5 border border-line">
+                                    <div class="text-xs text-fg-subtle mb-1">{s.label}</div>
+                                    <div class="font-mono font-semibold text-fg text-sm">
+                                        {s.value}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <Show when={mult().capped}>
+                            <p class="text-xs text-yellow-600 dark:text-yellow-400">
+                                The game keeps the total between 1.00× and 2.50×.
+                            </p>
+                        </Show>
+
+                        <Show when={reverseMode()}>
+                            <AlertBox type="info">
+                                <p class="text-sm">
+                                    Reverse mode: enter post-race VR and the delta shown - original
+                                    VR is derived.
+                                </p>
+                            </AlertBox>
                         </Show>
                     </div>
+                </div>
 
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-gray-100 dark:border-gray-700">
-                        {[
-                            { label: "Base", value: `${mult().base.toFixed(2)}×` },
-                            { label: "Battle Bonus", value: `+${mult().battle.toFixed(3)}` },
-                            { label: "Server", value: `${mult().server.toFixed(2)}×` },
-                            { label: "Total", value: `${mult().total.toFixed(2)}×` },
-                        ].map((s) => (
-                            <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-2.5 border border-gray-200 dark:border-gray-700">
-                                <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                    {s.label}
-                                </div>
-                                <div class="font-mono font-semibold text-gray-900 dark:text-white text-sm">
-                                    {s.value}
-                                </div>
-                            </div>
-                        ))}
+                {/* Player Table */}
+                <div class="bg-canvas rounded-lg border border-line overflow-hidden">
+                    <div class="px-4 py-3 border-b border-line flex items-center justify-between">
+                        <h2 class="text-xs font-semibold text-fg-subtle">
+                            Player Results
+                            <span class="ml-2 text-fg-subtle font-normal normal-case tracking-normal">
+                                row order = finish order
+                            </span>
+                        </h2>
                     </div>
-                    <Show when={mult().capped}>
-                        <p class="text-xs text-yellow-600 dark:text-yellow-400">
-                            The game keeps the total between 1.00× and 2.50×.
-                        </p>
-                    </Show>
+                    <div class="relative overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-surface border-b border-line">
+                                <tr>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-fg-subtle w-12">
+                                        Pos
+                                    </th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-fg-subtle">
+                                        Player
+                                    </th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-fg-subtle">
+                                        {reverseMode() ? "Post VR" : "VR"}
+                                    </th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-fg-subtle">
+                                        Move
+                                    </th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-fg-subtle">
+                                        {reverseMode() ? "Delta (input)" : "Delta"}
+                                    </th>
+                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-fg-subtle">
+                                        {reverseMode() ? "Original VR" : "New VR"}
+                                    </th>
+                                    <Show when={!reverseMode()}>
+                                        <th class="px-4 py-2.5 text-left text-xs font-semibold text-fg-subtle w-8">
+                                            <span class="sr-only">Position</span>
+                                        </th>
+                                    </Show>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50">
+                                <For each={visiblePlayers()}>
+                                    {(player, pos) => {
+                                        const result = () => resultFor(player.id);
+                                        const isExpanded = () => expandedRows().has(player.id);
 
-                    <Show when={reverseMode()}>
-                        <AlertBox type="info">
-                            <p class="text-sm">
-                                Reverse mode: enter post-race VR and the delta shown - original VR
-                                is derived.
-                            </p>
-                        </AlertBox>
-                    </Show>
-                </div>
-            </div>
+                                        const deltaDisplay = () => {
+                                            const r = result();
+                                            if (!r) return "";
+                                            return fmtDelta(r.finalDelta);
+                                        };
+                                        const deltaColor = () => {
+                                            const r = result();
+                                            if (!r) return "";
+                                            const d = Math.round(r.finalDelta * VR_DISPLAY_SCALE);
+                                            if (d > 0) return "text-green-600 dark:text-green-400";
+                                            if (d < 0) return "text-red-600 dark:text-red-400";
+                                            return "text-gray-500";
+                                        };
 
-            {/* Player Table */}
-            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                    <h2 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Player Results
-                        <span class="ml-2 text-gray-400 dark:text-gray-600 font-normal normal-case tracking-normal">
-                            row order = finish order
-                        </span>
-                    </h2>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead class="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-                            <tr>
-                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 w-12">
-                                    Pos
-                                </th>
-                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400">
-                                    Player
-                                </th>
-                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400">
-                                    {reverseMode() ? "Post VR" : "VR"}
-                                </th>
-                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400">
-                                    Move
-                                </th>
-                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400">
-                                    {reverseMode() ? "Delta (input)" : "Delta"}
-                                </th>
-                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400">
-                                    {reverseMode() ? "Original VR" : "New VR"}
-                                </th>
-                                <Show when={!reverseMode()}>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 w-8"></th>
-                                </Show>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50">
-                            <For each={visiblePlayers()}>
-                                {(player, pos) => {
-                                    const result = () => resultFor(player.id);
-                                    const isExpanded = () => expandedRows().has(player.id);
+                                        // reverse mode delta input
+                                        const [revDelta, setRevDelta] = createSignal(
+                                            reverseDeltas()[pos()] ?? 0,
+                                        );
+                                        const revOriginal = () => player.displayVr - revDelta();
 
-                                    const deltaDisplay = () => {
-                                        const r = result();
-                                        if (!r) return "";
-                                        return fmtDelta(r.finalDelta);
-                                    };
-                                    const deltaColor = () => {
-                                        const r = result();
-                                        if (!r) return "";
-                                        const d = Math.round(r.finalDelta * VR_DISPLAY_SCALE);
-                                        if (d > 0) return "text-green-600 dark:text-green-400";
-                                        if (d < 0) return "text-red-500 dark:text-red-400";
-                                        return "text-gray-500";
-                                    };
-
-                                    // reverse mode delta input
-                                    const [revDelta, setRevDelta] = createSignal(
-                                        reverseDeltas()[pos()] ?? 0,
-                                    );
-                                    const revOriginal = () => player.displayVr - revDelta();
-
-                                    return (
-                                        <>
-                                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/20 transition-colors">
-                                                <td class="px-4 py-2 font-mono text-xs text-gray-400">
-                                                    {pos() + 1}
-                                                </td>
-                                                <td class="px-4 py-2 font-mono text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                    P{player.id}
-                                                </td>
-                                                <td class="px-4 py-2">
-                                                    <input
-                                                        type="number"
-                                                        value={player.displayVr}
-                                                        onInput={(e) =>
-                                                            updateVr(
-                                                                player.id,
-                                                                parseFloat(e.currentTarget.value) ||
-                                                                    0,
-                                                            )
-                                                        }
-                                                        class="w-24 px-2 py-1 text-sm font-mono rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500"
-                                                    />
-                                                </td>
-                                                <td class="px-4 py-2">
-                                                    <div class="flex gap-1">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => movePlayer(pos(), -1)}
-                                                            disabled={pos() === 0}
-                                                            class="px-2 py-0.5 text-xs rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-30 transition-colors"
-                                                        >
-                                                            ↑
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => movePlayer(pos(), 1)}
-                                                            disabled={pos() === playerCount() - 1}
-                                                            class="px-2 py-0.5 text-xs rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-30 transition-colors"
-                                                        >
-                                                            ↓
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                                <td
-                                                    class={`px-4 py-2 font-mono text-sm font-semibold ${reverseMode() ? "" : deltaColor()}`}
-                                                >
-                                                    <Show
-                                                        when={reverseMode()}
-                                                        fallback={<span>{deltaDisplay()}</span>}
-                                                    >
+                                        return (
+                                            <>
+                                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/20 transition-colors">
+                                                    <td class="px-4 py-2 font-mono text-xs text-fg-subtle">
+                                                        {pos() + 1}
+                                                    </td>
+                                                    <td class="px-4 py-2 font-mono text-sm font-medium text-fg-muted">
+                                                        P{player.id}
+                                                    </td>
+                                                    <td class="px-4 py-2">
                                                         <input
                                                             type="number"
-                                                            value={revDelta()}
-                                                            onInput={(e) => {
-                                                                const v =
+                                                            aria-label={`VR for P${player.id}`}
+                                                            value={player.displayVr}
+                                                            onInput={(e) =>
+                                                                updateVr(
+                                                                    player.id,
                                                                     parseFloat(
                                                                         e.currentTarget.value,
-                                                                    ) || 0;
-                                                                setRevDelta(v);
-                                                                setReverseDeltas((prev) => {
-                                                                    const a = [...prev];
-                                                                    a[pos()] = v;
-                                                                    return a;
-                                                                });
-                                                            }}
-                                                            class="w-20 px-2 py-1 text-sm font-mono rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500"
+                                                                    ) || 0,
+                                                                )
+                                                            }
+                                                            class="w-24 px-2 py-1 text-sm font-mono rounded border border-line-strong bg-canvas text-fg focus:ring-1 focus:ring-blue-500"
                                                         />
-                                                    </Show>
-                                                </td>
-                                                <td class="px-4 py-2 font-mono text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                                    <Show
-                                                        when={reverseMode()}
-                                                        fallback={
-                                                            <>
-                                                                {result()?.newDisplayVr.toLocaleString() ??
-                                                                    ""}
-                                                            </>
-                                                        }
-                                                    >
-                                                        {revOriginal().toLocaleString()}
-                                                    </Show>
-                                                </td>
-                                                <Show when={!reverseMode()}>
+                                                    </td>
                                                     <td class="px-4 py-2">
-                                                        <Show when={result()?.contributions.length}>
+                                                        <div class="flex gap-1">
                                                             <button
                                                                 type="button"
+                                                                aria-label={`Move P${player.id} up`}
                                                                 onClick={() =>
-                                                                    toggleExpanded(player.id)
+                                                                    movePlayer(pos(), -1)
                                                                 }
-                                                                class="text-xs px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                                                disabled={pos() === 0}
+                                                                class="px-2 py-0.5 text-xs rounded bg-surface text-fg-muted hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-30 transition-colors"
                                                             >
-                                                                {isExpanded() ? "▲" : "▼"}
+                                                                ↑
                                                             </button>
+                                                            <button
+                                                                type="button"
+                                                                aria-label={`Move P${player.id} down`}
+                                                                onClick={() => movePlayer(pos(), 1)}
+                                                                disabled={
+                                                                    pos() === playerCount() - 1
+                                                                }
+                                                                class="px-2 py-0.5 text-xs rounded bg-surface text-fg-muted hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-30 transition-colors"
+                                                            >
+                                                                ↓
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td
+                                                        class={`px-4 py-2 font-mono text-sm font-semibold ${reverseMode() ? "" : deltaColor()}`}
+                                                    >
+                                                        <Show
+                                                            when={reverseMode()}
+                                                            fallback={<span>{deltaDisplay()}</span>}
+                                                        >
+                                                            <input
+                                                                type="number"
+                                                                aria-label={`VR change for P${player.id}`}
+                                                                value={revDelta()}
+                                                                onInput={(e) => {
+                                                                    const v =
+                                                                        parseFloat(
+                                                                            e.currentTarget.value,
+                                                                        ) || 0;
+                                                                    setRevDelta(v);
+                                                                    setReverseDeltas((prev) => {
+                                                                        const a = [...prev];
+                                                                        a[pos()] = v;
+                                                                        return a;
+                                                                    });
+                                                                }}
+                                                                class="w-20 px-2 py-1 text-sm font-mono rounded border border-line-strong bg-canvas text-fg focus:ring-1 focus:ring-blue-500"
+                                                            />
                                                         </Show>
                                                     </td>
-                                                </Show>
-                                            </tr>
+                                                    <td class="px-4 py-2 font-mono text-sm font-semibold text-fg">
+                                                        <Show
+                                                            when={reverseMode()}
+                                                            fallback={
+                                                                <>
+                                                                    {result()?.newDisplayVr.toLocaleString() ??
+                                                                        ""}
+                                                                </>
+                                                            }
+                                                        >
+                                                            {revOriginal().toLocaleString()}
+                                                        </Show>
+                                                    </td>
+                                                    <Show when={!reverseMode()}>
+                                                        <td class="px-4 py-2">
+                                                            <Show
+                                                                when={
+                                                                    result()?.contributions.length
+                                                                }
+                                                            >
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        toggleExpanded(player.id)
+                                                                    }
+                                                                    class="text-xs px-2 py-0.5 rounded bg-surface text-fg-subtle hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                                                >
+                                                                    {isExpanded() ? "▲" : "▼"}
+                                                                </button>
+                                                            </Show>
+                                                        </td>
+                                                    </Show>
+                                                </tr>
 
-                                            {/* Contribution breakdown */}
-                                            <Show when={isExpanded() && result()}>
-                                                <tr class="bg-gray-50/50 dark:bg-gray-900/30">
-                                                    <td colspan="8" class="px-6 py-3">
-                                                        <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                                                            Pair Contributions
-                                                        </div>
-                                                        <table class="text-xs font-mono">
-                                                            <thead>
-                                                                <tr class="text-gray-400 dark:text-gray-500">
-                                                                    <th class="text-left pr-4 pb-1 font-medium">
-                                                                        Opponent
-                                                                    </th>
-                                                                    <th class="text-left pr-4 pb-1 font-medium">
-                                                                        Result
-                                                                    </th>
-                                                                    <th class="text-left pr-4 pb-1 font-medium">
-                                                                        Raw
-                                                                    </th>
-                                                                    <th class="text-left pb-1 font-medium">
-                                                                        ×Mult
-                                                                    </th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <For each={result()!.contributions}>
-                                                                    {(c) => (
-                                                                        <tr>
-                                                                            <td class="pr-4 py-0.5 text-gray-600 dark:text-gray-400">
-                                                                                P{c.opponentId}
-                                                                            </td>
-                                                                            <td
-                                                                                class={`pr-4 py-0.5 ${c.win ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}
-                                                                            >
-                                                                                {c.win
-                                                                                    ? "WIN"
-                                                                                    : "LOSS"}
-                                                                            </td>
-                                                                            <td
-                                                                                class={`pr-4 py-0.5 ${c.win ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}
-                                                                            >
-                                                                                {c.win ? "+" : ""}
-                                                                                {fmtFixed(
-                                                                                    c.rawValue,
-                                                                                )}
-                                                                            </td>
-                                                                            <td
-                                                                                class={`py-0.5 ${c.win ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}
-                                                                            >
-                                                                                {c.win ? "+" : ""}
-                                                                                {fmtFixed(
-                                                                                    c.multValue,
-                                                                                )}
-                                                                            </td>
-                                                                        </tr>
-                                                                    )}
-                                                                </For>
-                                                            </tbody>
-                                                        </table>
-                                                        <div class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400">
-                                                            VR rule:{" "}
-                                                            <span class="text-gray-800 dark:text-gray-200 font-medium">
-                                                                {result()!.vrRule}
-                                                            </span>
-                                                        </div>
+                                                {/* Contribution breakdown */}
+                                                <Show when={isExpanded() && result()}>
+                                                    <tr class="bg-gray-50/50 dark:bg-gray-900/30">
+                                                        <td colspan="8" class="px-6 py-3">
+                                                            <div class="text-xs font-semibold text-fg-subtle mb-2">
+                                                                Pair Contributions
+                                                            </div>
+                                                            <table class="text-xs font-mono">
+                                                                <thead>
+                                                                    <tr class="text-fg-subtle">
+                                                                        <th class="text-left pr-4 pb-1 font-medium">
+                                                                            Opponent
+                                                                        </th>
+                                                                        <th class="text-left pr-4 pb-1 font-medium">
+                                                                            Result
+                                                                        </th>
+                                                                        <th class="text-left pr-4 pb-1 font-medium">
+                                                                            Raw
+                                                                        </th>
+                                                                        <th class="text-left pb-1 font-medium">
+                                                                            ×Mult
+                                                                        </th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <For
+                                                                        each={
+                                                                            result()!.contributions
+                                                                        }
+                                                                    >
+                                                                        {(c) => (
+                                                                            <tr>
+                                                                                <td class="pr-4 py-0.5 text-fg-muted">
+                                                                                    P{c.opponentId}
+                                                                                </td>
+                                                                                <td
+                                                                                    class={`pr-4 py-0.5 ${c.win ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                                                                                >
+                                                                                    {c.win
+                                                                                        ? "WIN"
+                                                                                        : "LOSS"}
+                                                                                </td>
+                                                                                <td
+                                                                                    class={`pr-4 py-0.5 ${c.win ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                                                                                >
+                                                                                    {c.win
+                                                                                        ? "+"
+                                                                                        : ""}
+                                                                                    {fmtFixed(
+                                                                                        c.rawValue,
+                                                                                    )}
+                                                                                </td>
+                                                                                <td
+                                                                                    class={`py-0.5 ${c.win ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                                                                                >
+                                                                                    {c.win
+                                                                                        ? "+"
+                                                                                        : ""}
+                                                                                    {fmtFixed(
+                                                                                        c.multValue,
+                                                                                    )}
+                                                                                </td>
+                                                                            </tr>
+                                                                        )}
+                                                                    </For>
+                                                                </tbody>
+                                                            </table>
+                                                            <div class="mt-2 pt-2 border-t border-line text-fg-muted">
+                                                                VR rule:{" "}
+                                                                <span class="text-fg font-medium">
+                                                                    {result()!.vrRule}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </Show>
+                                            </>
+                                        );
+                                    }}
+                                </For>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Calc Trace */}
+                <Show when={simResult()}>
+                    <div class="bg-canvas rounded-lg border border-line overflow-hidden">
+                        <button
+                            type="button"
+                            onClick={() => setTraceOpen((v) => !v)}
+                            class="w-full px-4 py-3 text-left flex items-center justify-between text-xs font-semibold text-fg-subtle hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
+                        >
+                            <span>Calculation Trace</span>
+                            <span>{traceOpen() ? "▲" : "▼"}</span>
+                        </button>
+                        <Show when={traceOpen()}>
+                            <div class="relative overflow-x-auto border-t border-line">
+                                <table class="w-full text-xs font-mono">
+                                    <thead class="bg-surface">
+                                        <tr>
+                                            {[
+                                                "Player",
+                                                "Pair Sum",
+                                                "After Mult",
+                                                "After Caps",
+                                                "VR Rule",
+                                                "Final Δ",
+                                            ].map((h) => (
+                                                <th class="px-4 py-2 text-left font-semibold text-fg-subtle whitespace-nowrap">
+                                                    {h}
+                                                </th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50">
+                                        <For each={simResult()!.players}>
+                                            {(r) => (
+                                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/20">
+                                                    <td class="px-4 py-1.5 text-fg-muted">
+                                                        P{r.id}
+                                                    </td>
+                                                    <td class="px-4 py-1.5 text-fg-muted">
+                                                        {fmtFixed(r.pairSum)}
+                                                    </td>
+                                                    <td class="px-4 py-1.5 text-fg-muted">
+                                                        {fmtFixed(r.afterMult)}
+                                                    </td>
+                                                    <td class="px-4 py-1.5 text-fg-muted">
+                                                        {fmtFixed(r.afterCaps)}
+                                                    </td>
+                                                    <td class="px-4 py-1.5 text-gray-500">
+                                                        {r.vrRule}
+                                                    </td>
+                                                    <td
+                                                        class={`px-4 py-1.5 font-semibold ${Math.round(r.finalDelta * VR_DISPLAY_SCALE) > 0 ? "text-green-600 dark:text-green-400" : Math.round(r.finalDelta * VR_DISPLAY_SCALE) < 0 ? "text-red-600 dark:text-red-400" : "text-gray-500"}`}
+                                                    >
+                                                        {fmtDelta(r.finalDelta)}
                                                     </td>
                                                 </tr>
-                                            </Show>
-                                        </>
-                                    );
-                                }}
-                            </For>
-                        </tbody>
-                    </table>
-                </div>
+                                            )}
+                                        </For>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </Show>
+                    </div>
+                </Show>
             </div>
-
-            {/* Calc Trace */}
-            <Show when={simResult()}>
-                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <button
-                        type="button"
-                        onClick={() => setTraceOpen((v) => !v)}
-                        class="w-full px-4 py-3 text-left flex items-center justify-between text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
-                    >
-                        <span>Calculation Trace</span>
-                        <span>{traceOpen() ? "▲" : "▼"}</span>
-                    </button>
-                    <Show when={traceOpen()}>
-                        <div class="overflow-x-auto border-t border-gray-200 dark:border-gray-700">
-                            <table class="w-full text-xs font-mono">
-                                <thead class="bg-gray-50 dark:bg-gray-900">
-                                    <tr>
-                                        {[
-                                            "Player",
-                                            "Pair Sum",
-                                            "After Mult",
-                                            "After Caps",
-                                            "VR Rule",
-                                            "Final Δ",
-                                        ].map((h) => (
-                                            <th class="px-4 py-2 text-left font-semibold text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                                                {h}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50">
-                                    <For each={simResult()!.players}>
-                                        {(r) => (
-                                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/20">
-                                                <td class="px-4 py-1.5 text-gray-700 dark:text-gray-300">
-                                                    P{r.id}
-                                                </td>
-                                                <td class="px-4 py-1.5 text-gray-600 dark:text-gray-400">
-                                                    {fmtFixed(r.pairSum)}
-                                                </td>
-                                                <td class="px-4 py-1.5 text-gray-600 dark:text-gray-400">
-                                                    {fmtFixed(r.afterMult)}
-                                                </td>
-                                                <td class="px-4 py-1.5 text-gray-600 dark:text-gray-400">
-                                                    {fmtFixed(r.afterCaps)}
-                                                </td>
-                                                <td class="px-4 py-1.5 text-gray-500">
-                                                    {r.vrRule}
-                                                </td>
-                                                <td
-                                                    class={`px-4 py-1.5 font-semibold ${Math.round(r.finalDelta * VR_DISPLAY_SCALE) > 0 ? "text-green-600 dark:text-green-400" : Math.round(r.finalDelta * VR_DISPLAY_SCALE) < 0 ? "text-red-500 dark:text-red-400" : "text-gray-500"}`}
-                                                >
-                                                    {fmtDelta(r.finalDelta)}
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </For>
-                                </tbody>
-                            </table>
-                        </div>
-                    </Show>
-                </div>
-            </Show>
-        </div>
+        </>
     );
 }

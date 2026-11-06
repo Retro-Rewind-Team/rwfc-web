@@ -46,11 +46,11 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
         });
 
     return (
-        <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6 space-y-6">
+        <div class="bg-canvas rounded-lg border border-line p-6 space-y-6">
             {/* Header + filters */}
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-2">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Race Stats</h2>
+                    <h2 class="text-2xl font-semibold text-fg">Race Stats</h2>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap justify-end">
                     {/* CC toggle */}
@@ -65,10 +65,10 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                             <button
                                 type="button"
                                 onClick={() => handleEngineClassChange(opt.value)}
-                                class={`px-2.5 py-1.5 rounded-lg border-2 font-medium transition-colors ${
+                                class={`px-2.5 py-1.5 rounded-lg border font-medium transition-colors ${
                                     engineClassId() === opt.value
                                         ? "bg-gray-900 border-gray-900 text-white dark:bg-white dark:border-white dark:text-gray-900"
-                                        : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500"
+                                        : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-fg-muted hover:border-gray-400 dark:hover:border-gray-500"
                                 }`}
                             >
                                 {opt.label}
@@ -82,10 +82,10 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                 <button
                                     type="button"
                                     onClick={() => handleDaysChange(opt.value)}
-                                    class={`px-2.5 py-1.5 rounded-lg border-2 text-xs font-medium transition-colors ${
+                                    class={`px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
                                         days() === opt.value
                                             ? "bg-gray-900 border-gray-900 text-white dark:bg-white dark:border-white dark:text-gray-900"
-                                            : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500"
+                                            : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-fg-muted hover:border-gray-400 dark:hover:border-gray-500"
                                     }`}
                                 >
                                     {opt.label}
@@ -99,7 +99,7 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
             {/* Active track filter badge */}
             <Show when={courseId() !== undefined}>
                 <div class="flex items-center gap-2 -mt-3">
-                    <span class="text-xs text-gray-500 dark:text-gray-400">Filtered by track:</span>
+                    <span class="text-xs text-fg-subtle">Filtered by track:</span>
                     <button
                         type="button"
                         onClick={() => handleCourseIdChange(undefined)}
@@ -115,20 +115,18 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
             <Show when={raceStatsQuery.isLoading}>
                 <div class="flex items-center justify-center py-8 gap-3">
                     <LoadingSpinner />
-                    <p class="text-gray-600 dark:text-gray-300">Loading race stats...</p>
+                    <p class="text-fg-muted">Loading race stats...</p>
                 </div>
             </Show>
 
             {/* No data */}
             <Show when={!raceStatsQuery.isLoading && !hasRaceStats()}>
-                <p class="text-gray-500 dark:text-gray-400 text-sm">
-                    No race data available for this player yet.
-                </p>
+                <p class="text-fg-subtle text-sm">No race data available for this player yet.</p>
             </Show>
 
             <Show when={hasRaceStats()}>
                 <div class="space-y-6">
-                    <p class="text-xs text-gray-400 dark:text-gray-500 -mt-4">
+                    <p class="text-xs text-fg-subtle -mt-4">
                         Tracked since {new Date(stats().trackedSince).toLocaleDateString()}
                     </p>
 
@@ -155,8 +153,8 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                     onClick={() => setSetupMode("usage")}
                                     class={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
                                         setupMode() === "usage"
-                                            ? "bg-blue-600 text-white"
-                                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                            ? "bg-accent text-accent-fg"
+                                            : "bg-surface text-fg-muted hover:bg-gray-200 dark:hover:bg-gray-600"
                                     }`}
                                 >
                                     Most Used
@@ -166,8 +164,8 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                     onClick={() => setSetupMode("winrate")}
                                     class={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
                                         setupMode() === "winrate"
-                                            ? "bg-blue-600 text-white"
-                                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                            ? "bg-accent text-accent-fg"
+                                            : "bg-surface text-fg-muted hover:bg-gray-200 dark:hover:bg-gray-600"
                                     }`}
                                 >
                                     Win Rate
@@ -177,8 +175,8 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                     onClick={() => setSetupMode("wincount")}
                                     class={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
                                         setupMode() === "wincount"
-                                            ? "bg-blue-600 text-white"
-                                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                            ? "bg-accent text-accent-fg"
+                                            : "bg-surface text-fg-muted hover:bg-gray-200 dark:hover:bg-gray-600"
                                     }`}
                                 >
                                     Total Wins
@@ -212,7 +210,7 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                         {/* Top tracks */}
                         <Show when={stats().topTracks.length > 0}>
                             <div>
-                                <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+                                <h3 class="text-sm font-semibold text-fg-subtle mb-3">
                                     Most Played Tracks
                                 </h3>
                                 <div class="space-y-2">
@@ -220,11 +218,11 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                         {(track: TrackPlayCount, i) => (
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center space-x-2 min-w-0">
-                                                    <span class="text-xs text-gray-400 dark:text-gray-500 w-4 shrink-0">
+                                                    <span class="text-xs text-fg-subtle w-4 shrink-0">
                                                         {i() + 1}.
                                                     </span>
                                                     <span
-                                                        class="text-gray-700 dark:text-gray-300 text-sm truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                                        class="text-fg-muted text-sm truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                                                         title={`Filter by ${track.trackName}`}
                                                         onClick={() =>
                                                             handleCourseIdChange(
@@ -250,18 +248,16 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                     {/* Recent races */}
                     <div>
                         <div class="flex items-center justify-between mb-3">
-                            <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                                Recent Races
-                            </h3>
-                            <span class="text-xs text-gray-400 dark:text-gray-500">
+                            <h3 class="text-sm font-semibold text-fg-subtle">Recent Races</h3>
+                            <span class="text-xs text-fg-subtle">
                                 {stats().totalRecentRaces.toLocaleString()} total
                             </span>
                         </div>
 
-                        <div class="overflow-x-auto">
+                        <div class="relative overflow-x-auto">
                             <table class="w-full text-sm">
                                 <thead>
-                                    <tr class="text-left text-xs text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-gray-700">
+                                    <tr class="text-left text-xs text-fg-subtle border-b border-line">
                                         <th class="pb-2 font-medium w-8">Pos</th>
                                         <th class="pb-2 font-medium">Track</th>
                                         <th class="pb-2 font-medium">Time</th>
@@ -275,19 +271,21 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                             Players
                                         </th>
                                         <th class="pb-2 font-medium text-right">Date</th>
-                                        <th class="pb-2 font-medium w-6"></th>
+                                        <th class="pb-2 font-medium w-6">
+                                            <span class="sr-only">Details</span>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                                     <For each={stats().recentRaces}>
                                         {(race: RecentRace) => (
-                                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                            <tr class="hover:bg-surface transition-colors">
                                                 <td class="py-2 pr-2">
                                                     <PositionBadge pos={race.finishPos} />
                                                 </td>
                                                 <td class="py-2 pr-3 max-w-[140px]">
                                                     <span
-                                                        class="text-gray-800 dark:text-gray-200 truncate block cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                                        class="text-fg truncate block cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                                                         title={`Filter by ${race.trackName}`}
                                                         onClick={() =>
                                                             handleCourseIdChange(
@@ -300,7 +298,7 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                                     </span>
                                                     <div class="flex items-center gap-1 mt-0.5 flex-wrap">
                                                         <Show when={race.gameMode}>
-                                                            <span class="text-[10px] font-medium px-1.5 py-0 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                                                            <span class="text-[10px] font-medium px-1.5 py-0 rounded bg-surface text-fg-subtle">
                                                                 {race.gameMode}
                                                             </span>
                                                         </Show>
@@ -318,23 +316,23 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                                 <td class="py-2 pr-3 font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
                                                     {race.finishTimeDisplay}
                                                 </td>
-                                                <td class="py-2 pr-3 text-gray-600 dark:text-gray-400 hidden sm:table-cell">
+                                                <td class="py-2 pr-3 text-fg-muted hidden sm:table-cell">
                                                     {race.characterName}
                                                 </td>
-                                                <td class="py-2 pr-3 text-gray-600 dark:text-gray-400 hidden md:table-cell">
+                                                <td class="py-2 pr-3 text-fg-muted hidden md:table-cell">
                                                     {race.vehicleName}
                                                 </td>
-                                                <td class="py-2 pr-3 text-center text-gray-500 dark:text-gray-400 text-xs hidden lg:table-cell">
+                                                <td class="py-2 pr-3 text-center text-fg-subtle text-xs hidden lg:table-cell">
                                                     {race.playerCount}p
                                                 </td>
-                                                <td class="py-2 text-gray-400 dark:text-gray-500 text-right whitespace-nowrap">
+                                                <td class="py-2 text-fg-subtle text-right whitespace-nowrap">
                                                     {formatTimestamp(race.timestamp)}
                                                 </td>
                                                 <td class="py-2 pl-2">
                                                     <A
                                                         href={`/races?roomId=${race.roomId}&raceNumber=${race.raceNumber}`}
                                                         title="View full race"
-                                                        class="text-gray-300 dark:text-gray-600 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+                                                        class="text-fg-subtle hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
                                                     >
                                                         <ExternalLink size={13} />
                                                     </A>
@@ -348,17 +346,17 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
 
                         {/* Pagination */}
                         <Show when={stats().totalPages > 1}>
-                            <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center justify-between mt-4 pt-4 border-t border-line">
                                 <button
                                     type="button"
                                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                                     disabled={currentPage() === 1}
-                                    class="inline-flex items-center gap-1 px-3 py-1 rounded text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                    class="inline-flex items-center gap-1 px-3 py-1 rounded text-sm font-medium bg-surface text-fg-muted hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                 >
                                     <ChevronLeft size={14} />
                                     Previous
                                 </button>
-                                <span class="text-sm text-gray-500 dark:text-gray-400">
+                                <span class="text-sm text-fg-subtle">
                                     Page {currentPage()} of {stats().totalPages}
                                 </span>
                                 <button
@@ -367,7 +365,7 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                                         setCurrentPage((p) => Math.min(stats().totalPages, p + 1))
                                     }
                                     disabled={currentPage() === stats().totalPages}
-                                    class="inline-flex items-center gap-1 px-3 py-1 rounded text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                    class="inline-flex items-center gap-1 px-3 py-1 rounded text-sm font-medium bg-surface text-fg-muted hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                 >
                                     Next
                                     <ChevronRight size={14} />
@@ -383,9 +381,9 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
 
 function StatTile(props: { label: string; value: string }) {
     return (
-        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-center">
-            <div class="text-lg font-bold text-gray-900 dark:text-white">{props.value}</div>
-            <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{props.label}</div>
+        <div class="bg-surface rounded-lg p-3 text-center">
+            <div class="text-lg font-semibold text-fg">{props.value}</div>
+            <div class="text-xs text-fg-subtle mt-0.5">{props.label}</div>
         </div>
     );
 }

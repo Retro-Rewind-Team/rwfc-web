@@ -192,7 +192,7 @@ export default function Tooltip(props: TooltipProps) {
                         <div
                             id={tooltipId}
                             role="tooltip"
-                            class="bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg px-2.5 py-1.5 shadow-lg whitespace-nowrap"
+                            class="bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg px-2.5 py-1.5 whitespace-nowrap"
                         >
                             {props.text}
                         </div>

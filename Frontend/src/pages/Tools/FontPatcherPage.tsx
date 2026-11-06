@@ -13,6 +13,7 @@ import { triggerBlobDownload } from "../../utils/downloadHelpers";
 import { AlertBox } from "../../components/common";
 import { Meta, Title } from "@solidjs/meta";
 import { FONT_PATCHER_META } from "../../constants/pageMeta";
+import PageHeader from "../../components/common/PageHeader";
 
 const EXTENSION_FONT = "tt_kart_extension_font.brfnt";
 
@@ -210,8 +211,8 @@ export default function FontPatcherPage() {
 
         return (
             <div
-                class={`relative rounded-xl border-2 border-dashed p-6 text-center transition-all
-                    ${active() ? "border-blue-500 bg-blue-500/5" : ok() ? "border-green-500/60 bg-green-500/5" : err() ? "border-red-500/60 bg-red-500/5" : "border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500"}`}
+                class={`relative rounded-lg border border-dashed p-6 text-center transition-colors
+                    ${active() ? "border-blue-500 bg-accent/5" : ok() ? "border-green-500/60 bg-green-500/5" : err() ? "border-red-500/60 bg-red-500/5" : "border-line-strong hover:border-blue-400 dark:hover:border-blue-500"}`}
                 onDragOver={(e) => {
                     e.preventDefault();
                     setDragging(props.type);
@@ -220,7 +221,7 @@ export default function FontPatcherPage() {
                 onDrop={(e) => handleDrop(e, props.type)}
             >
                 <div
-                    class={`flex justify-center mb-3 ${ok() ? "text-green-500" : err() ? "text-red-500" : "text-gray-400 dark:text-gray-500"}`}
+                    class={`flex justify-center mb-3 ${ok() ? "text-green-500" : err() ? "text-red-500" : "text-fg-subtle"}`}
                 >
                     <Show
                         when={ok()}
@@ -234,9 +235,7 @@ export default function FontPatcherPage() {
                     </Show>
                 </div>
 
-                <p class="font-semibold text-sm text-gray-700 dark:text-gray-300 mb-1">
-                    {props.label}
-                </p>
+                <p class="font-semibold text-sm text-fg-muted mb-1">{props.label}</p>
 
                 <Show when={ok()}>
                     <p class="text-xs text-green-600 dark:text-green-400 font-mono truncate mb-2">
@@ -247,7 +246,7 @@ export default function FontPatcherPage() {
                     <p class="text-xs text-red-500 mb-2">{props.slot.error}</p>
                 </Show>
                 <Show when={!ok() && !err()}>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">{props.hint}</p>
+                    <p class="text-xs text-fg-subtle mb-3">{props.hint}</p>
                 </Show>
 
                 <label class="cursor-pointer inline-block">
@@ -256,7 +255,7 @@ export default function FontPatcherPage() {
                         ${
                             ok()
                                 ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50"
-                                : "bg-blue-600 hover:bg-blue-700 text-white"
+                                : "bg-accent hover:bg-accent-hover text-accent-fg"
                         }`}
                     >
                         {ok() ? "Replace file" : "Choose file"}
@@ -282,113 +281,117 @@ export default function FontPatcherPage() {
     const canPatch = () => !!fontSlot().file && !!sourceSlot().brfnt && !processing();
 
     return (
-        <div class="max-w-3xl mx-auto space-y-6">
-            <Title>{FONT_PATCHER_META.title}</Title>
-            <Meta name="description" content={FONT_PATCHER_META.description} />
-            <div class="border-b border-gray-200 dark:border-gray-700 pb-6">
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-1">Font Patcher</h1>
-                <p class="text-gray-500 dark:text-gray-400 text-sm">
-                    Use a custom font without losing Retro Rewind's rank badges. The patcher copies
-                    Retro Rewind's{" "}
-                    <code class="font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">
-                        {EXTENSION_FONT}
-                    </code>{" "}
-                    into your{" "}
-                    <code class="font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">
-                        Font.szs
-                    </code>
-                    .
-                </p>
-            </div>
+        <>
+            <PageHeader
+                page="tools"
+                compact
+                crumbs={[{ label: "Tools", href: "/tools" }]}
+                title="Font patcher"
+                description={
+                    <>
+                        Use a custom font without losing Retro Rewind's rank badges. The patcher
+                        copies Retro Rewind's{" "}
+                        <code class="rounded-sm bg-surface px-1 font-mono text-fg">
+                            {EXTENSION_FONT}
+                        </code>{" "}
+                        into your{" "}
+                        <code class="rounded-sm bg-surface px-1 font-mono text-fg">Font.szs</code>.
+                    </>
+                }
+            />
+            <div class="max-w-3xl space-y-6">
+                <Title>{FONT_PATCHER_META.title}</Title>
+                <Meta name="description" content={FONT_PATCHER_META.description} />
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <DropZone
-                    label="1. Your Font.szs"
-                    hint="The custom font you want to use"
-                    slot={fontSlot()}
-                    type="font"
-                    icon={() => <Package size={36} />}
-                    accept=".szs"
-                    onInput={handleFontInput}
-                />
-                <DropZone
-                    label="2. Retro Rewind's Font.szs"
-                    hint="RetroRewind6/UI/Font.szs, or its .brfnt on its own"
-                    slot={sourceSlot()}
-                    type="source"
-                    icon={() => <PenTool size={36} />}
-                    accept=".szs,.brfnt"
-                    onInput={handleSourceInput}
-                />
-            </div>
-
-            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                <label class="flex items-start gap-3 cursor-pointer">
-                    <input
-                        type="checkbox"
-                        checked={useLiteralOnly()}
-                        onChange={(e) => setUseLiteralOnly(e.currentTarget.checked)}
-                        class="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <DropZone
+                        label="1. Your Font.szs"
+                        hint="The custom font you want to use"
+                        slot={fontSlot()}
+                        type="font"
+                        icon={() => <Package size={36} />}
+                        accept=".szs"
+                        onInput={handleFontInput}
                     />
-                    <div>
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Literal-only Yaz0 (no compression)
-                        </span>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                            Produces a larger file. Only needed if the compressed output causes
-                            issues on real hardware.
-                        </p>
-                    </div>
-                </label>
-            </div>
-
-            <div class="flex justify-center">
-                <button
-                    type="button"
-                    onClick={patch}
-                    disabled={!canPatch()}
-                    class="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed text-white disabled:text-gray-500 font-semibold rounded-xl transition-colors text-sm"
-                >
-                    <Show
-                        when={processing()}
-                        fallback={
-                            <>
-                                <Wrench size={16} /> Patch Font.szs
-                            </>
-                        }
-                    >
-                        <Loader size={16} class="animate-spin" /> Processing…
-                    </Show>
-                </button>
-            </div>
-
-            <Show when={log().length > 0}>
-                <div class="bg-gray-950 rounded-xl border border-gray-800 p-4">
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                        Log
-                    </p>
-                    <div class="space-y-0.5 font-mono text-xs">
-                        {log().map((line) => (
-                            <div class={logClass(line)}>{line}</div>
-                        ))}
-                    </div>
+                    <DropZone
+                        label="2. Retro Rewind's Font.szs"
+                        hint="RetroRewind6/UI/Font.szs, or its .brfnt on its own"
+                        slot={sourceSlot()}
+                        type="source"
+                        icon={() => <PenTool size={36} />}
+                        accept=".szs,.brfnt"
+                        onInput={handleSourceInput}
+                    />
                 </div>
-            </Show>
 
-            <AlertBox type="info" title="Notes">
-                <ul class="space-y-1 text-sm list-disc list-inside">
-                    <li>
-                        Retro Rewind's font is at{" "}
-                        <code class="font-mono">RetroRewind6/UI/Font.szs</code> in your install.
-                        Take it from an up-to-date copy: older fonts don't have the rank badges.
-                    </li>
-                    <li>
-                        Back up your original <code class="font-mono">Font.szs</code> before
-                        replacing it.
-                    </li>
-                    <li>If the patched file doesn't load in-game, try the literal-only option.</li>
-                </ul>
-            </AlertBox>
-        </div>
+                <div class="bg-canvas rounded-lg border border-line p-4">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={useLiteralOnly()}
+                            onChange={(e) => setUseLiteralOnly(e.currentTarget.checked)}
+                            class="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <div>
+                            <span class="text-sm font-medium text-fg-muted">
+                                Literal-only Yaz0 (no compression)
+                            </span>
+                            <p class="text-xs text-fg-subtle mt-0.5">
+                                Produces a larger file. Only needed if the compressed output causes
+                                issues on real hardware.
+                            </p>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="flex justify-center">
+                    <button
+                        type="button"
+                        onClick={patch}
+                        disabled={!canPatch()}
+                        class="inline-flex items-center gap-2 px-8 py-3 bg-accent hover:bg-accent-hover disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed text-accent-fg disabled:text-gray-500 font-semibold rounded-lg transition-colors text-sm"
+                    >
+                        <Show
+                            when={processing()}
+                            fallback={
+                                <>
+                                    <Wrench size={16} /> Patch Font.szs
+                                </>
+                            }
+                        >
+                            <Loader size={16} class="animate-spin" /> Processing…
+                        </Show>
+                    </button>
+                </div>
+
+                <Show when={log().length > 0}>
+                    <div class="bg-gray-950 rounded-lg border border-gray-800 p-4">
+                        <p class="text-xs font-semibold text-gray-500 mb-3">Log</p>
+                        <div class="space-y-0.5 font-mono text-xs">
+                            {log().map((line) => (
+                                <div class={logClass(line)}>{line}</div>
+                            ))}
+                        </div>
+                    </div>
+                </Show>
+
+                <AlertBox type="info" title="Notes">
+                    <ul class="space-y-1 text-sm list-disc list-inside">
+                        <li>
+                            Retro Rewind's font is at{" "}
+                            <code class="font-mono">RetroRewind6/UI/Font.szs</code> in your install.
+                            Take it from an up-to-date copy: older fonts don't have the rank badges.
+                        </li>
+                        <li>
+                            Back up your original <code class="font-mono">Font.szs</code> before
+                            replacing it.
+                        </li>
+                        <li>
+                            If the patched file doesn't load in-game, try the literal-only option.
+                        </li>
+                    </ul>
+                </AlertBox>
+            </div>
+        </>
     );
 }

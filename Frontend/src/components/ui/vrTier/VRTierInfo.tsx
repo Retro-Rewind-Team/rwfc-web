@@ -104,9 +104,7 @@ export default function VRTierInfo(props: Readonly<VRTierInfoProps>) {
 
             {/* VR Range Info */}
             <Show when={!props.isSuspicious}>
-                <div class="mt-3 text-xs text-gray-500 dark:text-gray-500">
-                    {formatVRRange(currentTier())}
-                </div>
+                <div class="mt-3 text-xs text-fg-subtle">{formatVRRange(currentTier())}</div>
             </Show>
         </div>
     );

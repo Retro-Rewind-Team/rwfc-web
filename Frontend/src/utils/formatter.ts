@@ -59,10 +59,14 @@ export function getRankIcon(rank: number): LucideIcon | null {
 }
 
 /** Returns a Tailwind colour class for a VR gain value (green = positive, red = negative). */
+/**
+ * Colour for a VR change. Gains use the accent text colour; losses use red, lighter in dark
+ * mode so they stay readable; no change stays quiet. Weight is left to the table cell.
+ */
 export function getVRGainClass(gain: number): string {
-    if (gain > 0) return "text-green-600 font-bold";
-    if (gain < 0) return "text-red-600 font-bold";
-    return "text-gray-600";
+    if (gain > 0) return "text-accent-text";
+    if (gain < 0) return "text-red-600 dark:text-red-400";
+    return "text-fg-subtle";
 }
 
 /** Formats an ISO timestamp as HH:MM:SS. */

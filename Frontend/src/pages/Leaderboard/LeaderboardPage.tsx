@@ -6,6 +6,7 @@ import { useLegacyLeaderboard } from "../../hooks/useLegacyLeaderboard";
 import { AlertBox, InlinePagination, LoadingSpinner } from "../../components/common";
 import { LeaderboardTable } from "../../components/ui";
 import { VR_LEADERBOARD_META } from "../../constants/pageMeta";
+import PageHeader from "../../components/common/PageHeader";
 
 function isVRMultiplierActive(): boolean {
     const now = new Date();
@@ -38,316 +39,319 @@ export default function LeaderboardPage() {
     const activeLeaderboard = () => (showLegacy() ? legacyLeaderboard : currentLeaderboard);
 
     return (
-        <div class="space-y-8">
-            <Title>{VR_LEADERBOARD_META.title}</Title>
-            <Meta name="description" content={VR_LEADERBOARD_META.description} />
-            {/* Page Title */}
-            <div class="pb-6 border-b border-gray-200 dark:border-gray-700">
-                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                    RWFC VR Leaderboard
-                </h1>
-                <p class="text-lg text-gray-600 dark:text-gray-400">
-                    Track the best racers competing on RWFC servers worldwide
-                </p>
-            </div>
+        <>
+            <PageHeader
+                page="vr"
+                title="VR leaderboard"
+                description="Every racer on the Retro WFC servers, ranked by VR, up to 1,000,000. Search by name or friend code, or filter by vehicle and recent activity."
+            />
+            <div class="space-y-8">
+                <Title>{VR_LEADERBOARD_META.title}</Title>
+                <Meta name="description" content={VR_LEADERBOARD_META.description} />
+                {/* Page Title */}
 
-            {/* VR Multiplier Info */}
-            <Show when={showVRMultipliers()}>
-                <AlertBox type="info" icon={<Star size={20} />} title="VR Multipliers Active">
-                    <p class="text-sm mb-2">
-                        Earn bonus VR during special events and competitive matches!
-                    </p>
-                    <ul class="text-sm space-y-1 ml-4">
-                        <li>
-                            • <span class="font-medium">2x VR</span> during special events:
-                        </li>
-                        <li class="ml-4">- St. Patrick's Day: Mar 13 – Mar 17</li>
-                        <li class="ml-4">- MKWii Birthday: Apr 10 – Apr 14</li>
-                        <li class="ml-4">- Start of Summer: Jun 5 – Jun 8</li>
-                        <li class="ml-4">- End of Summer: Aug 23 – Aug 29</li>
-                        <li class="ml-4">- Halloween: Oct 25 – Oct 31</li>
-                        <li class="ml-4">- Christmas/New Year: Dec 23 – Jan 3</li>
-                        <li>
-                            • <span class="font-medium">Up to 1.83x VR</span> in Battle Elimination
-                            with 6+ players
-                        </li>
-                        <li>
-                            • <span class="font-medium">Up to 2.83x VR</span> when both multipliers
-                            combine!
-                        </li>
-                    </ul>
-                </AlertBox>
-            </Show>
+                {/* VR Multiplier Info */}
+                <Show when={showVRMultipliers()}>
+                    <AlertBox type="info" icon={<Star size={20} />} title="VR Multipliers Active">
+                        <p class="text-sm mb-2">
+                            Earn bonus VR during special events and competitive matches!
+                        </p>
+                        <ul class="text-sm space-y-1 ml-4">
+                            <li>
+                                • <span class="font-medium">2x VR</span> during special events:
+                            </li>
+                            <li class="ml-4">- St. Patrick's Day: Mar 13 – Mar 17</li>
+                            <li class="ml-4">- MKWii Birthday: Apr 10 – Apr 14</li>
+                            <li class="ml-4">- Start of Summer: Jun 5 – Jun 8</li>
+                            <li class="ml-4">- End of Summer: Aug 23 – Aug 29</li>
+                            <li class="ml-4">- Halloween: Oct 25 – Oct 31</li>
+                            <li class="ml-4">- Christmas/New Year: Dec 23 – Jan 3</li>
+                            <li>
+                                • <span class="font-medium">Up to 1.83x VR</span> in Battle
+                                Elimination with 6+ players
+                            </li>
+                            <li>
+                                • <span class="font-medium">Up to 2.83x VR</span> when both
+                                multipliers combine!
+                            </li>
+                        </ul>
+                    </AlertBox>
+                </Show>
 
-            {/* Control Panel */}
-            <div class="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
-                {/* Header */}
-                <div class="px-6 py-4 bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">Filters</h2>
-                    <div class="flex gap-3 items-center flex-wrap">
-                        <Show when={legacyLeaderboard.isAvailable()}>
-                            <div class="bg-white dark:bg-gray-700/50 rounded-lg p-1 flex border border-gray-300 dark:border-gray-600">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowLegacy(false)}
-                                    class={`px-4 py-1.5 rounded-md font-medium transition-all text-sm ${
-                                        !showLegacy()
-                                            ? "bg-gray-900 text-white shadow-sm dark:bg-white dark:text-gray-900"
-                                            : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                                    }`}
-                                >
-                                    Current
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowLegacy(true)}
-                                    class={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-md font-medium transition-all text-sm ${
-                                        showLegacy()
-                                            ? "bg-gray-900 text-white shadow-sm dark:bg-white dark:text-gray-900"
-                                            : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                                    }`}
-                                >
-                                    <Trophy size={14} />
-                                    Legacy
-                                </button>
-                            </div>
-                        </Show>
-                        <button
-                            type="button"
-                            onClick={activeLeaderboard().refreshLeaderboard}
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-5 rounded-lg transition-colors inline-flex items-center justify-center gap-2 text-sm"
-                        >
-                            <RefreshCw size={14} />
-                            Refresh
-                        </button>
-                    </div>
-                </div>
-
-                <div class="p-6">
-                    {/* Legacy Banner */}
-                    <Show when={showLegacy()}>
-                        <div class="mb-6">
-                            <AlertBox type="warning" title="Viewing Legacy Leaderboard">
-                                <p class="text-sm">Snapshot from before the VR cap expansion</p>
-                            </AlertBox>
-                        </div>
-                    </Show>
-
-                    {/* Search */}
-                    <div class="mb-5">
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                            Search Players
-                        </label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <Search size={18} class="text-gray-400" />
-                            </div>
-                            <input
-                                type="text"
-                                placeholder="Search by name or friend code..."
-                                value={activeLeaderboard().searchQuery()}
-                                onInput={(e) =>
-                                    activeLeaderboard().handleSearchInput(e.target.value)
-                                }
-                                class="w-full pl-10 pr-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 transition-colors"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Filters */}
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Show when={!showLegacy()}>
-                            <div>
-                                <label
-                                    for="time-period-select"
-                                    class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
-                                >
-                                    VR Change Period
-                                </label>
-                                <select
-                                    id="time-period-select"
-                                    value={currentLeaderboard.timePeriod()}
-                                    onChange={(e) =>
-                                        currentLeaderboard.handleTimePeriodChange(e.target.value)
-                                    }
-                                    class="w-full px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
-                                >
-                                    <option value="24">Last 24 hours</option>
-                                    <option value="week">Last 7 days</option>
-                                    <option value="month">Last 30 days</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label
-                                    for="active-players-select"
-                                    class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
-                                >
-                                    Active Players
-                                </label>
-                                <select
-                                    id="active-players-select"
-                                    value={currentLeaderboard.activeDays() ?? ""}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        currentLeaderboard.handleActiveDaysChange(
-                                            val === "" ? null : parseInt(val),
-                                        );
-                                    }}
-                                    class="w-full px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
-                                >
-                                    <option value="">All time</option>
-                                    <option value="7">Last 7 days</option>
-                                    <option value="14">Last 14 days</option>
-                                    <option value="30">Last 30 days</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                    Vehicle
-                                </label>
-                                <div class="bg-white dark:bg-gray-700/50 rounded-lg p-1 flex border border-gray-300 dark:border-gray-600">
+                {/* Control Panel */}
+                <div class="bg-canvas rounded-lg border border-line overflow-hidden">
+                    {/* Header */}
+                    <div class="px-6 py-4 bg-surface border-b border-line flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <h2 class="text-lg font-semibold text-fg">Filters</h2>
+                        <div class="flex gap-3 items-center flex-wrap">
+                            <Show when={legacyLeaderboard.isAvailable()}>
+                                <div class="bg-white dark:bg-gray-700/50 rounded-lg p-1 flex border border-line-strong">
                                     <button
                                         type="button"
-                                        onClick={() =>
-                                            currentLeaderboard.handleVehicleFilterChange(undefined)
-                                        }
-                                        class={`flex-1 px-4 py-1.5 rounded-md font-medium transition-all text-sm ${
-                                            currentLeaderboard.vehicleFilter() === undefined
-                                                ? "bg-gray-900 text-white shadow-sm dark:bg-white dark:text-gray-900"
-                                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                                        onClick={() => setShowLegacy(false)}
+                                        class={`px-4 py-1.5 rounded-md font-medium transition-colors text-sm ${
+                                            !showLegacy()
+                                                ? "bg-accent-soft text-accent-text"
+                                                : "text-fg-muted hover:text-gray-900 dark:hover:text-gray-100"
                                         }`}
                                     >
-                                        All
+                                        Current
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() =>
-                                            currentLeaderboard.handleVehicleFilterChange("kart")
-                                        }
-                                        class={`flex-1 px-4 py-1.5 rounded-md font-medium transition-all text-sm ${
-                                            currentLeaderboard.vehicleFilter() === "kart"
-                                                ? "bg-gray-900 text-white shadow-sm dark:bg-white dark:text-gray-900"
-                                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                                        onClick={() => setShowLegacy(true)}
+                                        class={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-md font-medium transition-colors text-sm ${
+                                            showLegacy()
+                                                ? "bg-accent-soft text-accent-text"
+                                                : "text-fg-muted hover:text-gray-900 dark:hover:text-gray-100"
                                         }`}
                                     >
-                                        Kart
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            currentLeaderboard.handleVehicleFilterChange("bike")
-                                        }
-                                        class={`flex-1 px-4 py-1.5 rounded-md font-medium transition-all text-sm ${
-                                            currentLeaderboard.vehicleFilter() === "bike"
-                                                ? "bg-gray-900 text-white shadow-sm dark:bg-white dark:text-gray-900"
-                                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                                        }`}
-                                    >
-                                        Bike
+                                        <Trophy size={14} />
+                                        Legacy
                                     </button>
                                 </div>
+                            </Show>
+                            <button
+                                type="button"
+                                onClick={activeLeaderboard().refreshLeaderboard}
+                                class="bg-accent hover:bg-accent-hover text-accent-fg font-medium py-2 px-5 rounded-lg transition-colors inline-flex items-center justify-center gap-2 text-sm"
+                            >
+                                <RefreshCw size={14} />
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-6">
+                        {/* Legacy Banner */}
+                        <Show when={showLegacy()}>
+                            <div class="mb-6">
+                                <AlertBox type="warning" title="Viewing Legacy Leaderboard">
+                                    <p class="text-sm">Snapshot from before the VR cap expansion</p>
+                                </AlertBox>
                             </div>
                         </Show>
-                        <div>
-                            <label
-                                for="page-size-select"
-                                class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
-                            >
-                                Results Per Page
+
+                        {/* Search */}
+                        <div class="mb-5">
+                            <label class="block text-sm font-semibold text-fg-muted mb-2">
+                                Search Players
                             </label>
-                            <select
-                                id="page-size-select"
-                                value={activeLeaderboard().pageSize()}
-                                onChange={(e) =>
-                                    activeLeaderboard().handlePageSizeChange(
-                                        parseInt(e.target.value),
-                                    )
-                                }
-                                class="w-full px-3 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
-                            >
-                                <option value="10">10 players</option>
-                                <option value="25">25 players</option>
-                                <option value="50">50 players</option>
-                            </select>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Search size={18} class="text-gray-400" />
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Search by name or friend code..."
+                                    value={activeLeaderboard().searchQuery()}
+                                    onInput={(e) =>
+                                        activeLeaderboard().handleSearchInput(e.target.value)
+                                    }
+                                    class="w-full pl-10 pr-4 py-3 border border-line-strong rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-fg placeholder-gray-400 transition-colors"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Filters */}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Show when={!showLegacy()}>
+                                <div>
+                                    <label
+                                        for="time-period-select"
+                                        class="block text-sm font-semibold text-fg-muted mb-2"
+                                    >
+                                        VR Change Period
+                                    </label>
+                                    <select
+                                        id="time-period-select"
+                                        value={currentLeaderboard.timePeriod()}
+                                        onChange={(e) =>
+                                            currentLeaderboard.handleTimePeriodChange(
+                                                e.target.value,
+                                            )
+                                        }
+                                        class="w-full px-3 py-3 border border-line-strong rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-fg transition-colors"
+                                    >
+                                        <option value="24">Last 24 hours</option>
+                                        <option value="week">Last 7 days</option>
+                                        <option value="month">Last 30 days</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label
+                                        for="active-players-select"
+                                        class="block text-sm font-semibold text-fg-muted mb-2"
+                                    >
+                                        Active Players
+                                    </label>
+                                    <select
+                                        id="active-players-select"
+                                        value={currentLeaderboard.activeDays() ?? ""}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            currentLeaderboard.handleActiveDaysChange(
+                                                val === "" ? null : parseInt(val),
+                                            );
+                                        }}
+                                        class="w-full px-3 py-3 border border-line-strong rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-fg transition-colors"
+                                    >
+                                        <option value="">All time</option>
+                                        <option value="7">Last 7 days</option>
+                                        <option value="14">Last 14 days</option>
+                                        <option value="30">Last 30 days</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-fg-muted mb-2">
+                                        Vehicle
+                                    </label>
+                                    <div class="bg-white dark:bg-gray-700/50 rounded-lg p-1 flex border border-line-strong">
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                currentLeaderboard.handleVehicleFilterChange(
+                                                    undefined,
+                                                )
+                                            }
+                                            class={`flex-1 px-4 py-1.5 rounded-md font-medium transition-colors text-sm ${
+                                                currentLeaderboard.vehicleFilter() === undefined
+                                                    ? "bg-accent-soft text-accent-text"
+                                                    : "text-fg-muted hover:text-gray-900 dark:hover:text-gray-100"
+                                            }`}
+                                        >
+                                            All
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                currentLeaderboard.handleVehicleFilterChange("kart")
+                                            }
+                                            class={`flex-1 px-4 py-1.5 rounded-md font-medium transition-colors text-sm ${
+                                                currentLeaderboard.vehicleFilter() === "kart"
+                                                    ? "bg-accent-soft text-accent-text"
+                                                    : "text-fg-muted hover:text-gray-900 dark:hover:text-gray-100"
+                                            }`}
+                                        >
+                                            Kart
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                currentLeaderboard.handleVehicleFilterChange("bike")
+                                            }
+                                            class={`flex-1 px-4 py-1.5 rounded-md font-medium transition-colors text-sm ${
+                                                currentLeaderboard.vehicleFilter() === "bike"
+                                                    ? "bg-accent-soft text-accent-text"
+                                                    : "text-fg-muted hover:text-gray-900 dark:hover:text-gray-100"
+                                            }`}
+                                        >
+                                            Bike
+                                        </button>
+                                    </div>
+                                </div>
+                            </Show>
+                            <div>
+                                <label
+                                    for="page-size-select"
+                                    class="block text-sm font-semibold text-fg-muted mb-2"
+                                >
+                                    Results Per Page
+                                </label>
+                                <select
+                                    id="page-size-select"
+                                    value={activeLeaderboard().pageSize()}
+                                    onChange={(e) =>
+                                        activeLeaderboard().handlePageSizeChange(
+                                            parseInt(e.target.value),
+                                        )
+                                    }
+                                    class="w-full px-3 py-3 border border-line-strong rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-fg transition-colors"
+                                >
+                                    <option value="10">10 players</option>
+                                    <option value="25">25 players</option>
+                                    <option value="50">50 players</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Loading */}
-            <Show when={activeLeaderboard().leaderboardQuery.isLoading}>
-                <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-12 flex flex-col items-center gap-4">
-                    <LoadingSpinner />
-                    <p class="text-gray-600 dark:text-gray-400">Loading the fastest racers...</p>
-                </div>
-            </Show>
-
-            {/* Error */}
-            <Show when={activeLeaderboard().leaderboardQuery.isError}>
-                <AlertBox type="error">
-                    <div class="text-center">
-                        <div class="font-bold mb-2">Couldn't load the leaderboard</div>
-                        <p class="mb-4 text-sm">
-                            {activeLeaderboard().leaderboardQuery.error?.message ||
-                                "Something went wrong on our end"}
-                        </p>
-                        <button
-                            type="button"
-                            onClick={() => activeLeaderboard().leaderboardQuery.refetch()}
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
-                        >
-                            Try Again
-                        </button>
+                {/* Loading */}
+                <Show when={activeLeaderboard().leaderboardQuery.isLoading}>
+                    <div class="bg-canvas rounded-lg border border-line p-12 flex flex-col items-center gap-4">
+                        <LoadingSpinner />
+                        <p class="text-fg-muted">Loading the fastest racers...</p>
                     </div>
-                </AlertBox>
-            </Show>
+                </Show>
 
-            {/* Table */}
-            <Show
-                when={
-                    activeLeaderboard().leaderboardQuery.data &&
-                    !activeLeaderboard().leaderboardQuery.isLoading
-                }
-            >
-                <div class="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <LeaderboardTable
-                        players={activeLeaderboard().leaderboardQuery.data!.players}
-                        showLegacy={showLegacy()}
-                        sortBy={activeLeaderboard().sortBy()}
-                        ascending={activeLeaderboard().ascending()}
-                        timePeriod={currentLeaderboard.timePeriod()}
-                        onSort={activeLeaderboard().handleSort}
-                        getVRGain={currentLeaderboard.getVRGain}
-                    />
-
-                    {/* Empty */}
-                    <Show when={activeLeaderboard().leaderboardQuery.data!.players.length === 0}>
-                        <div class="text-center py-16">
-                            <div class="flex justify-center mb-4 text-gray-300 dark:text-gray-600">
-                                <Search size={48} />
-                            </div>
-                            <div class="text-gray-500 dark:text-gray-400 text-xl font-medium mb-2">
-                                No racers found
-                            </div>
-                            <p class="text-gray-400 dark:text-gray-500">
-                                Try adjusting your search or filters
+                {/* Error */}
+                <Show when={activeLeaderboard().leaderboardQuery.isError}>
+                    <AlertBox type="error">
+                        <div class="text-center">
+                            <div class="font-semibold mb-2">Couldn't load the leaderboard</div>
+                            <p class="mb-4 text-sm">
+                                {activeLeaderboard().leaderboardQuery.error?.message ||
+                                    "Something went wrong on our end"}
                             </p>
+                            <button
+                                type="button"
+                                onClick={() => activeLeaderboard().leaderboardQuery.refetch()}
+                                class="bg-accent hover:bg-accent-hover text-accent-fg font-semibold py-2 px-6 rounded-lg transition-colors"
+                            >
+                                Try Again
+                            </button>
                         </div>
-                    </Show>
+                    </AlertBox>
+                </Show>
 
-                    {/* Pagination */}
-                    <Show when={activeLeaderboard().leaderboardQuery.data!.totalPages > 1}>
-                        <InlinePagination
-                            currentPage={activeLeaderboard().currentPage()}
-                            totalPages={activeLeaderboard().leaderboardQuery.data!.totalPages}
-                            pageSize={activeLeaderboard().pageSize()}
-                            totalItems={activeLeaderboard().leaderboardQuery.data!.totalCount}
-                            onPageChange={activeLeaderboard().setCurrentPage}
-                            itemLabel="racers"
+                {/* Table */}
+                <Show
+                    when={
+                        activeLeaderboard().leaderboardQuery.data &&
+                        !activeLeaderboard().leaderboardQuery.isLoading
+                    }
+                >
+                    <div class="bg-canvas rounded-lg border border-line overflow-hidden">
+                        <LeaderboardTable
+                            players={activeLeaderboard().leaderboardQuery.data!.players}
+                            showLegacy={showLegacy()}
+                            sortBy={activeLeaderboard().sortBy()}
+                            ascending={activeLeaderboard().ascending()}
+                            timePeriod={currentLeaderboard.timePeriod()}
+                            onSort={activeLeaderboard().handleSort}
+                            getVRGain={currentLeaderboard.getVRGain}
                         />
-                    </Show>
-                </div>
-            </Show>
-        </div>
+
+                        {/* Empty */}
+                        <Show
+                            when={activeLeaderboard().leaderboardQuery.data!.players.length === 0}
+                        >
+                            <div class="text-center py-16">
+                                <div class="flex justify-center mb-4 text-fg-subtle">
+                                    <Search size={48} />
+                                </div>
+                                <div class="text-fg-subtle text-xl font-medium mb-2">
+                                    No racers found
+                                </div>
+                                <p class="text-fg-subtle">Try adjusting your search or filters</p>
+                            </div>
+                        </Show>
+
+                        {/* Pagination */}
+                        <Show when={activeLeaderboard().leaderboardQuery.data!.totalPages > 1}>
+                            <InlinePagination
+                                currentPage={activeLeaderboard().currentPage()}
+                                totalPages={activeLeaderboard().leaderboardQuery.data!.totalPages}
+                                pageSize={activeLeaderboard().pageSize()}
+                                totalItems={activeLeaderboard().leaderboardQuery.data!.totalCount}
+                                onPageChange={activeLeaderboard().setCurrentPage}
+                                itemLabel="racers"
+                            />
+                        </Show>
+                    </div>
+                </Show>
+            </div>
+        </>
     );
 }

@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/solid-query";
 import { Show } from "solid-js";
-import { ExternalLink } from "lucide-solid";
 import { leaderboardApi } from "../../../services/api/leaderboard";
 import { queryKeys } from "../../../constants/queryKeys";
+import { BrandIcon, Card, TextLink } from "../../common";
 
 interface DistributionCardProps {
     name: string;
@@ -17,31 +17,37 @@ export default function DistributionCard(props: DistributionCardProps) {
     }));
 
     return (
-        <div class="border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-600 transition-colors p-4 text-center">
-            <Show when={iconQuery.data}>
-                <a
-                    href={props.discordUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="inline-block mb-3"
-                >
+        <Card class="flex h-full items-center gap-4">
+            {/* Fixed-size slot so the card does not shift when the icon arrives. The initial shows
+                until then, or for good if Discord does not return an icon. */}
+            <div
+                class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-surface text-sm font-semibold text-fg-muted"
+                aria-hidden="true"
+            >
+                <Show when={iconQuery.data} fallback={props.name.charAt(0)}>
                     <img
                         src={iconQuery.data!}
-                        alt={`${props.name} Discord server icon`}
-                        class="w-16 h-16 rounded-full object-cover mx-auto"
+                        alt=""
+                        width="40"
+                        height="40"
+                        loading="lazy"
+                        decoding="async"
+                        class="h-10 w-10 object-cover"
                     />
-                </a>
-            </Show>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{props.name}</h3>
-            <a
-                href={props.discordUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium text-sm transition-colors"
-            >
-                Join Discord
-                <ExternalLink size={14} />
-            </a>
-        </div>
+                </Show>
+            </div>
+            <div class="min-w-0">
+                <h3 class="font-medium text-fg">{props.name}</h3>
+                <TextLink
+                    href={props.discordUrl}
+                    newTab
+                    class="inline-flex items-center gap-1.5 text-sm"
+                    aria-label={`${props.name} Discord server`}
+                >
+                    <BrandIcon name="discord" size={14} />
+                    Discord server
+                </TextLink>
+            </div>
+        </Card>
     );
 }

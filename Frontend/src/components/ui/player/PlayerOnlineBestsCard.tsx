@@ -33,13 +33,11 @@ export default function PlayerOnlineBestsCard(props: PlayerOnlineBestsCardProps)
 
     return (
         <Show when={!bestsQuery.isLoading && (bestsQuery.data?.length ?? 0) > 0}>
-            <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6">
+            <div class="bg-canvas rounded-lg border border-line p-6">
                 <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
                     <div class="flex items-center gap-2">
                         <Clock size={20} class="text-blue-500 dark:text-blue-400" />
-                        <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-                            Online Best Times
-                        </h2>
+                        <h2 class="text-xl font-semibold text-fg">Online Best Times</h2>
                     </div>
                     <div class="flex gap-1">
                         <For each={CC_OPTIONS}>
@@ -49,8 +47,8 @@ export default function PlayerOnlineBestsCard(props: PlayerOnlineBestsCardProps)
                                     onClick={() => setEngineClassId(opt.value)}
                                     class={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
                                         engineClassId() === opt.value
-                                            ? "bg-blue-600 text-white"
-                                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                            ? "bg-accent text-accent-fg"
+                                            : "bg-surface text-fg-muted hover:bg-gray-200 dark:hover:bg-gray-600"
                                     }`}
                                 >
                                     {opt.label}
@@ -65,21 +63,17 @@ export default function PlayerOnlineBestsCard(props: PlayerOnlineBestsCardProps)
                     placeholder="Search tracks..."
                     value={search()}
                     onInput={(e) => setSearch(e.currentTarget.value)}
-                    class="w-full text-sm px-3 py-2 mb-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                    class="w-full text-sm px-3 py-2 mb-4 border border-line rounded-lg bg-canvas text-fg placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                 />
 
                 <Show
                     when={filteredBests().length > 0}
-                    fallback={
-                        <p class="text-sm text-gray-500 dark:text-gray-400 py-4 text-center">
-                            No times found
-                        </p>
-                    }
+                    fallback={<p class="text-sm text-fg-subtle py-4 text-center">No times found</p>}
                 >
-                    <div class="overflow-x-auto">
+                    <div class="relative overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
-                                <tr class="text-left text-xs text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-gray-700">
+                                <tr class="text-left text-xs text-fg-subtle border-b border-line">
                                     <th class="pb-2 font-medium">Track</th>
                                     <th class="pb-2 font-medium">CC</th>
                                     <th class="pb-2 font-medium">Time</th>
@@ -90,22 +84,20 @@ export default function PlayerOnlineBestsCard(props: PlayerOnlineBestsCardProps)
                             <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                                 <For each={filteredBests()}>
                                     {(entry) => (
-                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                            <td class="py-2 pr-3 text-gray-800 dark:text-gray-200">
-                                                {entry.trackName}
-                                            </td>
-                                            <td class="py-2 pr-3 text-xs text-gray-500 dark:text-gray-400">
+                                        <tr class="hover:bg-surface transition-colors">
+                                            <td class="py-2 pr-3 text-fg">{entry.trackName}</td>
+                                            <td class="py-2 pr-3 text-xs text-fg-subtle">
                                                 {entry.engineClassId === 1 ? "200cc" : "150cc"}
                                             </td>
                                             <td class="py-2 pr-3 font-mono font-semibold text-blue-600 dark:text-blue-400">
                                                 {entry.finishTimeDisplay}
                                             </td>
                                             <td class="py-2 pr-3 hidden md:table-cell">
-                                                <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                                                <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-surface text-fg-muted">
                                                     {entry.gameMode}
                                                 </span>
                                             </td>
-                                            <td class="py-2 text-right text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                                            <td class="py-2 text-right text-xs text-fg-subtle whitespace-nowrap">
                                                 {new Date(entry.achievedAt).toLocaleDateString()}
                                             </td>
                                         </tr>
