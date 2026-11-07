@@ -1,4 +1,5 @@
-import { Search } from "lucide-solid";
+import SearchInput from "../../common/SearchInput";
+
 import { ShroomlessFilter, VehicleFilter } from "../../../types/timeTrial";
 import ToggleGroup from "../../common/ToggleGroup";
 
@@ -134,23 +135,13 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                     </div>
 
                     {/* Search */}
-                    <div>
-                        <label class="block text-xs font-semibold text-fg-muted mb-1">
-                            Search Tracks
-                        </label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <Search size={16} class="text-gray-400" />
-                            </div>
-                            <input
-                                type="text"
-                                placeholder="Search by track name..."
-                                value={props.searchQuery}
-                                onInput={(e) => props.onSearchInput(e.target.value)}
-                                class="w-full pl-9 pr-3 py-2 border border-line-strong rounded-lg bg-canvas text-fg placeholder:text-fg-subtle text-xs"
-                            />
-                        </div>
-                    </div>
+                    <SearchInput
+                        id="tt-browser-track-search"
+                        label="Search tracks"
+                        placeholder="Track name…"
+                        value={props.searchQuery}
+                        onValueChange={props.onSearchInput}
+                    />
                 </div>
             </div>
         </div>

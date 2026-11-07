@@ -1,3 +1,5 @@
+import SearchInput from "../../components/common/SearchInput";
+import Select from "../../components/common/Select";
 import { createSignal, Show } from "solid-js";
 import { RefreshCw, Search, Star, Trophy } from "lucide-solid";
 import { Meta, Title } from "@solidjs/meta";
@@ -133,75 +135,46 @@ export default function LeaderboardPage() {
                         </Show>
 
                         {/* Search */}
-                        <div class="mb-5">
-                            <label class="block text-sm font-semibold text-fg-muted mb-2">
-                                Search Players
-                            </label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Search size={18} class="text-gray-400" />
-                                </div>
-                                <input
-                                    type="text"
-                                    placeholder="Search by name or friend code..."
-                                    value={activeLeaderboard().searchQuery()}
-                                    onInput={(e) =>
-                                        activeLeaderboard().handleSearchInput(e.target.value)
-                                    }
-                                    class="w-full pl-10 pr-4 py-3 border border-line-strong rounded-lg bg-canvas text-fg placeholder:text-fg-subtle transition-colors"
-                                />
-                            </div>
-                        </div>
+                        <SearchInput
+                            id="leaderboard-search"
+                            class="mb-5"
+                            label="Search players"
+                            placeholder="Name or friend code, e.g. 1234-5678-9012…"
+                            value={activeLeaderboard().searchQuery()}
+                            onValueChange={(v) => activeLeaderboard().handleSearchInput(v)}
+                        />
 
                         {/* Filters */}
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <Show when={!showLegacy()}>
-                                <div>
-                                    <label
-                                        for="time-period-select"
-                                        class="block text-sm font-semibold text-fg-muted mb-2"
-                                    >
-                                        VR Change Period
-                                    </label>
-                                    <select
-                                        id="time-period-select"
-                                        value={currentLeaderboard.timePeriod()}
-                                        onChange={(e) =>
-                                            currentLeaderboard.handleTimePeriodChange(
-                                                e.target.value,
-                                            )
-                                        }
-                                        class="w-full px-3 py-3 border border-line-strong rounded-lg bg-canvas text-fg transition-colors"
-                                    >
-                                        <option value="24">Last 24 hours</option>
-                                        <option value="week">Last 7 days</option>
-                                        <option value="month">Last 30 days</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label
-                                        for="active-players-select"
-                                        class="block text-sm font-semibold text-fg-muted mb-2"
-                                    >
-                                        Active Players
-                                    </label>
-                                    <select
-                                        id="active-players-select"
-                                        value={currentLeaderboard.activeDays() ?? ""}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            currentLeaderboard.handleActiveDaysChange(
-                                                val === "" ? null : parseInt(val),
-                                            );
-                                        }}
-                                        class="w-full px-3 py-3 border border-line-strong rounded-lg bg-canvas text-fg transition-colors"
-                                    >
-                                        <option value="">All time</option>
-                                        <option value="7">Last 7 days</option>
-                                        <option value="14">Last 14 days</option>
-                                        <option value="30">Last 30 days</option>
-                                    </select>
-                                </div>
+                                <Select
+                                    label="VR change period"
+                                    id="time-period-select"
+                                    value={currentLeaderboard.timePeriod()}
+                                    onChange={(e) =>
+                                        currentLeaderboard.handleTimePeriodChange(e.target.value)
+                                    }
+                                >
+                                    <option value="24">Last 24 hours</option>
+                                    <option value="week">Last 7 days</option>
+                                    <option value="month">Last 30 days</option>
+                                </Select>
+                                <Select
+                                    label="Active players"
+                                    id="active-players-select"
+                                    value={currentLeaderboard.activeDays() ?? ""}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        currentLeaderboard.handleActiveDaysChange(
+                                            val === "" ? null : parseInt(val),
+                                        );
+                                    }}
+                                >
+                                    <option value="">All time</option>
+                                    <option value="7">Last 7 days</option>
+                                    <option value="14">Last 14 days</option>
+                                    <option value="30">Last 30 days</option>
+                                </Select>
                                 <div>
                                     <label class="block text-sm font-semibold text-fg-muted mb-2">
                                         Vehicle
@@ -251,28 +224,20 @@ export default function LeaderboardPage() {
                                     </div>
                                 </div>
                             </Show>
-                            <div>
-                                <label
-                                    for="page-size-select"
-                                    class="block text-sm font-semibold text-fg-muted mb-2"
-                                >
-                                    Results Per Page
-                                </label>
-                                <select
-                                    id="page-size-select"
-                                    value={activeLeaderboard().pageSize()}
-                                    onChange={(e) =>
-                                        activeLeaderboard().handlePageSizeChange(
-                                            parseInt(e.target.value),
-                                        )
-                                    }
-                                    class="w-full px-3 py-3 border border-line-strong rounded-lg bg-canvas text-fg transition-colors"
-                                >
-                                    <option value="10">10 players</option>
-                                    <option value="25">25 players</option>
-                                    <option value="50">50 players</option>
-                                </select>
-                            </div>
+                            <Select
+                                label="Results per page"
+                                id="page-size-select"
+                                value={activeLeaderboard().pageSize()}
+                                onChange={(e) =>
+                                    activeLeaderboard().handlePageSizeChange(
+                                        parseInt(e.target.value),
+                                    )
+                                }
+                            >
+                                <option value="10">10 players</option>
+                                <option value="25">25 players</option>
+                                <option value="50">50 players</option>
+                            </Select>
                         </div>
                     </div>
                 </div>

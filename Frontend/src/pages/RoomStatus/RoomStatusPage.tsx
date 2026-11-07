@@ -1,3 +1,4 @@
+import SearchInput from "../../components/common/SearchInput";
 import { createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
 import { useRoomStatus } from "../../hooks/useRoom";
 import { useMiiLoader } from "../../hooks/useMiiLoader";
@@ -17,7 +18,6 @@ import {
     ServerCrash,
     TrendingUp,
     Users,
-    X,
 } from "lucide-solid/icons/index";
 import { Meta, Title } from "@solidjs/meta";
 import { ROOM_BROWSER_META } from "../../constants/pageMeta";
@@ -279,33 +279,17 @@ export default function RoomStatusPage() {
                                         <span class="sr-only sm:not-sr-only">Hide full</span>
                                     </button>
 
-                                    <div class="relative">
-                                        <Search
-                                            size={13}
-                                            class="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                                        />
-                                        <input
-                                            type="text"
-                                            value={highlightFc()}
-                                            onInput={(e) => setHighlightFc(e.currentTarget.value)}
-                                            placeholder="Highlight FC"
-                                            maxlength={14}
-                                            spellcheck={false}
-                                            aria-label="Highlight a friend code"
-                                            class="h-9 w-40 rounded-md border border-line-strong bg-canvas pr-7 pl-8 font-mono text-sm text-fg placeholder:text-fg-subtle transition-colors hover:border-fg-subtle"
-                                        />
-                                        <Show when={highlightFc()}>
-                                            <button
-                                                type="button"
-                                                onClick={() => setHighlightFc("")}
-                                                class="absolute right-2 top-1/2 -translate-y-1/2 text-fg-subtle hover:text-fg transition-colors"
-                                                title="Clear"
-                                                aria-label="Clear friend code"
-                                            >
-                                                <X size={13} />
-                                            </button>
-                                        </Show>
-                                    </div>
+                                    <SearchInput
+                                        id="room-highlight-fc"
+                                        class="w-48"
+                                        label="Highlight friend code"
+                                        hideLabel
+                                        friendCode
+                                        maxLength={14}
+                                        placeholder="Highlight FC…"
+                                        value={highlightFc()}
+                                        onValueChange={setHighlightFc}
+                                    />
 
                                     <Show when={isLatest() && activeFc()}>
                                         <span class="text-xs text-warn-fg font-semibold whitespace-nowrap">

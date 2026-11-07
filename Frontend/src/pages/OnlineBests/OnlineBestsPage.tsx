@@ -1,3 +1,4 @@
+import SearchInput from "../../components/common/SearchInput";
 import { A } from "@solidjs/router";
 import { createMemo, createSignal, For, Show } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
@@ -83,12 +84,14 @@ export default function OnlineBestsPage() {
                 {/* Track selector */}
                 <div class="lg:col-span-1">
                     <div class="bg-canvas rounded-lg border border-line p-4">
-                        <input
-                            type="text"
-                            placeholder="Search tracks..."
+                        <SearchInput
+                            id="online-bests-track-search"
+                            class="mb-3"
+                            label="Search tracks"
+                            hideLabel
+                            placeholder="Search tracks…"
                             value={trackSearch()}
-                            onInput={(e) => setTrackSearch(e.currentTarget.value)}
-                            class="w-full text-sm px-3 py-2 mb-3 border border-line rounded-lg bg-canvas text-fg placeholder:text-fg-subtle transition-colors"
+                            onValueChange={(v) => setTrackSearch(v)}
                         />
                         <Show when={tracksQuery.isLoading}>
                             <div class="flex justify-center py-4">

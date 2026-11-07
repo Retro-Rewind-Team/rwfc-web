@@ -1,3 +1,5 @@
+import SearchInput from "../../components/common/SearchInput";
+import Select from "../../components/common/Select";
 import { A } from "@solidjs/router";
 import { For, Show } from "solid-js";
 import { Globe, Lock, X } from "lucide-solid";
@@ -177,43 +179,38 @@ export default function RacesPage() {
                         <div class="flex flex-col gap-4">
                             {/* Row 1: text search */}
                             <div class="flex flex-col sm:flex-row gap-3">
-                                <div class="flex flex-col gap-1 flex-1">
-                                    <label class="text-xs font-medium text-fg-subtle">
-                                        Player (friend code)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        placeholder="0000-0000-0000"
-                                        value={fcQuery()}
-                                        onInput={(e) => handleFcInput(e.currentTarget.value)}
-                                        class="text-sm px-3 py-2 border border-line rounded-lg bg-canvas text-fg placeholder:text-fg-subtle transition-colors w-full"
-                                        aria-label="Filter by player friend code"
-                                    />
-                                </div>
-                                <div class="flex flex-col gap-1 flex-1">
-                                    <label class="text-xs font-medium text-fg-subtle">Track</label>
-                                    <select
-                                        value={courseId()?.toString() ?? ""}
-                                        onChange={(e) =>
-                                            setCourseId(
-                                                e.currentTarget.value
-                                                    ? parseInt(e.currentTarget.value)
-                                                    : undefined,
-                                            )
-                                        }
-                                        class="h-10 w-full min-w-0 rounded-md border border-line-strong bg-canvas px-3 text-sm text-fg transition-colors hover:border-fg-subtle"
-                                        aria-label="Filter by track"
-                                    >
-                                        <option value="">All tracks</option>
-                                        <For each={tracksQuery.data ?? []}>
-                                            {(track) => (
-                                                <option value={track.courseId.toString()}>
-                                                    {track.name}
-                                                </option>
-                                            )}
-                                        </For>
-                                    </select>
-                                </div>
+                                <SearchInput
+                                    id="races-player"
+                                    class="flex-1"
+                                    label="Player friend code"
+                                    friendCode
+                                    maxLength={14}
+                                    placeholder="0000-0000-0000"
+                                    value={fcQuery()}
+                                    onValueChange={handleFcInput}
+                                />
+                                <Select
+                                    id="races-track"
+                                    class="flex-1"
+                                    label="Track"
+                                    value={courseId()?.toString() ?? ""}
+                                    onChange={(e) =>
+                                        setCourseId(
+                                            e.currentTarget.value
+                                                ? parseInt(e.currentTarget.value)
+                                                : undefined,
+                                        )
+                                    }
+                                >
+                                    <option value="">All tracks</option>
+                                    <For each={tracksQuery.data ?? []}>
+                                        {(track) => (
+                                            <option value={track.courseId.toString()}>
+                                                {track.name}
+                                            </option>
+                                        )}
+                                    </For>
+                                </Select>
                             </div>
 
                             {/* Row 2: option filters */}

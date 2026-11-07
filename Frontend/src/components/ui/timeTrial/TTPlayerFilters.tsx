@@ -1,4 +1,6 @@
-import { Search, SlidersHorizontal } from "lucide-solid";
+import Select from "../../common/Select";
+import SearchInput from "../../common/SearchInput";
+import { SlidersHorizontal } from "lucide-solid";
 import { ShroomlessFilter, VehicleFilter } from "../../../types/timeTrial";
 import ToggleGroup from "../../common/ToggleGroup";
 
@@ -114,43 +116,25 @@ export default function TTPlayerFilters(props: TTPlayerFiltersProps) {
                 </div>
 
                 {/* Track Search */}
-                <div>
-                    <label class="block text-sm font-semibold text-fg-muted mb-2">
-                        Search Tracks
-                    </label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Search size={18} class="text-gray-400" />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Search by track name..."
-                            value={props.searchQuery}
-                            onInput={(e) => props.onSearchInput(e.target.value)}
-                            class="w-full pl-10 pr-4 py-2 border border-line-strong rounded-lg bg-canvas text-fg placeholder:text-fg-subtle"
-                        />
-                    </div>
-                </div>
+                <SearchInput
+                    id="tt-player-track-search"
+                    label="Search tracks"
+                    placeholder="Track name…"
+                    value={props.searchQuery}
+                    onValueChange={props.onSearchInput}
+                />
 
                 {/* Results Per Page */}
-                <div>
-                    <label
-                        for="player-page-size"
-                        class="block text-sm font-semibold text-fg-muted mb-2"
-                    >
-                        Results Per Page
-                    </label>
-                    <select
-                        id="player-page-size"
-                        value={props.pageSize}
-                        onChange={(e) => props.onPageSizeChange(parseInt(e.target.value))}
-                        class="w-full px-3 py-2 border border-line-strong rounded-lg bg-canvas text-fg"
-                    >
-                        <option value="10">10 submissions</option>
-                        <option value="25">25 submissions</option>
-                        <option value="50">50 submissions</option>
-                    </select>
-                </div>
+                <Select
+                    id="player-page-size"
+                    label="Results per page"
+                    value={props.pageSize}
+                    onChange={(e) => props.onPageSizeChange(parseInt(e.target.value))}
+                >
+                    <option value="10">10 submissions</option>
+                    <option value="25">25 submissions</option>
+                    <option value="50">50 submissions</option>
+                </Select>
             </div>
         </div>
     );

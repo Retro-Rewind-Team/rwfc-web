@@ -1,3 +1,4 @@
+import SearchInput from "../../../components/common/SearchInput";
 import { createSignal, For, Show } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { Clock } from "lucide-solid";
@@ -58,12 +59,14 @@ export default function PlayerOnlineBestsCard(props: PlayerOnlineBestsCardProps)
                     </div>
                 </div>
 
-                <input
-                    type="text"
-                    placeholder="Search tracks..."
+                <SearchInput
+                    id="player-bests-track-search"
+                    class="mb-4"
+                    label="Search tracks"
+                    hideLabel
+                    placeholder="Search tracks…"
                     value={search()}
-                    onInput={(e) => setSearch(e.currentTarget.value)}
-                    class="w-full text-sm px-3 py-2 mb-4 border border-line rounded-lg bg-canvas text-fg placeholder:text-fg-subtle transition-colors"
+                    onValueChange={(v) => setSearch(v)}
                 />
 
                 <Show

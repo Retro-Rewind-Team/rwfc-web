@@ -249,6 +249,12 @@
         outline-offset: 2px;
     }
 
+    /* SearchInput draws its own clear button; hide the browser's duplicate. */
+    .search-plain::-webkit-search-cancel-button,
+    .search-plain::-webkit-search-decoration {
+        appearance: none;
+    }
+
     ::selection {
         background-color: var(--accent);
         color: var(--accent-fg);

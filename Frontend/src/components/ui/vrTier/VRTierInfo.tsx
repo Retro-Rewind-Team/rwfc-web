@@ -7,6 +7,7 @@ import {
     getVRNeededForNextTier,
     getVRTierInfo,
 } from "../../../utils/vrTierHelpers";
+import { VR_TIER_STYLES } from "../../../utils/vrTiers";
 import { Star } from "lucide-solid/icons/index";
 
 interface VRTierInfoProps {
@@ -23,35 +24,14 @@ export default function VRTierInfo(props: Readonly<VRTierInfoProps>) {
     const progress = () => getTierProgress(props.vr, props.isSuspicious);
     const showProgress = () => props.showProgress !== false;
 
-    // Get appropriate gradient for progress bar based on next tier
-    const getProgressBarGradient = () => {
+    // Solid fill keyed to the next tier; the design system has no gradients.
+    const barColor = () => {
         const next = nextTier();
-        if (!next) return "bg-gradient-to-r from-amber-400 to-yellow-500";
-
-        switch (next.tier) {
-            case "god":
-                return "bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500";
-            case "mythic":
-                return "bg-gradient-to-r from-violet-400 via-purple-500 to-fuchsia-500";
-            case "legend":
-                return "bg-gradient-to-r from-amber-400 to-yellow-500";
-            case "master":
-                return "bg-gradient-to-r from-purple-500 via-blue-500 to-green-500";
-            case "elite":
-                return "bg-gradient-to-r from-purple-400 to-pink-500";
-            case "veteran":
-                return "bg-gradient-to-r from-indigo-500 to-cyan-500";
-            case "challenger":
-                return "bg-gradient-to-r from-emerald-500 to-teal-500";
-            case "rising":
-                return "bg-gradient-to-r from-lime-400 to-green-500";
-            case "beginner":
-                return "bg-gradient-to-r from-gray-400 to-gray-600";
-            case "suspicious":
-                return "bg-gradient-to-r from-red-500 to-red-700";
-            default:
-                return "bg-gradient-to-r from-blue-500 to-purple-600";
-        }
+        if (!next) return VR_TIER_STYLES.BAR_COLORS.legend;
+        return (
+            VR_TIER_STYLES.BAR_COLORS[next.tier as keyof typeof VR_TIER_STYLES.BAR_COLORS] ??
+            VR_TIER_STYLES.BAR_COLORS.beginner
+        );
     };
 
     return (
@@ -75,10 +55,11 @@ export default function VRTierInfo(props: Readonly<VRTierInfoProps>) {
             <Show when={showProgress() && nextTier() && !props.isSuspicious}>
                 <div class="space-y-2">
                     {/* Progress Bar */}
-                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div class="h-2 w-full overflow-hidden rounded-full bg-surface">
+                        {/* scaleX instead of width: only transform and opacity are animated. */}
                         <div
-                            class={`${getProgressBarGradient()} h-2 rounded-full transition-all duration-500`}
-                            style={`width: ${Math.round(progress() * 100)}%`}
+                            class={`${barColor()} h-2 w-full origin-left rounded-full transition-transform duration-(--motion-slow)`}
+                            style={{ transform: `scaleX(${Math.min(1, Math.max(0, progress()))})` }}
                         ></div>
                     </div>
 

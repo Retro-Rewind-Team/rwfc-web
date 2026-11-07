@@ -1,3 +1,4 @@
+import SearchInput from "../../components/common/SearchInput";
 import { A } from "@solidjs/router";
 import { createMemo, createSignal, For, Show } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
@@ -310,12 +311,14 @@ export default function RaceStatsPage() {
                                         </button>
                                     </div>
 
-                                    <input
-                                        type="text"
-                                        placeholder="Search tracks..."
+                                    <SearchInput
+                                        id="race-stats-track-search"
+                                        class="w-48"
+                                        label="Search tracks"
+                                        hideLabel
+                                        placeholder="Search tracks…"
                                         value={trackSearch()}
-                                        onInput={(e) => setTrackSearch(e.currentTarget.value)}
-                                        class="text-sm px-3 py-1.5 border border-line rounded-lg bg-canvas text-fg placeholder:text-fg-subtle transition-colors w-36"
+                                        onValueChange={(v) => setTrackSearch(v)}
                                     />
                                 </div>
                             </div>

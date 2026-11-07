@@ -1,3 +1,4 @@
+import Select from "../../common/Select";
 import { A } from "@solidjs/router";
 import { Show } from "solid-js";
 import { Zap } from "lucide-solid";
@@ -229,24 +230,16 @@ export default function TTFilters(props: TTFiltersProps) {
                 </div>
 
                 {/* Results Per Page */}
-                <div>
-                    <label
-                        for="tt-page-size-select"
-                        class="block text-xs font-semibold text-fg-muted mb-1"
-                    >
-                        Results Per Page
-                    </label>
-                    <select
-                        id="tt-page-size-select"
-                        value={props.pageSize}
-                        onChange={(e) => props.onPageSizeChange(parseInt(e.target.value))}
-                        class="w-full px-3 py-2 border border-line-strong rounded-lg bg-canvas text-fg text-sm"
-                    >
-                        <option value="10">10 times</option>
-                        <option value="25">25 times</option>
-                        <option value="50">50 times</option>
-                    </select>
-                </div>
+                <Select
+                    id="tt-page-size-select"
+                    label="Results per page"
+                    value={props.pageSize}
+                    onChange={(e) => props.onPageSizeChange(parseInt(e.target.value))}
+                >
+                    <option value="10">10 times</option>
+                    <option value="25">25 times</option>
+                    <option value="50">50 times</option>
+                </Select>
             </div>
         </div>
     );
