@@ -5,6 +5,7 @@ import NavLink from "./NavLink";
 import { BrandIcon } from "../common";
 import { SITE_LINKS } from "../../constants/siteLinks";
 import ThemeToggle from "./ThemeToggle";
+import SiteSearch from "./SiteSearch";
 
 /*
  * Primary navigation is limited to what racers use week to week. Team, rules and privacy live in
@@ -161,6 +162,7 @@ export default function Navbar() {
                         <BrandIcon name="github" size={18} />
                         <span class="sr-only">Website source on GitHub (opens in a new tab)</span>
                     </a>
+                    <SiteSearch />
                     <ThemeToggle />
                     <button
                         ref={(el) => (menuButton = el)}
