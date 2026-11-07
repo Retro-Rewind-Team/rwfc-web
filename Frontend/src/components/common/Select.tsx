@@ -1,4 +1,4 @@
-import { JSX, Show, splitProps } from "solid-js";
+import { createEffect, createSignal, JSX, onCleanup, Show, splitProps } from "solid-js";
 import { ChevronDown } from "lucide-solid";
 import { INPUT_CLASS } from "./Input";
 
@@ -19,7 +19,28 @@ export default function Select(props: SelectProps) {
         "hint",
         "class",
         "children",
+        "value",
     ]);
+
+    const [select, setSelect] = createSignal<HTMLSelectElement>();
+    // A select shows its first option when `value` is set before the options exist, which is the
+    // order a spread attribute runs in, and again whenever the options arrive later (a track list
+    // that is still loading). So the value is applied after render, on change, and when the option
+    // list changes. Without it a shared link such as ?size=25 filters correctly and shows the wrong
+    // choice.
+    const applyValue = () => {
+        const element = select();
+        if (element && local.value !== undefined) element.value = String(local.value);
+    };
+    createEffect(applyValue);
+    createEffect(() => {
+        const element = select();
+        if (!element) return;
+        const observer = new MutationObserver(applyValue);
+        observer.observe(element, { childList: true });
+        onCleanup(() => observer.disconnect());
+    });
+
     return (
         <div class={local.class}>
             <label
@@ -30,6 +51,7 @@ export default function Select(props: SelectProps) {
             </label>
             <div class="relative">
                 <select
+                    ref={setSelect}
                     id={local.id}
                     class={`${INPUT_CLASS} min-w-0 appearance-none pr-9`}
                     aria-describedby={local.hint ? `${local.id}-hint` : undefined}

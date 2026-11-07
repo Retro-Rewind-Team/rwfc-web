@@ -53,7 +53,9 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
             <table class="w-full">
                 <thead class="bg-accent text-accent-fg">
                     <tr>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium">Track</th>
+                        <th class="pin-start px-3 sm:px-6 py-3 text-left text-xs font-medium">
+                            Track
+                        </th>
                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium">Category</th>
                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium">Time</th>
                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium hidden md:table-cell">
@@ -85,7 +87,7 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
                                     {/* Main Row */}
                                     <tr class="hover:bg-surface transition-colors">
                                         {/* Track Name - Mobile Optimized */}
-                                        <td class="px-3 sm:px-6 py-4">
+                                        <td class="pin-start px-3 sm:px-6 py-4">
                                             <A
                                                 href={getTrackRoute(submission)}
                                                 class="block hover:opacity-80 transition-opacity"

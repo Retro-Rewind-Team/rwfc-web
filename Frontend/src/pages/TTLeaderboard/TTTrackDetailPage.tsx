@@ -1,15 +1,36 @@
 import { useNavigate, useParams } from "@solidjs/router";
 import { createEffect, createMemo, Show } from "solid-js";
-import { TriangleAlert, Trophy, Zap } from "lucide-solid";
+import { Trophy, Zap } from "lucide-solid";
 import { Meta, Title } from "@solidjs/meta";
 import { useTTTrackDetail } from "../../hooks/useTTTrackDetail";
-import { AlertBox, InlinePagination, LoadingSpinner } from "../../components/common";
+import {
+    Button,
+    EmptyState,
+    InlinePagination,
+    QueryError,
+    SkeletonBar,
+    type SkeletonColumn,
+    TableSkeleton,
+} from "../../components/common";
 import TTFilters from "../../components/ui/timeTrial/TTFilters";
 import TTLeaderboardTable from "../../components/ui/timeTrial/TTLeaderboardTable";
 import TTWRHistory from "../../components/ui/timeTrial/TTWRHistory";
 import { LeaderboardMode } from "../../types/timeTrial";
 import { DYNAMIC_META_DEFAULTS } from "../../constants/pageMeta";
 import PageHeader from "../../components/common/PageHeader";
+
+// Same columns and breakpoints as TTLeaderboardTable, so it does not shift when data arrives.
+const TIME_COLUMNS: SkeletonColumn[] = [
+    { header: "Rank", class: "pin-start w-14 sm:w-22 sm:px-6", bar: "w-6" },
+    { header: "Player", class: "pin-start-2 sm:px-6", bar: "w-32" },
+    { header: "Time", class: "sm:px-6", bar: "w-20" },
+    { header: "Fastest Lap", class: "hidden md:table-cell sm:px-6", bar: "w-16" },
+    { header: "Character", class: "hidden lg:table-cell sm:px-6", bar: "w-20" },
+    { header: "Vehicle", class: "hidden lg:table-cell sm:px-6", bar: "w-24" },
+    { header: "Controller", class: "hidden xl:table-cell sm:px-6", bar: "w-20" },
+    { header: "Date", class: "hidden xl:table-cell sm:px-6", bar: "w-20" },
+    { header: "Actions", align: "right", class: "sm:px-6", bar: "w-8" },
+];
 
 function parseRouteCC(ccParam: string): {
     cc: 150 | 200;
@@ -92,31 +113,31 @@ export default function TTTrackDetailPage() {
 
                 {/* Loading */}
                 <Show when={queries.trackQuery.isLoading}>
-                    <div class="bg-canvas rounded-lg border border-line p-12 flex flex-col items-center gap-4">
-                        <LoadingSpinner />
-                        <p class="text-fg-muted">Loading track...</p>
+                    <div class="overflow-hidden rounded-lg border border-line bg-canvas">
+                        <div
+                            class="border-b border-line bg-surface px-6 py-4"
+                            role="status"
+                            aria-busy="true"
+                        >
+                            <span class="sr-only">Loading track</span>
+                            <SkeletonBar class="h-4 w-64" />
+                        </div>
+                        <TableSkeleton
+                            label="Loading times"
+                            columns={TIME_COLUMNS}
+                            rows={pagination.pageSize()}
+                            rowClass="h-22"
+                        />
                     </div>
                 </Show>
 
                 {/* Error */}
                 <Show when={queries.trackQuery.isError}>
-                    <div class="bg-canvas rounded-lg border border-red-200 dark:border-red-800 p-8">
-                        <div class="text-center space-y-4">
-                            <div class="flex justify-center text-red-400">
-                                <TriangleAlert size={48} />
-                            </div>
-                            <h2 class="text-2xl font-semibold text-red-900 dark:text-red-100">
-                                Failed to load track
-                            </h2>
-                            <button
-                                type="button"
-                                onClick={() => queries.trackQuery.refetch()}
-                                class="bg-accent hover:bg-accent-hover text-accent-fg font-semibold py-2 px-6 rounded-lg transition-colors"
-                            >
-                                Try Again
-                            </button>
-                        </div>
-                    </div>
+                    <QueryError
+                        title="Couldn't load this track"
+                        error={queries.trackQuery.error}
+                        onRetry={() => queries.trackQuery.refetch()}
+                    />
                 </Show>
 
                 {/* Track Detail */}
@@ -173,16 +194,22 @@ export default function TTTrackDetailPage() {
 
                                 {/* Leaderboard Loading */}
                                 <Show when={queries.leaderboardQuery.isLoading}>
-                                    <div class="p-12 flex flex-col items-center gap-4">
-                                        <LoadingSpinner />
-                                        <p class="text-fg-muted">Loading times...</p>
-                                    </div>
+                                    <TableSkeleton
+                                        label="Loading times"
+                                        columns={TIME_COLUMNS}
+                                        rows={pagination.pageSize()}
+                                        rowClass="h-22"
+                                    />
                                 </Show>
 
                                 {/* Leaderboard Error */}
                                 <Show when={queries.leaderboardQuery.isError}>
-                                    <div class="p-6">
-                                        <AlertBox type="error">Failed to load leaderboard</AlertBox>
+                                    <div class="p-4 sm:p-6">
+                                        <QueryError
+                                            title="Couldn't load the times"
+                                            error={queries.leaderboardQuery.error}
+                                            onRetry={() => queries.leaderboardQuery.refetch()}
+                                        />
                                     </div>
                                 </Show>
 
@@ -196,23 +223,36 @@ export default function TTTrackDetailPage() {
                                     <Show
                                         when={computed.filteredSubmissions().length > 0}
                                         fallback={
-                                            <div class="p-12 text-center">
-                                                <div class="flex justify-center mb-4 text-fg-subtle">
-                                                    {mode() === "flap" ? (
-                                                        <Zap size={48} />
+                                            <EmptyState
+                                                icon={
+                                                    mode() === "flap" ? (
+                                                        <Zap size={40} />
                                                     ) : (
-                                                        <Trophy size={48} />
-                                                    )}
-                                                </div>
-                                                <h3 class="text-xl font-semibold text-fg mb-2">
-                                                    No Times Found
-                                                </h3>
-                                                <p class="text-fg-muted">
-                                                    {mode() === "flap"
-                                                        ? "No flap runs have been submitted for this category yet."
-                                                        : "Try adjusting your filters or be the first to submit a time!"}
-                                                </p>
-                                            </div>
+                                                        <Trophy size={40} />
+                                                    )
+                                                }
+                                                title={
+                                                    filters.hasFilters()
+                                                        ? "No times match these filters"
+                                                        : "No times submitted yet"
+                                                }
+                                                action={
+                                                    <Show when={filters.hasFilters()}>
+                                                        <Button
+                                                            variant="secondary"
+                                                            onClick={filters.clearFilters}
+                                                        >
+                                                            Clear filters
+                                                        </Button>
+                                                    </Show>
+                                                }
+                                            >
+                                                {filters.hasFilters()
+                                                    ? "Try All for vehicle and shroomless, or switch the drift filters back to All."
+                                                    : mode() === "flap"
+                                                      ? "No flap runs have been submitted for this category yet."
+                                                      : "Be the first to submit a time for this category."}
+                                            </EmptyState>
                                         }
                                     >
                                         <TTLeaderboardTable
@@ -251,6 +291,7 @@ export default function TTTrackDetailPage() {
                                 history={computed.filteredWRHistory()}
                                 isLoading={queries.activeWrHistoryQuery().isLoading}
                                 isError={queries.activeWrHistoryQuery().isError}
+                                onRetry={() => queries.activeWrHistoryQuery().refetch()}
                                 onDownloadGhost={handlers.handleDownloadGhost}
                                 title={wrHistoryTitle()}
                                 subtitle={wrHistorySubtitle()}

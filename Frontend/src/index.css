@@ -221,6 +221,40 @@
     font-weight: 600;
 }
 
+/*
+ * Pinned table columns. On a phone a wide table scrolls sideways; the rank and player cells stay
+ * put so a row is never read without knowing whose it is. Opaque, so scrolled cells pass beneath.
+ * The right edge is an inset line, not a border: borders on sticky cells vanish in a collapsed table.
+ * Put `pin-start` on the first column. For a second pinned column use `pin-start-2`, and give the
+ * first column a fixed width equal to --pin-width (default 3.5rem) so the second sits against it.
+ */
+@utility pin-start {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+    background-color: var(--canvas);
+    box-shadow: inset -1px 0 0 var(--line);
+}
+
+@utility pin-start-2 {
+    position: sticky;
+    inset-inline-start: var(--pin-width, 3.5rem);
+    z-index: 1;
+    background-color: var(--canvas);
+    box-shadow: inset -1px 0 0 var(--line);
+}
+
+/* Header and hover rows tint their cells, so pinned cells must follow or they show a canvas patch. */
+thead .pin-start,
+thead .pin-start-2 {
+    background-color: var(--surface);
+}
+
+tbody tr:hover > .pin-start,
+tbody tr:hover > .pin-start-2 {
+    background-color: var(--surface);
+}
+
 @layer base {
     html {
         background-color: var(--canvas);

@@ -5,7 +5,16 @@ import { RefreshCw, Search, Star, Trophy } from "lucide-solid";
 import { Meta, Title } from "@solidjs/meta";
 import { useLeaderboard } from "../../hooks";
 import { useLegacyLeaderboard } from "../../hooks/useLegacyLeaderboard";
-import { AlertBox, InlinePagination, LoadingSpinner } from "../../components/common";
+import { useUrlState } from "../../hooks/useUrlState";
+import {
+    AlertBox,
+    Button,
+    EmptyState,
+    InlinePagination,
+    QueryError,
+    type SkeletonColumn,
+    TableSkeleton,
+} from "../../components/common";
 import LeaderboardTable from "../../components/ui/leaderboard/LeaderboardTable";
 import { VR_LEADERBOARD_META } from "../../constants/pageMeta";
 import PageHeader from "../../components/common/PageHeader";
@@ -31,14 +40,35 @@ function isVRMultiplierActive(): boolean {
     });
 }
 
+// Same widths and breakpoints as LeaderboardTable, so the table does not shift when data arrives.
+const CURRENT_COLUMNS: SkeletonColumn[] = [
+    { header: "Rank", class: "w-20 sm:w-24", bar: "w-10" },
+    { header: "Player", avatar: true, bar: "w-32" },
+    { header: "VR", align: "right", class: "w-24 sm:w-28", bar: "w-12" },
+    { header: "Friend code", class: "hidden w-44 md:table-cell", bar: "w-32" },
+    { header: "Last seen", class: "hidden w-36 md:table-cell", bar: "w-20" },
+    { header: "VR change", align: "right", class: "hidden w-32 sm:table-cell", bar: "w-10" },
+];
+const LEGACY_COLUMNS = CURRENT_COLUMNS.slice(0, 4);
+
 export default function LeaderboardPage() {
-    const [showLegacy, setShowLegacy] = createSignal(false);
+    // Which board is showing is part of the URL too (`?legacy=1`), so a link to it works.
+    const urlState = useUrlState();
+    const showLegacy = () => urlState.get("legacy") === "1";
     const [showVRMultipliers] = createSignal(isVRMultiplierActive());
 
-    const currentLeaderboard = useLeaderboard();
-    const legacyLeaderboard = useLegacyLeaderboard();
+    const currentLeaderboard = useLeaderboard({ enabled: () => !showLegacy() });
+    const legacyLeaderboard = useLegacyLeaderboard({ enabled: () => showLegacy() });
 
     const activeLeaderboard = () => (showLegacy() ? legacyLeaderboard : currentLeaderboard);
+    const hasOtherFilters = () =>
+        !showLegacy() &&
+        (currentLeaderboard.activeDays() !== null ||
+            currentLeaderboard.vehicleFilter() !== undefined);
+
+    // The two boards sort by different columns, so a sort from one means nothing on the other.
+    const setLegacy = (legacy: boolean) =>
+        urlState.update({ legacy, sort: undefined, dir: undefined }, { resetPage: true });
 
     return (
         <>
@@ -90,7 +120,7 @@ export default function LeaderboardPage() {
                                 <div class="bg-canvas/50 rounded-lg p-1 flex border border-line-strong">
                                     <button
                                         type="button"
-                                        onClick={() => setShowLegacy(false)}
+                                        onClick={() => setLegacy(false)}
                                         class={`px-4 py-1.5 rounded-md font-medium transition-colors text-sm ${
                                             !showLegacy()
                                                 ? "bg-accent-soft text-accent-text"
@@ -101,7 +131,7 @@ export default function LeaderboardPage() {
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => setShowLegacy(true)}
+                                        onClick={() => setLegacy(true)}
                                         class={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-md font-medium transition-colors text-sm ${
                                             showLegacy()
                                                 ? "bg-accent-soft text-accent-text"
@@ -242,32 +272,26 @@ export default function LeaderboardPage() {
                     </div>
                 </div>
 
-                {/* Loading */}
+                {/* Loading: placeholder rows the size of the real table, so nothing jumps */}
                 <Show when={activeLeaderboard().leaderboardQuery.isLoading}>
-                    <div class="bg-canvas rounded-lg border border-line p-12 flex flex-col items-center gap-4">
-                        <LoadingSpinner />
-                        <p class="text-fg-muted">Loading the fastest racers...</p>
+                    <div class="overflow-hidden rounded-lg border border-line bg-canvas">
+                        <TableSkeleton
+                            label="Loading the leaderboard"
+                            columns={showLegacy() ? LEGACY_COLUMNS : CURRENT_COLUMNS}
+                            rows={activeLeaderboard().pageSize()}
+                            rowClass="h-16 sm:h-[4.5rem]"
+                            tableClass="table-fixed"
+                        />
                     </div>
                 </Show>
 
                 {/* Error */}
                 <Show when={activeLeaderboard().leaderboardQuery.isError}>
-                    <AlertBox type="error">
-                        <div class="text-center">
-                            <div class="font-semibold mb-2">Couldn't load the leaderboard</div>
-                            <p class="mb-4 text-sm">
-                                {activeLeaderboard().leaderboardQuery.error?.message ||
-                                    "Something went wrong on our end"}
-                            </p>
-                            <button
-                                type="button"
-                                onClick={() => activeLeaderboard().leaderboardQuery.refetch()}
-                                class="bg-accent hover:bg-accent-hover text-accent-fg font-semibold py-2 px-6 rounded-lg transition-colors"
-                            >
-                                Try Again
-                            </button>
-                        </div>
-                    </AlertBox>
+                    <QueryError
+                        title="Couldn't load the leaderboard"
+                        error={activeLeaderboard().leaderboardQuery.error}
+                        onRetry={() => activeLeaderboard().leaderboardQuery.refetch()}
+                    />
                 </Show>
 
                 {/* Table */}
@@ -292,15 +316,28 @@ export default function LeaderboardPage() {
                         <Show
                             when={activeLeaderboard().leaderboardQuery.data!.players.length === 0}
                         >
-                            <div class="text-center py-16">
-                                <div class="flex justify-center mb-4 text-fg-subtle">
-                                    <Search size={48} />
-                                </div>
-                                <div class="text-fg-subtle text-xl font-medium mb-2">
-                                    No racers found
-                                </div>
-                                <p class="text-fg-subtle">Try adjusting your search or filters</p>
-                            </div>
+                            <EmptyState
+                                icon={<Search size={40} />}
+                                title={
+                                    activeLeaderboard().search()
+                                        ? `No players match "${activeLeaderboard().search()}"`
+                                        : "No players match these filters"
+                                }
+                                action={
+                                    <Button
+                                        variant="secondary"
+                                        onClick={activeLeaderboard().clearFilters}
+                                    >
+                                        {activeLeaderboard().search() && !hasOtherFilters()
+                                            ? "Clear search"
+                                            : "Clear search and filters"}
+                                    </Button>
+                                }
+                            >
+                                {activeLeaderboard().search()
+                                    ? "Check the spelling, or search by friend code (1234-5678-9012)."
+                                    : "Try a longer activity window, or show both karts and bikes."}
+                            </EmptyState>
                         </Show>
 
                         {/* Pagination */}

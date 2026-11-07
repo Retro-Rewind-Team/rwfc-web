@@ -5,7 +5,7 @@ import { useMiiLoader } from "../../hooks/useMiiLoader";
 import { roomStatusApi } from "../../services/api/room";
 import RoomCard from "../../components/ui/room/RoomCard";
 import ServerActivityChart from "../../components/ui/room/ServerActivityChart";
-import { Tooltip } from "../../components/common";
+import { QueryError, SkeletonBar, Tooltip } from "../../components/common";
 import { buttonClass } from "../../components/common/Button";
 import {
     ChevronLeft,
@@ -15,7 +15,6 @@ import {
     Info,
     Lock,
     Search,
-    ServerCrash,
     TrendingUp,
     Users,
 } from "lucide-solid/icons/index";
@@ -32,7 +31,7 @@ export default function RoomStatusPage() {
     });
 
     const {
-        state: { isLatest, canGoForward, canGoBackward, currentDateTimeLocal },
+        state: { isLatest, isTabHidden, canGoForward, canGoBackward, currentDateTimeLocal },
         queries: { statsQuery, roomStatusQuery },
         nav: { goForward, goBackward, goToLatest, goToOldest, jumpByMinutes, goToDateTime },
         utils: { getAllFriendCodes, getRoomUptime },
@@ -75,12 +74,43 @@ export default function RoomStatusPage() {
         });
     });
 
-    // Live uptime ticker
+    // Live uptime ticker. It also drives "Updated Ns ago". Stopped while the tab is hidden: nobody
+    // can see it, and a timer firing every second in a background tab is wasted work.
     createEffect(() => {
+        if (isTabHidden()) return;
+        setTick((t) => t + 1);
         const interval = setInterval(() => {
             if (isLatest()) setTick((t) => t + 1);
         }, 1000);
         onCleanup(() => clearInterval(interval));
+    });
+
+    // "Updated 12s ago". Reading tick() re-evaluates this every second.
+    const secondsSinceUpdate = createMemo(() => {
+        void tick();
+        const updatedAt = roomStatusQuery.dataUpdatedAt;
+        return updatedAt ? Math.max(0, Math.floor((Date.now() - updatedAt) / 1000)) : null;
+    });
+    const updatedAgo = () => {
+        const seconds = secondsSinceUpdate();
+        if (seconds === null) return "";
+        if (seconds < 5) return "Updated just now";
+        if (seconds < 60) return `Updated ${seconds}s ago`;
+        return `Updated ${Math.floor(seconds / 60)}m ago`;
+    };
+
+    // What a screen reader hears. One short sentence, and its text only changes when the numbers do,
+    // so the polite live region speaks on a real change and stays quiet on a refresh that found
+    // nothing new. The room list itself is not live: it would re-announce every card every 10s.
+    const liveSummary = createMemo(() => {
+        const data = roomStatusQuery.data;
+        if (!data) return "";
+        const players = data.totalPlayers;
+        const rooms = data.rooms.filter((room) => room.players.length > 0).length;
+        const counts = `${players} ${players === 1 ? "player" : "players"} in ${rooms} ${rooms === 1 ? "room" : "rooms"}.`;
+        return isLatest()
+            ? `Live: ${counts}`
+            : `Snapshot from ${new Date(data.timestamp).toLocaleString()}: ${counts}`;
     });
 
     // Load Miis when rooms change. Loaded through the room endpoint, which reads Mii data from the
@@ -152,7 +182,9 @@ export default function RoomStatusPage() {
             <div class="space-y-8">
                 <Title>{ROOM_BROWSER_META.title}</Title>
                 <Meta name="description" content={ROOM_BROWSER_META.description} />
-                {/* Hero Header */}
+                <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">
+                    {liveSummary()}
+                </div>
 
                 {/* Navigation Controls */}
                 <Show when={roomStatusQuery.data}>
@@ -221,6 +253,16 @@ export default function RoomStatusPage() {
                                                 Live
                                             </span>
                                         </div>
+                                        {/* Not a live region: it changes every second. The summary
+                                            above is what gets announced. */}
+                                        <span
+                                            class="text-xs text-fg-muted tabular-nums"
+                                            aria-live="off"
+                                        >
+                                            {isTabHidden()
+                                                ? "Paused while this tab is hidden"
+                                                : updatedAgo()}
+                                        </span>
                                     </Show>
                                 </div>
 
@@ -357,36 +399,38 @@ export default function RoomStatusPage() {
                     </div>
                 </Show>
 
-                {/* Loading State */}
+                {/* Loading State: placeholder rooms, so the page keeps its height */}
                 <Show when={roomStatusQuery.isLoading}>
-                    <div class="bg-canvas rounded-lg border border-line p-16 text-center">
-                        <div class="animate-spin rounded-full h-20 w-20 border-b-4 border-blue-600 mx-auto mb-6" />
-                        <p class="text-xl text-fg-muted font-semibold">Loading room data...</p>
+                    <div class="space-y-6" role="status" aria-busy="true">
+                        <span class="sr-only">Loading room data</span>
+                        <For each={[0, 1]}>
+                            {() => (
+                                <div
+                                    class="overflow-hidden rounded-lg border border-line bg-canvas"
+                                    aria-hidden="true"
+                                >
+                                    <div class="flex items-center justify-between gap-4 border-b border-line bg-surface px-4 py-4">
+                                        <SkeletonBar class="h-5 w-40" />
+                                        <SkeletonBar class="h-5 w-32" />
+                                    </div>
+                                    <div class="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
+                                        <For each={Array.from({ length: 6 })}>
+                                            {() => <SkeletonBar class="h-16 w-full rounded-lg" />}
+                                        </For>
+                                    </div>
+                                </div>
+                            )}
+                        </For>
                     </div>
                 </Show>
 
-                {/* Error State */}
+                {/* Error State. Cached rooms stay on screen below it if there are any. */}
                 <Show when={roomStatusQuery.isError}>
-                    <div class="bg-canvas border border-red-200 dark:border-red-800 rounded-lg p-12">
-                        <div class="text-center">
-                            <div class="flex justify-center mb-6 text-red-400 dark:text-red-500">
-                                <ServerCrash size={48} />
-                            </div>
-                            <div class="text-red-600 dark:text-red-400 text-2xl font-semibold mb-3">
-                                Couldn't load room data
-                            </div>
-                            <p class="text-red-600 dark:text-red-400 mb-8">
-                                {roomStatusQuery.error?.message || "Something went wrong"}
-                            </p>
-                            <button
-                                type="button"
-                                onClick={() => roomStatusQuery.refetch()}
-                                class="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-10 rounded-lg transition-colors"
-                            >
-                                Try Again
-                            </button>
-                        </div>
-                    </div>
+                    <QueryError
+                        title="Couldn't load room data"
+                        error={roomStatusQuery.error}
+                        onRetry={() => roomStatusQuery.refetch()}
+                    />
                 </Show>
 
                 {/* No Data State */}

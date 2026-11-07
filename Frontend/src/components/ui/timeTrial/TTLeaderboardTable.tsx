@@ -63,13 +63,15 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
 
     return (
         <div class="relative overflow-x-auto">
-            <table class="w-full">
+            {/* Rank and player stay put while the rest scrolls sideways on a phone. The rank column
+                has a fixed width so the player column can pin right beside it. */}
+            <table class="w-full [--pin-width:3.5rem] sm:[--pin-width:5.5rem]">
                 <thead class="bg-surface border-b border-line">
                     <tr>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200">
+                        <th class="pin-start w-14 max-w-14 min-w-14 px-3 py-3 text-left text-xs font-medium text-gray-700 sm:w-22 sm:max-w-22 sm:min-w-22 sm:px-6 dark:text-gray-200">
                             Rank
                         </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200">
+                        <th class="pin-start-2 px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200">
                             Player
                         </th>
                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200">
@@ -107,14 +109,14 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                 <>
                                     <tr class="hover:bg-surface transition-colors">
                                         {/* Rank */}
-                                        <td class="px-3 sm:px-6 py-4 whitespace-nowrap">
+                                        <td class="pin-start w-14 max-w-14 min-w-14 px-3 py-4 whitespace-nowrap sm:w-22 sm:max-w-22 sm:min-w-22 sm:px-6">
                                             <div class="flex items-center justify-center sm:justify-start">
                                                 {getRankDisplay(submission.rank)}
                                             </div>
                                         </td>
 
                                         {/* Player */}
-                                        <td class="px-3 sm:px-6 py-4">
+                                        <td class="pin-start-2 px-3 sm:px-6 py-4">
                                             <A
                                                 href={`/timetrial/player/${submission.ttProfileId}`}
                                                 class="block hover:opacity-80 transition-opacity"

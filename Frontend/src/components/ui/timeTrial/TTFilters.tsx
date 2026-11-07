@@ -1,5 +1,5 @@
 import Select from "../../common/Select";
-import { A } from "@solidjs/router";
+import { A, useLocation } from "@solidjs/router";
 import { Show } from "solid-js";
 import { Zap } from "lucide-solid";
 import {
@@ -43,6 +43,16 @@ function buildRoute(
 }
 
 export default function TTFilters(props: TTFiltersProps) {
+    const location = useLocation();
+    // Switching CC, glitch or mode is a link to a new path. Carry the other filters across, but not
+    // the page: page 4 of one board says nothing about another.
+    const carriedQuery = () => {
+        const params = new URLSearchParams(location.search);
+        params.delete("page");
+        const query = params.toString();
+        return query ? `?${query}` : "";
+    };
+
     return (
         <div class="space-y-4">
             {/* CC Switcher - uses navigation links to change the URL */}
@@ -50,12 +60,14 @@ export default function TTFilters(props: TTFiltersProps) {
                 <label class="block text-xs font-semibold text-fg-muted mb-1">Engine Class</label>
                 <div class="bg-canvas rounded-lg p-1 flex border border-line-strong">
                     <A
-                        href={buildRoute(
-                            props.trackId,
-                            150,
-                            props.currentGlitchAllowed,
-                            props.currentMode,
-                        )}
+                        href={
+                            buildRoute(
+                                props.trackId,
+                                150,
+                                props.currentGlitchAllowed,
+                                props.currentMode,
+                            ) + carriedQuery()
+                        }
                         class={`flex-1 px-3 py-2 rounded-md font-medium transition-colors text-sm text-center ${
                             props.currentCC === 150
                                 ? "bg-accent text-accent-fg"
@@ -65,12 +77,14 @@ export default function TTFilters(props: TTFiltersProps) {
                         150cc
                     </A>
                     <A
-                        href={buildRoute(
-                            props.trackId,
-                            200,
-                            props.currentGlitchAllowed,
-                            props.currentMode,
-                        )}
+                        href={
+                            buildRoute(
+                                props.trackId,
+                                200,
+                                props.currentGlitchAllowed,
+                                props.currentMode,
+                            ) + carriedQuery()
+                        }
                         class={`flex-1 px-3 py-2 rounded-md font-medium transition-colors text-sm text-center ${
                             props.currentCC === 200
                                 ? "bg-accent text-accent-fg"
@@ -90,12 +104,14 @@ export default function TTFilters(props: TTFiltersProps) {
                     </label>
                     <div class="bg-canvas rounded-lg p-1 flex border border-line-strong">
                         <A
-                            href={buildRoute(
-                                props.trackId,
-                                props.currentCC,
-                                true,
-                                props.currentMode,
-                            )}
+                            href={
+                                buildRoute(
+                                    props.trackId,
+                                    props.currentCC,
+                                    true,
+                                    props.currentMode,
+                                ) + carriedQuery()
+                            }
                             class={`flex-1 px-3 py-2 rounded-md font-medium transition-colors text-sm text-center ${
                                 props.currentGlitchAllowed
                                     ? "bg-accent text-accent-fg"
@@ -105,12 +121,14 @@ export default function TTFilters(props: TTFiltersProps) {
                             Unrestricted
                         </A>
                         <A
-                            href={buildRoute(
-                                props.trackId,
-                                props.currentCC,
-                                false,
-                                props.currentMode,
-                            )}
+                            href={
+                                buildRoute(
+                                    props.trackId,
+                                    props.currentCC,
+                                    false,
+                                    props.currentMode,
+                                ) + carriedQuery()
+                            }
                             class={`flex-1 px-3 py-2 rounded-md font-medium transition-colors text-sm text-center ${
                                 !props.currentGlitchAllowed
                                     ? "bg-accent text-accent-fg"
@@ -131,12 +149,14 @@ export default function TTFilters(props: TTFiltersProps) {
                     </label>
                     <div class="bg-canvas rounded-lg p-1 flex border border-line-strong">
                         <A
-                            href={buildRoute(
-                                props.trackId,
-                                props.currentCC,
-                                props.currentGlitchAllowed,
-                                "regular",
-                            )}
+                            href={
+                                buildRoute(
+                                    props.trackId,
+                                    props.currentCC,
+                                    props.currentGlitchAllowed,
+                                    "regular",
+                                ) + carriedQuery()
+                            }
                             class={`flex-1 px-3 py-2 rounded-md font-medium transition-colors text-sm text-center ${
                                 props.currentMode === "regular"
                                     ? "bg-accent text-accent-fg"
@@ -146,12 +166,14 @@ export default function TTFilters(props: TTFiltersProps) {
                             Regular
                         </A>
                         <A
-                            href={buildRoute(
-                                props.trackId,
-                                props.currentCC,
-                                props.currentGlitchAllowed,
-                                "flap",
-                            )}
+                            href={
+                                buildRoute(
+                                    props.trackId,
+                                    props.currentCC,
+                                    props.currentGlitchAllowed,
+                                    "flap",
+                                ) + carriedQuery()
+                            }
                             class={`flex-1 px-3 py-2 rounded-md font-medium transition-colors text-sm inline-flex items-center justify-center gap-1 ${
                                 props.currentMode === "flap"
                                     ? "bg-accent text-accent-fg"

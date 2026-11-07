@@ -1,9 +1,16 @@
 import { createMemo, For, Show } from "solid-js";
 import { A } from "@solidjs/router";
 import { Meta, Title } from "@solidjs/meta";
-import { Search, TriangleAlert, Trophy, Zap } from "lucide-solid";
+import { Search, Trophy, Zap } from "lucide-solid";
 import { useTTTrackBrowser } from "../../hooks/useTTTrackBrowser";
-import { CountryFlag, LoadingSpinner } from "../../components/common";
+import {
+    Button,
+    CountryFlag,
+    EmptyState,
+    QueryError,
+    type SkeletonColumn,
+    TableSkeleton,
+} from "../../components/common";
 import TTBrowserFilters from "../../components/ui/timeTrial/TTBrowserFilters";
 import {
     getCharacterName,
@@ -14,6 +21,17 @@ import { formatDate, getDriftInfo } from "../../utils/formatter";
 import { TT_LEADERBOARD_META } from "../../constants/pageMeta";
 import PageHeader from "../../components/common/PageHeader";
 import { ButtonLink } from "../../components/common/Button";
+
+// Same columns and breakpoints as the track table below, so it does not shift when data arrives.
+const TRACK_COLUMNS: SkeletonColumn[] = [
+    { header: "Track", class: "pin-start sm:px-6", bar: "w-32" },
+    { header: "World Record", class: "sm:px-6", bar: "w-16" },
+    { header: "Record Holder", class: "sm:px-6", bar: "w-28" },
+    { header: "Character", class: "hidden md:table-cell sm:px-6", bar: "w-20" },
+    { header: "Vehicle", class: "hidden lg:table-cell sm:px-6", bar: "w-24" },
+    { header: "Controller", class: "hidden xl:table-cell sm:px-6", bar: "w-20" },
+    { header: "Date Set", class: "hidden xl:table-cell sm:px-6", bar: "w-20" },
+];
 
 export default function TTLeaderboardPage() {
     const browser = useTTTrackBrowser();
@@ -66,40 +84,35 @@ export default function TTLeaderboardPage() {
 
                 {/* Loading */}
                 <Show when={browser.tracksQuery.isLoading || browser.worldRecordsQuery.isLoading}>
-                    <div class="bg-canvas rounded-lg border border-line p-12 flex flex-col items-center gap-4">
-                        <LoadingSpinner />
-                        <p class="text-fg-muted">
-                            {browser.tracksQuery.isLoading
-                                ? "Loading tracks..."
-                                : "Loading world records..."}
-                        </p>
+                    <div class="overflow-hidden rounded-lg border border-line bg-canvas">
+                        <TableSkeleton
+                            label={
+                                browser.tracksQuery.isLoading
+                                    ? "Loading tracks"
+                                    : "Loading world records"
+                            }
+                            columns={TRACK_COLUMNS}
+                            rows={10}
+                            rowClass="h-[4.75rem]"
+                        />
                     </div>
                 </Show>
 
                 {/* Error */}
                 <Show when={browser.tracksQuery.isError || browser.worldRecordsQuery.isError}>
-                    <div class="bg-canvas rounded-lg border border-red-200 dark:border-red-800 p-8">
-                        <div class="text-center space-y-4">
-                            <div class="flex justify-center text-red-400">
-                                <TriangleAlert size={48} />
-                            </div>
-                            <h3 class="text-xl font-semibold text-red-900 dark:text-red-100">
-                                {browser.tracksQuery.isError
-                                    ? "Failed to load tracks"
-                                    : "Failed to load world records"}
-                            </h3>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    if (browser.tracksQuery.isError) browser.tracksQuery.refetch();
-                                    else browser.worldRecordsQuery.refetch();
-                                }}
-                                class="bg-accent hover:bg-accent-hover text-accent-fg font-semibold py-2 px-6 rounded-lg transition-colors"
-                            >
-                                Try Again
-                            </button>
-                        </div>
-                    </div>
+                    <QueryError
+                        title={
+                            browser.tracksQuery.isError
+                                ? "Couldn't load the tracks"
+                                : "Couldn't load the world records"
+                        }
+                        error={browser.tracksQuery.error ?? browser.worldRecordsQuery.error}
+                        onRetry={() =>
+                            browser.tracksQuery.isError
+                                ? browser.tracksQuery.refetch()
+                                : browser.worldRecordsQuery.refetch()
+                        }
+                    />
                 </Show>
 
                 {/* Tracks Table */}
@@ -140,22 +153,35 @@ export default function TTLeaderboardPage() {
                         <Show
                             when={browser.filteredTracks().length > 0}
                             fallback={
-                                <div class="p-12 text-center">
-                                    <div class="flex justify-center mb-4 text-fg-subtle">
-                                        <Search size={48} />
-                                    </div>
-                                    <h3 class="text-xl font-semibold text-fg mb-2">
-                                        No tracks found
-                                    </h3>
-                                    <p class="text-fg-muted">Try adjusting your search</p>
-                                </div>
+                                <EmptyState
+                                    icon={<Search size={40} />}
+                                    title={
+                                        browser.search()
+                                            ? `No tracks match "${browser.search()}"`
+                                            : "No tracks in this category"
+                                    }
+                                    action={
+                                        <Show when={browser.search()}>
+                                            <Button
+                                                variant="secondary"
+                                                onClick={browser.clearSearch}
+                                            >
+                                                Clear search
+                                            </Button>
+                                        </Show>
+                                    }
+                                >
+                                    {browser.search()
+                                        ? "Check the spelling, or search for part of the name."
+                                        : "Switch between Retro and Custom to see the other list."}
+                                </EmptyState>
                             }
                         >
                             <div class="relative overflow-x-auto">
                                 <table class="w-full">
                                     <thead class="bg-surface border-b border-line">
                                         <tr>
-                                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200">
+                                            <th class="pin-start px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200">
                                                 Track
                                             </th>
                                             <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200">
@@ -196,7 +222,7 @@ export default function TTLeaderboardPage() {
 
                                                 return (
                                                     <tr class="hover:bg-surface transition-colors">
-                                                        <td class="px-3 sm:px-6 py-4">
+                                                        <td class="pin-start px-3 sm:px-6 py-4">
                                                             <A
                                                                 href={getTrackRoute(track.id)}
                                                                 class="block hover:opacity-80 transition-opacity"

@@ -1,4 +1,4 @@
-import { batch, createEffect, createSignal } from "solid-js";
+import { createMemo } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { timeTrialApi } from "../services/api/timeTrial";
 import {
@@ -11,7 +11,7 @@ import {
 } from "../types/timeTrial";
 import { ghostFilename, triggerBlobDownload } from "../utils/downloadHelpers";
 import { queryKeys } from "../constants/queryKeys";
-import { usePagination } from "./usePagination";
+import { readEnum, useUrlPagination, useUrlState } from "./useUrlState";
 
 /** Returns true if a submission passes the given drift type and drift category filters. */
 function matchesDriftFilters(
@@ -26,9 +26,12 @@ function matchesDriftFilters(
     return true;
 }
 
+export const TT_DETAIL_PAGE_SIZES = [10, 25, 50] as const;
+
 /**
  * Manages filter state, pagination, and data fetching for a single time trial
- * track detail page (leaderboard, WR history, and flap records).
+ * track detail page (leaderboard, WR history, and flap records). The filters and page are URL params
+ * (`shroomless`, `vehicle`, `drift`, `driftcat`, `page`, `size`); cc, glitch and mode are the route.
  */
 export function useTTTrackDetail(
     trackId: () => number,
@@ -36,27 +39,29 @@ export function useTTTrackDetail(
     glitchAllowed: () => boolean,
     mode: () => LeaderboardMode,
 ) {
-    const { currentPage, setCurrentPage, pageSize, handlePageSizeChange } = usePagination(10);
+    const state = useUrlState();
+    const { currentPage, setCurrentPage, pageSize, handlePageSizeChange, clampTo } =
+        useUrlPagination(state, 10, TT_DETAIL_PAGE_SIZES);
 
-    const [shroomlessFilter, setShroomlessFilter] = createSignal<ShroomlessFilter>("all");
-    const [vehicleFilter, setVehicleFilter] = createSignal<VehicleFilter>("all");
-    const [driftFilter, setDriftFilter] = createSignal<DriftFilter>("all");
-    const [driftCategoryFilter, setDriftCategoryFilter] = createSignal<DriftCategoryFilter>("all");
-
-    // Reset page when external props (CC, glitch, mode) change
-    createEffect(() => {
-        cc();
-        glitchAllowed();
-        mode();
-        setCurrentPage(1);
-    });
-
-    // Reset page when display-only drift filters change
-    createEffect(() => {
-        driftFilter();
-        driftCategoryFilter();
-        setCurrentPage(1);
-    });
+    // cc, glitch and mode come from the route. Switching them navigates to a new path, which starts
+    // on page 1 by itself, so there is no effect resetting the page here: one that ran on mount
+    // would wipe the page out of a shared link.
+    const shroomlessFilter = createMemo(
+        (): ShroomlessFilter =>
+            readEnum(state.get("shroomless"), ["all", "only", "exclude"] as const) ?? "all",
+    );
+    const vehicleFilter = createMemo(
+        (): VehicleFilter =>
+            readEnum(state.get("vehicle"), ["all", "karts", "bikes"] as const) ?? "all",
+    );
+    const driftFilter = createMemo(
+        (): DriftFilter =>
+            readEnum(state.get("drift"), ["all", "manual", "hybrid"] as const) ?? "all",
+    );
+    const driftCategoryFilter = createMemo(
+        (): DriftCategoryFilter =>
+            readEnum(state.get("driftcat"), ["all", "inside", "outside"] as const) ?? "all",
+    );
 
     // Fetch track info
     const trackQuery = useQuery(() => ({
@@ -98,6 +103,8 @@ export function useTTTrackDetail(
                       pageSize(),
                   ),
     }));
+
+    clampTo(() => leaderboardQuery.data?.totalPages);
 
     // FLAP stat - only in regular mode
     const flapQuery = useQuery(() => ({
@@ -181,18 +188,26 @@ export function useTTTrackDetail(
     const activeWrHistoryQuery = () => (mode() === "flap" ? flapWrHistoryQuery : wrHistoryQuery);
 
     const handleShroomlessFilterChange = (filter: ShroomlessFilter) =>
-        batch(() => {
-            setShroomlessFilter(filter);
-            setCurrentPage(1);
-        });
+        state.update({ shroomless: filter === "all" ? undefined : filter }, { resetPage: true });
     const handleVehicleFilterChange = (filter: VehicleFilter) =>
-        batch(() => {
-            setVehicleFilter(filter);
-            setCurrentPage(1);
-        });
-    const handleDriftFilterChange = (filter: DriftFilter) => setDriftFilter(filter);
+        state.update({ vehicle: filter === "all" ? undefined : filter }, { resetPage: true });
+    const handleDriftFilterChange = (filter: DriftFilter) =>
+        state.update({ drift: filter === "all" ? undefined : filter }, { resetPage: true });
     const handleDriftCategoryFilterChange = (filter: DriftCategoryFilter) =>
-        setDriftCategoryFilter(filter);
+        state.update({ driftcat: filter === "all" ? undefined : filter }, { resetPage: true });
+
+    const hasFilters = createMemo(
+        () =>
+            shroomlessFilter() !== "all" ||
+            vehicleFilter() !== "all" ||
+            driftFilter() !== "all" ||
+            driftCategoryFilter() !== "all",
+    );
+    const clearFilters = () =>
+        state.update(
+            { shroomless: undefined, vehicle: undefined, drift: undefined, driftcat: undefined },
+            { resetPage: true },
+        );
 
     const handleDownloadGhost = async (submission: GhostSubmission) => {
         try {
@@ -220,6 +235,8 @@ export function useTTTrackDetail(
             vehicleFilter,
             driftFilter,
             driftCategoryFilter,
+            hasFilters,
+            clearFilters,
         },
         pagination: {
             currentPage,

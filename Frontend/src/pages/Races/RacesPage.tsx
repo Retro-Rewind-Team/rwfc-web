@@ -2,10 +2,16 @@ import SearchInput from "../../components/common/SearchInput";
 import Select from "../../components/common/Select";
 import { A } from "@solidjs/router";
 import { For, Show } from "solid-js";
-import { Globe, Lock, X } from "lucide-solid";
+import { Flag, Globe, Lock, X } from "lucide-solid";
 import { RACES_PAGE_SIZE, useRaces } from "../../hooks/useRaces";
 import { RaceEntry, RaceResult } from "../../types/raceStats";
-import { InlinePagination, LoadingSpinner } from "../../components/common";
+import {
+    Button,
+    EmptyState,
+    InlinePagination,
+    QueryError,
+    SkeletonBar,
+} from "../../components/common";
 import { queryKeys } from "../../constants/queryKeys";
 import { useQuery } from "@tanstack/solid-query";
 import { timeTrialApi } from "../../services/api";
@@ -136,6 +142,29 @@ function RaceCard(props: { race: RaceResult }) {
     );
 }
 
+/** Roughly a full lobby, so the page keeps its height while the first request is in flight. */
+function RaceCardSkeleton() {
+    return (
+        <div class="overflow-hidden rounded-lg border border-line bg-canvas" aria-hidden="true">
+            <div class="flex items-center justify-between gap-2 border-b border-line bg-surface px-4 py-3">
+                <SkeletonBar class="h-5 w-40" />
+                <SkeletonBar class="h-4 w-48" />
+            </div>
+            <div class="space-y-3.5 px-4 py-4">
+                <For each={Array.from({ length: 8 })}>
+                    {() => (
+                        <div class="flex items-center gap-3">
+                            <SkeletonBar class="size-6 shrink-0 rounded-full" />
+                            <SkeletonBar class="h-4 w-40" />
+                            <SkeletonBar class="ml-auto h-4 w-20" />
+                        </div>
+                    )}
+                </For>
+            </div>
+        </div>
+    );
+}
+
 export default function RacesPage() {
     const {
         racesQuery,
@@ -147,6 +176,7 @@ export default function RacesPage() {
         setFrom,
         to,
         setTo,
+        fc,
         fcQuery,
         handleFcInput,
         currentPage,
@@ -230,10 +260,8 @@ export default function RacesPage() {
                                         ).map((opt) => (
                                             <button
                                                 type="button"
-                                                onClick={() => {
-                                                    setEngineClassId(opt.value);
-                                                    setCurrentPage(1);
-                                                }}
+                                                onClick={() => setEngineClassId(opt.value)}
+                                                aria-pressed={engineClassId() === opt.value}
                                                 class={`px-3 py-2 text-xs rounded-lg border font-medium transition-colors ${
                                                     engineClassId() === opt.value
                                                         ? "border-accent bg-accent-soft text-accent-text"
@@ -258,10 +286,9 @@ export default function RacesPage() {
                                             id="races-from"
                                             type="date"
                                             value={from() ?? ""}
-                                            onInput={(e) => {
-                                                setFrom(e.currentTarget.value || undefined);
-                                                setCurrentPage(1);
-                                            }}
+                                            onInput={(e) =>
+                                                setFrom(e.currentTarget.value || undefined)
+                                            }
                                             class="h-10 w-full min-w-0 rounded-md border border-line-strong bg-canvas px-3 text-sm text-fg transition-colors hover:border-fg-subtle"
                                         />
                                     </div>
@@ -276,10 +303,9 @@ export default function RacesPage() {
                                             id="races-to"
                                             type="date"
                                             value={to() ?? ""}
-                                            onInput={(e) => {
-                                                setTo(e.currentTarget.value || undefined);
-                                                setCurrentPage(1);
-                                            }}
+                                            onInput={(e) =>
+                                                setTo(e.currentTarget.value || undefined)
+                                            }
                                             class="h-10 w-full min-w-0 rounded-md border border-line-strong bg-canvas px-3 text-sm text-fg transition-colors hover:border-fg-subtle"
                                         />
                                     </div>
@@ -300,28 +326,21 @@ export default function RacesPage() {
                     </div>
                 </Show>
 
-                {/* Loading */}
+                {/* Loading: placeholder cards, so the page keeps its height */}
                 <Show when={racesQuery.isLoading}>
-                    <div class="flex items-center justify-center py-24 gap-4">
-                        <LoadingSpinner />
-                        <p class="text-fg-muted">Loading races...</p>
+                    <div class="space-y-6" role="status" aria-busy="true">
+                        <span class="sr-only">Loading races</span>
+                        <For each={[0, 1, 2]}>{() => <RaceCardSkeleton />}</For>
                     </div>
                 </Show>
 
                 {/* Error */}
                 <Show when={racesQuery.isError}>
-                    <div class="bg-canvas rounded-lg border border-red-200 dark:border-red-800 p-8 text-center space-y-4">
-                        <p class="text-red-600 dark:text-red-400 font-medium">
-                            Failed to load races.
-                        </p>
-                        <button
-                            type="button"
-                            onClick={() => racesQuery.refetch()}
-                            class="bg-accent hover:bg-accent-hover text-accent-fg font-semibold py-2 px-6 rounded-lg transition-colors"
-                        >
-                            Try Again
-                        </button>
-                    </div>
+                    <QueryError
+                        title="Couldn't load the races"
+                        error={racesQuery.error}
+                        onRetry={() => racesQuery.refetch()}
+                    />
                 </Show>
 
                 {/* Results */}
@@ -329,9 +348,29 @@ export default function RacesPage() {
                     {(data) => (
                         <div class="space-y-6">
                             <Show when={data().items.length === 0}>
-                                <p class="text-center text-fg-subtle py-16">
-                                    No races found matching these filters.
-                                </p>
+                                <div class="rounded-lg border border-line bg-canvas">
+                                    <EmptyState
+                                        icon={<Flag size={40} />}
+                                        title={
+                                            isDeepLinked()
+                                                ? "No race recorded here"
+                                                : fc()
+                                                  ? `No races found for ${fc()}`
+                                                  : "No races match these filters"
+                                        }
+                                        action={
+                                            <Show when={!isDeepLinked() && hasFilters()}>
+                                                <Button variant="secondary" onClick={clearFilters}>
+                                                    Clear filters
+                                                </Button>
+                                            </Show>
+                                        }
+                                    >
+                                        {isDeepLinked()
+                                            ? "This room and race number are not in the history."
+                                            : "Try a wider date range, or all tracks and both engine classes."}
+                                    </EmptyState>
+                                </div>
                             </Show>
 
                             <For each={data().items}>{(race) => <RaceCard race={race} />}</For>

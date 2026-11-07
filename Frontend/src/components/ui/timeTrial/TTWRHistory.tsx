@@ -6,13 +6,15 @@ import {
     getVehicleName,
 } from "../../../constants/marioKartMappings";
 import { formatDate, getDriftInfo } from "../../../utils/formatter";
-import { CountryFlag, LoadingSpinner } from "../../common";
+import { CountryFlag, QueryError, SkeletonBar } from "../../common";
 import { Download, TrendingDown, Trophy, Zap } from "lucide-solid";
 
 interface TTWRHistoryProps {
     history: GhostSubmission[] | null | undefined;
     isLoading: boolean;
     isError: boolean;
+    /** Runs the history query again, for the Retry button. */
+    onRetry?: () => unknown;
     onDownloadGhost: (submission: GhostSubmission) => void;
     title?: string;
     subtitle?: string;
@@ -50,15 +52,20 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
             </div>
 
             <Show when={props.isLoading}>
-                <div class="p-12 text-center">
-                    <LoadingSpinner />
-                    <p class="mt-4 text-fg-muted">Loading history...</p>
+                <div class="space-y-6 p-4 sm:p-6" role="status" aria-busy="true">
+                    <span class="sr-only">Loading history</span>
+                    <For each={[0, 1, 2]}>
+                        {() => <SkeletonBar class="h-24 w-full rounded-lg" />}
+                    </For>
                 </div>
             </Show>
 
             <Show when={props.isError}>
-                <div class="p-6 text-center text-red-600 dark:text-red-400">
-                    Failed to load world record history
+                <div class="p-4 sm:p-6">
+                    <QueryError
+                        title="Couldn't load the record history"
+                        onRetry={() => props.onRetry?.()}
+                    />
                 </div>
             </Show>
 

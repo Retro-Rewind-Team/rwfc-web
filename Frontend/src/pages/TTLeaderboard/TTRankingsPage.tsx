@@ -1,13 +1,28 @@
 import { A } from "@solidjs/router";
 import { For, Show } from "solid-js";
 import { Meta, Title } from "@solidjs/meta";
-import { TriangleAlert, Trophy } from "lucide-solid";
+import { Trophy } from "lucide-solid";
 import { useTTRankings } from "../../hooks/useTTRankings";
-import { CountryFlag, InlinePagination, LoadingSpinner } from "../../components/common";
+import {
+    Button,
+    CountryFlag,
+    EmptyState,
+    InlinePagination,
+    QueryError,
+    type SkeletonColumn,
+    TableSkeleton,
+} from "../../components/common";
 import ToggleGroup from "../../components/common/ToggleGroup";
 import { ShroomlessFilter, TrackCategoryFilter, VehicleFilter } from "../../types/timeTrial";
 import { TT_RANKINGS_META } from "../../constants/pageMeta";
 import PageHeader from "../../components/common/PageHeader";
+
+// Same columns and padding as the real table, so it does not shift when data arrives.
+const RANKING_COLUMNS: SkeletonColumn[] = [
+    { header: "Rank", class: "w-16 sm:px-6", bar: "w-8" },
+    { header: "Player", class: "sm:px-6", bar: "w-40" },
+    { header: "WRs", align: "right", class: "w-24 sm:px-6", bar: "w-6" },
+];
 
 type CCOption = "150" | "200";
 type GlitchOption = "unrestricted" | "no-glitch";
@@ -144,31 +159,23 @@ export default function TTRankingsPage() {
 
                 {/* Loading */}
                 <Show when={rankings.rankingsQuery.isLoading}>
-                    <div class="bg-canvas rounded-lg border border-line p-12 flex flex-col items-center gap-4">
-                        <LoadingSpinner />
-                        <p class="text-fg-muted">Loading rankings...</p>
+                    <div class="overflow-hidden rounded-lg border border-line bg-canvas">
+                        <TableSkeleton
+                            label="Loading rankings"
+                            columns={RANKING_COLUMNS}
+                            rows={rankings.pageSize()}
+                            rowClass="h-[3.75rem]"
+                        />
                     </div>
                 </Show>
 
                 {/* Error */}
-                <Show when={rankings.rankingsQuery.isError && !rankings.rankingsQuery.isLoading}>
-                    <div class="bg-canvas rounded-lg border border-red-200 dark:border-red-800 p-8">
-                        <div class="text-center space-y-4">
-                            <div class="flex justify-center text-red-400">
-                                <TriangleAlert size={48} />
-                            </div>
-                            <h2 class="text-2xl font-semibold text-red-900 dark:text-red-100">
-                                Failed to load rankings
-                            </h2>
-                            <button
-                                type="button"
-                                onClick={() => rankings.rankingsQuery.refetch()}
-                                class="bg-accent hover:bg-accent-hover text-accent-fg font-semibold py-2 px-6 rounded-lg transition-colors"
-                            >
-                                Try Again
-                            </button>
-                        </div>
-                    </div>
+                <Show when={rankings.rankingsQuery.isError}>
+                    <QueryError
+                        title="Couldn't load the rankings"
+                        error={rankings.rankingsQuery.error}
+                        onRetry={() => rankings.rankingsQuery.refetch()}
+                    />
                 </Show>
 
                 {/* Rankings Table */}
@@ -179,7 +186,7 @@ export default function TTRankingsPage() {
                                 Player Rankings
                             </h2>
                             <p class="text-fg-subtle text-xs sm:text-sm">
-                                {rankings.rankingsQuery.data!.totalPlayers} player
+                                {rankings.rankingsQuery.data!.totalPlayers.toLocaleString()} player
                                 {rankings.rankingsQuery.data!.totalPlayers !== 1 ? "s" : ""} with
                                 world records
                             </p>
@@ -188,17 +195,22 @@ export default function TTRankingsPage() {
                         <Show
                             when={(rankings.rankingsQuery.data?.players.length ?? 0) > 0}
                             fallback={
-                                <div class="p-12 text-center">
-                                    <div class="flex justify-center mb-4 text-fg-subtle">
-                                        <Trophy size={48} />
-                                    </div>
-                                    <h3 class="text-xl font-semibold text-fg mb-2">
-                                        No Records Found
-                                    </h3>
-                                    <p class="text-fg-muted">
-                                        No world records exist for this category yet.
-                                    </p>
-                                </div>
+                                <EmptyState
+                                    icon={<Trophy size={40} />}
+                                    title="No world records in this category yet"
+                                    action={
+                                        <Show when={rankings.hasFilters()}>
+                                            <Button
+                                                variant="secondary"
+                                                onClick={rankings.clearFilters}
+                                            >
+                                                Clear filters
+                                            </Button>
+                                        </Show>
+                                    }
+                                >
+                                    Try the other engine class, or allow glitches and shortcuts.
+                                </EmptyState>
                             }
                         >
                             <div class="relative overflow-x-auto">
