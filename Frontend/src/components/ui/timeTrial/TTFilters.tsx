@@ -47,7 +47,7 @@ export default function TTFilters(props: TTFiltersProps) {
             {/* CC Switcher - uses navigation links to change the URL */}
             <div>
                 <label class="block text-xs font-semibold text-fg-muted mb-1">Engine Class</label>
-                <div class="bg-canvas rounded-lg p-1 flex border border-gray-200 dark:border-gray-600">
+                <div class="bg-canvas rounded-lg p-1 flex border border-line-strong">
                     <A
                         href={buildRoute(
                             props.trackId,
@@ -87,7 +87,7 @@ export default function TTFilters(props: TTFiltersProps) {
                     <label class="block text-xs font-semibold text-fg-muted mb-1">
                         Category Type
                     </label>
-                    <div class="bg-canvas rounded-lg p-1 flex border border-gray-200 dark:border-gray-600">
+                    <div class="bg-canvas rounded-lg p-1 flex border border-line-strong">
                         <A
                             href={buildRoute(
                                 props.trackId,
@@ -128,7 +128,7 @@ export default function TTFilters(props: TTFiltersProps) {
                     <label class="block text-xs font-semibold text-fg-muted mb-1">
                         Leaderboard Type
                     </label>
-                    <div class="bg-canvas rounded-lg p-1 flex border border-gray-200 dark:border-gray-600">
+                    <div class="bg-canvas rounded-lg p-1 flex border border-line-strong">
                         <A
                             href={buildRoute(
                                 props.trackId,
@@ -240,7 +240,7 @@ export default function TTFilters(props: TTFiltersProps) {
                         id="tt-page-size-select"
                         value={props.pageSize}
                         onChange={(e) => props.onPageSizeChange(parseInt(e.target.value))}
-                        class="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-canvas text-fg text-sm"
+                        class="w-full px-3 py-2 border border-line-strong rounded-lg bg-canvas text-fg text-sm"
                     >
                         <option value="10">10 times</option>
                         <option value="25">25 times</option>

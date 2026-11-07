@@ -382,7 +382,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                                 max={todayString()}
                                 value={rangeFrom()}
                                 onInput={(e) => setRangeFrom(e.currentTarget.value)}
-                                class="px-3 py-2 text-sm rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                                class="px-3 py-2 text-sm rounded-lg border-2 border-line-strong bg-canvas text-fg transition-colors"
                             />
                         </div>
                         <div class="flex flex-col gap-1">
@@ -394,7 +394,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                                 max={todayString()}
                                 value={rangeTo()}
                                 onInput={(e) => setRangeTo(e.currentTarget.value)}
-                                class="px-3 py-2 text-sm rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                                class="px-3 py-2 text-sm rounded-lg border-2 border-line-strong bg-canvas text-fg transition-colors"
                             />
                         </div>
                         <button

@@ -147,7 +147,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                                 placeholder="Search by track name..."
                                 value={props.searchQuery}
                                 onInput={(e) => props.onSearchInput(e.target.value)}
-                                class="w-full pl-9 pr-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-fg placeholder-gray-400 text-xs"
+                                class="w-full pl-9 pr-3 py-2 border border-line-strong rounded-lg bg-canvas text-fg placeholder:text-fg-subtle text-xs"
                             />
                         </div>
                     </div>

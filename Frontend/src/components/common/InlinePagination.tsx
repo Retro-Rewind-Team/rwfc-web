@@ -59,7 +59,7 @@ export default function InlinePagination(props: InlinePaginationProps) {
                                 e.target.value = String(props.currentPage);
                             }
                         }}
-                        class="w-16 px-2 py-1 text-center border border-line-strong rounded-lg bg-white dark:bg-gray-700 text-fg focus:outline-none focus:border-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        class="w-16 px-2 py-1 text-center border border-line-strong rounded-lg bg-canvas text-fg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     of {props.totalPages}
                 </span>

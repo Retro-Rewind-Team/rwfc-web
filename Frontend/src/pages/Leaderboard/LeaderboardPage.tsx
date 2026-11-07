@@ -85,7 +85,7 @@ export default function LeaderboardPage() {
                         <h2 class="text-lg font-semibold text-fg">Filters</h2>
                         <div class="flex gap-3 items-center flex-wrap">
                             <Show when={legacyLeaderboard.isAvailable()}>
-                                <div class="bg-white dark:bg-gray-700/50 rounded-lg p-1 flex border border-line-strong">
+                                <div class="bg-canvas/50 rounded-lg p-1 flex border border-line-strong">
                                     <button
                                         type="button"
                                         onClick={() => setShowLegacy(false)}
@@ -148,7 +148,7 @@ export default function LeaderboardPage() {
                                     onInput={(e) =>
                                         activeLeaderboard().handleSearchInput(e.target.value)
                                     }
-                                    class="w-full pl-10 pr-4 py-3 border border-line-strong rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-fg placeholder-gray-400 transition-colors"
+                                    class="w-full pl-10 pr-4 py-3 border border-line-strong rounded-lg bg-canvas text-fg placeholder:text-fg-subtle transition-colors"
                                 />
                             </div>
                         </div>
@@ -171,7 +171,7 @@ export default function LeaderboardPage() {
                                                 e.target.value,
                                             )
                                         }
-                                        class="w-full px-3 py-3 border border-line-strong rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-fg transition-colors"
+                                        class="w-full px-3 py-3 border border-line-strong rounded-lg bg-canvas text-fg transition-colors"
                                     >
                                         <option value="24">Last 24 hours</option>
                                         <option value="week">Last 7 days</option>
@@ -194,7 +194,7 @@ export default function LeaderboardPage() {
                                                 val === "" ? null : parseInt(val),
                                             );
                                         }}
-                                        class="w-full px-3 py-3 border border-line-strong rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-fg transition-colors"
+                                        class="w-full px-3 py-3 border border-line-strong rounded-lg bg-canvas text-fg transition-colors"
                                     >
                                         <option value="">All time</option>
                                         <option value="7">Last 7 days</option>
@@ -206,7 +206,7 @@ export default function LeaderboardPage() {
                                     <label class="block text-sm font-semibold text-fg-muted mb-2">
                                         Vehicle
                                     </label>
-                                    <div class="bg-white dark:bg-gray-700/50 rounded-lg p-1 flex border border-line-strong">
+                                    <div class="bg-canvas/50 rounded-lg p-1 flex border border-line-strong">
                                         <button
                                             type="button"
                                             onClick={() =>
@@ -266,7 +266,7 @@ export default function LeaderboardPage() {
                                             parseInt(e.target.value),
                                         )
                                     }
-                                    class="w-full px-3 py-3 border border-line-strong rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-fg transition-colors"
+                                    class="w-full px-3 py-3 border border-line-strong rounded-lg bg-canvas text-fg transition-colors"
                                 >
                                     <option value="10">10 players</option>
                                     <option value="25">25 players</option>

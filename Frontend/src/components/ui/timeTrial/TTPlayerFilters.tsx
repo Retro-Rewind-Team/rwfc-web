@@ -127,7 +127,7 @@ export default function TTPlayerFilters(props: TTPlayerFiltersProps) {
                             placeholder="Search by track name..."
                             value={props.searchQuery}
                             onInput={(e) => props.onSearchInput(e.target.value)}
-                            class="w-full pl-10 pr-4 py-2 border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-fg placeholder-gray-400"
+                            class="w-full pl-10 pr-4 py-2 border border-line-strong rounded-lg bg-canvas text-fg placeholder:text-fg-subtle"
                         />
                     </div>
                 </div>
@@ -144,7 +144,7 @@ export default function TTPlayerFilters(props: TTPlayerFiltersProps) {
                         id="player-page-size"
                         value={props.pageSize}
                         onChange={(e) => props.onPageSizeChange(parseInt(e.target.value))}
-                        class="w-full px-3 py-2 border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-fg"
+                        class="w-full px-3 py-2 border border-line-strong rounded-lg bg-canvas text-fg"
                     >
                         <option value="10">10 submissions</option>
                         <option value="25">25 submissions</option>

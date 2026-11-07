@@ -330,7 +330,7 @@ export default function FontPatcherPage() {
                             type="checkbox"
                             checked={useLiteralOnly()}
                             onChange={(e) => setUseLiteralOnly(e.currentTarget.checked)}
-                            class="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            class="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600"
                         />
                         <div>
                             <span class="text-sm font-medium text-fg-muted">

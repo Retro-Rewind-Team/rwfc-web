@@ -88,7 +88,7 @@ export default function OnlineBestsPage() {
                             placeholder="Search tracks..."
                             value={trackSearch()}
                             onInput={(e) => setTrackSearch(e.currentTarget.value)}
-                            class="w-full text-sm px-3 py-2 mb-3 border border-line rounded-lg bg-canvas text-fg placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                            class="w-full text-sm px-3 py-2 mb-3 border border-line rounded-lg bg-canvas text-fg placeholder:text-fg-subtle transition-colors"
                         />
                         <Show when={tracksQuery.isLoading}>
                             <div class="flex justify-center py-4">
@@ -326,7 +326,7 @@ export default function OnlineBestsPage() {
                                                             setPage(v);
                                                         else e.target.value = String(page());
                                                     }}
-                                                    class="w-14 px-2 py-1 text-center text-sm border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-fg focus:outline-none focus:border-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                    class="w-14 px-2 py-1 text-center text-sm border border-line-strong rounded-lg bg-canvas text-fg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                 />
                                                 of {bestsQuery.data!.totalPages}
                                             </span>

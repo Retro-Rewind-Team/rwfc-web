@@ -166,7 +166,7 @@ export default function VRCalculatorPage() {
                                     onInput={(e) =>
                                         changeCount(parseInt(e.currentTarget.value) || 12)
                                     }
-                                    class="w-full px-2 py-1.5 text-sm font-mono rounded-lg border border-line-strong bg-canvas text-fg focus:ring-1 focus:ring-blue-500"
+                                    class="w-full px-2 py-1.5 text-sm font-mono rounded-lg border border-line-strong bg-canvas text-fg"
                                 />
                             </label>
                             <label class="space-y-1">
@@ -179,7 +179,7 @@ export default function VRCalculatorPage() {
                                             parseFloat(e.currentTarget.value) || MIN_DISPLAY_VR,
                                         )
                                     }
-                                    class="w-full px-2 py-1.5 text-sm font-mono rounded-lg border border-line-strong bg-canvas text-fg focus:ring-1 focus:ring-blue-500"
+                                    class="w-full px-2 py-1.5 text-sm font-mono rounded-lg border border-line-strong bg-canvas text-fg"
                                 />
                             </label>
                             <label class="space-y-1">
@@ -192,7 +192,7 @@ export default function VRCalculatorPage() {
                                             parseFloat(e.currentTarget.value) || MAX_DISPLAY_VR,
                                         )
                                     }
-                                    class="w-full px-2 py-1.5 text-sm font-mono rounded-lg border border-line-strong bg-canvas text-fg focus:ring-1 focus:ring-blue-500"
+                                    class="w-full px-2 py-1.5 text-sm font-mono rounded-lg border border-line-strong bg-canvas text-fg"
                                 />
                             </label>
                         </div>
@@ -271,7 +271,7 @@ export default function VRCalculatorPage() {
                                         const value = parseFloat(e.currentTarget.value);
                                         setMods((m) => ({ ...m, serverMultiplier: value }));
                                     }}
-                                    class="w-20 px-2 py-1 text-sm font-mono rounded border border-line-strong bg-canvas text-fg focus:ring-1 focus:ring-blue-500"
+                                    class="w-20 px-2 py-1 text-sm font-mono rounded border border-line-strong bg-canvas text-fg"
                                 />
                             </label>
                             <span class="text-xs text-fg-subtle">{liveStatus()}</span>
@@ -405,7 +405,7 @@ export default function VRCalculatorPage() {
                                                                     ) || 0,
                                                                 )
                                                             }
-                                                            class="w-24 px-2 py-1 text-sm font-mono rounded border border-line-strong bg-canvas text-fg focus:ring-1 focus:ring-blue-500"
+                                                            class="w-24 px-2 py-1 text-sm font-mono rounded border border-line-strong bg-canvas text-fg"
                                                         />
                                                     </td>
                                                     <td class="px-4 py-2">
@@ -457,7 +457,7 @@ export default function VRCalculatorPage() {
                                                                         return a;
                                                                     });
                                                                 }}
-                                                                class="w-20 px-2 py-1 text-sm font-mono rounded border border-line-strong bg-canvas text-fg focus:ring-1 focus:ring-blue-500"
+                                                                class="w-20 px-2 py-1 text-sm font-mono rounded border border-line-strong bg-canvas text-fg"
                                                             />
                                                         </Show>
                                                     </td>

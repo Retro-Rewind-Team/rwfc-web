@@ -276,7 +276,7 @@ export default function RaceStatsPage() {
                                                 class={`px-3 py-1.5 rounded-lg border font-medium transition-colors ${
                                                     trackCategory() === opt.value
                                                         ? "border-accent bg-accent-soft text-accent-text"
-                                                        : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-fg-muted hover:border-gray-400 dark:hover:border-gray-500"
+                                                        : "bg-canvas border-line-strong text-fg-muted hover:border-gray-400 dark:hover:border-gray-500"
                                                 }`}
                                             >
                                                 {opt.label}
@@ -292,7 +292,7 @@ export default function RaceStatsPage() {
                                             class={`px-3 py-1.5 rounded-lg border font-medium transition-colors ${
                                                 trackSort() === "plays"
                                                     ? "border-accent bg-accent-soft text-accent-text"
-                                                    : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-fg-muted hover:border-gray-400 dark:hover:border-gray-500"
+                                                    : "bg-canvas border-line-strong text-fg-muted hover:border-gray-400 dark:hover:border-gray-500"
                                             }`}
                                         >
                                             By plays
@@ -303,7 +303,7 @@ export default function RaceStatsPage() {
                                             class={`px-3 py-1.5 rounded-lg border font-medium transition-colors ${
                                                 trackSort() === "name"
                                                     ? "border-accent bg-accent-soft text-accent-text"
-                                                    : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-fg-muted hover:border-gray-400 dark:hover:border-gray-500"
+                                                    : "bg-canvas border-line-strong text-fg-muted hover:border-gray-400 dark:hover:border-gray-500"
                                             }`}
                                         >
                                             A-Z
@@ -315,7 +315,7 @@ export default function RaceStatsPage() {
                                         placeholder="Search tracks..."
                                         value={trackSearch()}
                                         onInput={(e) => setTrackSearch(e.currentTarget.value)}
-                                        class="text-sm px-3 py-1.5 border border-line rounded-lg bg-canvas text-fg placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors w-36"
+                                        class="text-sm px-3 py-1.5 border border-line rounded-lg bg-canvas text-fg placeholder:text-fg-subtle transition-colors w-36"
                                     />
                                 </div>
                             </div>

@@ -513,7 +513,7 @@ export default function RatingEditorPage() {
                                                     };
 
                                                     const inputCls =
-                                                        "w-full px-2 py-1 text-xs font-mono rounded border border-line-strong bg-canvas text-fg focus:ring-1 focus:ring-blue-500 focus:border-transparent";
+                                                        "w-full px-2 py-1 text-xs font-mono rounded border border-line-strong bg-canvas text-fg";
                                                     const onEnter =
                                                         (cb: () => void) => (e: KeyboardEvent) => {
                                                             if (e.key === "Enter") {

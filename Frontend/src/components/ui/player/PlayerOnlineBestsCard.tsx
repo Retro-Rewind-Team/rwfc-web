@@ -63,7 +63,7 @@ export default function PlayerOnlineBestsCard(props: PlayerOnlineBestsCardProps)
                     placeholder="Search tracks..."
                     value={search()}
                     onInput={(e) => setSearch(e.currentTarget.value)}
-                    class="w-full text-sm px-3 py-2 mb-4 border border-line rounded-lg bg-canvas text-fg placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                    class="w-full text-sm px-3 py-2 mb-4 border border-line rounded-lg bg-canvas text-fg placeholder:text-fg-subtle transition-colors"
                 />
 
                 <Show

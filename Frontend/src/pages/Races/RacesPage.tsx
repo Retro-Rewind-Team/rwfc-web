@@ -186,7 +186,7 @@ export default function RacesPage() {
                                         placeholder="0000-0000-0000"
                                         value={fcQuery()}
                                         onInput={(e) => handleFcInput(e.currentTarget.value)}
-                                        class="text-sm px-3 py-2 border border-line rounded-lg bg-canvas text-fg placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors w-full"
+                                        class="text-sm px-3 py-2 border border-line rounded-lg bg-canvas text-fg placeholder:text-fg-subtle transition-colors w-full"
                                         aria-label="Filter by player friend code"
                                     />
                                 </div>
@@ -240,7 +240,7 @@ export default function RacesPage() {
                                                 class={`px-3 py-2 text-xs rounded-lg border font-medium transition-colors ${
                                                     engineClassId() === opt.value
                                                         ? "border-accent bg-accent-soft text-accent-text"
-                                                        : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-fg-muted hover:border-gray-400 dark:hover:border-gray-500"
+                                                        : "bg-canvas border-line-strong text-fg-muted hover:border-gray-400 dark:hover:border-gray-500"
                                                 }`}
                                             >
                                                 {opt.label}
@@ -292,7 +292,7 @@ export default function RacesPage() {
                                     <button
                                         type="button"
                                         onClick={clearFilters}
-                                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-medium bg-white dark:bg-gray-700 text-fg-muted hover:border-gray-400 dark:hover:border-gray-500 transition-colors self-end"
+                                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-line-strong text-sm font-medium bg-canvas text-fg-muted hover:border-gray-400 dark:hover:border-gray-500 transition-colors self-end"
                                     >
                                         <X size={14} />
                                         Clear
