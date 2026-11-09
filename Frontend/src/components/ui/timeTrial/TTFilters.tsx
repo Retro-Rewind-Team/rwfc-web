@@ -68,6 +68,7 @@ export default function TTFilters(props: TTFiltersProps) {
                                 props.currentMode,
                             ) + carriedQuery()
                         }
+                        aria-current={props.currentCC === 150 ? "true" : undefined}
                         class={`flex-1 px-3 py-2 rounded-md font-medium transition-colors text-sm text-center ${
                             props.currentCC === 150
                                 ? "bg-accent text-accent-fg"
@@ -85,6 +86,7 @@ export default function TTFilters(props: TTFiltersProps) {
                                 props.currentMode,
                             ) + carriedQuery()
                         }
+                        aria-current={props.currentCC === 200 ? "true" : undefined}
                         class={`flex-1 px-3 py-2 rounded-md font-medium transition-colors text-sm text-center ${
                             props.currentCC === 200
                                 ? "bg-accent text-accent-fg"
@@ -112,6 +114,7 @@ export default function TTFilters(props: TTFiltersProps) {
                                     props.currentMode,
                                 ) + carriedQuery()
                             }
+                            aria-current={props.currentGlitchAllowed ? "true" : undefined}
                             class={`flex-1 px-3 py-2 rounded-md font-medium transition-colors text-sm text-center ${
                                 props.currentGlitchAllowed
                                     ? "bg-accent text-accent-fg"
@@ -129,6 +132,7 @@ export default function TTFilters(props: TTFiltersProps) {
                                     props.currentMode,
                                 ) + carriedQuery()
                             }
+                            aria-current={!props.currentGlitchAllowed ? "true" : undefined}
                             class={`flex-1 px-3 py-2 rounded-md font-medium transition-colors text-sm text-center ${
                                 !props.currentGlitchAllowed
                                     ? "bg-accent text-accent-fg"
@@ -157,6 +161,7 @@ export default function TTFilters(props: TTFiltersProps) {
                                     "regular",
                                 ) + carriedQuery()
                             }
+                            aria-current={props.currentMode === "regular" ? "true" : undefined}
                             class={`flex-1 px-3 py-2 rounded-md font-medium transition-colors text-sm text-center ${
                                 props.currentMode === "regular"
                                     ? "bg-accent text-accent-fg"
@@ -174,6 +179,7 @@ export default function TTFilters(props: TTFiltersProps) {
                                     "flap",
                                 ) + carriedQuery()
                             }
+                            aria-current={props.currentMode === "flap" ? "true" : undefined}
                             class={`flex-1 px-3 py-2 rounded-md font-medium transition-colors text-sm inline-flex items-center justify-center gap-1 ${
                                 props.currentMode === "flap"
                                     ? "bg-accent text-accent-fg"
@@ -194,6 +200,7 @@ export default function TTFilters(props: TTFiltersProps) {
                         Vehicle Type
                     </label>
                     <ToggleGroup<VehicleFilter>
+                        label="Vehicle type"
                         value={props.vehicleFilter}
                         onChange={props.onVehicleFilterChange}
                         options={[
@@ -208,6 +215,7 @@ export default function TTFilters(props: TTFiltersProps) {
                 <div>
                     <label class="block text-xs font-semibold text-fg-muted mb-1">Shroomless</label>
                     <ToggleGroup<ShroomlessFilter>
+                        label="Shroomless"
                         value={props.shroomlessFilter}
                         onChange={props.onShroomlessFilterChange}
                         activeClass="bg-accent"
@@ -223,6 +231,7 @@ export default function TTFilters(props: TTFiltersProps) {
                 <div>
                     <label class="block text-xs font-semibold text-fg-muted mb-1">Drift Type</label>
                     <ToggleGroup<DriftFilter>
+                        label="Drift type"
                         value={props.driftFilter}
                         onChange={props.onDriftFilterChange}
                         activeClass="bg-accent"
@@ -240,6 +249,7 @@ export default function TTFilters(props: TTFiltersProps) {
                         Drift Category
                     </label>
                     <ToggleGroup<DriftCategoryFilter>
+                        label="Drift category"
                         value={props.driftCategoryFilter}
                         onChange={props.onDriftCategoryFilterChange}
                         activeClass="bg-accent"

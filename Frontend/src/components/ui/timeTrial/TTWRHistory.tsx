@@ -7,7 +7,8 @@ import {
 } from "../../../constants/marioKartMappings";
 import { formatDate, getDriftInfo } from "../../../utils/formatter";
 import { CountryFlag, QueryError, SkeletonBar } from "../../common";
-import { Download, TrendingDown, Trophy, Zap } from "lucide-solid";
+import { TrendingDown, Trophy, Zap } from "lucide-solid";
+import GhostDownloadButton from "./GhostDownloadButton";
 
 interface TTWRHistoryProps {
     history: GhostSubmission[] | null | undefined;
@@ -271,26 +272,14 @@ export default function TTWRHistory(props: TTWRHistoryProps) {
                                                             <span class="font-medium">Set on:</span>{" "}
                                                             {formatDate(record.dateSet)}
                                                         </div>
-                                                        <button
-                                                            type="button"
-                                                            disabled={!record.hasGhostFile}
-                                                            onClick={() =>
+                                                        <GhostDownloadButton
+                                                            variant="block"
+                                                            available={record.hasGhostFile}
+                                                            submissionId={record.id}
+                                                            onDownload={() =>
                                                                 props.onDownloadGhost(record)
                                                             }
-                                                            title={
-                                                                record.hasGhostFile
-                                                                    ? undefined
-                                                                    : "Ghost file not available for this submission"
-                                                            }
-                                                            class={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-transparent text-xs font-medium rounded-md transition-colors w-full sm:w-auto ${
-                                                                record.hasGhostFile
-                                                                    ? "text-accent-fg bg-accent hover:bg-accent-hover"
-                                                                    : "text-fg-subtle bg-gray-200 dark:bg-gray-700 cursor-not-allowed"
-                                                            }`}
-                                                        >
-                                                            <Download size={14} />
-                                                            Download Ghost
-                                                        </button>
+                                                        />
                                                     </div>
                                                 </div>
                                             </div>

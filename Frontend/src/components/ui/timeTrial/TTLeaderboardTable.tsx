@@ -1,6 +1,7 @@
 import { A } from "@solidjs/router";
 import { createSignal, For, Show } from "solid-js";
-import { ChevronDown, Download, Medal, Trophy, Zap } from "lucide-solid";
+import { ChevronDown, Medal, Trophy, Zap } from "lucide-solid";
+import GhostDownloadButton from "./GhostDownloadButton";
 import { GhostSubmission } from "../../../types/timeTrial";
 import {
     getCharacterName,
@@ -248,40 +249,31 @@ export default function TTLeaderboardTable(props: TTLeaderboardTableProps) {
                                                     onClick={() => toggleRow(submission.id)}
                                                     class="inline-flex items-center p-2 sm:px-3 sm:py-1.5 border border-line-strong text-xs font-medium rounded-md text-fg-muted bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                                                     aria-label="Toggle details"
+                                                    aria-expanded={isExpanded()}
+                                                    aria-controls={`submission-${submission.id}-laps`}
                                                 >
                                                     <ChevronDown
                                                         size={16}
                                                         class={`transition-transform ${isExpanded() ? "rotate-180" : ""}`}
                                                     />
                                                 </button>
-                                                <button
-                                                    type="button"
-                                                    disabled={!submission.hasGhostFile}
-                                                    onClick={() =>
+                                                <GhostDownloadButton
+                                                    available={submission.hasGhostFile}
+                                                    submissionId={submission.id}
+                                                    onDownload={() =>
                                                         props.onDownloadGhost(submission)
                                                     }
-                                                    class={`inline-flex items-center p-2 sm:px-3 sm:py-1.5 border border-transparent text-xs font-medium rounded-md transition-colors ${
-                                                        submission.hasGhostFile
-                                                            ? "text-accent-fg bg-accent hover:bg-accent-hover"
-                                                            : "text-fg-subtle bg-gray-200 dark:bg-gray-700 cursor-not-allowed"
-                                                    }`}
-                                                    aria-label="Download ghost"
-                                                    title={
-                                                        submission.hasGhostFile
-                                                            ? undefined
-                                                            : "Ghost file not available for this submission"
-                                                    }
-                                                >
-                                                    <Download size={16} class="sm:mr-1" />
-                                                    <span class="hidden sm:inline">Ghost</span>
-                                                </button>
+                                                />
                                             </div>
                                         </td>
                                     </tr>
 
                                     {/* Expanded Row */}
                                     <Show when={isExpanded()}>
-                                        <tr class="bg-surface">
+                                        <tr
+                                            id={`submission-${submission.id}-laps`}
+                                            class="bg-surface"
+                                        >
                                             <td colspan="9" class="px-3 sm:px-6 py-4">
                                                 <div class="max-w-2xl">
                                                     <div class="text-xs font-semibold text-fg-subtle mb-3">

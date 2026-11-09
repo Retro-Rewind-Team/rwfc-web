@@ -96,6 +96,7 @@ export default function RaceStatsPage() {
                             {(opt) => (
                                 <button
                                     type="button"
+                                    aria-pressed={days() === opt.value}
                                     onClick={() => handleDaysChange(opt.value)}
                                     class={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                                         days() === opt.value
@@ -152,9 +153,10 @@ export default function RaceStatsPage() {
                                 <Gamepad2 size={20} class="text-blue-500 dark:text-blue-400" />
                                 <h2 class="text-xl font-semibold text-fg">Most Popular Setup</h2>
                             </div>
-                            <div class="flex gap-1">
+                            <div class="flex gap-1" role="group" aria-label="Rank setups by">
                                 <button
                                     type="button"
+                                    aria-pressed={setupMode() === "usage"}
                                     onClick={() => setSetupMode("usage")}
                                     class={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                                         setupMode() === "usage"
@@ -166,6 +168,7 @@ export default function RaceStatsPage() {
                                 </button>
                                 <button
                                     type="button"
+                                    aria-pressed={setupMode() === "winrate"}
                                     onClick={() => setSetupMode("winrate")}
                                     class={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                                         setupMode() === "winrate"
@@ -177,6 +180,7 @@ export default function RaceStatsPage() {
                                 </button>
                                 <button
                                     type="button"
+                                    aria-pressed={setupMode() === "wincount"}
                                     onClick={() => setSetupMode("wincount")}
                                     class={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                                         setupMode() === "wincount"
@@ -263,7 +267,11 @@ export default function RaceStatsPage() {
                                 </div>
                                 <div class="flex items-center gap-2 flex-wrap">
                                     {/* Category toggle */}
-                                    <div class="flex gap-1 text-xs">
+                                    <div
+                                        class="flex gap-1 text-xs"
+                                        role="group"
+                                        aria-label="Track category"
+                                    >
                                         {(
                                             [
                                                 { label: "All", value: "all" },
@@ -273,6 +281,7 @@ export default function RaceStatsPage() {
                                         ).map((opt) => (
                                             <button
                                                 type="button"
+                                                aria-pressed={trackCategory() === opt.value}
                                                 onClick={() => setTrackCategory(opt.value)}
                                                 class={`px-3 py-1.5 rounded-lg border font-medium transition-colors ${
                                                     trackCategory() === opt.value
@@ -286,9 +295,14 @@ export default function RaceStatsPage() {
                                     </div>
 
                                     {/* Sort toggle */}
-                                    <div class="flex gap-1 text-xs">
+                                    <div
+                                        class="flex gap-1 text-xs"
+                                        role="group"
+                                        aria-label="Sort tracks"
+                                    >
                                         <button
                                             type="button"
+                                            aria-pressed={trackSort() === "plays"}
                                             onClick={() => setTrackSort("plays")}
                                             class={`px-3 py-1.5 rounded-lg border font-medium transition-colors ${
                                                 trackSort() === "plays"
@@ -300,6 +314,7 @@ export default function RaceStatsPage() {
                                         </button>
                                         <button
                                             type="button"
+                                            aria-pressed={trackSort() === "name"}
                                             onClick={() => setTrackSort("name")}
                                             class={`px-3 py-1.5 rounded-lg border font-medium transition-colors ${
                                                 trackSort() === "name"

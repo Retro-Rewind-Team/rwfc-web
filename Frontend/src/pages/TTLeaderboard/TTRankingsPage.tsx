@@ -8,6 +8,7 @@ import {
     CountryFlag,
     EmptyState,
     InlinePagination,
+    LiveRegion,
     QueryError,
     type SkeletonColumn,
     TableSkeleton,
@@ -49,6 +50,15 @@ export default function TTRankingsPage() {
         return parts.join(" • ");
     };
 
+    // Blank while loading or failed (the skeleton and the error alert announce themselves).
+    const resultsMessage = () => {
+        const query = rankings.rankingsQuery;
+        if (query.isLoading || query.isError || !query.data) return "";
+        const total = query.data.totalPlayers;
+        if (query.data.players.length === 0) return "No world records in this category yet.";
+        return `${total.toLocaleString()} ${total === 1 ? "player" : "players"} with world records.`;
+    };
+
     return (
         <>
             <PageHeader
@@ -61,8 +71,7 @@ export default function TTRankingsPage() {
             <div class="space-y-6">
                 <Title>{TT_RANKINGS_META.title}</Title>
                 <Meta name="description" content={TT_RANKINGS_META.description} />
-
-                {/* Page Title */}
+                <LiveRegion message={resultsMessage()} />
 
                 {/* Filters */}
                 <div class="bg-canvas rounded-lg border border-line overflow-hidden">
@@ -78,6 +87,7 @@ export default function TTRankingsPage() {
                                     Engine Class
                                 </label>
                                 <ToggleGroup<CCOption>
+                                    label="Engine class"
                                     value={ccValue()}
                                     onChange={(v) =>
                                         rankings.handleCCChange(Number(v) as 150 | 200)
@@ -95,6 +105,7 @@ export default function TTRankingsPage() {
                                     Category Type
                                 </label>
                                 <ToggleGroup<GlitchOption>
+                                    label="Category type"
                                     value={glitchValue()}
                                     onChange={(v) =>
                                         rankings.handleGlitchAllowedChange(v === "unrestricted")
@@ -112,6 +123,7 @@ export default function TTRankingsPage() {
                                     Vehicle Type
                                 </label>
                                 <ToggleGroup<VehicleFilter>
+                                    label="Vehicle type"
                                     value={rankings.vehicleFilter()}
                                     onChange={rankings.handleVehicleFilterChange}
                                     options={[
@@ -128,6 +140,7 @@ export default function TTRankingsPage() {
                                     Shroomless
                                 </label>
                                 <ToggleGroup<ShroomlessFilter>
+                                    label="Shroomless"
                                     value={rankings.shroomlessFilter()}
                                     onChange={rankings.handleShroomlessFilterChange}
                                     options={[
@@ -144,6 +157,7 @@ export default function TTRankingsPage() {
                                     Track Category
                                 </label>
                                 <ToggleGroup<TrackCategoryFilter>
+                                    label="Track category"
                                     value={rankings.trackCategoryFilter()}
                                     onChange={rankings.handleTrackCategoryFilterChange}
                                     options={[

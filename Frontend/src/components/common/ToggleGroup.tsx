@@ -15,14 +15,23 @@ interface ToggleGroupProps<T extends string> {
     activeClass?: string;
     /** Text size: "xs" (default) or "sm". */
     size?: "xs" | "sm";
+    /** Names the group for screen readers, e.g. "Engine class". Match the visible label. */
+    label?: string;
 }
 
-/** Segmented toggle button group. Each option can carry its own active colour via `activeClass`. */
+/**
+ * Segmented toggle button group. Each option can carry its own active colour via `activeClass`.
+ * The selected option is exposed with `aria-pressed`; `label` names the group around it.
+ */
 export default function ToggleGroup<T extends string>(props: ToggleGroupProps<T>) {
     const textSize = () => (props.size === "sm" ? "text-sm" : "text-xs");
 
     return (
-        <div class="flex rounded-lg border border-line bg-canvas p-1">
+        <div
+            class="flex rounded-lg border border-line bg-canvas p-1"
+            role={props.label ? "group" : undefined}
+            aria-label={props.label}
+        >
             <For each={props.options}>
                 {(opt) => {
                     const activeClass = opt.activeClass ?? props.activeClass ?? "bg-accent";

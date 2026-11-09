@@ -7,6 +7,7 @@ import {
     Button,
     EmptyState,
     InlinePagination,
+    LiveRegion,
     QueryError,
     SkeletonBar,
     type SkeletonColumn,
@@ -91,6 +92,15 @@ export default function TTTrackDetailPage() {
             ? "Track the progression of fastest lap records over time"
             : "Track the progression of world records over time";
 
+    // Blank while loading or failed (the skeleton and the error alert announce themselves).
+    const resultsMessage = () => {
+        const query = queries.leaderboardQuery;
+        if (query.isLoading || query.isError || !query.data) return "";
+        const count = computed.filteredSubmissions().length;
+        if (count === 0) return "No times match these filters.";
+        return `${count} ${count === 1 ? "time" : "times"} shown.`;
+    };
+
     return (
         <>
             <PageHeader
@@ -110,6 +120,7 @@ export default function TTTrackDetailPage() {
                     name="description"
                     content={DYNAMIC_META_DEFAULTS.ttTrackDetail.description}
                 />
+                <LiveRegion message={resultsMessage()} />
 
                 {/* Loading */}
                 <Show when={queries.trackQuery.isLoading}>

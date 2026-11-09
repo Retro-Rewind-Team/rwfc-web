@@ -7,6 +7,7 @@ import {
     Button,
     CountryFlag,
     EmptyState,
+    LiveRegion,
     QueryError,
     type SkeletonColumn,
     TableSkeleton,
@@ -44,6 +45,23 @@ export default function TTLeaderboardPage() {
             : `/timetrial/no-glitch-${cc}cc/${trackId}`;
     };
 
+    // Blank until both queries have settled (the skeleton and the error alert announce themselves).
+    const resultsMessage = () => {
+        if (
+            browser.tracksQuery.isLoading ||
+            browser.worldRecordsQuery.isLoading ||
+            browser.tracksQuery.isError ||
+            browser.worldRecordsQuery.isError ||
+            !browser.tracksQuery.data ||
+            !browser.worldRecordsQuery.data
+        ) {
+            return "";
+        }
+        const count = browser.filteredTracks().length;
+        if (count === 0) return "No tracks match these filters.";
+        return `${count} ${count === 1 ? "track" : "tracks"} shown.`;
+    };
+
     return (
         <>
             <PageHeader
@@ -64,7 +82,7 @@ export default function TTLeaderboardPage() {
             <div class="space-y-8">
                 <Title>{TT_LEADERBOARD_META.title}</Title>
                 <Meta name="description" content={TT_LEADERBOARD_META.description} />
-                {/* Page Title */}
+                <LiveRegion message={resultsMessage()} />
 
                 {/* Filters */}
                 <TTBrowserFilters

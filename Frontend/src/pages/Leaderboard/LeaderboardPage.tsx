@@ -11,6 +11,7 @@ import {
     Button,
     EmptyState,
     InlinePagination,
+    LiveRegion,
     QueryError,
     type SkeletonColumn,
     TableSkeleton,
@@ -70,6 +71,16 @@ export default function LeaderboardPage() {
     const setLegacy = (legacy: boolean) =>
         urlState.update({ legacy, sort: undefined, dir: undefined }, { resetPage: true });
 
+    // Blank while loading or failed (the skeleton and the error alert announce themselves), so a
+    // filter change reads as one sentence once the new results are in.
+    const resultsMessage = () => {
+        const query = activeLeaderboard().leaderboardQuery;
+        if (query.isLoading || query.isError || !query.data) return "";
+        const total = query.data.totalCount;
+        if (query.data.players.length === 0) return "No players match these filters.";
+        return `${total.toLocaleString()} ${total === 1 ? "racer" : "racers"} found.`;
+    };
+
     return (
         <>
             <PageHeader
@@ -80,7 +91,7 @@ export default function LeaderboardPage() {
             <div class="space-y-8">
                 <Title>{VR_LEADERBOARD_META.title}</Title>
                 <Meta name="description" content={VR_LEADERBOARD_META.description} />
-                {/* Page Title */}
+                <LiveRegion message={resultsMessage()} />
 
                 {/* VR Multiplier Info */}
                 <Show when={showVRMultipliers()}>
@@ -208,12 +219,22 @@ export default function LeaderboardPage() {
                                     <option value="30">Last 30 days</option>
                                 </Select>
                                 <div>
-                                    <label class="block text-sm font-semibold text-fg-muted mb-2">
+                                    <span
+                                        id="vehicle-filter-label"
+                                        class="block text-sm font-semibold text-fg-muted mb-2"
+                                    >
                                         Vehicle
-                                    </label>
-                                    <div class="bg-canvas/50 rounded-lg p-1 flex border border-line-strong">
+                                    </span>
+                                    <div
+                                        role="group"
+                                        aria-labelledby="vehicle-filter-label"
+                                        class="bg-canvas/50 rounded-lg p-1 flex border border-line-strong"
+                                    >
                                         <button
                                             type="button"
+                                            aria-pressed={
+                                                currentLeaderboard.vehicleFilter() === undefined
+                                            }
                                             onClick={() =>
                                                 currentLeaderboard.handleVehicleFilterChange(
                                                     undefined,
@@ -229,6 +250,9 @@ export default function LeaderboardPage() {
                                         </button>
                                         <button
                                             type="button"
+                                            aria-pressed={
+                                                currentLeaderboard.vehicleFilter() === "kart"
+                                            }
                                             onClick={() =>
                                                 currentLeaderboard.handleVehicleFilterChange("kart")
                                             }
@@ -242,6 +266,9 @@ export default function LeaderboardPage() {
                                         </button>
                                         <button
                                             type="button"
+                                            aria-pressed={
+                                                currentLeaderboard.vehicleFilter() === "bike"
+                                            }
                                             onClick={() =>
                                                 currentLeaderboard.handleVehicleFilterChange("bike")
                                             }

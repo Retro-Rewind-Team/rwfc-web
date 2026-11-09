@@ -1,6 +1,7 @@
 import { A } from "@solidjs/router";
 import { createSignal, For, Show } from "solid-js";
-import { ChevronDown, Download, Zap } from "lucide-solid";
+import { ChevronDown, Zap } from "lucide-solid";
+import GhostDownloadButton from "./GhostDownloadButton";
 import { GhostSubmission } from "../../../types/timeTrial";
 import {
     getCharacterName,
@@ -197,27 +198,13 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
                                                         class={`transition-transform ${isExpanded() ? "rotate-180" : ""}`}
                                                     />
                                                 </button>
-                                                <button
-                                                    type="button"
-                                                    disabled={!submission.hasGhostFile}
-                                                    onClick={() =>
+                                                <GhostDownloadButton
+                                                    available={submission.hasGhostFile}
+                                                    submissionId={submission.id}
+                                                    onDownload={() =>
                                                         props.onDownloadGhost(submission)
                                                     }
-                                                    class={`inline-flex items-center p-2 sm:px-3 sm:py-1.5 border border-transparent text-xs font-medium rounded-md transition-colors ${
-                                                        submission.hasGhostFile
-                                                            ? "text-accent-fg bg-accent hover:bg-accent-hover"
-                                                            : "text-fg-subtle bg-gray-200 dark:bg-gray-700 cursor-not-allowed"
-                                                    }`}
-                                                    aria-label="Download ghost"
-                                                    title={
-                                                        submission.hasGhostFile
-                                                            ? undefined
-                                                            : "Ghost file not available for this submission"
-                                                    }
-                                                >
-                                                    <Download size={16} class="sm:mr-1" />
-                                                    <span class="hidden sm:inline">Ghost</span>
-                                                </button>
+                                                />
                                             </div>
                                         </td>
                                     </tr>

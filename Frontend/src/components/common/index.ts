@@ -20,3 +20,4 @@ export { default as CheckerStrip } from "./CheckerStrip";
 export { default as TableSkeleton, SkeletonBar, type SkeletonColumn } from "./TableSkeleton";
 export { default as EmptyState } from "./EmptyState";
 export { default as QueryError } from "./QueryError";
+export { default as LiveRegion } from "./LiveRegion";

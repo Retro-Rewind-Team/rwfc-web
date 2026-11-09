@@ -9,6 +9,7 @@ import {
     Button,
     EmptyState,
     InlinePagination,
+    LiveRegion,
     QueryError,
     SkeletonBar,
 } from "../../components/common";
@@ -192,6 +193,14 @@ export default function RacesPage() {
         staleTime: Infinity,
     }));
 
+    // Blank while loading or failed (the skeleton and the error alert announce themselves).
+    const resultsMessage = () => {
+        const data = racesQuery.data;
+        if (racesQuery.isLoading || racesQuery.isError || !data) return "";
+        if (data.items.length === 0) return "No races match these filters.";
+        return `${data.totalCount.toLocaleString()} ${data.totalCount === 1 ? "race" : "races"} found.`;
+    };
+
     return (
         <>
             <PageHeader
@@ -202,6 +211,7 @@ export default function RacesPage() {
             <div class="space-y-8">
                 <Title>{RACES_META.title}</Title>
                 <Meta name="description" content={RACES_META.description} />
+                <LiveRegion message={resultsMessage()} />
 
                 {/* Filters -- hidden when deep-linked to a specific race */}
                 <Show when={!isDeepLinked()}>

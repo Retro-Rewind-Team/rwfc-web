@@ -50,6 +50,7 @@ export default function TTPlayerFilters(props: TTPlayerFiltersProps) {
                         Engine Class
                     </label>
                     <ToggleGroup<CCOption>
+                        label="Engine class"
                         value={ccValue()}
                         onChange={handleCCChange}
                         size="sm"
@@ -67,6 +68,7 @@ export default function TTPlayerFilters(props: TTPlayerFiltersProps) {
                         Glitch/Shortcut
                     </label>
                     <ToggleGroup<GlitchOption>
+                        label="Glitch and shortcut"
                         value={glitchValue()}
                         onChange={handleGlitchChange}
                         size="sm"
@@ -88,6 +90,7 @@ export default function TTPlayerFilters(props: TTPlayerFiltersProps) {
                         Vehicle Type
                     </label>
                     <ToggleGroup<VehicleFilter>
+                        label="Vehicle type"
                         value={props.vehicleFilter}
                         onChange={props.onVehicleFilterChange}
                         size="sm"
@@ -103,6 +106,7 @@ export default function TTPlayerFilters(props: TTPlayerFiltersProps) {
                 <div>
                     <label class="block text-sm font-semibold text-fg-muted mb-2">Shroomless</label>
                     <ToggleGroup<ShroomlessFilter>
+                        label="Shroomless"
                         value={props.shroomlessFilter}
                         onChange={props.onShroomlessFilterChange}
                         activeClass="bg-accent"

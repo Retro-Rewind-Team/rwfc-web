@@ -60,6 +60,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                             Track Category
                         </label>
                         <ToggleGroup<"retro" | "custom">
+                            label="Track category"
                             value={props.selectedCategory}
                             onChange={props.onCategoryChange}
                             options={[
@@ -75,6 +76,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                             Engine Class
                         </label>
                         <ToggleGroup<CCOption>
+                            label="Engine class"
                             value={ccValue()}
                             onChange={(v) => props.onCCChange(Number(v) as 150 | 200)}
                             options={[
@@ -90,6 +92,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                             Category Type
                         </label>
                         <ToggleGroup<GlitchOption>
+                            label="Category type"
                             value={glitchValue()}
                             onChange={(v) => props.onGlitchAllowedChange(v === "unrestricted")}
                             options={[
@@ -108,6 +111,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                             Vehicle Type
                         </label>
                         <ToggleGroup<VehicleFilter>
+                            label="Vehicle type"
                             value={props.vehicleFilter}
                             onChange={props.onVehicleFilterChange}
                             options={[
@@ -124,6 +128,7 @@ export default function TTBrowserFilters(props: TTBrowserFiltersProps) {
                             Shroomless
                         </label>
                         <ToggleGroup<ShroomlessFilter>
+                            label="Shroomless"
                             value={props.shroomlessFilter}
                             onChange={props.onShroomlessFilterChange}
                             options={[
