@@ -1,56 +1,70 @@
-﻿import { batch, createSignal } from "solid-js";
-import { useSearchParams } from "@solidjs/router";
+﻿import { createMemo } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { raceStatsApi } from "../services/api/raceStats";
 import { queryKeys } from "../constants/queryKeys";
-import { usePagination } from "./usePagination";
-import { useDebouncedSearch } from "./useDebouncedSearch";
+import { readInt, useUrlPagination, useUrlSearch, useUrlState } from "./useUrlState";
 
 export const RACES_PAGE_SIZE = 20;
 
+// An engine class is 2 for 150cc and 1 for 200cc, as the API has it. The URL says the cc instead.
+const CC_TO_ENGINE_CLASS: Record<string, number> = { "150": 2, "200": 1 };
+const ENGINE_CLASS_TO_CC: Record<number, string> = { 2: "150", 1: "200" };
+
+/** `<input type="date">` values only. Anything else in a hand-edited URL is ignored. */
+const readDate = (raw: string | undefined) =>
+    raw && /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : undefined;
+
 /**
- * Manages filter state and data fetching for the race history browser.
- * Reads `roomId` and `raceNumber` once from URL search params on mount for
- * deep-linking into a specific race; all other filters are reactive signals.
- * Returns `isDeepLinked` to indicate when a URL-scoped view is active.
+ * Filter state and data fetching for the race history browser. Everything is a URL param, so a
+ * filtered view can be shared: `track`, `cc`, `fc` (friend code), `from`, `to`, `page`.
+ * `roomId` and `raceNumber` deep-link into a specific race and are not filters; `isDeepLinked`
+ * says when a URL-scoped view is active.
  */
 export function useRaces() {
-    const [searchParams] = useSearchParams();
+    const state = useUrlState();
 
-    // Deep-link params -- read once from URL on mount, not reactive
-    const initialRoomId = searchParams.roomId as string | undefined;
-    const initialRaceNumber = searchParams.raceNumber
-        ? parseInt(searchParams.raceNumber as string)
-        : undefined;
+    const roomId = createMemo(() => state.get("roomId"));
+    const raceNumber = createMemo(() => readInt(state.get("raceNumber"), 0));
 
-    const { currentPage, setCurrentPage } = usePagination(RACES_PAGE_SIZE);
-    const [courseId, setCourseId] = createSignal<number | undefined>(undefined);
-    const [engineClassId, setEngineClassId] = createSignal<number | undefined>(undefined);
-    const [from, setFrom] = createSignal<string | undefined>(undefined);
-    const [to, setTo] = createSignal<string | undefined>(undefined);
+    const { currentPage, setCurrentPage, clampTo } = useUrlPagination(state, RACES_PAGE_SIZE, [
+        RACES_PAGE_SIZE,
+    ]);
     const {
         searchQuery: fcQuery,
         search: fc,
         handleSearchInput: handleFcInput,
-    } = useDebouncedSearch(500);
+        clear: clearFc,
+    } = useUrlSearch(state, "fc", 500);
+
+    const courseId = createMemo(() => readInt(state.get("track")));
+    const engineClassId = createMemo(() => {
+        const cc = state.get("cc");
+        return cc ? CC_TO_ENGINE_CLASS[cc] : undefined;
+    });
+    const from = createMemo(() => readDate(state.get("from")));
+    const to = createMemo(() => readDate(state.get("to")));
+
+    // Each change also clears the page, in the same navigation.
+    const setCourseId = (id: number | undefined) =>
+        state.update({ track: id }, { resetPage: true });
+    const setEngineClassId = (id: number | undefined) =>
+        state.update(
+            { cc: id === undefined ? undefined : ENGINE_CLASS_TO_CC[id] },
+            { resetPage: true },
+        );
+    const setFrom = (value: string | undefined) =>
+        state.update({ from: value }, { resetPage: true });
+    const setTo = (value: string | undefined) => state.update({ to: value }, { resetPage: true });
 
     const hasFilters = () => !!courseId() || !!engineClassId() || !!fc() || !!from() || !!to();
 
-    const clearFilters = () => {
-        batch(() => {
-            setCourseId(undefined);
-            setEngineClassId(undefined);
-            setFrom(undefined);
-            setTo(undefined);
-            handleFcInput("");
-            setCurrentPage(1);
-        });
-    };
+    const clearFilters = () =>
+        clearFc({ track: undefined, cc: undefined, from: undefined, to: undefined });
 
     const racesQuery = useQuery(() => ({
         queryKey: queryKeys.races(
-            initialRoomId,
-            initialRaceNumber,
+            roomId(),
+            raceNumber(),
             courseId(),
             engineClassId(),
             fc(),
@@ -60,8 +74,8 @@ export function useRaces() {
         ),
         queryFn: () =>
             raceStatsApi.getRaces({
-                roomId: initialRoomId,
-                raceNumber: initialRaceNumber,
+                roomId: roomId(),
+                raceNumber: raceNumber(),
                 courseId: courseId(),
                 engineClassId: engineClassId(),
                 friendCode: fc() || undefined,
@@ -71,6 +85,8 @@ export function useRaces() {
                 pageSize: RACES_PAGE_SIZE,
             }),
     }));
+
+    clampTo(() => racesQuery.data?.totalPages);
 
     return {
         racesQuery,
@@ -82,12 +98,13 @@ export function useRaces() {
         setFrom,
         to,
         setTo,
+        fc,
         fcQuery,
         handleFcInput,
         currentPage,
         setCurrentPage,
         hasFilters,
         clearFilters,
-        isDeepLinked: () => !!initialRoomId,
+        isDeepLinked: () => !!roomId(),
     };
 }

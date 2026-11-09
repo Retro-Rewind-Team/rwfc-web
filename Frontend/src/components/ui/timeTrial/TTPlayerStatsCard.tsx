@@ -35,20 +35,16 @@ export default function TTPlayerStatsCard(props: TTPlayerStatsCardProps) {
     const colors = () => colorClasses[props.colorScheme ?? "blue"];
 
     return (
-        <div
-            class={`bg-white dark:bg-gray-800 rounded-lg border-2 ${colors().border} p-6 text-center`}
-        >
+        <div class={`bg-canvas rounded-lg border ${colors().border} p-6 text-center`}>
             <Show when={props.icon}>
                 <div class={`flex justify-center mb-3 ${colors().icon}`}>{props.icon}</div>
             </Show>
             <div class={`text-4xl font-black ${colors().text} mb-2`}>
                 {typeof props.value === "number" ? props.value.toLocaleString() : props.value}
             </div>
-            <div class="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                {props.label}
-            </div>
+            <div class="text-sm font-medium text-fg-muted">{props.label}</div>
             <Show when={props.subtitle}>
-                <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">{props.subtitle}</div>
+                <div class="text-xs text-fg-subtle mt-1">{props.subtitle}</div>
             </Show>
         </div>
     );

@@ -1,4 +1,5 @@
-import { A } from "@solidjs/router";
+import Select from "../../common/Select";
+import { A, useLocation } from "@solidjs/router";
 import { Show } from "solid-js";
 import { Zap } from "lucide-solid";
 import {
@@ -42,40 +43,54 @@ function buildRoute(
 }
 
 export default function TTFilters(props: TTFiltersProps) {
+    const location = useLocation();
+    // Switching CC, glitch or mode is a link to a new path. Carry the other filters across, but not
+    // the page: page 4 of one board says nothing about another.
+    const carriedQuery = () => {
+        const params = new URLSearchParams(location.search);
+        params.delete("page");
+        const query = params.toString();
+        return query ? `?${query}` : "";
+    };
+
     return (
         <div class="space-y-4">
             {/* CC Switcher - uses navigation links to change the URL */}
             <div>
-                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                    Engine Class
-                </label>
-                <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
+                <label class="block text-xs font-semibold text-fg-muted mb-1">Engine Class</label>
+                <div class="bg-canvas rounded-lg p-1 flex border border-line-strong">
                     <A
-                        href={buildRoute(
-                            props.trackId,
-                            150,
-                            props.currentGlitchAllowed,
-                            props.currentMode,
-                        )}
-                        class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
+                        href={
+                            buildRoute(
+                                props.trackId,
+                                150,
+                                props.currentGlitchAllowed,
+                                props.currentMode,
+                            ) + carriedQuery()
+                        }
+                        aria-current={props.currentCC === 150 ? "true" : undefined}
+                        class={`flex-1 px-3 py-2 rounded-md font-medium transition-colors text-sm text-center ${
                             props.currentCC === 150
-                                ? "bg-blue-600 text-white shadow-sm"
-                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                                ? "bg-accent text-accent-fg"
+                                : "text-fg-muted hover:text-gray-900 dark:hover:text-gray-200"
                         }`}
                     >
                         150cc
                     </A>
                     <A
-                        href={buildRoute(
-                            props.trackId,
-                            200,
-                            props.currentGlitchAllowed,
-                            props.currentMode,
-                        )}
-                        class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
+                        href={
+                            buildRoute(
+                                props.trackId,
+                                200,
+                                props.currentGlitchAllowed,
+                                props.currentMode,
+                            ) + carriedQuery()
+                        }
+                        aria-current={props.currentCC === 200 ? "true" : undefined}
+                        class={`flex-1 px-3 py-2 rounded-md font-medium transition-colors text-sm text-center ${
                             props.currentCC === 200
-                                ? "bg-blue-600 text-white shadow-sm"
-                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                                ? "bg-accent text-accent-fg"
+                                : "text-fg-muted hover:text-gray-900 dark:hover:text-gray-200"
                         }`}
                     >
                         200cc
@@ -86,36 +101,42 @@ export default function TTFilters(props: TTFiltersProps) {
             {/* Glitch/Category Type Switcher - navigation links, only shown when track supports it */}
             <Show when={props.trackSupportsGlitch}>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    <label class="block text-xs font-semibold text-fg-muted mb-1">
                         Category Type
                     </label>
-                    <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
+                    <div class="bg-canvas rounded-lg p-1 flex border border-line-strong">
                         <A
-                            href={buildRoute(
-                                props.trackId,
-                                props.currentCC,
-                                true,
-                                props.currentMode,
-                            )}
-                            class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
+                            href={
+                                buildRoute(
+                                    props.trackId,
+                                    props.currentCC,
+                                    true,
+                                    props.currentMode,
+                                ) + carriedQuery()
+                            }
+                            aria-current={props.currentGlitchAllowed ? "true" : undefined}
+                            class={`flex-1 px-3 py-2 rounded-md font-medium transition-colors text-sm text-center ${
                                 props.currentGlitchAllowed
-                                    ? "bg-blue-600 text-white shadow-sm"
-                                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                                    ? "bg-accent text-accent-fg"
+                                    : "text-fg-muted hover:text-gray-900 dark:hover:text-gray-200"
                             }`}
                         >
                             Unrestricted
                         </A>
                         <A
-                            href={buildRoute(
-                                props.trackId,
-                                props.currentCC,
-                                false,
-                                props.currentMode,
-                            )}
-                            class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
+                            href={
+                                buildRoute(
+                                    props.trackId,
+                                    props.currentCC,
+                                    false,
+                                    props.currentMode,
+                                ) + carriedQuery()
+                            }
+                            aria-current={!props.currentGlitchAllowed ? "true" : undefined}
+                            class={`flex-1 px-3 py-2 rounded-md font-medium transition-colors text-sm text-center ${
                                 !props.currentGlitchAllowed
-                                    ? "bg-blue-600 text-white shadow-sm"
-                                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                                    ? "bg-accent text-accent-fg"
+                                    : "text-fg-muted hover:text-gray-900 dark:hover:text-gray-200"
                             }`}
                         >
                             Non-Glitch/Shortcut
@@ -127,36 +148,42 @@ export default function TTFilters(props: TTFiltersProps) {
             {/* Flap Mode Toggle - navigation links, hidden for 1-lap tracks */}
             <Show when={props.trackLaps !== 1}>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    <label class="block text-xs font-semibold text-fg-muted mb-1">
                         Leaderboard Type
                     </label>
-                    <div class="bg-white dark:bg-gray-800 rounded-lg p-1 flex border-2 border-gray-200 dark:border-gray-600">
+                    <div class="bg-canvas rounded-lg p-1 flex border border-line-strong">
                         <A
-                            href={buildRoute(
-                                props.trackId,
-                                props.currentCC,
-                                props.currentGlitchAllowed,
-                                "regular",
-                            )}
-                            class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm text-center ${
+                            href={
+                                buildRoute(
+                                    props.trackId,
+                                    props.currentCC,
+                                    props.currentGlitchAllowed,
+                                    "regular",
+                                ) + carriedQuery()
+                            }
+                            aria-current={props.currentMode === "regular" ? "true" : undefined}
+                            class={`flex-1 px-3 py-2 rounded-md font-medium transition-colors text-sm text-center ${
                                 props.currentMode === "regular"
-                                    ? "bg-blue-600 text-white shadow-sm"
-                                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                                    ? "bg-accent text-accent-fg"
+                                    : "text-fg-muted hover:text-gray-900 dark:hover:text-gray-200"
                             }`}
                         >
                             Regular
                         </A>
                         <A
-                            href={buildRoute(
-                                props.trackId,
-                                props.currentCC,
-                                props.currentGlitchAllowed,
-                                "flap",
-                            )}
-                            class={`flex-1 px-3 py-2 rounded-md font-medium transition-all text-sm inline-flex items-center justify-center gap-1 ${
+                            href={
+                                buildRoute(
+                                    props.trackId,
+                                    props.currentCC,
+                                    props.currentGlitchAllowed,
+                                    "flap",
+                                ) + carriedQuery()
+                            }
+                            aria-current={props.currentMode === "flap" ? "true" : undefined}
+                            class={`flex-1 px-3 py-2 rounded-md font-medium transition-colors text-sm inline-flex items-center justify-center gap-1 ${
                                 props.currentMode === "flap"
-                                    ? "bg-blue-600 text-white shadow-sm"
-                                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                                    ? "bg-accent text-accent-fg"
+                                    : "text-fg-muted hover:text-gray-900 dark:hover:text-gray-200"
                             }`}
                         >
                             <Zap size={12} /> Flap
@@ -169,10 +196,11 @@ export default function TTFilters(props: TTFiltersProps) {
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {/* Vehicle Type */}
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    <label class="block text-xs font-semibold text-fg-muted mb-1">
                         Vehicle Type
                     </label>
                     <ToggleGroup<VehicleFilter>
+                        label="Vehicle type"
                         value={props.vehicleFilter}
                         onChange={props.onVehicleFilterChange}
                         options={[
@@ -185,13 +213,12 @@ export default function TTFilters(props: TTFiltersProps) {
 
                 {/* Shroomless */}
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                        Shroomless
-                    </label>
+                    <label class="block text-xs font-semibold text-fg-muted mb-1">Shroomless</label>
                     <ToggleGroup<ShroomlessFilter>
+                        label="Shroomless"
                         value={props.shroomlessFilter}
                         onChange={props.onShroomlessFilterChange}
-                        activeClass="bg-blue-600"
+                        activeClass="bg-accent"
                         options={[
                             { value: "all", label: "All" },
                             { value: "only", label: "Only" },
@@ -202,13 +229,12 @@ export default function TTFilters(props: TTFiltersProps) {
 
                 {/* Drift Type */}
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                        Drift Type
-                    </label>
+                    <label class="block text-xs font-semibold text-fg-muted mb-1">Drift Type</label>
                     <ToggleGroup<DriftFilter>
+                        label="Drift type"
                         value={props.driftFilter}
                         onChange={props.onDriftFilterChange}
-                        activeClass="bg-blue-600"
+                        activeClass="bg-accent"
                         options={[
                             { value: "all", label: "All" },
                             { value: "manual", label: "Manual" },
@@ -219,13 +245,14 @@ export default function TTFilters(props: TTFiltersProps) {
 
                 {/* Drift Category */}
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    <label class="block text-xs font-semibold text-fg-muted mb-1">
                         Drift Category
                     </label>
                     <ToggleGroup<DriftCategoryFilter>
+                        label="Drift category"
                         value={props.driftCategoryFilter}
                         onChange={props.onDriftCategoryFilterChange}
-                        activeClass="bg-blue-600"
+                        activeClass="bg-accent"
                         options={[
                             { value: "all", label: "All" },
                             { value: "inside", label: "Inside" },
@@ -235,24 +262,16 @@ export default function TTFilters(props: TTFiltersProps) {
                 </div>
 
                 {/* Results Per Page */}
-                <div>
-                    <label
-                        for="tt-page-size-select"
-                        class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1"
-                    >
-                        Results Per Page
-                    </label>
-                    <select
-                        id="tt-page-size-select"
-                        value={props.pageSize}
-                        onChange={(e) => props.onPageSizeChange(parseInt(e.target.value))}
-                        class="w-full px-3 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-                    >
-                        <option value="10">10 times</option>
-                        <option value="25">25 times</option>
-                        <option value="50">50 times</option>
-                    </select>
-                </div>
+                <Select
+                    id="tt-page-size-select"
+                    label="Results per page"
+                    value={props.pageSize}
+                    onChange={(e) => props.onPageSizeChange(parseInt(e.target.value))}
+                >
+                    <option value="10">10 times</option>
+                    <option value="25">25 times</option>
+                    <option value="50">50 times</option>
+                </Select>
             </div>
         </div>
     );

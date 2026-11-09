@@ -48,10 +48,18 @@ function checkFile(routePath, expectedTitle, expectedDescription, expectedCanoni
             `"${routePath}": expected canonical "${expectedCanonical}"`,
         );
     }
+    // Every page but Home is a lazy chunk. If App.tsx changes shape so generate-meta.mjs can no
+    // longer match a route, direct visits silently go back to a download waterfall; fail instead.
+    if (routePath !== "/") {
+        assert.ok(html.includes('rel="modulepreload"'), `"${routePath}": expected a modulepreload hint for its page`);
+    }
+    for (const [, href] of html.matchAll(/rel="modulepreload" crossorigin href="([^"]+)"/g)) {
+        assert.ok(existsSync(path.join(distDir, href)), `"${routePath}": preloaded ${href} does not exist`);
+    }
 }
 
 for (const route of routes) {
-    const canonicalUrl = route.path === "/" ? null : `${domain}${route.path}`;
+    const canonicalUrl = route.path === "/" ? `${domain}/` : `${domain}${route.path}`;
     checkFile(route.path, route.title, route.description, canonicalUrl);
 }
 
@@ -59,6 +67,16 @@ for (const alias of aliases) {
     const canonical = routes.find((route) => route.path === alias.canonicalPath);
     assert.ok(canonical, `Alias "${alias.path}" points to unknown canonicalPath "${alias.canonicalPath}"`);
     checkFile(alias.path, canonical.title, canonical.description, `${domain}${alias.canonicalPath}`);
+}
+
+const sitemapPath = path.join(distDir, "sitemap.xml");
+assert.ok(existsSync(sitemapPath), "Missing sitemap.xml");
+const sitemap = readFileSync(sitemapPath, "utf-8");
+for (const route of routes) {
+    assert.ok(
+        sitemap.includes(`<loc>${domain}${route.path}</loc>`),
+        `sitemap.xml is missing "${route.path}"`,
+    );
 }
 
 console.log(`All page metadata checks passed (${routes.length} routes, ${aliases.length} aliases).`);

@@ -9,6 +9,7 @@ import { leaderboardApi } from "../../services/api/leaderboard";
 import { Download, TriangleAlert } from "lucide-solid";
 import { Meta, Title } from "@solidjs/meta";
 import { RATING_EDITOR_META } from "../../constants/pageMeta";
+import PageHeader from "../../components/common/PageHeader";
 
 /** Profile IDs are unsigned 32-bit, and `pidToFriendCode` treats them as such. */
 const MAX_PROFILE_ID = 4_294_967_295;
@@ -161,489 +162,524 @@ export default function RatingEditorPage() {
     };
 
     return (
-        <div class="max-w-7xl mx-auto space-y-6">
-            <Title>{RATING_EDITOR_META.title}</Title>
-            <Meta name="description" content={RATING_EDITOR_META.description} />
-            <div class="border-b border-gray-200 dark:border-gray-700 pb-6">
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-1">Rating Editor</h1>
-                <p class="text-gray-500 dark:text-gray-400 text-sm">
-                    Edit your{" "}
-                    <code class="font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">
-                        RRRating.pul
-                    </code>{" "}
-                    file. It stores VR and BR for each profile that has played on this save (up to
-                    100), and the game finds a license's row by its profile ID.
-                </p>
-            </div>
-
-            {/* Upload + actions */}
-            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 flex flex-wrap items-center gap-4">
-                <label class="flex-1 min-w-0">
-                    <span class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                        RRRating.pul
-                    </span>
-                    <input
-                        type="file"
-                        accept=".pul"
-                        onChange={handleFileUpload}
-                        class="block w-full text-sm text-gray-600 dark:text-gray-400
-                            file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0
-                            file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700
-                            hover:file:bg-blue-100 dark:file:bg-blue-900/30 dark:file:text-blue-400
-                            dark:hover:file:bg-blue-900/50"
-                    />
-                </label>
-                <Show when={ratingFile()}>
-                    <button
-                        type="button"
-                        onClick={download}
-                        class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors shrink-0"
-                    >
-                        <Download size={14} /> Download
-                    </button>
-                </Show>
-            </div>
-
-            {/* File summary */}
-            <Show when={ratingFile()}>
-                {(_) => (
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {[
-                            {
-                                label: "Profiles",
-                                value: `${filledEntries().length} / ${ratingFile()?.entries.length ?? 0}`,
-                                mono: true,
-                            },
-                            { label: "Active", value: activeCount().toLocaleString(), mono: true },
-                            {
-                                label: "Duplicate FCs",
-                                value: dupCount().toLocaleString(),
-                                mono: true,
-                                warn: dupCount() > 0,
-                            },
-                        ].map((s) => (
-                            <div
-                                class={`rounded-lg p-3 border ${s.warn ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700" : "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700"}`}
-                            >
-                                <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                    {s.label}
-                                </div>
-                                <div
-                                    class={`font-semibold ${s.warn ? "text-yellow-700 dark:text-yellow-400" : "text-gray-900 dark:text-white"} ${s.mono ? "font-mono" : ""}`}
-                                >
-                                    {s.value}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </Show>
-
-            <Show when={validationError()}>
-                <AlertBox type="error" title="Validation Error">
-                    <p>{validationError()}</p>
-                </AlertBox>
-            </Show>
-
-            <Show when={validationWarnings().length > 0}>
-                <AlertBox type="warning" title="Validation Warnings">
-                    <ul class="list-disc list-inside space-y-1 text-sm">
-                        {validationWarnings().map((w) => (
-                            <li>{w}</li>
-                        ))}
-                    </ul>
-                </AlertBox>
-            </Show>
-
-            <Show when={!ratingFile() && !validationError()}>
-                <AlertBox type="info" title="How to use">
-                    <ol class="list-decimal list-inside space-y-1.5 text-sm">
-                        <li>
-                            Upload your <code class="font-mono">RRRating.pul</code> file
-                        </li>
-                        <li>
-                            Edit Profile IDs, VR, and BR directly in the table (one row per profile)
-                        </li>
-                        <li>Use the "Active" checkbox to enable or disable a license slot</li>
-                        <li>
-                            Click the down arrow next to VR to fetch the current leaderboard VR for
-                            that license
-                        </li>
-                        <li>Select rows and clear them to zero out a slot</li>
-                        <li>Download the modified file when done</li>
-                    </ol>
-                    <div class="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800 text-sm space-y-1">
-                        <p class="font-medium">File location:</p>
-                        <p>
-                            <strong>Dolphin:</strong>{" "}
-                            <code class="font-mono">
-                                Dolphin Emulator\Wii\shared2\Pulsar\RetroRewind6\RRRating.pul
-                            </code>
-                        </p>
-                        <p>
-                            <strong>Wii:</strong>{" "}
-                            <code class="font-mono">SD Card\RetroRewind6\RRRating.pul</code>
-                        </p>
-                    </div>
-                </AlertBox>
-            </Show>
-
-            <Show when={ratingFile()}>
-                {(_) => (
+        <>
+            <PageHeader
+                page="tools"
+                compact
+                crumbs={[{ label: "Tools", href: "/tools" }]}
+                title="Rating editor"
+                description={
                     <>
-                        <Show when={dupCount() > 0}>
-                            <AlertBox type="warning" title="Duplicate Friend Codes">
-                                <p>
-                                    {dupCount()} entries share a Friend Code with another entry.
-                                    They are highlighted below.
-                                </p>
-                            </AlertBox>
-                        </Show>
-                        <Show when={takenFCs().size > 0}>
-                            <AlertBox type="warning" title="FCs Already on Leaderboard">
-                                <p class="mb-2">
-                                    These Friend Codes are registered on the leaderboard but were
-                                    not in the original file:
-                                </p>
-                                <div class="flex flex-wrap gap-1.5 font-mono text-xs">
-                                    {Array.from(takenFCs()).map((fc) => (
-                                        <span class="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 px-2 py-0.5 rounded">
-                                            {fc}
+                        Edit your{" "}
+                        <code class="rounded-sm bg-surface px-1 font-mono text-fg">
+                            RRRating.pul
+                        </code>{" "}
+                        file. It stores VR and BR for each profile that has played on this save (up
+                        to 100), and the game finds a license's row by its profile ID.
+                    </>
+                }
+            />
+            <div class="space-y-6">
+                <Title>{RATING_EDITOR_META.title}</Title>
+                <Meta name="description" content={RATING_EDITOR_META.description} />
+
+                {/* Upload + actions */}
+                <div class="bg-canvas rounded-lg border border-line p-4 flex flex-wrap items-center gap-4">
+                    <label class="flex-1 min-w-0">
+                        <span class="block text-xs font-medium text-fg-muted mb-1">
+                            RRRating.pul
+                        </span>
+                        <input
+                            type="file"
+                            accept=".pul"
+                            onChange={handleFileUpload}
+                            class="block w-full text-sm text-fg-muted
+ file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0
+ file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700
+ hover:file:bg-blue-100 dark:file:bg-blue-900/30 dark:file:text-blue-400
+ dark:hover:file:bg-blue-900/50"
+                        />
+                    </label>
+                    <Show when={ratingFile()}>
+                        <button
+                            type="button"
+                            onClick={download}
+                            class="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent-hover text-accent-fg rounded-lg text-sm font-medium transition-colors shrink-0"
+                        >
+                            <Download size={14} /> Download
+                        </button>
+                    </Show>
+                </div>
+
+                {/* File summary */}
+                <Show when={ratingFile()}>
+                    {(_) => (
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            {[
+                                {
+                                    label: "Profiles",
+                                    value: `${filledEntries().length} / ${ratingFile()?.entries.length ?? 0}`,
+                                    mono: true,
+                                },
+                                {
+                                    label: "Active",
+                                    value: activeCount().toLocaleString(),
+                                    mono: true,
+                                },
+                                {
+                                    label: "Duplicate FCs",
+                                    value: dupCount().toLocaleString(),
+                                    mono: true,
+                                    warn: dupCount() > 0,
+                                },
+                            ].map((s) => (
+                                <div
+                                    class={`rounded-lg p-3 border ${s.warn ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700" : "bg-surface border-line"}`}
+                                >
+                                    <div class="text-xs text-fg-subtle mb-1">{s.label}</div>
+                                    <div
+                                        class={`font-semibold ${s.warn ? "text-yellow-700 dark:text-yellow-400" : "text-fg"} ${s.mono ? "font-mono" : ""}`}
+                                    >
+                                        {s.value}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </Show>
+
+                <Show when={validationError()}>
+                    <AlertBox type="error" title="Validation Error">
+                        <p>{validationError()}</p>
+                    </AlertBox>
+                </Show>
+
+                <Show when={validationWarnings().length > 0}>
+                    <AlertBox type="warning" title="Validation Warnings">
+                        <ul class="list-disc list-inside space-y-1 text-sm">
+                            {validationWarnings().map((w) => (
+                                <li>{w}</li>
+                            ))}
+                        </ul>
+                    </AlertBox>
+                </Show>
+
+                <Show when={!ratingFile() && !validationError()}>
+                    <AlertBox type="info" title="How to use">
+                        <ol class="list-decimal list-inside space-y-1.5 text-sm">
+                            <li>
+                                Upload your <code class="font-mono">RRRating.pul</code> file
+                            </li>
+                            <li>
+                                Edit Profile IDs, VR, and BR directly in the table (one row per
+                                profile)
+                            </li>
+                            <li>Use the "Active" checkbox to enable or disable a license slot</li>
+                            <li>
+                                Click the down arrow next to VR to fetch the current leaderboard VR
+                                for that license
+                            </li>
+                            <li>Select rows and clear them to zero out a slot</li>
+                            <li>Download the modified file when done</li>
+                        </ol>
+                        <div class="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800 text-sm space-y-1">
+                            <p class="font-medium">File location:</p>
+                            <p>
+                                <strong>Dolphin:</strong>{" "}
+                                <code class="font-mono break-all">
+                                    Dolphin Emulator\Wii\shared2\Pulsar\RetroRewind6\RRRating.pul
+                                </code>
+                            </p>
+                            <p>
+                                <strong>Wii:</strong>{" "}
+                                <code class="font-mono break-all">
+                                    SD Card\RetroRewind6\RRRating.pul
+                                </code>
+                            </p>
+                        </div>
+                    </AlertBox>
+                </Show>
+
+                <Show when={ratingFile()}>
+                    {(_) => (
+                        <>
+                            <Show when={dupCount() > 0}>
+                                <AlertBox type="warning" title="Duplicate Friend Codes">
+                                    <p>
+                                        {dupCount()} entries share a Friend Code with another entry.
+                                        They are highlighted below.
+                                    </p>
+                                </AlertBox>
+                            </Show>
+                            <Show when={takenFCs().size > 0}>
+                                <AlertBox type="warning" title="FCs Already on Leaderboard">
+                                    <p class="mb-2">
+                                        These Friend Codes are registered on the leaderboard but
+                                        were not in the original file:
+                                    </p>
+                                    <div class="flex flex-wrap gap-1.5 font-mono text-xs">
+                                        {Array.from(takenFCs()).map((fc) => (
+                                            <span class="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 px-2 py-0.5 rounded">
+                                                {fc}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </AlertBox>
+                            </Show>
+
+                            <div class="bg-canvas rounded-lg border border-line overflow-hidden">
+                                {/* Toolbar */}
+                                <div class="px-4 py-3 bg-surface border-b border-line flex items-center justify-between gap-3">
+                                    <div class="flex flex-wrap items-center gap-4">
+                                        <span class="text-sm text-fg-subtle">
+                                            <Show
+                                                when={selectedRows().size > 0}
+                                                fallback="No rows selected"
+                                            >
+                                                {selectedRows().size} selected
+                                            </Show>
                                         </span>
-                                    ))}
-                                </div>
-                            </AlertBox>
-                        </Show>
-
-                        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-                            {/* Toolbar */}
-                            <div class="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between gap-3">
-                                <div class="flex flex-wrap items-center gap-4">
-                                    <span class="text-sm text-gray-500 dark:text-gray-400">
-                                        <Show
-                                            when={selectedRows().size > 0}
-                                            fallback="No rows selected"
+                                        <label class="flex items-center gap-2 text-sm text-fg-muted cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={showEmptySlots()}
+                                                onChange={(e) => {
+                                                    setShowEmptySlots(e.currentTarget.checked);
+                                                    // Hidden rows must not stay selected, or
+                                                    // "Clear Selected" would wipe rows you can't see.
+                                                    setSelectedRows(new Set<number>());
+                                                }}
+                                                class="w-3.5 h-3.5 rounded cursor-pointer"
+                                            />
+                                            Show empty slots
+                                        </label>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={toggleAll}
+                                            class="px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-200 dark:bg-gray-700 text-fg-muted hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                                         >
-                                            {selectedRows().size} selected
-                                        </Show>
-                                    </span>
-                                    <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={showEmptySlots()}
-                                            onChange={(e) => {
-                                                setShowEmptySlots(e.currentTarget.checked);
-                                                // Hidden rows must not stay selected, or
-                                                // "Clear Selected" would wipe rows you can't see.
-                                                setSelectedRows(new Set<number>());
-                                            }}
-                                            class="w-3.5 h-3.5 rounded cursor-pointer"
-                                        />
-                                        Show empty slots
-                                    </label>
+                                            {selectedRows().size === visibleEntries().length
+                                                ? "Deselect All"
+                                                : "Select All"}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={clearSelected}
+                                            disabled={selectedRows().size === 0}
+                                            class="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            Clear Selected
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="flex gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={toggleAll}
-                                        class="px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                                    >
-                                        {selectedRows().size === visibleEntries().length
-                                            ? "Deselect All"
-                                            : "Select All"}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={clearSelected}
-                                        disabled={selectedRows().size === 0}
-                                        class="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                                    >
-                                        Clear Selected
-                                    </button>
-                                </div>
-                            </div>
 
-                            {/* Table */}
-                            <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
-                                <table class="w-full text-sm">
-                                    <thead class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-                                        <tr>
-                                            {[
-                                                "#",
-                                                "Sel",
-                                                "Active",
-                                                "Profile ID",
-                                                "Friend Code",
-                                                "RWFC Name",
-                                                "VR (pts)",
-                                                "BR (pts)",
-                                            ].map((h) => (
-                                                <th class="px-3 py-2.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                                                    {h}
-                                                </th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50">
-                                        <For each={visibleEntries()}>
-                                            {(entry) => {
-                                                const idx = () => entry.index;
-                                                const active = () => isActive(entry);
-                                                const selected = () => selectedRows().has(idx());
-                                                const dup = () => hasDuplicateFC(idx());
-                                                const fc = () =>
-                                                    entry.profileId > 0
-                                                        ? pidToFriendCode(entry.profileId)
-                                                        : "";
+                                {/* Table */}
+                                <div class="relative overflow-x-auto max-h-[600px] overflow-y-auto">
+                                    <table class="w-full text-sm">
+                                        <thead class="sticky top-0 z-10 bg-surface border-b border-line">
+                                            <tr>
+                                                {[
+                                                    "#",
+                                                    "Sel",
+                                                    "Active",
+                                                    "Profile ID",
+                                                    "Friend Code",
+                                                    "RWFC Name",
+                                                    "VR (pts)",
+                                                    "BR (pts)",
+                                                ].map((h) => (
+                                                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-fg-muted whitespace-nowrap">
+                                                        {h}
+                                                    </th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50">
+                                            <For each={visibleEntries()}>
+                                                {(entry) => {
+                                                    const idx = () => entry.index;
+                                                    const active = () => isActive(entry);
+                                                    const selected = () =>
+                                                        selectedRows().has(idx());
+                                                    const dup = () => hasDuplicateFC(idx());
+                                                    const fc = () =>
+                                                        entry.profileId > 0
+                                                            ? pidToFriendCode(entry.profileId)
+                                                            : "";
 
-                                                const [playerData] = createResource(
-                                                    () => (entry.profileId > 0 ? fc() : null),
-                                                    async (code) => {
+                                                    const [playerData] = createResource(
+                                                        () => (entry.profileId > 0 ? fc() : null),
+                                                        async (code) => {
+                                                            try {
+                                                                const p =
+                                                                    await leaderboardApi.getPlayer(
+                                                                        code,
+                                                                    );
+                                                                if (!originalFCs().has(code))
+                                                                    setTakenFCs(
+                                                                        (prev) =>
+                                                                            new Set([
+                                                                                ...prev,
+                                                                                code,
+                                                                            ]),
+                                                                    );
+                                                                return p;
+                                                            } catch {
+                                                                return null;
+                                                            }
+                                                        },
+                                                    );
+
+                                                    const [editPid, setEditPid] = createSignal(
+                                                        String(entry.profileId),
+                                                    );
+                                                    const [editVr, setEditVr] = createSignal(
+                                                        String(Math.round(entry.vr * 100)),
+                                                    );
+                                                    const [editBr, setEditBr] = createSignal(
+                                                        String(Math.round(entry.br * 100)),
+                                                    );
+                                                    const [fetchingVr, setFetchingVr] =
+                                                        createSignal(false);
+
+                                                    createEffect(() => {
+                                                        setEditPid(String(entry.profileId));
+                                                        setEditVr(
+                                                            String(Math.round(entry.vr * 100)),
+                                                        );
+                                                        setEditBr(
+                                                            String(Math.round(entry.br * 100)),
+                                                        );
+                                                    });
+
+                                                    const commitPid = () => {
+                                                        // Full unsigned 32-bit range. The old ceiling of
+                                                        // 1e9 silently rewrote any larger profile ID
+                                                        // down to exactly 1000000000, producing a
+                                                        // friend code for a different player.
+                                                        const v = Math.max(
+                                                            0,
+                                                            Math.min(
+                                                                MAX_PROFILE_ID,
+                                                                parseInt(editPid()) || 0,
+                                                            ),
+                                                        );
+                                                        updateEntry(idx(), { profileId: v });
+                                                    };
+
+                                                    const commitVr = () => {
+                                                        const pts = Math.max(
+                                                            0,
+                                                            Math.min(
+                                                                1_000_000,
+                                                                parseInt(editVr()) || 0,
+                                                            ),
+                                                        );
+                                                        setEditVr(String(pts));
+                                                        updateEntry(idx(), { vr: pts / 100 });
+                                                    };
+
+                                                    const commitBr = () => {
+                                                        const pts = Math.max(
+                                                            0,
+                                                            Math.min(
+                                                                1_000_000,
+                                                                parseInt(editBr()) || 0,
+                                                            ),
+                                                        );
+                                                        setEditBr(String(pts));
+                                                        updateEntry(idx(), { br: pts / 100 });
+                                                    };
+
+                                                    const fetchVr = async () => {
+                                                        if (entry.profileId <= 0) return;
+                                                        const code = fc();
+                                                        setFetchingVr(true);
                                                         try {
                                                             const p =
                                                                 await leaderboardApi.getPlayer(
                                                                     code,
                                                                 );
-                                                            if (!originalFCs().has(code))
-                                                                setTakenFCs(
-                                                                    (prev) =>
-                                                                        new Set([...prev, code]),
-                                                                );
-                                                            return p;
+                                                            const pts = Math.round(p.vr);
+                                                            setEditVr(String(pts));
+                                                            updateEntry(idx(), { vr: pts / 100 });
                                                         } catch {
-                                                            return null;
-                                                        }
-                                                    },
-                                                );
-
-                                                const [editPid, setEditPid] = createSignal(
-                                                    String(entry.profileId),
-                                                );
-                                                const [editVr, setEditVr] = createSignal(
-                                                    String(Math.round(entry.vr * 100)),
-                                                );
-                                                const [editBr, setEditBr] = createSignal(
-                                                    String(Math.round(entry.br * 100)),
-                                                );
-                                                const [fetchingVr, setFetchingVr] =
-                                                    createSignal(false);
-
-                                                createEffect(() => {
-                                                    setEditPid(String(entry.profileId));
-                                                    setEditVr(String(Math.round(entry.vr * 100)));
-                                                    setEditBr(String(Math.round(entry.br * 100)));
-                                                });
-
-                                                const commitPid = () => {
-                                                    // Full unsigned 32-bit range. The old ceiling of
-                                                    // 1e9 silently rewrote any larger profile ID
-                                                    // down to exactly 1000000000, producing a
-                                                    // friend code for a different player.
-                                                    const v = Math.max(
-                                                        0,
-                                                        Math.min(
-                                                            MAX_PROFILE_ID,
-                                                            parseInt(editPid()) || 0,
-                                                        ),
-                                                    );
-                                                    updateEntry(idx(), { profileId: v });
-                                                };
-
-                                                const commitVr = () => {
-                                                    const pts = Math.max(
-                                                        0,
-                                                        Math.min(
-                                                            1_000_000,
-                                                            parseInt(editVr()) || 0,
-                                                        ),
-                                                    );
-                                                    setEditVr(String(pts));
-                                                    updateEntry(idx(), { vr: pts / 100 });
-                                                };
-
-                                                const commitBr = () => {
-                                                    const pts = Math.max(
-                                                        0,
-                                                        Math.min(
-                                                            1_000_000,
-                                                            parseInt(editBr()) || 0,
-                                                        ),
-                                                    );
-                                                    setEditBr(String(pts));
-                                                    updateEntry(idx(), { br: pts / 100 });
-                                                };
-
-                                                const fetchVr = async () => {
-                                                    if (entry.profileId <= 0) return;
-                                                    const code = fc();
-                                                    setFetchingVr(true);
-                                                    try {
-                                                        const p =
-                                                            await leaderboardApi.getPlayer(code);
-                                                        const pts = Math.round(p.vr);
-                                                        setEditVr(String(pts));
-                                                        updateEntry(idx(), { vr: pts / 100 });
-                                                    } catch {
-                                                        // silently fail
-                                                    } finally {
-                                                        setFetchingVr(false);
-                                                    }
-                                                };
-
-                                                const inputCls =
-                                                    "w-full px-2 py-1 text-xs font-mono rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent";
-                                                const onEnter =
-                                                    (cb: () => void) => (e: KeyboardEvent) => {
-                                                        if (e.key === "Enter") {
-                                                            cb();
-                                                            (e.target as HTMLElement).blur();
+                                                            // silently fail
+                                                        } finally {
+                                                            setFetchingVr(false);
                                                         }
                                                     };
 
-                                                return (
-                                                    <tr
-                                                        class={`${selected() ? "bg-blue-50 dark:bg-blue-900/20" : dup() ? "bg-yellow-50/60 dark:bg-yellow-900/10" : ""} hover:bg-gray-50/80 dark:hover:bg-gray-700/20 transition-colors`}
-                                                    >
-                                                        <td class="px-3 py-1.5 font-mono text-xs text-gray-400">
-                                                            {idx()}
-                                                        </td>
-                                                        <td class="px-3 py-1.5 text-center">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={selected()}
-                                                                onChange={() =>
-                                                                    toggleRowSelection(idx())
-                                                                }
-                                                                class="w-3.5 h-3.5 rounded cursor-pointer"
-                                                            />
-                                                        </td>
-                                                        <td class="px-3 py-1.5 text-center">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={active()}
-                                                                disabled={entry.profileId <= 0}
-                                                                onChange={() => toggleActive(idx())}
-                                                                class="w-3.5 h-3.5 rounded cursor-pointer disabled:opacity-30"
-                                                            />
-                                                        </td>
-                                                        <td class="px-3 py-1.5 min-w-[110px]">
-                                                            <input
-                                                                class={inputCls}
-                                                                value={editPid()}
-                                                                onInput={(e) =>
-                                                                    setEditPid(
-                                                                        e.currentTarget.value,
-                                                                    )
-                                                                }
-                                                                onBlur={commitPid}
-                                                                onKeyDown={onEnter(commitPid)}
-                                                            />
-                                                        </td>
-                                                        <td class="px-3 py-1.5 font-mono text-xs whitespace-nowrap">
-                                                            <span
-                                                                class={
-                                                                    dup()
-                                                                        ? "text-yellow-600 dark:text-yellow-400"
-                                                                        : "text-gray-500 dark:text-gray-400"
-                                                                }
-                                                            >
-                                                                {fc()}
-                                                                <Show when={dup()}>
-                                                                    <TriangleAlert
-                                                                        size={11}
-                                                                        class="inline ml-1 text-yellow-500"
-                                                                    />
-                                                                </Show>
-                                                            </span>
-                                                        </td>
-                                                        <td class="px-3 py-1.5 text-xs max-w-[130px] truncate">
-                                                            <Show when={playerData.loading}>
-                                                                <span class="text-gray-400 italic">
-                                                                    …
-                                                                </span>
-                                                            </Show>
-                                                            <Show when={!playerData.loading}>
+                                                    const inputCls =
+                                                        "w-full px-2 py-1 text-xs font-mono rounded border border-line-strong bg-canvas text-fg";
+                                                    const onEnter =
+                                                        (cb: () => void) => (e: KeyboardEvent) => {
+                                                            if (e.key === "Enter") {
+                                                                cb();
+                                                                (e.target as HTMLElement).blur();
+                                                            }
+                                                        };
+
+                                                    return (
+                                                        <tr
+                                                            class={`${selected() ? "bg-blue-50 dark:bg-blue-900/20" : dup() ? "bg-yellow-50/60 dark:bg-yellow-900/10" : ""} hover:bg-gray-50/80 dark:hover:bg-gray-700/20 transition-colors`}
+                                                        >
+                                                            <td class="px-3 py-1.5 font-mono text-xs text-gray-400">
+                                                                {idx()}
+                                                            </td>
+                                                            <td class="px-3 py-1.5 text-center">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={selected()}
+                                                                    onChange={() =>
+                                                                        toggleRowSelection(idx())
+                                                                    }
+                                                                    class="w-3.5 h-3.5 rounded cursor-pointer"
+                                                                />
+                                                            </td>
+                                                            <td class="px-3 py-1.5 text-center">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={active()}
+                                                                    disabled={entry.profileId <= 0}
+                                                                    onChange={() =>
+                                                                        toggleActive(idx())
+                                                                    }
+                                                                    class="w-3.5 h-3.5 rounded cursor-pointer disabled:opacity-30"
+                                                                />
+                                                            </td>
+                                                            <td class="px-3 py-1.5 min-w-[110px]">
+                                                                <input
+                                                                    class={inputCls}
+                                                                    value={editPid()}
+                                                                    onInput={(e) =>
+                                                                        setEditPid(
+                                                                            e.currentTarget.value,
+                                                                        )
+                                                                    }
+                                                                    onBlur={commitPid}
+                                                                    onKeyDown={onEnter(commitPid)}
+                                                                />
+                                                            </td>
+                                                            <td class="px-3 py-1.5 font-mono text-xs whitespace-nowrap">
                                                                 <span
                                                                     class={
-                                                                        takenFCs().has(fc())
+                                                                        dup()
                                                                             ? "text-yellow-600 dark:text-yellow-400"
-                                                                            : "text-gray-700 dark:text-gray-300"
+                                                                            : "text-fg-subtle"
                                                                     }
                                                                 >
-                                                                    {playerData()?.name ??
-                                                                        (entry.profileId > 0
-                                                                            ? "Not found"
-                                                                            : "")}
-                                                                    <Show
-                                                                        when={takenFCs().has(fc())}
-                                                                    >
+                                                                    {fc()}
+                                                                    <Show when={dup()}>
                                                                         <TriangleAlert
                                                                             size={11}
                                                                             class="inline ml-1 text-yellow-500"
                                                                         />
                                                                     </Show>
                                                                 </span>
-                                                            </Show>
-                                                        </td>
-                                                        <td class="px-3 py-1.5 min-w-[130px]">
-                                                            <div class="flex gap-1 items-center">
+                                                            </td>
+                                                            <td class="px-3 py-1.5 text-xs max-w-[130px] truncate">
+                                                                <Show when={playerData.loading}>
+                                                                    <span class="text-gray-400 italic">
+                                                                        …
+                                                                    </span>
+                                                                </Show>
+                                                                <Show when={!playerData.loading}>
+                                                                    <span
+                                                                        class={
+                                                                            takenFCs().has(fc())
+                                                                                ? "text-yellow-600 dark:text-yellow-400"
+                                                                                : "text-fg-muted"
+                                                                        }
+                                                                    >
+                                                                        {playerData()?.name ??
+                                                                            (entry.profileId > 0
+                                                                                ? "Not found"
+                                                                                : "")}
+                                                                        <Show
+                                                                            when={takenFCs().has(
+                                                                                fc(),
+                                                                            )}
+                                                                        >
+                                                                            <TriangleAlert
+                                                                                size={11}
+                                                                                class="inline ml-1 text-yellow-500"
+                                                                            />
+                                                                        </Show>
+                                                                    </span>
+                                                                </Show>
+                                                            </td>
+                                                            <td class="px-3 py-1.5 min-w-[130px]">
+                                                                <div class="flex gap-1 items-center">
+                                                                    <input
+                                                                        class={inputCls}
+                                                                        value={editVr()}
+                                                                        onInput={(e) =>
+                                                                            setEditVr(
+                                                                                e.currentTarget
+                                                                                    .value,
+                                                                            )
+                                                                        }
+                                                                        onBlur={commitVr}
+                                                                        onKeyDown={onEnter(
+                                                                            commitVr,
+                                                                        )}
+                                                                    />
+                                                                    <Show
+                                                                        when={entry.profileId > 0}
+                                                                    >
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={fetchVr}
+                                                                            disabled={fetchingVr()}
+                                                                            title="Fetch from leaderboard"
+                                                                            class="shrink-0 px-1.5 py-1 text-xs rounded bg-surface hover:bg-blue-100 dark:hover:bg-blue-900/40 text-fg-muted hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-40 transition-colors"
+                                                                        >
+                                                                            {fetchingVr()
+                                                                                ? "…"
+                                                                                : "↓"}
+                                                                        </button>
+                                                                    </Show>
+                                                                </div>
+                                                            </td>
+                                                            <td class="px-3 py-1.5 min-w-[100px]">
                                                                 <input
                                                                     class={inputCls}
-                                                                    value={editVr()}
+                                                                    value={editBr()}
                                                                     onInput={(e) =>
-                                                                        setEditVr(
+                                                                        setEditBr(
                                                                             e.currentTarget.value,
                                                                         )
                                                                     }
-                                                                    onBlur={commitVr}
-                                                                    onKeyDown={onEnter(commitVr)}
+                                                                    onBlur={commitBr}
+                                                                    onKeyDown={onEnter(commitBr)}
                                                                 />
-                                                                <Show when={entry.profileId > 0}>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={fetchVr}
-                                                                        disabled={fetchingVr()}
-                                                                        title="Fetch from leaderboard"
-                                                                        class="shrink-0 px-1.5 py-1 text-xs rounded bg-gray-100 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-40 transition-colors"
-                                                                    >
-                                                                        {fetchingVr() ? "…" : "↓"}
-                                                                    </button>
-                                                                </Show>
-                                                            </div>
-                                                        </td>
-                                                        <td class="px-3 py-1.5 min-w-[100px]">
-                                                            <input
-                                                                class={inputCls}
-                                                                value={editBr()}
-                                                                onInput={(e) =>
-                                                                    setEditBr(e.currentTarget.value)
-                                                                }
-                                                                onBlur={commitBr}
-                                                                onKeyDown={onEnter(commitBr)}
-                                                            />
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            }}
-                                        </For>
-                                        <Show when={visibleEntries().length === 0}>
-                                            <tr>
-                                                <td
-                                                    colspan="8"
-                                                    class="px-3 py-6 text-center text-sm text-gray-500 dark:text-gray-400"
-                                                >
-                                                    No profiles in this file yet. Tick "Show empty
-                                                    slots" to fill one in.
-                                                </td>
-                                            </tr>
-                                        </Show>
-                                    </tbody>
-                                </table>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                }}
+                                            </For>
+                                            <Show when={visibleEntries().length === 0}>
+                                                <tr>
+                                                    <td
+                                                        colspan="8"
+                                                        class="px-3 py-6 text-center text-sm text-fg-subtle"
+                                                    >
+                                                        No profiles in this file yet. Tick "Show
+                                                        empty slots" to fill one in.
+                                                    </td>
+                                                </tr>
+                                            </Show>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                        </div>
-                    </>
-                )}
-            </Show>
-        </div>
+                        </>
+                    )}
+                </Show>
+            </div>
+        </>
     );
 }

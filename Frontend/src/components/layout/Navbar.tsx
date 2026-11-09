@@ -1,91 +1,222 @@
-﻿import { A } from "@solidjs/router";
-import { createSignal } from "solid-js";
+﻿import { A, useLocation } from "@solidjs/router";
+import { createEffect, createSignal, For, on, onCleanup, Show } from "solid-js";
 import { Menu, X } from "lucide-solid";
+import NavLink from "./NavLink";
+import { BrandIcon } from "../common";
+import { SITE_LINKS } from "../../constants/siteLinks";
 import ThemeToggle from "./ThemeToggle";
+import SiteSearch from "./SiteSearch";
 
-const navLinks = [
-    { href: "/", label: "Home", end: true },
-    { href: "/vr", label: "VR Leaderboard" },
-    { href: "/tt", label: "TT Leaderboard" },
-    { href: "/rooms", label: "Rooms" },
+/*
+ * Primary navigation is limited to what racers use week to week. Team, rules and privacy live in
+ * the footer and in the mobile menu, which has room for them.
+ */
+const primaryLinks = [
     { href: "/downloads", label: "Downloads" },
+    { href: "/rooms", label: "Rooms" },
+    { href: "/vr", label: "VR leaderboard" },
+    { href: "/tt", label: "Time trials" },
+    { href: "/races", label: "Races" },
+    { href: "/stats", label: "Stats" },
+    { href: "/tools", label: "Tools" },
+];
+
+const secondaryLinks = [
     { href: "/team", label: "Team" },
     { href: "/rules", label: "Rules" },
     { href: "/privacy", label: "Privacy" },
-    { href: "/stats", label: "Stats" },
-    { href: "/races", label: "Races" },
 ];
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = createSignal(false);
+    const location = useLocation();
+    let menuButton: HTMLButtonElement | undefined;
+
+    // Close the mobile menu on navigation, including back and forward.
+    createEffect(
+        on(
+            () => location.pathname,
+            () => setIsMenuOpen(false),
+            { defer: true },
+        ),
+    );
+
+    const onKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape" && isMenuOpen()) {
+            setIsMenuOpen(false);
+            menuButton?.focus();
+        }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    onCleanup(() => document.removeEventListener("keydown", onKeyDown));
+
+    /*
+     * Scroll state. The header is flat at the top of the page and gains its rule once content
+     * passes under it; a thin bar shows how far through the page you are. One passive listener,
+     * throttled to animation frames, writes the bar's transform directly so scrolling never
+     * re-renders anything. The bar reflects the reader's own scrolling, so it stays under
+     * reduced motion (its transition is already disabled there).
+     */
+    const [isScrolled, setIsScrolled] = createSignal(false);
+    let progressBar: HTMLDivElement | undefined;
+    let ticking = false;
+    const update = () => {
+        ticking = false;
+        const doc = document.documentElement;
+        const max = doc.scrollHeight - window.innerHeight;
+        setIsScrolled(window.scrollY > 8);
+        if (progressBar) {
+            // Short pages do not need a progress bar.
+            const show = max > window.innerHeight * 0.5;
+            progressBar.style.opacity = show ? "1" : "0";
+            progressBar.style.transform = `scaleX(${show ? Math.min(window.scrollY / max, 1) : 0})`;
+        }
+    };
+    const onScroll = () => {
+        if (!ticking) {
+            ticking = true;
+            requestAnimationFrame(update);
+        }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    onCleanup(() => {
+        window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("resize", onScroll);
+    });
+    // Page height changes on navigation and when data loads, so re-measure then too.
+    createEffect(
+        on(
+            () => location.pathname,
+            () => requestAnimationFrame(update),
+        ),
+    );
 
     return (
-        <nav class="bg-white dark:bg-gray-800 shadow-lg border-b border-gray-200 dark:border-gray-700 transition-colors">
+        <header
+            class={`sticky top-0 z-40 border-b bg-canvas transition-colors duration-(--motion-base) ${
+                isScrolled() || isMenuOpen() ? "border-line" : "border-transparent"
+            }`}
+        >
+            <div
+                ref={(el) => (progressBar = el)}
+                class="pointer-events-none absolute inset-x-0 -bottom-px h-0.5 origin-left bg-accent opacity-0"
+                style={{ transform: "scaleX(0)" }}
+                aria-hidden="true"
+            />
             <a
                 href="#main-content"
-                class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:font-medium"
+                class="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-4 focus:z-50 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-accent-fg"
+                onClick={(e) => {
+                    // The router intercepts in-page anchors and scrolls without moving focus, so
+                    // the next Tab would land back in the header. Move focus explicitly.
+                    e.preventDefault();
+                    const main = document.getElementById("main-content");
+                    main?.focus();
+                    main?.scrollIntoView();
+                }}
             >
                 Skip to content
             </a>
-            <div class="container mx-auto px-4">
-                <div class="flex justify-between items-center h-16">
-                    {/* Logo */}
-                    <A href="/">
-                        <img
-                            src="/RetroRewindLogo.png"
-                            alt="Retro Rewind"
-                            class="w-42 h-22 object-contain"
-                        />
-                    </A>
+            <div class="mx-auto flex h-16 max-w-page items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+                <A href="/" class="flex shrink-0 items-center gap-2.5 rounded-md">
+                    <img
+                        src="/logo-56.webp"
+                        alt=""
+                        width="28"
+                        height="28"
+                        class="h-7 w-7"
+                        decoding="async"
+                    />
+                    <span class="text-base font-semibold tracking-tight text-fg">Retro Rewind</span>
+                </A>
 
-                    {/* Desktop Navigation */}
-                    <div class="hidden md:flex items-center space-x-1">
-                        {navLinks.map((link) => (
-                            <A
-                                href={link.href}
-                                end={link.end}
-                                class="text-gray-600 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-400 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                                activeClass="text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
-                            >
-                                {link.label}
-                            </A>
-                        ))}
-                        <ThemeToggle />
-                    </div>
+                <nav aria-label="Main" class="hidden lg:block">
+                    <ul class="flex items-center gap-1">
+                        <For each={primaryLinks}>
+                            {(link) => (
+                                <li>
+                                    <NavLink href={link.href}>{link.label}</NavLink>
+                                </li>
+                            )}
+                        </For>
+                    </ul>
+                </nav>
 
-                    {/* Mobile: theme toggle + hamburger */}
-                    <div class="md:hidden flex items-center space-x-2">
-                        <ThemeToggle />
-                        <button
-                            type="button"
-                            onClick={() => setIsMenuOpen((o) => !o)}
-                            class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                            aria-label={isMenuOpen() ? "Close menu" : "Open menu"}
-                        >
-                            {isMenuOpen() ? <X size={24} /> : <Menu size={24} />}
-                        </button>
-                    </div>
+                <div class="flex items-center gap-1">
+                    <a
+                        href={SITE_LINKS.discord}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="hidden h-9 w-9 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface hover:text-fg sm:inline-flex"
+                    >
+                        <BrandIcon name="discord" size={18} />
+                        <span class="sr-only">Retro Rewind Discord (opens in a new tab)</span>
+                    </a>
+                    <a
+                        href={SITE_LINKS.github}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="hidden h-9 w-9 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface hover:text-fg sm:inline-flex"
+                    >
+                        <BrandIcon name="github" size={18} />
+                        <span class="sr-only">Website source on GitHub (opens in a new tab)</span>
+                    </a>
+                    <SiteSearch />
+                    <ThemeToggle />
+                    <button
+                        ref={(el) => (menuButton = el)}
+                        type="button"
+                        class="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg-muted transition-colors duration-150 hover:bg-surface hover:text-fg lg:hidden"
+                        aria-expanded={isMenuOpen()}
+                        aria-controls="mobile-menu"
+                        onClick={() => setIsMenuOpen((open) => !open)}
+                    >
+                        <span class="sr-only">{isMenuOpen() ? "Close menu" : "Open menu"}</span>
+                        <Show when={isMenuOpen()} fallback={<Menu size={20} aria-hidden="true" />}>
+                            <X size={20} aria-hidden="true" />
+                        </Show>
+                    </button>
                 </div>
-
-                {/* Mobile Navigation */}
-                {isMenuOpen() && (
-                    <div class="md:hidden pb-6">
-                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg mt-3 p-3 space-y-1 shadow-lg border border-gray-200 dark:border-gray-600">
-                            {navLinks.map((link) => (
-                                <A
-                                    href={link.href}
-                                    end={link.end}
-                                    class="flex items-center text-gray-600 dark:text-gray-300 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-white dark:hover:bg-gray-600 font-medium py-2 px-4 rounded-lg transition-colors"
-                                    activeClass="text-blue-700 dark:text-blue-400 bg-white dark:bg-gray-600"
-                                    onClick={() => setIsMenuOpen(false)}
-                                >
-                                    {link.label}
-                                </A>
-                            ))}
-                        </div>
-                    </div>
-                )}
             </div>
-        </nav>
+
+            <Show when={isMenuOpen()}>
+                <nav
+                    id="mobile-menu"
+                    aria-label="Main"
+                    class="border-t border-line bg-canvas lg:hidden"
+                >
+                    <div class="mx-auto max-w-page px-4 py-3 sm:px-6">
+                        <ul class="grid gap-1">
+                            <li>
+                                <NavLink href="/" end layout="list">
+                                    Home
+                                </NavLink>
+                            </li>
+                            <For each={primaryLinks}>
+                                {(link) => (
+                                    <li>
+                                        <NavLink href={link.href} layout="list">
+                                            {link.label}
+                                        </NavLink>
+                                    </li>
+                                )}
+                            </For>
+                        </ul>
+                        <ul class="mt-3 grid gap-1 border-t border-line pt-3">
+                            <For each={secondaryLinks}>
+                                {(link) => (
+                                    <li>
+                                        <NavLink href={link.href} layout="list">
+                                            {link.label}
+                                        </NavLink>
+                                    </li>
+                                )}
+                            </For>
+                        </ul>
+                    </div>
+                </nav>
+            </Show>
+        </header>
     );
 }

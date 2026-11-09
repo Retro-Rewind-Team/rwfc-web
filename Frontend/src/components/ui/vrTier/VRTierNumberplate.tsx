@@ -1,5 +1,5 @@
 import { Show } from "solid-js";
-import { getVRTierInfo, isTopThreeRank, tierHasGlow } from "../../../utils/vrTierHelpers";
+import { getVRTierInfo, isTopThreeRank } from "../../../utils/vrTierHelpers";
 import { VR_TIER_STYLES } from "../../../utils/vrTiers";
 import { VR_TIER_SIZES, type VRTierSize } from "../../../utils/constants";
 import Tooltip from "../../common/Tooltip";
@@ -18,43 +18,17 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
     const config = () => VR_TIER_SIZES[size()];
     const isTopThree = () => isTopThreeRank(props.rank);
 
-    const getSpecialTopThreeGradient = (rank: number) => {
-        switch (rank) {
-            case 1:
-                return "from-yellow-400 via-yellow-500 to-amber-500"; // Gold
-            case 2:
-                return "from-gray-300 via-gray-400 to-gray-500"; // Silver
-            case 3:
-                return "from-orange-400 via-orange-500 to-amber-600"; // Bronze
-            default:
-                return tier().gradient;
-        }
-    };
-
-    const getMaximumTierGradient = () => {
-        if (tier().tier === "god") {
-            return "from-white via-cyan-200 via-blue-300 via-purple-400 via-pink-500 via-red-500 via-orange-500 via-yellow-500 via-lime-500 to-white";
-        }
-        return "from-red-500 via-yellow-500 via-green-500 via-blue-500 via-indigo-500 to-purple-500";
-    };
-
-    const plateClasses = () => {
-        let gradient = tier().gradient;
-
+    // Solid fills: the design system has no gradients, glows or looping animation. Tier is still
+    // told apart by colour, and the tooltip carries the name for anyone who can't see it.
+    const plateColor = () => {
         if (isTopThree()) {
-            gradient = getSpecialTopThreeGradient(props.rank);
-        } else if (["legend", "master", "mythic", "god"].includes(tier().tier)) {
-            gradient = getMaximumTierGradient();
+            return VR_TIER_STYLES.PLATE_COLORS[`rank${props.rank}` as "rank1" | "rank2" | "rank3"];
         }
-
-        const baseClasses = `relative bg-gradient-to-br ${gradient} rounded-lg ${config().border} ${config().plate} flex items-center justify-center transition-all duration-300 hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl`;
-
-        if (tierHasGlow(tier().tier) || isTopThree()) {
-            return `${baseClasses} animate-pulse`;
-        }
-
-        return baseClasses;
+        return VR_TIER_STYLES.PLATE_COLORS[tier().tier as keyof typeof VR_TIER_STYLES.PLATE_COLORS];
     };
+
+    const plateClasses = () =>
+        `relative ${plateColor()} rounded-lg ${config().border} ${config().plate} flex items-center justify-center`;
 
     const borderColor = () => {
         if (isTopThree()) {
@@ -72,15 +46,7 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
         ];
     };
 
-    const getTextStyling = () => {
-        const baseText = `text-white font-black ${config().text} select-none tracking-tight`;
-
-        if (isTopThree() || tierHasGlow(tier().tier)) {
-            return `${baseText} drop-shadow-lg`;
-        }
-
-        return `${baseText} drop-shadow-md`;
-    };
+    const textClasses = () => `text-white font-black ${config().text} select-none tracking-tight`;
 
     const tooltipText = () =>
         `${isTopThree() ? `#${props.rank} Overall - ` : ""}${tier().label} Tier (${props.vr.toLocaleString()} VR)`;
@@ -91,35 +57,11 @@ export default function VRTierNumberPlate(props: VRTierNumberPlateProps) {
                 <div class={`${plateClasses()} ${borderColor()}`}>
                     <div class="absolute inset-1 border border-white/20 rounded-md pointer-events-none"></div>
 
-                    {/* Enhanced Rank Number */}
-                    <span class={getTextStyling()}>
+                    <span class={textClasses()}>
                         <Show when={props.isSuspicious} fallback={`#${props.rank}`}>
                             ?
                         </Show>
                     </span>
-
-                    {/* Special Glow Effects */}
-                    <Show when={tierHasGlow(tier().tier) || isTopThree()}>
-                        <Show
-                            when={tier().tier === "master"}
-                            fallback={
-                                <div class="absolute inset-0 rounded-lg bg-gradient-to-br from-white/5 via-white/10 to-white/5 animate-pulse pointer-events-none"></div>
-                            }
-                        >
-                            {/* Rainbow glow for master tier */}
-                            <div class="absolute inset-0 rounded-lg bg-gradient-to-br from-red-400/10 via-yellow-400/10 via-green-400/10 via-blue-400/10 to-purple-400/10 animate-pulse pointer-events-none"></div>
-                        </Show>
-                    </Show>
-
-                    {/* Premium shine effect for top tiers */}
-                    <Show
-                        when={
-                            isTopThree() ||
-                            ["legend", "master", "mythic", "god"].includes(tier().tier)
-                        }
-                    >
-                        <div class="absolute inset-0 rounded-lg bg-gradient-to-tr from-transparent via-white/15 to-transparent pointer-events-none"></div>
-                    </Show>
                 </div>
             </div>
         </Tooltip>

@@ -1,6 +1,7 @@
 import { A } from "@solidjs/router";
 import { createSignal, For, Show } from "solid-js";
-import { ChevronDown, Download, Zap } from "lucide-solid";
+import { ChevronDown, Zap } from "lucide-solid";
+import GhostDownloadButton from "./GhostDownloadButton";
 import { GhostSubmission } from "../../../types/timeTrial";
 import {
     getCharacterName,
@@ -49,40 +50,34 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
     };
 
     return (
-        <div class="overflow-x-auto">
+        <div class="relative overflow-x-auto">
             <table class="w-full">
-                <thead class="bg-blue-600 text-white">
+                <thead class="bg-accent text-accent-fg">
                     <tr>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                        <th class="pin-start px-3 sm:px-6 py-3 text-left text-xs font-medium">
                             Track
                         </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                            Category
-                        </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                            Time
-                        </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden md:table-cell">
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium">Category</th>
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium">Time</th>
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium hidden md:table-cell">
                             Fastest Lap
                         </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden lg:table-cell">
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium hidden lg:table-cell">
                             Character
                         </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden lg:table-cell">
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium hidden lg:table-cell">
                             Vehicle
                         </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium hidden xl:table-cell">
                             Controller
                         </th>
-                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider hidden xl:table-cell">
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium hidden xl:table-cell">
                             Date
                         </th>
-                        <th class="px-2 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
-                            Actions
-                        </th>
+                        <th class="px-2 sm:px-6 py-3 text-right text-xs font-medium">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody class="divide-y divide-line">
                     <For each={props.submissions}>
                         {(submission) => {
                             const isExpanded = () => expandedRows().has(submission.id);
@@ -91,17 +86,17 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
                             return (
                                 <>
                                     {/* Main Row */}
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                    <tr class="hover:bg-surface transition-colors">
                                         {/* Track Name - Mobile Optimized */}
-                                        <td class="px-3 sm:px-6 py-4">
+                                        <td class="pin-start px-3 sm:px-6 py-4">
                                             <A
                                                 href={getTrackRoute(submission)}
                                                 class="block hover:opacity-80 transition-opacity"
                                             >
-                                                <div class="font-semibold text-sm sm:text-base text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                                <div class="font-semibold text-sm sm:text-base text-fg hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                                                     {submission.trackName}
                                                 </div>
-                                                <div class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                                                <div class="text-xs sm:text-sm text-fg-subtle">
                                                     {submission.lapCount} lap
                                                     {submission.lapCount !== 1 ? "s" : ""}
                                                 </div>
@@ -112,7 +107,7 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
                                         <td class="px-3 sm:px-6 py-4 whitespace-nowrap">
                                             <div class="flex flex-col gap-1">
                                                 <span
-                                                    class={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-bold ${
+                                                    class={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-semibold ${
                                                         submission.cc === 150
                                                             ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                                                             : "bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200"
@@ -121,7 +116,7 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
                                                     {submission.cc}cc
                                                 </span>
                                                 <Show when={submission.glitch}>
-                                                    <span class="inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                                    <span class="inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                                                         <Zap size={10} />
                                                     </span>
                                                 </Show>
@@ -131,7 +126,7 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
                                         {/* Time - Mobile Optimized */}
                                         <td class="px-3 sm:px-6 py-4">
                                             <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                                                <div class="text-base sm:text-lg font-bold text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                                                <div class="text-base sm:text-lg font-semibold text-blue-600 dark:text-blue-400 whitespace-nowrap">
                                                     {submission.finishTimeDisplay}
                                                 </div>
                                                 <Show when={submission.shroomless}>
@@ -142,7 +137,7 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
                                             </div>
                                             {/* Show Fastest Lap on mobile inline */}
                                             <div class="md:hidden mt-1">
-                                                <span class="font-mono text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                <span class="font-mono text-xs font-medium text-fg-muted">
                                                     FL: {submission.fastestLapDisplay}
                                                 </span>
                                             </div>
@@ -150,24 +145,24 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
 
                                         {/* Fastest Lap - Desktop Only */}
                                         <td class="px-3 sm:px-6 py-4 whitespace-nowrap hidden md:table-cell">
-                                            <span class="font-mono text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            <span class="font-mono text-sm font-medium text-fg-muted">
                                                 {submission.fastestLapDisplay}
                                             </span>
                                         </td>
 
                                         {/* Character - Large screens */}
                                         <td class="px-3 sm:px-6 py-4 hidden lg:table-cell">
-                                            <div class="text-sm text-gray-900 dark:text-white">
+                                            <div class="text-sm text-fg">
                                                 {getCharacterName(submission.characterId)}
                                             </div>
                                         </td>
 
                                         {/* Vehicle - Large screens */}
                                         <td class="px-3 sm:px-6 py-4 hidden lg:table-cell">
-                                            <div class="text-sm text-gray-900 dark:text-white">
+                                            <div class="text-sm text-fg">
                                                 {getVehicleName(submission.vehicleId)}
                                             </div>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400">
+                                            <div class="text-xs text-fg-subtle">
                                                 {getDriftInfo(
                                                     submission.driftType,
                                                     submission.driftCategory,
@@ -177,13 +172,13 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
 
                                         {/* Controller - Extra large screens */}
                                         <td class="px-3 sm:px-6 py-4 hidden xl:table-cell">
-                                            <div class="text-sm text-gray-900 dark:text-white">
+                                            <div class="text-sm text-fg">
                                                 {getControllerName(submission.controllerType)}
                                             </div>
                                         </td>
 
                                         {/* Date - Extra large screens */}
-                                        <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden xl:table-cell">
+                                        <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-fg-subtle hidden xl:table-cell">
                                             {formatDate(submission.dateSet)}
                                         </td>
 
@@ -193,45 +188,36 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
                                                 <button
                                                     type="button"
                                                     onClick={() => toggleRow(submission.id)}
-                                                    class="inline-flex items-center p-2 sm:px-3 sm:py-1.5 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                                    class="inline-flex items-center p-2 sm:px-3 sm:py-1.5 border border-line-strong text-xs font-medium rounded-md text-fg-muted bg-canvas hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                                                     aria-label="Toggle details"
+                                                    aria-expanded={isExpanded()}
+                                                    aria-controls={`submission-${submission.id}-laps`}
                                                 >
                                                     <ChevronDown
                                                         size={16}
                                                         class={`transition-transform ${isExpanded() ? "rotate-180" : ""}`}
                                                     />
                                                 </button>
-                                                <button
-                                                    type="button"
-                                                    disabled={!submission.hasGhostFile}
-                                                    onClick={() =>
+                                                <GhostDownloadButton
+                                                    available={submission.hasGhostFile}
+                                                    submissionId={submission.id}
+                                                    onDownload={() =>
                                                         props.onDownloadGhost(submission)
                                                     }
-                                                    class={`inline-flex items-center p-2 sm:px-3 sm:py-1.5 border border-transparent text-xs font-medium rounded-md transition-colors ${
-                                                        submission.hasGhostFile
-                                                            ? "text-white bg-blue-600 hover:bg-blue-700"
-                                                            : "text-gray-400 dark:text-gray-500 bg-gray-200 dark:bg-gray-700 cursor-not-allowed"
-                                                    }`}
-                                                    aria-label="Download ghost"
-                                                    title={
-                                                        submission.hasGhostFile
-                                                            ? undefined
-                                                            : "Ghost file not available for this submission"
-                                                    }
-                                                >
-                                                    <Download size={16} class="sm:mr-1" />
-                                                    <span class="hidden sm:inline">Ghost</span>
-                                                </button>
+                                                />
                                             </div>
                                         </td>
                                     </tr>
 
                                     {/* Expanded Row - Lap Splits */}
                                     <Show when={isExpanded()}>
-                                        <tr class="bg-gray-50 dark:bg-gray-800/50">
+                                        <tr
+                                            id={`submission-${submission.id}-laps`}
+                                            class="bg-surface/50"
+                                        >
                                             <td colspan="9" class="px-3 sm:px-6 py-4">
                                                 <div class="max-w-2xl">
-                                                    <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+                                                    <div class="text-xs font-semibold text-fg-subtle mb-3">
                                                         Lap Times
                                                     </div>
                                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -248,15 +234,15 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
 
                                                                     return (
                                                                         <div class="flex items-center justify-between">
-                                                                            <span class="text-sm text-gray-600 dark:text-gray-400">
+                                                                            <span class="text-sm text-fg-muted">
                                                                                 Lap {lap.index + 1}
                                                                             </span>
                                                                             <div class="flex items-center gap-2">
                                                                                 <span
                                                                                     class={`font-mono text-sm ${
                                                                                         isFastestInRun
-                                                                                            ? "text-blue-600 dark:text-blue-400 font-bold"
-                                                                                            : "text-gray-700 dark:text-gray-300 font-medium"
+                                                                                            ? "text-blue-600 dark:text-blue-400 font-semibold"
+                                                                                            : "text-fg-muted font-medium"
                                                                                     }`}
                                                                                 >
                                                                                     {lap.time}
@@ -280,25 +266,25 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
                                                         <div class="space-y-2">
                                                             <div class="space-y-1 text-sm">
                                                                 <div class="flex justify-between">
-                                                                    <span class="text-gray-600 dark:text-gray-400">
+                                                                    <span class="text-fg-muted">
                                                                         Total Laps:
                                                                     </span>
-                                                                    <span class="font-medium text-gray-900 dark:text-white">
+                                                                    <span class="font-medium text-fg">
                                                                         {validLaps().length}
                                                                     </span>
                                                                 </div>
                                                                 <div class="flex justify-between">
-                                                                    <span class="text-gray-600 dark:text-gray-400">
+                                                                    <span class="text-fg-muted">
                                                                         Average Lap:
                                                                     </span>
-                                                                    <span class="font-mono font-medium text-gray-900 dark:text-white">
+                                                                    <span class="font-mono font-medium text-fg">
                                                                         {formatAverageLap(
                                                                             validLaps(),
                                                                         )}
                                                                     </span>
                                                                 </div>
                                                                 <div class="flex justify-between">
-                                                                    <span class="text-gray-600 dark:text-gray-400">
+                                                                    <span class="text-fg-muted">
                                                                         Fastest Lap:
                                                                     </span>
                                                                     <span class="font-mono font-medium text-green-600 dark:text-green-400">
@@ -312,30 +298,30 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
                                                             {/* Mobile: Show additional details here */}
                                                             <div class="lg:hidden pt-2 mt-2 border-t border-gray-200 dark:border-gray-600 space-y-1 text-sm">
                                                                 <div class="flex justify-between">
-                                                                    <span class="text-gray-600 dark:text-gray-400">
+                                                                    <span class="text-fg-muted">
                                                                         Character:
                                                                     </span>
-                                                                    <span class="font-medium text-gray-900 dark:text-white">
+                                                                    <span class="font-medium text-fg">
                                                                         {getCharacterName(
                                                                             submission.characterId,
                                                                         )}
                                                                     </span>
                                                                 </div>
                                                                 <div class="flex justify-between">
-                                                                    <span class="text-gray-600 dark:text-gray-400">
+                                                                    <span class="text-fg-muted">
                                                                         Vehicle:
                                                                     </span>
-                                                                    <span class="font-medium text-gray-900 dark:text-white">
+                                                                    <span class="font-medium text-fg">
                                                                         {getVehicleName(
                                                                             submission.vehicleId,
                                                                         )}
                                                                     </span>
                                                                 </div>
                                                                 <div class="flex justify-between">
-                                                                    <span class="text-gray-600 dark:text-gray-400">
+                                                                    <span class="text-fg-muted">
                                                                         Drift:
                                                                     </span>
-                                                                    <span class="font-medium text-gray-900 dark:text-white">
+                                                                    <span class="font-medium text-fg">
                                                                         {getDriftInfo(
                                                                             submission.driftType,
                                                                             submission.driftCategory,
@@ -343,20 +329,20 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
                                                                     </span>
                                                                 </div>
                                                                 <div class="xl:hidden flex justify-between">
-                                                                    <span class="text-gray-600 dark:text-gray-400">
+                                                                    <span class="text-fg-muted">
                                                                         Controller:
                                                                     </span>
-                                                                    <span class="font-medium text-gray-900 dark:text-white">
+                                                                    <span class="font-medium text-fg">
                                                                         {getControllerName(
                                                                             submission.controllerType,
                                                                         )}
                                                                     </span>
                                                                 </div>
                                                                 <div class="xl:hidden flex justify-between">
-                                                                    <span class="text-gray-600 dark:text-gray-400">
+                                                                    <span class="text-fg-muted">
                                                                         Date Set:
                                                                     </span>
-                                                                    <span class="font-medium text-gray-900 dark:text-white">
+                                                                    <span class="font-medium text-fg">
                                                                         {formatDate(
                                                                             submission.dateSet,
                                                                         )}

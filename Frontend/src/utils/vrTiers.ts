@@ -121,6 +121,34 @@ export const SUSPICIOUS_TIER: VRTierInfo = {
 
 // VR tier styling configurations
 export const VR_TIER_STYLES = {
+    // Solid plate and progress-bar fills. Shades are dark enough for white text (4.5:1 or better).
+    PLATE_COLORS: {
+        rank1: "bg-amber-600",
+        rank2: "bg-gray-500",
+        rank3: "bg-orange-700",
+        god: "bg-fuchsia-700",
+        mythic: "bg-purple-600",
+        legend: "bg-amber-600",
+        master: "bg-rose-600",
+        elite: "bg-pink-600",
+        veteran: "bg-indigo-600",
+        challenger: "bg-emerald-700",
+        rising: "bg-green-700",
+        beginner: "bg-gray-600",
+        suspicious: "bg-red-700",
+    },
+    BAR_COLORS: {
+        god: "bg-fuchsia-600",
+        mythic: "bg-purple-500",
+        legend: "bg-amber-500",
+        master: "bg-rose-500",
+        elite: "bg-pink-500",
+        veteran: "bg-indigo-500",
+        challenger: "bg-emerald-500",
+        rising: "bg-green-500",
+        beginner: "bg-gray-500",
+        suspicious: "bg-red-600",
+    },
     BORDER_COLORS: {
         god: "border-white",
         mythic: "border-purple-200",
@@ -146,7 +174,7 @@ export const VR_TIER_STYLES = {
         suspicious: "bg-red-200",
     },
     TAB_COLORS: {
-        god: "bg-gradient-to-r from-cyan-200 via-purple-300 to-pink-300 border-white",
+        god: "bg-fuchsia-300 border-white",
         mythic: "bg-purple-300 border-purple-400",
         legend: "bg-amber-300 border-amber-400",
         master: "bg-purple-300 border-purple-400",

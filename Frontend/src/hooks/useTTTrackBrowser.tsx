@@ -1,20 +1,33 @@
-import { createMemo, createSignal } from "solid-js";
+import { createMemo } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { timeTrialApi } from "../services/api/timeTrial";
 import { ShroomlessFilter, VehicleFilter } from "../types/timeTrial";
 import { queryKeys } from "../constants/queryKeys";
+import { readEnum, useUrlSearch, useUrlState } from "./useUrlState";
 
 /**
  * Manages filter state and data fetching for the time trial track browser.
- * Track list and world records are fetched once and filtered locally.
+ * Track list and world records are fetched once and filtered locally. Category, CC, filters and the
+ * search text are URL params (`category`, `cc`, `glitch=off`, `shroomless`, `vehicle`, `q`), so a
+ * view can be shared.
  */
 export function useTTTrackBrowser() {
-    const [selectedCategory, setSelectedCategory] = createSignal<"retro" | "custom">("retro");
-    const [selectedCC, setSelectedCC] = createSignal<150 | 200>(150);
-    const [glitchAllowed, setGlitchAllowed] = createSignal<boolean>(true);
-    const [shroomlessFilter, setShroomlessFilter] = createSignal<ShroomlessFilter>("all");
-    const [vehicleFilter, setVehicleFilter] = createSignal<VehicleFilter>("all");
-    const [searchQuery, setSearchQuery] = createSignal("");
+    const state = useUrlState();
+    const { searchQuery, search, handleSearchInput, clear } = useUrlSearch(state);
+
+    const selectedCategory = createMemo((): "retro" | "custom" =>
+        state.get("category") === "custom" ? "custom" : "retro",
+    );
+    const selectedCC = createMemo((): 150 | 200 => (state.get("cc") === "200" ? 200 : 150));
+    const glitchAllowed = createMemo(() => state.get("glitch") !== "off");
+    const shroomlessFilter = createMemo(
+        (): ShroomlessFilter =>
+            readEnum(state.get("shroomless"), ["all", "only", "exclude"] as const) ?? "all",
+    );
+    const vehicleFilter = createMemo(
+        (): VehicleFilter =>
+            readEnum(state.get("vehicle"), ["all", "karts", "bikes"] as const) ?? "all",
+    );
 
     // Fetch all tracks - static, cached for 1 hour
     const tracksQuery = useQuery(() => ({
@@ -46,25 +59,27 @@ export function useTTTrackBrowser() {
     const filteredTracks = createMemo(() => {
         const tracks = tracksQuery.data ?? [];
         const category = selectedCategory();
-        const search = searchQuery().toLowerCase();
+        const needle = search().toLowerCase();
 
         return tracks
             .filter((track) => track.category === category)
-            .filter((track) => search === "" || track.name.toLowerCase().includes(search))
+            .filter((track) => needle === "" || track.name.toLowerCase().includes(needle))
             .sort((a, b) => a.sortOrder - b.sortOrder);
     });
 
-    const handleSearchInput = (value: string) => setSearchQuery(value);
+    // Switching category drops the search: a name from one list rarely means anything in the other.
+    const handleCategoryChange = (category: "retro" | "custom") =>
+        clear({ category: category === "retro" ? undefined : category });
 
-    const handleCategoryChange = (category: "retro" | "custom") => {
-        setSelectedCategory(category);
-        setSearchQuery("");
-    };
+    const handleCCChange = (cc: 150 | 200) => state.update({ cc: cc === 150 ? undefined : cc });
+    const handleGlitchAllowedChange = (allowed: boolean) =>
+        state.update({ glitch: allowed ? undefined : "off" });
+    const handleShroomlessFilterChange = (filter: ShroomlessFilter) =>
+        state.update({ shroomless: filter === "all" ? undefined : filter });
+    const handleVehicleFilterChange = (filter: VehicleFilter) =>
+        state.update({ vehicle: filter === "all" ? undefined : filter });
 
-    const handleCCChange = (cc: 150 | 200) => setSelectedCC(cc);
-    const handleGlitchAllowedChange = (allowed: boolean) => setGlitchAllowed(allowed);
-    const handleShroomlessFilterChange = (filter: ShroomlessFilter) => setShroomlessFilter(filter);
-    const handleVehicleFilterChange = (filter: VehicleFilter) => setVehicleFilter(filter);
+    const clearSearch = () => clear();
 
     return {
         // State
@@ -74,6 +89,7 @@ export function useTTTrackBrowser() {
         shroomlessFilter,
         vehicleFilter,
         searchQuery,
+        search,
 
         // Computed
         filteredTracks,
@@ -85,6 +101,7 @@ export function useTTTrackBrowser() {
         // Handlers
         handleSearchInput,
         handleCategoryChange,
+        clearSearch,
         handleCCChange,
         handleGlitchAllowedChange,
         handleShroomlessFilterChange,

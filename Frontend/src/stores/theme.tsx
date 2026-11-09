@@ -57,7 +57,7 @@ export function ThemeProvider(props: Readonly<{ children: JSX.Element }>) {
 
         const metaThemeColor = document.querySelector('meta[name="theme-color"]');
         if (metaThemeColor) {
-            metaThemeColor.setAttribute("content", themeToApply === "dark" ? "#0f172a" : "#ffffff");
+            metaThemeColor.setAttribute("content", themeToApply === "dark" ? "#121513" : "#ffffff");
         }
     };
 
@@ -112,13 +112,13 @@ export function ThemeProvider(props: Readonly<{ children: JSX.Element }>) {
         handleSetTheme(newTheme);
     };
 
+    // Read the stored choice before the first render, not in onMount. Applying the system theme
+    // first and the stored one after made the page flash the wrong theme on every load. The
+    // inline script in index.html covers the moment before this bundle runs.
+    initializeTheme();
+    updateResolvedTheme();
+
     onMount(() => {
-        const systemTheme = getSystemTheme();
-        forceApplyTheme(systemTheme);
-
-        // Then initialize from storage
-        initializeTheme();
-
         if (typeof window !== "undefined") {
             const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 

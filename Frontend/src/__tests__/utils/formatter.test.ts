@@ -97,17 +97,17 @@ describe("getRankIcon", () => {
 });
 
 describe("getVRGainClass", () => {
-    it("returns green bold class for positive gain", () => {
-        expect(getVRGainClass(1)).toBe("text-green-600 font-bold");
-        expect(getVRGainClass(500)).toBe("text-green-600 font-bold");
+    it("returns the accent text colour for a gain", () => {
+        expect(getVRGainClass(1)).toBe("text-accent-text");
+        expect(getVRGainClass(500)).toBe("text-accent-text");
     });
 
-    it("returns red bold class for negative gain", () => {
-        expect(getVRGainClass(-1)).toBe("text-red-600 font-bold");
+    it("returns red, lighter in dark mode, for a loss", () => {
+        expect(getVRGainClass(-1)).toBe("text-red-600 dark:text-red-400");
     });
 
-    it("returns gray class for zero gain", () => {
-        expect(getVRGainClass(0)).toBe("text-gray-600");
+    it("returns the subtle text colour for no change", () => {
+        expect(getVRGainClass(0)).toBe("text-fg-subtle");
     });
 });
 
