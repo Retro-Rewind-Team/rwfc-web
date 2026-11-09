@@ -115,7 +115,7 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
             <Show when={raceStatsQuery.isLoading}>
                 <div class="flex items-center justify-center py-8 gap-3">
                     <LoadingSpinner />
-                    <p class="text-fg-muted">Loading race stats...</p>
+                    <p class="text-fg-muted">Loading race stats…</p>
                 </div>
             </Show>
 

@@ -189,6 +189,8 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
                                                     onClick={() => toggleRow(submission.id)}
                                                     class="inline-flex items-center p-2 sm:px-3 sm:py-1.5 border border-line-strong text-xs font-medium rounded-md text-fg-muted bg-canvas hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                                                     aria-label="Toggle details"
+                                                    aria-expanded={isExpanded()}
+                                                    aria-controls={`submission-${submission.id}-laps`}
                                                 >
                                                     <ChevronDown
                                                         size={16}
@@ -222,7 +224,10 @@ export default function TTPlayerSubmissionsTable(props: TTPlayerSubmissionsTable
 
                                     {/* Expanded Row - Lap Splits */}
                                     <Show when={isExpanded()}>
-                                        <tr class="bg-surface/50">
+                                        <tr
+                                            id={`submission-${submission.id}-laps`}
+                                            class="bg-surface/50"
+                                        >
                                             <td colspan="9" class="px-3 sm:px-6 py-4">
                                                 <div class="max-w-2xl">
                                                     <div class="text-xs font-semibold text-fg-subtle mb-3">

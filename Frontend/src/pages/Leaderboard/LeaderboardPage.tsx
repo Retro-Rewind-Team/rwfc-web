@@ -120,6 +120,7 @@ export default function LeaderboardPage() {
                                 <div class="bg-canvas/50 rounded-lg p-1 flex border border-line-strong">
                                     <button
                                         type="button"
+                                        aria-pressed={!showLegacy()}
                                         onClick={() => setLegacy(false)}
                                         class={`px-4 py-1.5 rounded-md font-medium transition-colors text-sm ${
                                             !showLegacy()
@@ -131,6 +132,7 @@ export default function LeaderboardPage() {
                                     </button>
                                     <button
                                         type="button"
+                                        aria-pressed={showLegacy()}
                                         onClick={() => setLegacy(true)}
                                         class={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-md font-medium transition-colors text-sm ${
                                             showLegacy()

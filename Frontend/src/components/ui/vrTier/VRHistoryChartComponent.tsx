@@ -339,6 +339,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                         {(period) => (
                             <button
                                 type="button"
+                                aria-pressed={!customRange() && selectedDays() === period.days}
                                 onClick={() => {
                                     setShowCustomRange(false);
                                     changePeriod(period.days);
@@ -358,6 +359,8 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                     <button
                         type="button"
                         onClick={() => setShowCustomRange((v) => !v)}
+                        aria-expanded={showCustomRange()}
+                        aria-controls="vr-custom-range"
                         class={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
                             customRange()
                                 ? "bg-blue-600 text-white"
@@ -372,7 +375,10 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
 
                 {/* Custom date range picker */}
                 <Show when={showCustomRange()}>
-                    <div class="flex flex-wrap items-end gap-3 p-3 bg-gray-50 dark:bg-gray-900/40 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div
+                        id="vr-custom-range"
+                        class="flex flex-wrap items-end gap-3 p-3 bg-gray-50 dark:bg-gray-900/40 rounded-lg border border-gray-200 dark:border-gray-700"
+                    >
                         <div class="flex flex-col gap-1">
                             <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
                                 From
@@ -414,7 +420,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                 <div class="h-96 flex items-center justify-center">
                     <div class="text-center">
                         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                        <p class="text-gray-600 dark:text-gray-400">Loading VR history...</p>
+                        <p class="text-gray-600 dark:text-gray-400">Loading VR history…</p>
                     </div>
                 </div>
             </Show>

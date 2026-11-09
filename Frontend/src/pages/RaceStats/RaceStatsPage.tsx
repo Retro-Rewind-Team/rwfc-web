@@ -118,7 +118,7 @@ export default function RaceStatsPage() {
                 <Show when={globalStatsQuery.isLoading}>
                     <div class="flex items-center justify-center py-24 gap-4">
                         <LoadingSpinner />
-                        <p class="text-fg-muted">Loading stats...</p>
+                        <p class="text-fg-muted">Loading stats…</p>
                     </div>
                 </Show>
 

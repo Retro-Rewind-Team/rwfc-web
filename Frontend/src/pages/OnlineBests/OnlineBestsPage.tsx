@@ -109,6 +109,9 @@ export default function OnlineBestsPage() {
                                             {(track) => (
                                                 <button
                                                     type="button"
+                                                    aria-pressed={
+                                                        selectedCourseId() === track.courseId
+                                                    }
                                                     onClick={() =>
                                                         handleTrackSelect(track.courseId)
                                                     }
@@ -133,6 +136,9 @@ export default function OnlineBestsPage() {
                                             {(track) => (
                                                 <button
                                                     type="button"
+                                                    aria-pressed={
+                                                        selectedCourseId() === track.courseId
+                                                    }
                                                     onClick={() =>
                                                         handleTrackSelect(track.courseId)
                                                     }
@@ -173,6 +179,7 @@ export default function OnlineBestsPage() {
                                         {(opt) => (
                                             <button
                                                 type="button"
+                                                aria-pressed={engineClassId() === opt.value}
                                                 onClick={() => handleCcChange(opt.value)}
                                                 class={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                                                     engineClassId() === opt.value
@@ -199,7 +206,7 @@ export default function OnlineBestsPage() {
                             <Show when={bestsQuery.isLoading}>
                                 <div class="flex items-center justify-center py-16 gap-4">
                                     <LoadingSpinner />
-                                    <p class="text-fg-muted">Loading times...</p>
+                                    <p class="text-fg-muted">Loading times…</p>
                                 </div>
                             </Show>
 

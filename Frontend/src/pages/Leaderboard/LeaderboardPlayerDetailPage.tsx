@@ -51,7 +51,7 @@ export default function PlayerDetailPage() {
                     <div class="bg-canvas rounded-lg border border-line p-6">
                         <div class="flex justify-center items-center py-12 gap-4">
                             <LoadingSpinner />
-                            <p class="text-fg-muted">Loading player data...</p>
+                            <p class="text-fg-muted">Loading player data…</p>
                         </div>
                     </div>
                 </Show>

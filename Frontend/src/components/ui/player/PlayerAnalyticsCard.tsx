@@ -103,6 +103,7 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
                             ).map((opt) => (
                                 <button
                                     type="button"
+                                    aria-pressed={engineClassId() === opt.value}
                                     onClick={() => handleEngineClassChange(opt.value)}
                                     class={`px-2.5 py-1.5 rounded-lg border font-medium transition-colors ${
                                         engineClassId() === opt.value
@@ -119,6 +120,7 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
                                 {(opt) => (
                                     <button
                                         type="button"
+                                        aria-pressed={days() === opt.value}
                                         onClick={() => handleDaysChange(opt.value)}
                                         class={`px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
                                             days() === opt.value
@@ -137,7 +139,7 @@ export default function PlayerAnalyticsCard(props: PlayerAnalyticsCardProps) {
                     <Show when={analyticsQuery.isLoading}>
                         <div class="flex items-center justify-center py-12 gap-3">
                             <LoadingSpinner />
-                            <p class="text-fg-muted">Loading analytics...</p>
+                            <p class="text-fg-muted">Loading analytics…</p>
                         </div>
                     </Show>
 

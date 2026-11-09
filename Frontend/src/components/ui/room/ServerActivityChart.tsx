@@ -258,7 +258,7 @@ export default function ServerActivityChart() {
             <Show when={seriesQuery.isLoading}>
                 <div class="h-64 flex items-center justify-center gap-4">
                     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-                    <p class="text-fg-muted text-sm">Loading activity data...</p>
+                    <p class="text-fg-muted text-sm">Loading activity data…</p>
                 </div>
             </Show>
 

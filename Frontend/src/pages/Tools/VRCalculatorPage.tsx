@@ -586,13 +586,18 @@ export default function VRCalculatorPage() {
                         <button
                             type="button"
                             onClick={() => setTraceOpen((v) => !v)}
+                            aria-expanded={traceOpen()}
+                            aria-controls="calc-trace"
                             class="w-full px-4 py-3 text-left flex items-center justify-between text-xs font-semibold text-fg-subtle hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
                         >
                             <span>Calculation Trace</span>
-                            <span>{traceOpen() ? "▲" : "▼"}</span>
+                            <span aria-hidden="true">{traceOpen() ? "▲" : "▼"}</span>
                         </button>
                         <Show when={traceOpen()}>
-                            <div class="relative overflow-x-auto border-t border-line">
+                            <div
+                                id="calc-trace"
+                                class="relative overflow-x-auto border-t border-line"
+                            >
                                 <table class="w-full text-xs font-mono">
                                     <thead class="bg-surface">
                                         <tr>
