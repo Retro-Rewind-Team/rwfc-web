@@ -6,6 +6,7 @@ using NSubstitute;
 using RetroRewindWebsite.Data;
 using RetroRewindWebsite.Models.External;
 using RetroRewindWebsite.Services.Application;
+using RetroRewindWebsite.Services.Domain;
 using RetroRewindWebsite.Services.External;
 using RetroRewindWebsite.Tests.Integration.Fixtures;
 using Shouldly;
@@ -136,6 +137,72 @@ public class RaceResultCollectionTests : IAsyncLifetime
         await CollectAsync();
 
         (await StoredAsync()).Count.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task CollectsTheFinalRaceOfARoomThatClosedBeforeTheNextTick()
+    {
+        StubOpenRoom();
+        StubResults(new() { [1] = [Result(profileId: 601, seconds: 90f, playerCount: 2), Result(profileId: 602, seconds: 95f, playerCount: 2)] });
+        await CollectAsync();
+
+        // Race 2 finished and the room closed before the next tick.
+        StubNoOpenRooms();
+        StubResults(new()
+        {
+            [1] = [Result(profileId: 601, seconds: 90f, playerCount: 2), Result(profileId: 602, seconds: 95f, playerCount: 2)],
+            [2] = [Result(profileId: 601, seconds: 99f, playerCount: 2), Result(profileId: 602, seconds: 92f, playerCount: 2)]
+        });
+        await CollectAsync();
+
+        var race2 = await StoredRaceAsync(2);
+        race2.Count.ShouldBe(2);
+        race2[602].FinishPos.ShouldBe((short)1);
+        race2.Values.ShouldAllBe(r => r.IsPublic == true && r.Rk == "vs_10");
+    }
+
+    [Fact]
+    public async Task StopsPollingAClosedRoomAfterTheClosedRoomBudget()
+    {
+        StubOpenRoom();
+        StubResults(new() { [1] = [Result(profileId: 701, seconds: 90f, playerCount: 1)] });
+        await CollectAsync();
+
+        StubNoOpenRooms();
+        for (var i = 0; i < RecentRoomTracker.ClosedRoomPolls + 2; i++)
+            await CollectAsync();
+
+        await _apiClient.Received(1 + RecentRoomTracker.ClosedRoomPolls)
+            .GetRoomRaceResultsAsync(RoomId, Arg.Any<CancellationToken>());
+    }
+
+    private void StubOpenRoom() =>
+        _apiClient.GetActiveGroupsAsync(Arg.Any<CancellationToken>()).Returns([
+            new Group
+            {
+                Id = RoomId,
+                Game = "mariokartwii",
+                Type = "anybody",
+                Rk = "vs_10",
+                Players = [],
+                Created = DateTime.UtcNow
+            }
+        ]);
+
+    private void StubNoOpenRooms() =>
+        _apiClient.GetActiveGroupsAsync(Arg.Any<CancellationToken>()).Returns(new List<Group>());
+
+    private void StubResults(Dictionary<int, List<RaceResult>> resultsByRace) =>
+        _apiClient.GetRoomRaceResultsAsync(RoomId, Arg.Any<CancellationToken>()).Returns(resultsByRace);
+
+    private async Task<Dictionary<long, RetroRewindWebsite.Models.Entities.RaceResult.RaceResultEntity>> StoredRaceAsync(int raceNumber)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<LeaderboardDbContext>();
+        var rows = await db.RaceResults.AsNoTracking()
+            .Where(r => r.RoomId == RoomId && r.RaceNumber == raceNumber)
+            .ToListAsync(TestContext.Current.CancellationToken);
+        return rows.ToDictionary(r => r.ProfileId);
     }
 
     private async Task CollectAsync()
