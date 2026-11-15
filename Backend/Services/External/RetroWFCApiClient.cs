@@ -1,4 +1,5 @@
 using RetroRewindWebsite.Models.External;
+using System.Net;
 using System.Text.Json;
 
 namespace RetroRewindWebsite.Services.External;
@@ -110,6 +111,13 @@ public class RetroWFCApiClient : IRetroWFCApiClient
             // The caller gave up (health check timeout). Distinct from HttpClient's own timeout,
             // which surfaces the same exception type with the caller's token not signalled.
             throw;
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            // WFC only creates a room's results URL once its first race finishes, so a 404 just
+            // means no results yet: a new room, or one that closed without racing.
+            _logger.LogDebug("No race results yet for room {RoomId}", roomId);
+            return [];
         }
         catch (HttpRequestException ex)
         {
