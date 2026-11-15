@@ -139,6 +139,7 @@ builder.Services.AddScoped<ITimeTrialModerationService, TimeTrialModerationServi
 builder.Services.AddScoped<IMultiplierService, MultiplierService>();
 builder.Services.AddSingleton<IRoomStatusService, RoomStatusService>();
 builder.Services.AddScoped<IRaceResultService, RaceResultService>();
+builder.Services.AddSingleton<RecentRoomTracker>();
 builder.Services.AddScoped<IRaceStatsService, RaceStatsService>();
 
 // ===== BACKGROUND SERVICES =====
