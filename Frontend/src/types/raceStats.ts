@@ -51,6 +51,8 @@ export interface PlayerRaceStats {
     topCharactersByWinCount: SetupWinRateEntry[];
     topVehiclesByWinCount: SetupWinRateEntry[];
     topCombosByWinCount: SetupWinRateEntry[];
+    kartRaces: number;
+    bikeRaces: number;
 }
 
 export interface ActivePlayer {

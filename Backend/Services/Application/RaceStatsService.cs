@@ -119,6 +119,7 @@ public class RaceStatsService : IRaceStatsService
         var topVehiclesRaw = await _raceStatsRepository.GetTopVehiclesByPlayerAsync(profileId, TopSetupCount, after, courseId, engineClassId);
         var topCombosRaw = await _raceStatsRepository.GetTopCombosByPlayerAsync(profileId, TopSetupCount, after, courseId, engineClassId);
         var totalFramesIn1st = await _raceStatsRepository.GetTotalFramesIn1stByPlayerAsync(profileId, after, courseId, engineClassId);
+        var (kartRaces, bikeRaces) = await _raceStatsRepository.GetVehicleTypeCountsByPlayerAsync(profileId, after, courseId, engineClassId);
         var (recentRaw, totalRecentCount) = await _raceStatsRepository.GetRecentRacesByPlayerAsync(profileId, page, pageSize, after, courseId, engineClassId);
         var topCharsByWinRate = await _raceStatsRepository.GetTopCharactersByWinRateByPlayerAsync(profileId, PlayerMinRaces, after, courseId, engineClassId);
         var topVehiclesByWinRate = await _raceStatsRepository.GetTopVehiclesByWinRateByPlayerAsync(profileId, PlayerMinRaces, after, courseId, engineClassId);
@@ -160,7 +161,9 @@ public class RaceStatsService : IRaceStatsService
             TopVehiclesByWinCount: RaceStatsMapper.MapVehicleWinRates(
                 [.. topVehiclesByWinRate.OrderByDescending(x => x.WinCount).Take(TopSetupCount)]),
             TopCombosByWinCount: RaceStatsMapper.MapComboWinRates(
-                [.. topCombosByWinRate.OrderByDescending(x => x.WinCount).Take(TopSetupCount)])
+                [.. topCombosByWinRate.OrderByDescending(x => x.WinCount).Take(TopSetupCount)]),
+            KartRaces: kartRaces,
+            BikeRaces: bikeRaces
         );
     }
 

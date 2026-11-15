@@ -124,6 +124,12 @@ public interface IRaceStatsRepository
     Task<long> GetTotalFramesIn1stByPlayerAsync(long profileId, DateTime? after, short? courseId, short? engineClassId = null);
 
     /// <summary>
+    /// Counts the player's kart races and bike races, filtered the same way as
+    /// <see cref="GetTotalRaceCountByPlayerAsync"/>, so the two add up to that total.
+    /// </summary>
+    Task<(int Kart, int Bike)> GetVehicleTypeCountsByPlayerAsync(long profileId, DateTime? after, short? courseId, short? engineClassId = null);
+
+    /// <summary>
     /// Asynchronously retrieves a paginated list of recent race results for a specified player profile, optionally
     /// filtered by date and course.
     /// </summary>

@@ -38,7 +38,9 @@ public record PlayerRaceStatsDto(
     List<SetupWinRateEntryDto> TopCombosByWinRate,
     List<SetupWinRateEntryDto> TopCharactersByWinCount,
     List<SetupWinRateEntryDto> TopVehiclesByWinCount,
-    List<SetupWinRateEntryDto> TopCombosByWinCount
+    List<SetupWinRateEntryDto> TopCombosByWinCount,
+    int KartRaces,
+    int BikeRaces
 );
 
 public record ActivePlayerDto(string Name, string Pid, string Fc, int RaceCount);

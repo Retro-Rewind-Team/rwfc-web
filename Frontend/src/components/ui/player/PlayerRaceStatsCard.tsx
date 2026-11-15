@@ -1,8 +1,9 @@
-import { createSignal, For, Show } from "solid-js";
+import { createSignal, For, type JSX, Show } from "solid-js";
 import { A } from "@solidjs/router";
-import { ChevronLeft, ChevronRight, ExternalLink, X } from "lucide-solid";
+import { Bike, Car, ChevronLeft, ChevronRight, ExternalLink, X } from "lucide-solid";
 import { usePlayerRaceStats } from "../../../hooks/usePlayerRaceStats";
 import { PlayerRaceStats, RecentRace, TrackPlayCount } from "../../../types/raceStats";
+import { formatSplit } from "../../../utils/formatter";
 import { LoadingSpinner } from "../../../components/common";
 import PositionBadge from "./PositionBadge";
 import { SetupColumn } from "../leaderboard";
@@ -34,6 +35,13 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
     } = usePlayerRaceStats(() => props.pid);
 
     const stats = () => raceStatsQuery.data as PlayerRaceStats;
+    const split = () => formatSplit(stats().kartRaces, stats().bikeRaces);
+    // The smaller side keeps a 2% sliver so a one-sided split still shows both colors.
+    const kartBarWidth = () => {
+        const { kartRaces, bikeRaces } = stats();
+        const share = (kartRaces / (kartRaces + bikeRaces)) * 100;
+        return Math.min(Math.max(share, kartRaces > 0 ? 2 : 0), bikeRaces > 0 ? 98 : 100);
+    };
     const [setupMode, setSetupMode] = createSignal<"usage" | "winrate" | "wincount">("usage");
 
     const formatTimestamp = (ts: string) =>
@@ -144,6 +152,51 @@ export default function PlayerRaceStatsCard(props: PlayerRaceStatsCardProps) {
                             value={stats().avgFramesIn1stPerRace.toFixed(1)}
                         />
                     </div>
+
+                    {/* Kart / bike split, under the same filters as the tiles above */}
+                    <Show when={stats().kartRaces + stats().bikeRaces > 0}>
+                        <div class="space-y-3">
+                            <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                                Kart / Bike Split
+                            </h3>
+                            <div class="flex items-center gap-3">
+                                <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 dark:text-blue-300">
+                                    <Car size={18} />
+                                    Kart
+                                </span>
+                                <div
+                                    class="flex-1 flex gap-0.5 h-3 rounded-full overflow-hidden"
+                                    aria-hidden="true"
+                                >
+                                    <div
+                                        class="bg-blue-500 dark:bg-blue-400"
+                                        style={{ width: `${kartBarWidth()}%` }}
+                                    />
+                                    <div class="flex-1 bg-orange-500 dark:bg-orange-400" />
+                                </div>
+                                <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-orange-700 dark:text-orange-300">
+                                    Bike
+                                    <Bike size={18} />
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <SplitTile
+                                    icon={<Car size={20} />}
+                                    iconClass="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
+                                    count={stats().kartRaces}
+                                    label="Kart races"
+                                    share={split()[0]}
+                                />
+                                <SplitTile
+                                    icon={<Bike size={20} />}
+                                    iconClass="bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300"
+                                    count={stats().bikeRaces}
+                                    label="Bike races"
+                                    share={split()[1]}
+                                />
+                            </div>
+                        </div>
+                    </Show>
 
                     {/* Setup stats + top tracks */}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -386,6 +439,32 @@ function StatTile(props: { label: string; value: string }) {
         <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-center">
             <div class="text-lg font-bold text-gray-900 dark:text-white">{props.value}</div>
             <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{props.label}</div>
+        </div>
+    );
+}
+
+function SplitTile(props: {
+    icon: JSX.Element;
+    iconClass: string;
+    count: number;
+    label: string;
+    share: string;
+}) {
+    return (
+        <div class="flex items-center gap-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-4 py-3">
+            <div
+                class={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center ${props.iconClass}`}
+            >
+                {props.icon}
+            </div>
+            <div>
+                <div class="text-lg font-bold text-gray-900 dark:text-white">
+                    {props.count.toLocaleString()}
+                </div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">
+                    {props.label} · {props.share}
+                </div>
+            </div>
         </div>
     );
 }

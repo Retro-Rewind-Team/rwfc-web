@@ -23,6 +23,10 @@ public class RaceStatsRepository : IRaceStatsRepository
         "vs",     // Regular (alternate key)
     ];
 
+    // Vehicle IDs 0x00-0x11 are karts and 0x12 up are bikes, the same rule the "Kart Main" /
+    // "Bike Main" badge uses (PlayerRepository.UpdatePlayerVehiclePreferencesAsync).
+    private const short LastKartVehicleId = 0x11;
+
     public RaceStatsRepository(LeaderboardDbContext context)
     {
         _context = context;
@@ -170,6 +174,22 @@ public class RaceStatsRepository : IRaceStatsRepository
     public async Task<long> GetTotalFramesIn1stByPlayerAsync(long profileId, DateTime? after, short? courseId, short? engineClassId = null) =>
         await BasePlayerQuery(profileId, after, courseId, engineClassId)
             .SumAsync(r => (long)r.FramesIn1st);
+
+    public async Task<(int Kart, int Bike)> GetVehicleTypeCountsByPlayerAsync(long profileId, DateTime? after, short? courseId, short? engineClassId = null)
+    {
+        // One query, so both counts come from the same moment: counted separately, a race
+        // collected in between could leave them disagreeing with each other.
+        var counts = await BasePlayerQuery(profileId, after, courseId, engineClassId)
+            .GroupBy(_ => 1)
+            .Select(g => new
+            {
+                Kart = g.Count(r => r.VehicleId <= LastKartVehicleId),
+                Bike = g.Count(r => r.VehicleId > LastKartVehicleId)
+            })
+            .FirstOrDefaultAsync();
+
+        return counts == null ? (0, 0) : (counts.Kart, counts.Bike);
+    }
 
     public async Task<(List<RaceResultEntity> Rows, int TotalCount)> GetRecentRacesByPlayerAsync(
         long profileId, int page, int pageSize, DateTime? after, short? courseId, short? engineClassId = null)
