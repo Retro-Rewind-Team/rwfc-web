@@ -174,8 +174,12 @@ public class RaceStatsRepository : IRaceStatsRepository
     public async Task<(List<RaceResultEntity> Rows, int TotalCount)> GetRecentRacesByPlayerAsync(
         long profileId, int page, int pageSize, DateTime? after, short? courseId, short? engineClassId = null)
     {
+        // RaceTimestamp is the collector's tick, so races collected together tie. The tiebreakers
+        // make the order total, which Skip/Take needs to page without repeats or gaps.
         var query = BasePlayerQuery(profileId, after, courseId, engineClassId)
-            .OrderByDescending(r => r.RaceTimestamp);
+            .OrderByDescending(r => r.RaceTimestamp)
+            .ThenByDescending(r => r.RaceNumber)
+            .ThenBy(r => r.RoomId);
 
         var totalCount = await query.CountAsync();
         var rows = await query
@@ -450,7 +454,12 @@ public class RaceStatsRepository : IRaceStatsRepository
                 CourseId = g.Min(r => r.CourseId),
                 EngineClassId = g.Min(r => r.EngineClassId),
             })
-            .OrderByDescending(r => r.RaceTimestamp);
+            // Same tie problem as GetRecentRacesByPlayerAsync. RoomId + RaceNumber + PlayerCount is
+            // the group key, so this order is total.
+            .OrderByDescending(r => r.RaceTimestamp)
+            .ThenByDescending(r => r.RaceNumber)
+            .ThenBy(r => r.RoomId)
+            .ThenBy(r => r.PlayerCount);
 
         var totalCount = await distinctQuery.CountAsync();
         var pageRows = await distinctQuery
