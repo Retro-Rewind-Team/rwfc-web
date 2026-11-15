@@ -4,6 +4,7 @@ import {
     formatAverageLap,
     formatDate,
     formatLastSeen,
+    formatSplit,
     formatTimestamp,
     getDriftInfo,
     getRankBadgeClass,
@@ -206,5 +207,26 @@ describe("formatAverageLap", () => {
 
     it("handles an average under a minute", () => {
         expect(formatAverageLap(laps(9_500))).toBe("0:09.500");
+    });
+});
+
+describe("formatSplit", () => {
+    it("gives whole percentages of the two counts", () => {
+        expect(formatSplit(1284, 523)).toEqual(["71%", "29%"]);
+    });
+
+    it("always adds up to 100, even when both sides round up", () => {
+        // 50.5% and 49.5% would each round up to 51% and 50%.
+        expect(formatSplit(101, 99)).toEqual(["51%", "49%"]);
+    });
+
+    it("never shows a side that has races as 0%", () => {
+        expect(formatSplit(2941, 12)).toEqual([">99%", "<1%"]);
+        expect(formatSplit(12, 2941)).toEqual(["<1%", ">99%"]);
+    });
+
+    it("shows 0% and 100% when one side has no races at all", () => {
+        expect(formatSplit(0, 5)).toEqual(["0%", "100%"]);
+        expect(formatSplit(5, 0)).toEqual(["100%", "0%"]);
     });
 });

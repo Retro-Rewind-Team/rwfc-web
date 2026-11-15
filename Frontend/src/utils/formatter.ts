@@ -86,3 +86,20 @@ export function formatAverageLap(laps: { timeMs: number }[]): string {
 
     return `${minutes}:${seconds.padStart(6, "0")}`;
 }
+
+/**
+ * Two counts as whole percentages of their sum, such as a player's kart and bike races. The second
+ * is 100 minus the first, so the pair always adds up to 100, and a side that has races never shows
+ * as "0%": a one-sided split reads "<1%" and ">99%".
+ */
+export function formatSplit(first: number, second: number): [string, string] {
+    const total = first + second;
+    if (total === 0) return ["0%", "0%"];
+
+    const share = (first / total) * 100;
+    if (first > 0 && share < 1) return ["<1%", ">99%"];
+    if (second > 0 && share > 99) return [">99%", "<1%"];
+
+    const rounded = Math.round(share);
+    return [`${rounded}%`, `${100 - rounded}%`];
+}
