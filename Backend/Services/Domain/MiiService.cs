@@ -85,7 +85,8 @@ public class MiiService : IMiiService
             var imageBytes = await imageResponse.Content.ReadAsByteArrayAsync(cancellationToken);
 
             using var image = Image.Load(imageBytes);
-            image.Mutate(x => x.Resize(64, 64));
+            // Twice the largest display size (64 CSS px), so avatars stay sharp on high-DPI screens.
+            image.Mutate(x => x.Resize(128, 128));
             using var ms = new MemoryStream();
             await image.SaveAsPngAsync(ms, cancellationToken);
             var base64Image = Convert.ToBase64String(ms.ToArray());
