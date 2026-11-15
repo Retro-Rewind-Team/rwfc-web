@@ -2,6 +2,7 @@ using RetroRewindWebsite.Mappers;
 using RetroRewindWebsite.Models.DTOs.Common;
 using RetroRewindWebsite.Models.DTOs.Room;
 using RetroRewindWebsite.Models.Entities.Room;
+using RetroRewindWebsite.Repositories.Player;
 using RetroRewindWebsite.Repositories.Room;
 using RetroRewindWebsite.Repositories.TimeTrial;
 using RetroRewindWebsite.Services.Domain;
@@ -213,18 +214,29 @@ public class RoomStatusService : IRoomStatusService
 
         using var scope = _serviceScopeFactory.CreateScope();
         var miiService = scope.ServiceProvider.GetRequiredService<IMiiService>();
+        var playerRepository = scope.ServiceProvider.GetRequiredService<IPlayerRepository>();
 
-        var tasks = cleanFriendCodes.Select(async fc =>
+        // MiiService only caches in memory, which is empty after every restart, but leaderboard
+        // players' images are stored in PlayerMiiCaches. Reuse a stored image only if it was drawn
+        // from the Mii in the room: the leaderboard sync skips some rooms, so a row can be outdated.
+        var images = (await playerRepository.GetPlayersByFriendCodesAsync(cleanFriendCodes))
+            .Where(p => p.MiiCache != null && p.MiiData == miiDataLookup[p.Fc])
+            .DistinctBy(p => p.Fc)
+            .ToDictionary(p => p.Fc, p => p.MiiCache!.MiiImageBase64);
+
+        var tasks = cleanFriendCodes.Where(fc => !images.ContainsKey(fc)).Select(async fc =>
         {
             var miiImage = await miiService.GetMiiImageAsync(fc, miiDataLookup[fc]);
             return (FriendCode: fc, MiiImage: miiImage);
         });
 
-        var results = await Task.WhenAll(tasks);
+        foreach (var (friendCode, miiImage) in await Task.WhenAll(tasks))
+        {
+            if (!string.IsNullOrEmpty(miiImage))
+                images[friendCode] = miiImage;
+        }
 
-        return results
-            .Where(r => !string.IsNullOrEmpty(r.MiiImage))
-            .ToDictionary(r => r.FriendCode, r => r.MiiImage!);
+        return images;
     }
 
     // ===== REFRESH =====
