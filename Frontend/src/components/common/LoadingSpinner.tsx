@@ -1,5 +1,10 @@
 export default function LoadingSpinner() {
     return (
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400" />
+        <div
+            role="status"
+            class="h-8 w-8 animate-spin rounded-full border border-line border-t-accent"
+        >
+            <span class="sr-only">Loading</span>
+        </div>
     );
 }

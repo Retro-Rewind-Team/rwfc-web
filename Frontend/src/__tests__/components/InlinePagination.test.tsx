@@ -1,7 +1,7 @@
-import { render, screen } from "@solidjs/testing-library";
+import { fireEvent, render, screen } from "@solidjs/testing-library";
 import { createSignal } from "solid-js";
 import { describe, expect, it, vi } from "vitest";
-import InlinePagination from "../../components/common/InlinePagination";
+import InlinePagination, { pageWindow } from "../../components/common/InlinePagination";
 
 /**
  * First component test in the suite. Until the Vitest environment moved to jsdom and the include
@@ -129,5 +129,104 @@ describe("InlinePagination", () => {
         // Props are reactive getters; reading them once would freeze this in its initial state.
         expect(buttons().prev).not.toBeDisabled();
         expect(buttons().next).toBeDisabled();
+    });
+
+    it("shows the range and total with thousands separators", () => {
+        render(() => (
+            <InlinePagination
+                currentPage={2}
+                totalPages={50}
+                pageSize={25}
+                totalItems={1240}
+                onPageChange={() => {}}
+                itemLabel="racers"
+            />
+        ));
+
+        // 26 to 50 of 1,240, the form the page promises.
+        expect(screen.getByText("26–50 of 1,240 racers")).toBeInTheDocument();
+    });
+
+    it("jumps to a page when one is typed and Enter is pressed", () => {
+        const onPageChange = vi.fn();
+        render(() => (
+            <InlinePagination
+                currentPage={1}
+                totalPages={50}
+                pageSize={25}
+                totalItems={1240}
+                onPageChange={onPageChange}
+            />
+        ));
+        const input = screen.getByRole("spinbutton", { name: /page number/i });
+
+        fireEvent.input(input, { target: { value: "30" } });
+        fireEvent.keyDown(input, { key: "Enter" });
+
+        expect(onPageChange).toHaveBeenCalledWith(30);
+    });
+
+    it("rejects a page past the end and restores the current one", () => {
+        const onPageChange = vi.fn();
+        render(() => (
+            <InlinePagination
+                currentPage={2}
+                totalPages={5}
+                pageSize={10}
+                totalItems={50}
+                onPageChange={onPageChange}
+            />
+        ));
+        const input = screen.getByRole("spinbutton", { name: /page number/i }) as HTMLInputElement;
+
+        fireEvent.input(input, { target: { value: "99" } });
+        fireEvent.keyDown(input, { key: "Enter" });
+
+        expect(onPageChange).not.toHaveBeenCalled();
+        expect(input.value).toBe("2");
+    });
+
+    it("marks the current page and goes to a numbered page when it is pressed", () => {
+        const onPageChange = vi.fn();
+        render(() => (
+            <InlinePagination
+                currentPage={2}
+                totalPages={5}
+                pageSize={10}
+                totalItems={50}
+                onPageChange={onPageChange}
+            />
+        ));
+
+        expect(screen.getByRole("button", { name: "Page 2" })).toHaveAttribute(
+            "aria-current",
+            "page",
+        );
+        screen.getByRole("button", { name: "Page 4" }).click();
+
+        expect(onPageChange).toHaveBeenCalledWith(4);
+    });
+});
+
+describe("pageWindow", () => {
+    it("lists every page when there are few", () => {
+        expect(pageWindow(2, 5)).toEqual([1, 2, 3, 4, 5]);
+    });
+
+    it("collapses the far end near the start", () => {
+        expect(pageWindow(1, 50)).toEqual([1, 2, 3, 4, 5, null, 50]);
+    });
+
+    it("collapses both ends in the middle and keeps neighbours", () => {
+        expect(pageWindow(25, 50)).toEqual([1, null, 24, 25, 26, null, 50]);
+    });
+
+    it("collapses the near end at the finish", () => {
+        expect(pageWindow(50, 50)).toEqual([1, null, 46, 47, 48, 49, 50]);
+    });
+
+    it("always has the same number of slots once it collapses, so the control keeps its width", () => {
+        const lengths = new Set([1, 4, 5, 25, 46, 50].map((p) => pageWindow(p, 50).length));
+        expect(lengths).toEqual(new Set([7]));
     });
 });

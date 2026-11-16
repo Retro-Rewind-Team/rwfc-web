@@ -39,6 +39,7 @@ export const queryKeys = {
         ["races", roomId, raceNumber, courseId, engineClassId, friendCode, from, to, page] as const,
 
     roomStats: ["roomStatus", "stats"] as const,
+    roomSnapshot: ["roomStatus", "home-snapshot"] as const,
     roomPlayerCountSeries: (days: number | undefined) =>
         ["roomStatus", "playerCountSeries", days] as const,
     room: (id: number | undefined) => ["roomStatus", id] as const,

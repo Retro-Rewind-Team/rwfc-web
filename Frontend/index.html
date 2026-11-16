@@ -3,13 +3,62 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#1f2937" />
-    <link rel="shortcut icon" type="image/ico" href="/favicon.ico" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/Logo.png" />
     <title data-sm="pre">Retro Rewind</title>
     <meta data-sm="pre-desc" name="description" content="A custom track distribution for Mario Kart Wii with every retro track plus tracks from Mario Kart 8, Tour, Arcade GP and Mario Kart World, connected to Retro WFC servers." />
+    <!--
+      Apply the saved theme before first paint so dark-mode visitors never see a white flash.
+      Mirrors the logic in src/stores/theme.tsx (storage key "retro-rewind-theme").
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("retro-rewind-theme");
+          var dark =
+            stored === "dark" ||
+            ((!stored || stored === "system") &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          var root = document.documentElement;
+          root.classList.add(dark ? "dark" : "light");
+          root.style.colorScheme = dark ? "dark" : "light";
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute("content", dark ? "#121513" : "#ffffff");
+        } catch (e) {}
+      })();
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://rwfc.net/#website",
+            "url": "https://rwfc.net/",
+            "name": "Retro Rewind",
+            "inLanguage": "en",
+            "publisher": { "@id": "https://rwfc.net/#organization" }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://rwfc.net/#organization",
+            "name": "Retro Rewind Team",
+            "url": "https://rwfc.net/",
+            "logo": "https://rwfc.net/Logo.png",
+            "sameAs": [
+              "https://discord.gg/retrorewind",
+              "https://github.com/Retro-Rewind-Team/rwfc-web",
+              "https://wiki.tockdom.com/wiki/Retro_Rewind"
+            ]
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript>Retro Rewind needs JavaScript to show leaderboards, rooms and downloads. Turn on JavaScript and reload the page.</noscript>
     <div id="root"></div>
 
     <script src="/src/index.tsx" type="module"></script>

@@ -17,19 +17,19 @@ function configFor(vehiclePreference: "kart" | "bike" | null): {
             return {
                 icon: Car,
                 label: "Kart Main",
-                class: "bg-blue-200 dark:bg-blue-900 text-blue-700 dark:text-blue-300",
+                class: "border border-line bg-surface text-fg",
             };
         case "bike":
             return {
                 icon: Bike,
                 label: "Bike Main",
-                class: "bg-orange-200 dark:bg-orange-900 text-orange-700 dark:text-orange-300",
+                class: "border border-line bg-surface text-fg",
             };
         default:
             return {
                 icon: Shuffle,
                 label: "Mixed",
-                class: "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300",
+                class: "border border-line bg-surface text-fg-muted",
             };
     }
 }

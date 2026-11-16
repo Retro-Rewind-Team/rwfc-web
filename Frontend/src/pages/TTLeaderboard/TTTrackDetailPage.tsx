@@ -1,12 +1,37 @@
-import { A, useNavigate, useParams } from "@solidjs/router";
+import { useNavigate, useParams } from "@solidjs/router";
 import { createEffect, createMemo, Show } from "solid-js";
-import { ChevronLeft, TriangleAlert, Trophy, Zap } from "lucide-solid";
+import { Trophy, Zap } from "lucide-solid";
 import { Meta, Title } from "@solidjs/meta";
 import { useTTTrackDetail } from "../../hooks/useTTTrackDetail";
-import { AlertBox, InlinePagination, LoadingSpinner } from "../../components/common";
-import { TTFilters, TTLeaderboardTable, TTWRHistory } from "../../components/ui";
+import {
+    Button,
+    EmptyState,
+    InlinePagination,
+    LiveRegion,
+    QueryError,
+    SkeletonBar,
+    type SkeletonColumn,
+    TableSkeleton,
+} from "../../components/common";
+import TTFilters from "../../components/ui/timeTrial/TTFilters";
+import TTLeaderboardTable from "../../components/ui/timeTrial/TTLeaderboardTable";
+import TTWRHistory from "../../components/ui/timeTrial/TTWRHistory";
 import { LeaderboardMode } from "../../types/timeTrial";
 import { DYNAMIC_META_DEFAULTS } from "../../constants/pageMeta";
+import PageHeader from "../../components/common/PageHeader";
+
+// Same columns and breakpoints as TTLeaderboardTable, so it does not shift when data arrives.
+const TIME_COLUMNS: SkeletonColumn[] = [
+    { header: "Rank", class: "pin-start w-14 sm:w-22 sm:px-6", bar: "w-6" },
+    { header: "Player", class: "pin-start-2 sm:px-6", bar: "w-32" },
+    { header: "Time", class: "sm:px-6", bar: "w-20" },
+    { header: "Fastest Lap", class: "hidden md:table-cell sm:px-6", bar: "w-16" },
+    { header: "Character", class: "hidden lg:table-cell sm:px-6", bar: "w-20" },
+    { header: "Vehicle", class: "hidden lg:table-cell sm:px-6", bar: "w-24" },
+    { header: "Controller", class: "hidden xl:table-cell sm:px-6", bar: "w-20" },
+    { header: "Date", class: "hidden xl:table-cell sm:px-6", bar: "w-20" },
+    { header: "Actions", align: "right", class: "sm:px-6", bar: "w-8" },
+];
 
 function parseRouteCC(ccParam: string): {
     cc: 150 | 200;
@@ -67,187 +92,226 @@ export default function TTTrackDetailPage() {
             ? "Track the progression of fastest lap records over time"
             : "Track the progression of world records over time";
 
+    // Blank while loading or failed (the skeleton and the error alert announce themselves).
+    const resultsMessage = () => {
+        const query = queries.leaderboardQuery;
+        if (query.isLoading || query.isError || !query.data) return "";
+        const count = computed.filteredSubmissions().length;
+        if (count === 0) return "No times match these filters.";
+        return `${count} ${count === 1 ? "time" : "times"} shown.`;
+    };
+
     return (
-        <div class="space-y-6">
-            <Title>
-                {queries.trackQuery.data
-                    ? `${queries.trackQuery.data.name} | Retro Rewind`
-                    : DYNAMIC_META_DEFAULTS.ttTrackDetail.title}
-            </Title>
-            <Meta name="description" content={DYNAMIC_META_DEFAULTS.ttTrackDetail.description} />
-            {/* Back Button */}
-            <div>
-                <A
-                    href="/timetrial"
-                    class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-                >
-                    <ChevronLeft size={16} />
-                    Back to Track Browser
-                </A>
-            </div>
+        <>
+            <PageHeader
+                page="ttTrack"
+                compact
+                crumbs={[{ label: "Time trials", href: "/tt" }]}
+                title={queries.trackQuery.data?.name ?? "Track"}
+                description="The leaderboard and world record history for this track."
+            />
+            <div class="space-y-6">
+                <Title>
+                    {queries.trackQuery.data
+                        ? `${queries.trackQuery.data.name} | Retro Rewind`
+                        : DYNAMIC_META_DEFAULTS.ttTrackDetail.title}
+                </Title>
+                <Meta
+                    name="description"
+                    content={DYNAMIC_META_DEFAULTS.ttTrackDetail.description}
+                />
+                <LiveRegion message={resultsMessage()} />
 
-            {/* Loading */}
-            <Show when={queries.trackQuery.isLoading}>
-                <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 p-12 flex flex-col items-center gap-4">
-                    <LoadingSpinner />
-                    <p class="text-gray-600 dark:text-gray-400">Loading track...</p>
-                </div>
-            </Show>
-
-            {/* Error */}
-            <Show when={queries.trackQuery.isError}>
-                <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-red-200 dark:border-red-800 p-8">
-                    <div class="text-center space-y-4">
-                        <div class="flex justify-center text-red-400">
-                            <TriangleAlert size={48} />
-                        </div>
-                        <h2 class="text-2xl font-bold text-red-900 dark:text-red-100">
-                            Failed to load track
-                        </h2>
-                        <button
-                            type="button"
-                            onClick={() => queries.trackQuery.refetch()}
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+                {/* Loading */}
+                <Show when={queries.trackQuery.isLoading}>
+                    <div class="overflow-hidden rounded-lg border border-line bg-canvas">
+                        <div
+                            class="border-b border-line bg-surface px-6 py-4"
+                            role="status"
+                            aria-busy="true"
                         >
-                            Try Again
-                        </button>
+                            <span class="sr-only">Loading track</span>
+                            <SkeletonBar class="h-4 w-64" />
+                        </div>
+                        <TableSkeleton
+                            label="Loading times"
+                            columns={TIME_COLUMNS}
+                            rows={pagination.pageSize()}
+                            rowClass="h-22"
+                        />
                     </div>
-                </div>
-            </Show>
+                </Show>
 
-            {/* Track Detail */}
-            <Show when={queries.trackQuery.data}>
-                {(track) => (
-                    <div class="space-y-6">
-                        <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
-                            {/* Header */}
-                            <div class="px-6 py-4 bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-                                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                    <div>
-                                        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-                                            {track().name}
-                                        </h1>
-                                        <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-white/80">
-                                            <span class="font-semibold">{categoryLabel()}</span>
-                                            <span>•</span>
-                                            <span>
-                                                {track().laps} lap{track().laps !== 1 ? "s" : ""}
-                                            </span>
-                                            <span>•</span>
-                                            <span class="capitalize">{track().category} Track</span>
+                {/* Error */}
+                <Show when={queries.trackQuery.isError}>
+                    <QueryError
+                        title="Couldn't load this track"
+                        error={queries.trackQuery.error}
+                        onRetry={() => queries.trackQuery.refetch()}
+                    />
+                </Show>
+
+                {/* Track Detail */}
+                <Show when={queries.trackQuery.data}>
+                    {(track) => (
+                        <div class="space-y-6">
+                            <div class="bg-canvas rounded-lg border border-line overflow-hidden">
+                                {/* Header */}
+                                <div class="px-6 py-4 bg-surface border-b border-line">
+                                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                        <div>
+                                            <h2 class="sr-only">{track().name}</h2>
+                                            <div class="flex items-center gap-3 text-sm text-fg-subtle">
+                                                <span class="font-semibold">{categoryLabel()}</span>
+                                                <span>•</span>
+                                                <span>
+                                                    {track().laps} lap
+                                                    {track().laps !== 1 ? "s" : ""}
+                                                </span>
+                                                <span>•</span>
+                                                <span class="capitalize">
+                                                    {track().category} Track
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Filters */}
-                            <div class="bg-gray-50 dark:bg-gray-700/50 p-4 border-b border-gray-200 dark:border-gray-700">
-                                <TTFilters
-                                    trackId={trackId()}
-                                    trackSupportsGlitch={track().supportsGlitch}
-                                    trackLaps={track().laps}
-                                    currentCC={selectedCC()}
-                                    currentGlitchAllowed={glitchAllowed()}
-                                    currentMode={mode()}
-                                    shroomlessFilter={filters.shroomlessFilter()}
-                                    vehicleFilter={filters.vehicleFilter()}
-                                    driftFilter={filters.driftFilter()}
-                                    driftCategoryFilter={filters.driftCategoryFilter()}
-                                    pageSize={pagination.pageSize()}
-                                    onShroomlessFilterChange={handlers.handleShroomlessFilterChange}
-                                    onVehicleFilterChange={handlers.handleVehicleFilterChange}
-                                    onDriftFilterChange={handlers.handleDriftFilterChange}
-                                    onDriftCategoryFilterChange={
-                                        handlers.handleDriftCategoryFilterChange
-                                    }
-                                    onPageSizeChange={pagination.handlePageSizeChange}
-                                />
-                            </div>
-
-                            {/* Leaderboard Loading */}
-                            <Show when={queries.leaderboardQuery.isLoading}>
-                                <div class="p-12 flex flex-col items-center gap-4">
-                                    <LoadingSpinner />
-                                    <p class="text-gray-600 dark:text-gray-400">Loading times...</p>
+                                {/* Filters */}
+                                <div class="bg-surface p-4 border-b border-line">
+                                    <TTFilters
+                                        trackId={trackId()}
+                                        trackSupportsGlitch={track().supportsGlitch}
+                                        trackLaps={track().laps}
+                                        currentCC={selectedCC()}
+                                        currentGlitchAllowed={glitchAllowed()}
+                                        currentMode={mode()}
+                                        shroomlessFilter={filters.shroomlessFilter()}
+                                        vehicleFilter={filters.vehicleFilter()}
+                                        driftFilter={filters.driftFilter()}
+                                        driftCategoryFilter={filters.driftCategoryFilter()}
+                                        pageSize={pagination.pageSize()}
+                                        onShroomlessFilterChange={
+                                            handlers.handleShroomlessFilterChange
+                                        }
+                                        onVehicleFilterChange={handlers.handleVehicleFilterChange}
+                                        onDriftFilterChange={handlers.handleDriftFilterChange}
+                                        onDriftCategoryFilterChange={
+                                            handlers.handleDriftCategoryFilterChange
+                                        }
+                                        onPageSizeChange={pagination.handlePageSizeChange}
+                                    />
                                 </div>
-                            </Show>
 
-                            {/* Leaderboard Error */}
-                            <Show when={queries.leaderboardQuery.isError}>
-                                <div class="p-6">
-                                    <AlertBox type="error">Failed to load leaderboard</AlertBox>
-                                </div>
-                            </Show>
+                                {/* Leaderboard Loading */}
+                                <Show when={queries.leaderboardQuery.isLoading}>
+                                    <TableSkeleton
+                                        label="Loading times"
+                                        columns={TIME_COLUMNS}
+                                        rows={pagination.pageSize()}
+                                        rowClass="h-22"
+                                    />
+                                </Show>
 
-                            {/* Leaderboard Table */}
-                            <Show
-                                when={
-                                    queries.leaderboardQuery.data &&
-                                    !queries.leaderboardQuery.isLoading
-                                }
-                            >
+                                {/* Leaderboard Error */}
+                                <Show when={queries.leaderboardQuery.isError}>
+                                    <div class="p-4 sm:p-6">
+                                        <QueryError
+                                            title="Couldn't load the times"
+                                            error={queries.leaderboardQuery.error}
+                                            onRetry={() => queries.leaderboardQuery.refetch()}
+                                        />
+                                    </div>
+                                </Show>
+
+                                {/* Leaderboard Table */}
                                 <Show
-                                    when={computed.filteredSubmissions().length > 0}
-                                    fallback={
-                                        <div class="p-12 text-center">
-                                            <div class="flex justify-center mb-4 text-gray-300 dark:text-gray-600">
-                                                {mode() === "flap" ? (
-                                                    <Zap size={48} />
-                                                ) : (
-                                                    <Trophy size={48} />
-                                                )}
-                                            </div>
-                                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                                                No Times Found
-                                            </h3>
-                                            <p class="text-gray-600 dark:text-gray-400">
-                                                {mode() === "flap"
-                                                    ? "No flap runs have been submitted for this category yet."
-                                                    : "Try adjusting your filters or be the first to submit a time!"}
-                                            </p>
-                                        </div>
+                                    when={
+                                        queries.leaderboardQuery.data &&
+                                        !queries.leaderboardQuery.isLoading
                                     }
                                 >
-                                    <TTLeaderboardTable
-                                        submissions={computed.filteredSubmissions()}
-                                        fastestLapMs={
-                                            mode() === "regular"
-                                                ? (queries.flapQuery.data?.fastestLapMs ?? null)
-                                                : (queries.leaderboardQuery.data?.fastestLapMs ??
-                                                  null)
+                                    <Show
+                                        when={computed.filteredSubmissions().length > 0}
+                                        fallback={
+                                            <EmptyState
+                                                icon={
+                                                    mode() === "flap" ? (
+                                                        <Zap size={40} />
+                                                    ) : (
+                                                        <Trophy size={40} />
+                                                    )
+                                                }
+                                                title={
+                                                    filters.hasFilters()
+                                                        ? "No times match these filters"
+                                                        : "No times submitted yet"
+                                                }
+                                                action={
+                                                    <Show when={filters.hasFilters()}>
+                                                        <Button
+                                                            variant="secondary"
+                                                            onClick={filters.clearFilters}
+                                                        >
+                                                            Clear filters
+                                                        </Button>
+                                                    </Show>
+                                                }
+                                            >
+                                                {filters.hasFilters()
+                                                    ? "Try All for vehicle and shroomless, or switch the drift filters back to All."
+                                                    : mode() === "flap"
+                                                      ? "No flap runs have been submitted for this category yet."
+                                                      : "Be the first to submit a time for this category."}
+                                            </EmptyState>
                                         }
-                                        trackLaps={track().laps}
-                                        isFlap={mode() === "flap"}
-                                        onDownloadGhost={handlers.handleDownloadGhost}
-                                    />
-                                </Show>
+                                    >
+                                        <TTLeaderboardTable
+                                            submissions={computed.filteredSubmissions()}
+                                            fastestLapMs={
+                                                mode() === "regular"
+                                                    ? (queries.flapQuery.data?.fastestLapMs ?? null)
+                                                    : (queries.leaderboardQuery.data
+                                                          ?.fastestLapMs ?? null)
+                                            }
+                                            trackLaps={track().laps}
+                                            isFlap={mode() === "flap"}
+                                            onDownloadGhost={handlers.handleDownloadGhost}
+                                        />
+                                    </Show>
 
-                                {/* Pagination */}
-                                <Show when={(queries.leaderboardQuery.data?.totalPages ?? 1) > 1}>
-                                    <InlinePagination
-                                        currentPage={pagination.currentPage()}
-                                        totalPages={queries.leaderboardQuery.data!.totalPages}
-                                        pageSize={pagination.pageSize()}
-                                        totalItems={queries.leaderboardQuery.data!.totalSubmissions}
-                                        onPageChange={pagination.setCurrentPage}
-                                        itemLabel="times"
-                                    />
+                                    {/* Pagination */}
+                                    <Show
+                                        when={(queries.leaderboardQuery.data?.totalPages ?? 1) > 1}
+                                    >
+                                        <InlinePagination
+                                            currentPage={pagination.currentPage()}
+                                            totalPages={queries.leaderboardQuery.data!.totalPages}
+                                            pageSize={pagination.pageSize()}
+                                            totalItems={
+                                                queries.leaderboardQuery.data!.totalSubmissions
+                                            }
+                                            onPageChange={pagination.setCurrentPage}
+                                            itemLabel="times"
+                                        />
+                                    </Show>
                                 </Show>
-                            </Show>
+                            </div>
+
+                            <TTWRHistory
+                                history={computed.filteredWRHistory()}
+                                isLoading={queries.activeWrHistoryQuery().isLoading}
+                                isError={queries.activeWrHistoryQuery().isError}
+                                onRetry={() => queries.activeWrHistoryQuery().refetch()}
+                                onDownloadGhost={handlers.handleDownloadGhost}
+                                title={wrHistoryTitle()}
+                                subtitle={wrHistorySubtitle()}
+                                isFlap={mode() === "flap"}
+                            />
                         </div>
-
-                        <TTWRHistory
-                            history={computed.filteredWRHistory()}
-                            isLoading={queries.activeWrHistoryQuery().isLoading}
-                            isError={queries.activeWrHistoryQuery().isError}
-                            onDownloadGhost={handlers.handleDownloadGhost}
-                            title={wrHistoryTitle()}
-                            subtitle={wrHistorySubtitle()}
-                            isFlap={mode() === "flap"}
-                        />
-                    </div>
-                )}
-            </Show>
-        </div>
+                    )}
+                </Show>
+            </div>
+        </>
     );
 }

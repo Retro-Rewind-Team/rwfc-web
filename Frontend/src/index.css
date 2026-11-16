@@ -1,18 +1,417 @@
 @import "tailwindcss";
+@import "@fontsource-variable/instrument-sans/standard.css";
 @custom-variant dark (&:where(.dark, .dark *));
 @import "flag-icons/css/flag-icons.min.css";
 
-body {
-    margin: 0;
-    font-family:
-        -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
-        "Fira Sans", "Droid Sans", "Helvetica Neue", "CTMKF", sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+/*
+ * Design tokens. This file is the only place colours, type, radius and widths are defined.
+ * Components use the semantic utilities generated from @theme (bg-canvas, text-fg, border-line,
+ * bg-accent, ...) so light and dark mode switch in one place.
+ */
+
+:root {
+    --canvas: #ffffff;
+    --surface: #f4f5f4;
+    --line: #dde0dd;
+    /* Input and control borders need 3:1 against the canvas (WCAG 1.4.11). */
+    --line-strong: #8a918c;
+    --fg: #161a17;
+    --fg-muted: #4b534e;
+    --fg-subtle: #646c66;
+    --accent: #2b7516;
+    --accent-hover: #22610f;
+    --accent-fg: #ffffff;
+    --accent-text: #2b7516;
+    --accent-soft: #eef6e9;
+    --warn-bg: #fff8eb;
+    --warn-line: #e0b25c;
+    --warn-fg: #5f3e00;
 }
 
-code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+.dark {
+    --canvas: #121513;
+    --surface: #191d1a;
+    --line: #2a302c;
+    --line-strong: #646c66;
+    --fg: #edf0ed;
+    --fg-muted: #b1b8b3;
+    --fg-subtle: #8d958f;
+    --accent: #8fd468;
+    --accent-hover: #a4df82;
+    --accent-fg: #0f1d08;
+    --accent-text: #9fdc7c;
+    --accent-soft: #1c2a16;
+    --warn-bg: #221c10;
+    --warn-line: #6b5321;
+    --warn-fg: #f2c063;
+}
+
+/*
+ * The home hero band. It is always dark, in both themes, because its background is the title
+ * art's own navy (#1f2937, sampled from og-image.png): the artwork then sits in the band with no
+ * visible edge. The element also carries the .dark class so every token inside resolves to its
+ * dark value; this block only swaps the neutrals for navy ones. All pairs pass WCAG AA
+ * (fg 13.2:1, fg-muted 9.1:1, fg-subtle 6.5:1, accent 8.2:1, line-strong 3.2:1).
+ */
+.dark.hero-band {
+    --canvas: #1f2937;
+    --surface: #263241;
+    --line: #344154;
+    --line-strong: #6b7686;
+    --fg: #f1f4f2;
+    --fg-muted: #c5ccd4;
+    --fg-subtle: #a3adb9;
+}
+
+/*
+ * Page layout grid. Content sits in the "content" column, which lines up exactly with the header
+ * and footer (max-w-page minus the gutter). An element with .full-bleed spans the viewport without
+ * the overflow that a 100vw width would cause. Gutters match px-4 / sm:px-6 / lg:px-8.
+ */
+.page-grid {
+    --gutter: 1rem;
+    display: grid;
+    align-content: start;
+    grid-template-columns:
+        [full-start] minmax(var(--gutter), 1fr)
+        [content-start] min(
+            calc(var(--container-page) - 2 * var(--gutter)),
+            calc(100% - 2 * var(--gutter))
+        )
+        [content-end] minmax(var(--gutter), 1fr) [full-end];
+}
+
+/*
+ * width: 100% keeps children behaving as they did in block layout. Without it, a child with
+ * mx-auto shrinks to its content width (grid items with auto margins do not stretch) and can
+ * overflow narrow screens.
+ */
+.page-grid > * {
+    grid-column: content;
+    min-width: 0;
+    width: 100%;
+}
+
+.page-grid > .full-bleed {
+    grid-column: full;
+}
+
+@media (min-width: 40rem) {
+    .page-grid {
+        --gutter: 1.5rem;
+    }
+}
+
+@media (min-width: 64rem) {
+    .page-grid {
+        --gutter: 2rem;
+    }
+}
+
+@theme inline {
+    --color-canvas: var(--canvas);
+    --color-surface: var(--surface);
+    --color-line: var(--line);
+    --color-line-strong: var(--line-strong);
+    --color-fg: var(--fg);
+    --color-fg-muted: var(--fg-muted);
+    --color-fg-subtle: var(--fg-subtle);
+    --color-accent: var(--accent);
+    --color-accent-hover: var(--accent-hover);
+    --color-accent-fg: var(--accent-fg);
+    --color-accent-text: var(--accent-text);
+    --color-accent-soft: var(--accent-soft);
+    --color-warn-bg: var(--warn-bg);
+    --color-warn-line: var(--warn-line);
+    --color-warn-fg: var(--warn-fg);
+
+    /*
+     * Legacy bridge for "positive" values (VR gains, records) on older pages. Tailwind's green and
+     * emerald 600/700 fall below 4.5:1 on white, and some of those spots have no dark: variant,
+     * so they map to the theme-aware accent text colour, which passes AA in both themes.
+     */
+    --color-green-600: var(--accent-text);
+    --color-green-700: var(--accent-text);
+    --color-emerald-600: var(--accent-text);
+    --color-emerald-700: var(--accent-text);
+}
+
+@theme {
+    /* CTMKF stays in the stack: it supplies the Mario Kart Wii glyphs some player names use. */
+    --font-sans:
+        "Instrument Sans Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+        "Helvetica Neue", "CTMKF", sans-serif;
+
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+
+    --container-page: 76rem;
+
+    /*
+     * Motion tokens. Three durations and two curves, used everywhere:
+     * fast for hover and focus feedback, base for state changes (tabs, accordions), slow for
+     * entrances and scroll reveals. "standard" eases in and out; "emphasized" starts quick and
+     * settles, for things arriving on screen. Tailwind's bare transition-* utilities default to
+     * fast + standard, so hover states pick these up without extra classes.
+     */
+    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-emphasized: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --default-transition-duration: 150ms;
+    --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+
+    /*
+     * Legacy bridge. Older pages were written against Tailwind's gray and blue scales. Remapping
+     * them to the neutral and accent ramps makes every route share one palette until those pages
+     * are migrated to the semantic tokens above. Do not use gray-* or blue-* in new code.
+     */
+    --color-gray-50: #f4f5f4;
+    --color-gray-100: #eaecea;
+    --color-gray-200: #dde0dd;
+    --color-gray-300: #c6cbc7;
+    --color-gray-400: #8a918c;
+    --color-gray-500: #646c66;
+    --color-gray-600: #4b534e;
+    --color-gray-700: #363c38;
+    --color-gray-800: #232724;
+    --color-gray-900: #191d1a;
+    --color-gray-950: #121513;
+
+    --color-blue-50: #f1f8ed;
+    --color-blue-100: #e0f0d6;
+    --color-blue-200: #c3e2b0;
+    --color-blue-300: #9fcf82;
+    --color-blue-400: #7dbb58;
+    --color-blue-500: #4f9a2c;
+    --color-blue-600: #2b7516;
+    --color-blue-700: #22610f;
+    --color-blue-800: #1d4e10;
+    --color-blue-900: #193f11;
+    --color-blue-950: #0c2306;
+}
+
+/*
+ * Heading roles. One treatment per level so every page reads the same:
+ * type-display for the page h1, type-title for section h2, type-heading for h3.
+ * The display face is the same family set slightly narrower, which keeps one typeface while
+ * giving headlines their own texture.
+ */
+@utility type-display {
+    font-size: clamp(2.25rem, 1.7rem + 2.2vw, 3.25rem);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    font-weight: 620;
+    font-stretch: 88%;
+    text-wrap: balance;
+}
+
+@utility type-title {
+    font-size: clamp(1.625rem, 1.4rem + 0.9vw, 2rem);
+    line-height: 1.15;
+    letter-spacing: -0.018em;
+    font-weight: 620;
+    font-stretch: 92%;
+    text-wrap: balance;
+}
+
+@utility type-heading {
+    font-size: 1.125rem;
+    line-height: 1.4;
+    letter-spacing: -0.006em;
+    font-weight: 600;
+}
+
+/*
+ * Pinned table columns. On a phone a wide table scrolls sideways; the rank and player cells stay
+ * put so a row is never read without knowing whose it is. Opaque, so scrolled cells pass beneath.
+ * The right edge is an inset line, not a border: borders on sticky cells vanish in a collapsed table.
+ * Put `pin-start` on the first column. For a second pinned column use `pin-start-2`, and give the
+ * first column a fixed width equal to --pin-width (default 3.5rem) so the second sits against it.
+ */
+@utility pin-start {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+    background-color: var(--canvas);
+    box-shadow: inset -1px 0 0 var(--line);
+}
+
+@utility pin-start-2 {
+    position: sticky;
+    inset-inline-start: var(--pin-width, 3.5rem);
+    z-index: 1;
+    background-color: var(--canvas);
+    box-shadow: inset -1px 0 0 var(--line);
+}
+
+/* Header and hover rows tint their cells, so pinned cells must follow or they show a canvas patch. */
+thead .pin-start,
+thead .pin-start-2 {
+    background-color: var(--surface);
+}
+
+tbody tr:hover > .pin-start,
+tbody tr:hover > .pin-start-2 {
+    background-color: var(--surface);
+}
+
+@layer base {
+    html {
+        background-color: var(--canvas);
+        color: var(--fg);
+        -webkit-text-size-adjust: 100%;
+        scroll-padding-top: 5rem;
+    }
+
+    body {
+        margin: 0;
+        font-family: var(--font-sans);
+        background-color: var(--canvas);
+        color: var(--fg);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+
+    code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+    }
+
+    /* One focus treatment for every interactive element on every route. */
+    :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+
+    /* SearchInput draws its own clear button; hide the browser's duplicate. */
+    .search-plain::-webkit-search-cancel-button,
+    .search-plain::-webkit-search-decoration {
+        appearance: none;
+    }
+
+    ::selection {
+        background-color: var(--accent);
+        color: var(--accent-fg);
+    }
+}
+
+:root {
+    --motion-fast: 150ms;
+    --motion-base: 250ms;
+    --motion-slow: 500ms;
+    /* Delay between items in a staggered group. Capped in JS so long lists never lag. */
+    --motion-stagger: 60ms;
+}
+
+/*
+ * Motion. Every effect below animates only opacity and transform, so nothing triggers layout.
+ * All of it is opt-in: scroll reveals only hide content once JS has added .reveal-ready to <html>,
+ * which it skips under prefers-reduced-motion. If JS fails, nothing is ever hidden.
+ */
+/*
+ * Hero entrance moves only, it never fades: text that starts invisible delays the page's
+ * Largest Contentful Paint (measured at ~0.85s on a throttled phone). Visible from frame one,
+ * it settles up into place instead.
+ */
+@keyframes settle-in {
+    from {
+        transform: translateY(14px);
+    }
+    to {
+        transform: none;
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes ticker {
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+/* The whole framed card drifts, not the image inside it, so the artwork is never cropped. */
+@keyframes hero-drift {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(-1.5rem);
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    /* Scroll reveals: fade and rise once on entering the viewport, staggered by --reveal-index. */
+    .reveal-ready [data-reveal] {
+        opacity: 0;
+        transform: translateY(12px);
+        transition:
+            opacity var(--motion-slow) var(--ease-emphasized),
+            transform var(--motion-slow) var(--ease-emphasized);
+        transition-delay: calc(var(--reveal-index, 0) * var(--motion-stagger));
+    }
+
+    .reveal-ready [data-reveal].is-revealed {
+        opacity: 1;
+        transform: none;
+    }
+
+    /* Hero entrance: one orchestrated sequence on first load, ordered by --enter-index. */
+    .hero-enter {
+        animation: settle-in var(--motion-slow) var(--ease-emphasized) both;
+        animation-delay: calc(var(--enter-index, 0) * 90ms);
+    }
+
+    /* Tab and accordion content fades in when it changes, so the switch reads as one motion. */
+    .panel-enter {
+        animation: fade-in var(--motion-base) var(--ease-emphasized) both;
+    }
+
+    details[open] > .accordion-body {
+        animation: fade-in var(--motion-base) var(--ease-emphasized) both;
+    }
+
+    .ticker-track {
+        animation: ticker var(--ticker-duration, 90s) linear infinite;
+    }
+
+    .ticker:hover .ticker-track,
+    .ticker:focus-within .ticker-track,
+    .ticker[data-paused="true"] .ticker-track {
+        animation-play-state: paused;
+    }
+
+    /*
+     * Hero image drift, driven by scroll position with no JS. Browsers without scroll-driven
+     * animations simply show the image still.
+     */
+    @supports (animation-timeline: view()) {
+        .hero-drift {
+            animation: hero-drift linear both;
+            animation-timeline: view();
+            animation-range: cover 50% cover 100%;
+        }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
 
 @font-face {

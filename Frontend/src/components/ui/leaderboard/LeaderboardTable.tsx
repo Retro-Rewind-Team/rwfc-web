@@ -32,86 +32,80 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
         return "vrgain30";
     };
 
+    /*
+     * Sortable headers are real buttons: the old clickable <th> could not be reached by keyboard,
+     * and screen readers were never told the sort order. aria-sort sits on the <th>.
+     */
+    const SortHeader = (h: {
+        label: string;
+        field: string;
+        align?: "left" | "right";
+        class?: string;
+    }) => {
+        const active = () => props.sortBy === h.field;
+        return (
+            <th
+                scope="col"
+                aria-sort={active() ? (props.ascending ? "ascending" : "descending") : "none"}
+                class={`px-2 py-3 text-xs font-medium text-fg-muted sm:px-4 ${
+                    h.align === "right" ? "text-right" : "text-left"
+                } ${h.class ?? ""}`}
+            >
+                <button
+                    type="button"
+                    onClick={() => props.onSort(h.field)}
+                    class={`inline-flex items-center gap-1 rounded-sm transition-colors hover:text-fg ${
+                        active() ? "text-fg" : ""
+                    }`}
+                >
+                    {h.label}
+                    <Show when={active()}>
+                        {props.ascending ? (
+                            <ArrowUp size={12} aria-hidden="true" />
+                        ) : (
+                            <ArrowDown size={12} aria-hidden="true" />
+                        )}
+                    </Show>
+                </button>
+            </th>
+        );
+    };
+
     return (
-        <div class="overflow-x-auto">
+        <div class="relative overflow-x-auto">
             <table class="w-full table-fixed">
-                <thead class="bg-gray-200 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+                <thead class="border-b border-line bg-surface">
                     <tr>
+                        <SortHeader label="Rank" field="rank" class="w-20 sm:w-24" />
                         <th
-                            class="px-6 py-4 text-center cursor-pointer transition-colors hover:bg-gray-300 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
-                            onClick={() => props.onSort("rank")}
+                            scope="col"
+                            class="px-2 py-3 text-left text-xs font-medium text-fg-muted sm:px-4"
                         >
-                            <div class="flex items-center justify-center space-x-2">
-                                <span class="font-bold">Rank</span>
-                                <Show when={props.sortBy === "rank"}>
-                                    {props.ascending ? (
-                                        <ArrowUp size={14} />
-                                    ) : (
-                                        <ArrowDown size={14} />
-                                    )}
-                                </Show>
-                            </div>
+                            Player
                         </th>
-                        <th class="px-6 py-4 text-center font-bold text-gray-700 dark:text-gray-200">
-                            User
-                        </th>
+                        <SortHeader label="VR" field="vr" align="right" class="w-24 sm:w-28" />
                         <th
-                            class="px-6 py-4 text-center cursor-pointer transition-colors hover:bg-gray-300 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
-                            onClick={() => props.onSort("vr")}
+                            scope="col"
+                            class="hidden w-44 px-4 py-3 text-left text-xs font-medium text-fg-muted md:table-cell"
                         >
-                            <div class="flex items-center justify-center space-x-2">
-                                <span class="font-bold">VR</span>
-                                <Show when={props.sortBy === "vr"}>
-                                    {props.ascending ? (
-                                        <ArrowUp size={14} />
-                                    ) : (
-                                        <ArrowDown size={14} />
-                                    )}
-                                </Show>
-                            </div>
+                            Friend code
                         </th>
-                        <th class="px-6 py-4 text-center hidden md:table-cell font-bold text-gray-700 dark:text-gray-200">
-                            Friend Code
-                        </th>
-
                         <Show when={!props.showLegacy}>
-                            <th
-                                class="px-6 py-4 text-center cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-800 transition-colors hidden md:table-cell text-gray-700 dark:text-gray-200"
-                                onClick={() => props.onSort("lastSeen")}
-                            >
-                                <div class="flex items-center justify-center space-x-2">
-                                    <span class="font-bold">Last Seen</span>
-                                    <Show when={props.sortBy === "lastSeen"}>
-                                        {props.ascending ? (
-                                            <ArrowUp size={14} />
-                                        ) : (
-                                            <ArrowDown size={14} />
-                                        )}
-                                    </Show>
-                                </div>
-                            </th>
-
-                            <th
-                                class="px-6 py-4 text-center cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-200"
-                                onClick={() => props.onSort(getVRGainSortField())}
-                            >
-                                <div class="flex items-center justify-center space-x-2">
-                                    <span class="font-bold">
-                                        VR Change ({getTimePeriodLabel()})
-                                    </span>
-                                    <Show when={props.sortBy === getVRGainSortField()}>
-                                        {props.ascending ? (
-                                            <ArrowUp size={14} />
-                                        ) : (
-                                            <ArrowDown size={14} />
-                                        )}
-                                    </Show>
-                                </div>
-                            </th>
+                            <SortHeader
+                                label="Last seen"
+                                field="lastSeen"
+                                class="hidden w-36 md:table-cell"
+                            />
+                            <SortHeader
+                                label={`VR change (${getTimePeriodLabel()})`}
+                                field={getVRGainSortField()}
+                                align="right"
+                                class="hidden w-32 sm:table-cell"
+                            />
                         </Show>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody class="divide-y divide-line">
                     <For each={props.players}>
                         {(player) => {
                             const vrGain = !props.showLegacy ? props.getVRGain(player) : 0;
@@ -121,28 +115,30 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
 
                             return (
                                 <tr
-                                    class={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
+                                    class={`transition-colors hover:bg-surface ${
                                         player.isSuspicious
-                                            ? "bg-red-50 dark:bg-red-950/30 border-l-4 border-red-500"
+                                            ? "bg-warn-bg shadow-[inset_3px_0_0_var(--warn-line)]"
                                             : ""
                                     }`}
                                 >
-                                    <td class="px-6 py-4 text-center">
-                                        <div class="flex items-center justify-center">
-                                            <VRTierNumberPlate
-                                                rank={player.rank}
-                                                vr={player.vr}
-                                                isSuspicious={player.isSuspicious}
-                                                size="sm"
-                                            />
-                                        </div>
+                                    <td class="px-2 py-3 sm:px-4">
+                                        <VRTierNumberPlate
+                                            rank={player.rank}
+                                            vr={player.vr}
+                                            isSuspicious={player.isSuspicious}
+                                            size="sm"
+                                        />
                                     </td>
 
-                                    <td class="px-6 py-4 align-top">
-                                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 md:gap-6 w-full">
+                                    <td class="px-2 py-3 sm:px-4">
+                                        <div class="flex items-center gap-3">
+                                            {/* The Mii repeats the name link, so it is skipped by
+                                                keyboard and screen readers to avoid a duplicate. */}
                                             <A
                                                 href={`/player/${player.friendCode}`}
-                                                class="flex-shrink-0 mx-auto sm:mx-0"
+                                                class="hidden shrink-0 sm:block"
+                                                tabindex="-1"
+                                                aria-hidden="true"
                                             >
                                                 <MiiComponent
                                                     playerName={player.name}
@@ -152,26 +148,25 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                                                     lazy={true}
                                                 />
                                             </A>
-
-                                            <div class="w-full sm:flex-1 text-center sm:text-left">
+                                            <div class="min-w-0">
                                                 <A
                                                     href={`/player/${player.friendCode}`}
-                                                    class="block font-bold text-lg text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-400 transition-colors whitespace-normal break-words"
+                                                    class="block font-semibold break-words text-fg transition-colors hover:text-accent-text"
                                                 >
                                                     {player.name}
                                                 </A>
-
-                                                <div class="hidden sm:flex flex-wrap gap-2 mt-1 justify-center sm:justify-start">
+                                                <div class="mt-1 hidden flex-wrap gap-2 sm:flex">
                                                     <Show when={player.isSuspicious}>
                                                         <Tooltip text="This player has been flagged for suspicious VR activity">
-                                                            <span class="inline-flex items-center gap-1 text-xs bg-red-200 dark:bg-red-800 text-red-600 dark:text-red-400 px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap cursor-help">
-                                                                <TriangleAlert size={12} />
+                                                            <span class="inline-flex cursor-help items-center gap-1 rounded-sm border border-warn-line bg-warn-bg px-1.5 py-0.5 text-xs font-medium whitespace-nowrap text-warn-fg">
+                                                                <TriangleAlert
+                                                                    size={12}
+                                                                    aria-hidden="true"
+                                                                />
                                                                 Suspicious
                                                             </span>
                                                         </Tooltip>
                                                     </Show>
-
-                                                    {/*Player Badges */}
                                                     <PlayerBadges
                                                         badges={player.badges}
                                                         size="sm"
@@ -181,41 +176,54 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                                         </div>
                                     </td>
 
-                                    <td class="px-6 py-4 text-center">
-                                        <span class="text-xl font-bold text-gray-900 dark:text-white">
-                                            {player.vr.toLocaleString()}
-                                        </span>
+                                    <td class="px-2 py-3 text-right text-base font-semibold text-fg tabular-nums sm:px-4">
+                                        {player.vr.toLocaleString()}
+                                        {/* Phones have no room for the VR change column, so the
+                                            change sits under the VR instead (the old site showed
+                                            it on phones; it must not go missing). */}
+                                        <Show when={!props.showLegacy}>
+                                            <span
+                                                class={`block text-xs sm:hidden ${getVRGainClass(vrGain)}`}
+                                            >
+                                                <span class="sr-only">
+                                                    VR change ({getTimePeriodLabel()}):{" "}
+                                                </span>
+                                                {vrGain > 0 ? "+" : ""}
+                                                {vrGain.toLocaleString()}
+                                            </span>
+                                        </Show>
                                     </td>
 
-                                    <td class="px-6 py-4 text-center hidden md:table-cell">
-                                        <code class="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded text-sm font-mono text-gray-900 dark:text-white">
+                                    <td class="hidden px-4 py-3 md:table-cell">
+                                        <code class="rounded-sm bg-surface px-1.5 py-0.5 font-mono text-xs text-fg-muted">
                                             {player.friendCode}
                                         </code>
                                     </td>
 
                                     <Show when={!props.showLegacy}>
                                         <td
-                                            class={`px-6 py-4 text-center hidden md:table-cell font-medium ${
+                                            class={`hidden px-4 py-3 text-sm md:table-cell ${
                                                 isOnline
-                                                    ? "text-emerald-600 dark:text-emerald-400"
-                                                    : "text-gray-600 dark:text-gray-400"
+                                                    ? "font-medium text-accent-text"
+                                                    : "text-fg-muted"
                                             }`}
                                         >
-                                            {isOnline && (
-                                                <span class="inline-flex items-center">
-                                                    <span class="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></span>
-                                                </span>
-                                            )}
-                                            {formatLastSeen(player.lastSeen)}
+                                            <span class="inline-flex items-center gap-2">
+                                                <Show when={isOnline}>
+                                                    <span
+                                                        class="h-2 w-2 rounded-full bg-accent"
+                                                        aria-hidden="true"
+                                                    />
+                                                </Show>
+                                                {formatLastSeen(player.lastSeen)}
+                                            </span>
                                         </td>
 
-                                        <td class="px-6 py-4 text-center">
-                                            <span
-                                                class={`text-lg font-bold ${getVRGainClass(vrGain)}`}
-                                            >
-                                                {vrGain > 0 ? "+" : ""}
-                                                {vrGain}
-                                            </span>
+                                        <td
+                                            class={`hidden px-4 py-3 text-right font-semibold tabular-nums sm:table-cell ${getVRGainClass(vrGain)}`}
+                                        >
+                                            {vrGain > 0 ? "+" : ""}
+                                            {vrGain.toLocaleString()}
                                         </td>
                                     </Show>
                                 </tr>

@@ -1,225 +1,207 @@
-import { createMemo } from "solid-js";
+import { createMemo, For, Show } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
-import {
-    ChevronRight,
-    Download,
-    Gamepad2,
-    Globe,
-    MonitorPlay,
-    Timer,
-    Trophy,
-    Zap,
-} from "lucide-solid";
-import { leaderboardApi } from "../../services/api/leaderboard";
-import { roomStatusApi } from "../../services/api/room";
+import { A } from "@solidjs/router";
+import { Meta, Title } from "@solidjs/meta";
+import { ChevronRight } from "lucide-solid";
 import { timeTrialApi } from "../../services/api/timeTrial";
 import { queryKeys } from "../../constants/queryKeys";
 import { HOME_META } from "../../constants/pageMeta";
-import { StatCard } from "../../components/common";
-import { A } from "@solidjs/router";
-import { Meta, Title } from "@solidjs/meta";
+import { ButtonLink, CountUp, Section } from "../../components/common";
+import { Faq, Hero, PlatformGuide, RoomSnapshot, TrackSample } from "../../components/ui/home";
+import { countTracks } from "../../utils/homeData";
+import { reveal } from "../../utils/motion";
 
-const staticFeatureCards = [
+/* Feature names from the existing site copy. No descriptions are invented for them. */
+const MODES = ["200cc", "500cc", "Knockout Mode", "Item Rain", "Item Storm", "Online time trials"];
+const MECHANICS = ["Brake drifting", "Ultra mini-turbos", "Draggable blue shells"];
+
+const MORE_LINKS = [
     {
-        icon: () => <Trophy size={32} />,
-        iconColor: "text-blue-500 dark:text-blue-400",
-        title: "VR Leaderboard",
-        description:
-            "Track rankings and see who's dominating the Retro WFC servers with up to 1,000,000 VR.",
         href: "/vr",
-        label: "View Rankings",
+        title: "VR leaderboard",
+        body: "Rankings for racers on the Retro WFC servers, up to 1,000,000 VR.",
     },
     {
-        icon: () => <MonitorPlay size={32} />,
-        iconColor: "text-purple-500 dark:text-purple-400",
-        title: "Room Browser",
-        description:
-            "Find and join active rooms with various game modes including 200cc, TTs Online, and Item Rain/Storm across all Retro WFC packs.",
-        href: "/rooms",
-        label: "Browse Rooms",
+        href: "/tt",
+        title: "Time trials",
+        body: "World records for every Retro Rewind track, across each CC and category.",
     },
     {
-        icon: () => <Download size={32} />,
-        iconColor: "text-orange-500 dark:text-orange-400",
-        title: "Downloads",
-        description:
-            "Access the latest Retro Rewind releases, tools, and resources to get started on Retro WFC.",
-        href: "/downloads",
-        label: "View Downloads",
+        href: "/races",
+        title: "Races",
+        body: "Recent online races and results from across the Retro WFC servers.",
+    },
+    {
+        href: "/stats",
+        title: "Race stats",
+        body: "Track popularity and setup trends across all tracks and players.",
+    },
+    {
+        href: "/tools",
+        title: "Community tools",
+        body: "A font patcher, rating editor, VR calculator and rank helper.",
     },
 ];
 
-const aboutCards = [
-    {
-        icon: () => <Gamepad2 size={32} />,
-        iconColor: "text-blue-500 dark:text-blue-400",
-        title: "What is Retro Rewind?",
-        body: "A custom track distribution by ZPL featuring every retro track from Super Mario Kart to Mario Kart 7, plus tracks from Mario Kart 8, Tour, Arcade GP and Mario Kart World. Built on the Pulsar engine and connected to Retro WFC servers.",
-    },
-    {
-        icon: () => <Zap size={32} />,
-        iconColor: "text-yellow-500 dark:text-yellow-400",
-        title: "Advanced Features",
-        body: "Experience 200cc and 500cc modes, brake drifting, ultra mini-turbos, draggable blue shells, and custom modes like Knockout Mode and Item Rain.",
-    },
-];
+function Bullet() {
+    // A single square pixel: the list marker carries the same small retro touch as the icons.
+    return <span class="mt-2 h-1.5 w-1.5 shrink-0 bg-accent" aria-hidden="true" />;
+}
 
 export default function HomePage() {
-    const pcountQuery = useQuery(() => ({
-        queryKey: queryKeys.pcount,
-        queryFn: () => roomStatusApi.getPlayerCount(),
-        refetchInterval: 300000,
-    }));
-
-    const discordQuery = useQuery(() => ({
-        queryKey: queryKeys.discordMembers,
-        queryFn: () => leaderboardApi.getDiscordMemberCount(),
-        refetchInterval: 300000,
-    }));
-
     const tracksQuery = useQuery(() => ({
         queryKey: queryKeys.ttTracks,
         queryFn: () => timeTrialApi.getAllTracks(),
         staleTime: 1000 * 60 * 60,
     }));
 
-    const retroTrackCount = createMemo(
-        () => tracksQuery.data?.filter((t) => t.category === "retro" && !t.isHidden).length ?? null,
-    );
-    const customTrackCount = createMemo(
-        () =>
-            tracksQuery.data?.filter((t) => t.category === "custom" && !t.isHidden).length ?? null,
-    );
-    const totalTrackCount = createMemo(
-        () => (retroTrackCount() ?? 0) + (customTrackCount() ?? 0) || null,
-    );
-
-    const featureCards = createMemo(() => [
-        staticFeatureCards[0],
-        {
-            icon: () => <Timer size={32} />,
-            iconColor: "text-green-500 dark:text-green-400",
-            title: "TT Leaderboard",
-            description: `Compare the fastest times across all ${retroTrackCount() ?? "..."} retro tracks and ${customTrackCount() ?? "..."} custom tracks.`,
-            href: "/tt",
-            label: "View Times",
-        },
-        ...staticFeatureCards.slice(1),
-    ]);
+    const counts = createMemo(() => (tracksQuery.data ? countTracks(tracksQuery.data) : null));
 
     return (
-        <div class="space-y-12">
+        <>
             <Title>{HOME_META.title}</Title>
             <Meta name="description" content={HOME_META.description} />
-            {/* Hero Section */}
-            <section class="py-12">
-                <div class="max-w-4xl mx-auto text-center">
-                    <div class="mb-8">
-                        <h1 class="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4">
-                            Welcome to Retro Rewind
-                        </h1>
-                        <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                            Experience every retro track from Super Mario Kart to Mario Kart 7, plus
-                            tracks from Mario Kart 8, Tour, Arcade GP and Mario Kart World. Track
-                            your progress, compete for the fastest times, and connect with the
-                            community on Retro WFC servers.
-                        </p>
+
+            <Hero />
+
+            <Section
+                id="install"
+                divider={false}
+                title="Install and race"
+                description="Choose where you play. Each guide lists the steps and links to a full walkthrough."
+            >
+                <PlatformGuide idPrefix="home-platform" />
+            </Section>
+
+            <Section
+                id="tracks"
+                title="Tracks and modes"
+                description="What the current release includes. Track counts come from the live track list."
+                revealBody={false}
+            >
+                <div class="grid gap-10 lg:grid-cols-12 lg:gap-12">
+                    <div class="lg:col-span-5" {...reveal(0)}>
+                        <TrackSample />
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <StatCard
-                            value={pcountQuery.data?.count.toLocaleString() ?? "80,000+"}
-                            label="Total Players"
-                            colorScheme="emerald"
-                        />
-                        <StatCard
-                            value={discordQuery.data?.toLocaleString() ?? "..."}
-                            label="Discord Members"
-                            colorScheme="blue"
-                        />
-                        <StatCard
-                            value={totalTrackCount()?.toLocaleString() ?? "..."}
-                            label="Tracks Available"
-                            colorScheme="purple"
-                        />
-                    </div>
-                </div>
-            </section>
-
-            {/* Features Section */}
-            <section class="py-8">
-                <div class="text-center mb-8">
-                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                        Explore Features & Tools
-                    </h2>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {featureCards().map((card) => (
-                        <div class="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 p-6 transition-colors flex flex-col">
-                            <div class={`${card.iconColor} mb-4`}>{card.icon()}</div>
-                            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-                                {card.title}
-                            </h3>
-                            <p class="text-gray-600 dark:text-gray-400 mb-4 flex-1 text-sm">
-                                {card.description}
+                    <div class="grid content-start gap-10 sm:grid-cols-2 lg:col-span-7">
+                        <div class="sm:col-span-2" {...reveal(1)}>
+                            <h3 class="type-heading text-fg">Tracks</h3>
+                            <dl class="mt-4 grid gap-x-10 sm:grid-cols-3">
+                                <For
+                                    each={[
+                                        { label: "Retro tracks", value: counts()?.retro },
+                                        { label: "Custom tracks", value: counts()?.custom },
+                                        { label: "Battle arenas", value: 40 },
+                                    ]}
+                                >
+                                    {(row) => (
+                                        <div class="flex items-baseline justify-between gap-4 border-b border-line py-3 sm:block">
+                                            <dt class="text-fg-muted">{row.label}</dt>
+                                            <dd class="text-2xl font-semibold tracking-tight text-fg sm:mt-1">
+                                                <Show
+                                                    when={row.value !== undefined}
+                                                    fallback={
+                                                        <span class="text-base font-normal text-fg-subtle">
+                                                            Loading
+                                                        </span>
+                                                    }
+                                                >
+                                                    <CountUp value={row.value!} />
+                                                </Show>
+                                            </dd>
+                                        </div>
+                                    )}
+                                </For>
+                            </dl>
+                        </div>
+                        <div {...reveal(2)}>
+                            <h3 class="type-heading text-fg">Modes</h3>
+                            <ul class="mt-4 grid gap-2 text-base text-fg">
+                                <For each={MODES}>
+                                    {(mode) => (
+                                        <li class="flex gap-3">
+                                            <Bullet />
+                                            {mode}
+                                        </li>
+                                    )}
+                                </For>
+                            </ul>
+                        </div>
+                        <div {...reveal(3)}>
+                            <h3 class="type-heading text-fg">Mechanics</h3>
+                            <ul class="mt-4 grid gap-2 text-base text-fg">
+                                <For each={MECHANICS}>
+                                    {(mechanic) => (
+                                        <li class="flex gap-3">
+                                            <Bullet />
+                                            {mechanic}
+                                        </li>
+                                    )}
+                                </For>
+                            </ul>
+                            <p class="mt-4 text-sm text-fg-muted">
+                                Retro Rewind runs on the Pulsar engine.
                             </p>
-                            <A
-                                href={card.href}
-                                class="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition-colors text-sm"
-                            >
-                                {card.label}
-                                <ChevronRight size={16} />
-                            </A>
-                        </div>
-                    ))}
-                </div>
-            </section>
-
-            {/* About Section */}
-            <section class="py-8">
-                <div class="max-w-5xl mx-auto">
-                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
-                        About Retro Rewind
-                    </h2>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                        {aboutCards.map((card) => (
-                            <div class="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg p-6">
-                                <div class="flex items-start space-x-4">
-                                    <div class={`${card.iconColor} flex-shrink-0`}>
-                                        {card.icon()}
-                                    </div>
-                                    <div>
-                                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                                            {card.title}
-                                        </h3>
-                                        <p class="text-gray-700 dark:text-gray-300">{card.body}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div class="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg p-6">
-                        <div class="flex items-start space-x-4">
-                            <div class="text-green-500 dark:text-green-400 flex-shrink-0">
-                                <Globe size={32} />
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                                    Powered by Retro WFC
-                                </h3>
-                                <p class="text-gray-700 dark:text-gray-300">
-                                    Connect to dedicated Retro WFC servers for stable online racing
-                                    with players worldwide. No patching required, just install and
-                                    race.
-                                </p>
-                            </div>
                         </div>
                     </div>
                 </div>
-            </section>
-        </div>
+            </Section>
+
+            <Section
+                id="rooms"
+                title="Room snapshot"
+                description="Who was racing on Retro WFC at the time of the last snapshot."
+                action={
+                    <ButtonLink href="/rooms" variant="secondary">
+                        Open the room browser
+                    </ButtonLink>
+                }
+            >
+                <RoomSnapshot />
+            </Section>
+
+            <Section
+                id="more"
+                title="Leaderboards, stats and tools"
+                description="For racers who want to track their times, VR and races."
+                revealBody={false}
+            >
+                <ul class="grid border-t border-line md:grid-cols-2 md:gap-x-10">
+                    <For each={MORE_LINKS}>
+                        {(link, i) => (
+                            <li class="border-b border-line" {...reveal(i())}>
+                                <A
+                                    href={link.href}
+                                    class="group flex items-center justify-between gap-4 py-4"
+                                >
+                                    <span>
+                                        <span class="block font-medium text-fg group-hover:text-accent-text">
+                                            {link.title}
+                                        </span>
+                                        <span class="mt-1 block text-sm text-fg-muted">
+                                            {link.body}
+                                        </span>
+                                    </span>
+                                    <ChevronRight
+                                        size={18}
+                                        aria-hidden="true"
+                                        class="shrink-0 text-fg-subtle transition-[color,transform] group-hover:translate-x-0.5 group-hover:text-fg"
+                                    />
+                                </A>
+                            </li>
+                        )}
+                    </For>
+                </ul>
+            </Section>
+
+            <Section
+                id="faq"
+                title="Questions"
+                description="Setup, online play and where to get help."
+                revealBody={false}
+            >
+                <Faq />
+            </Section>
+        </>
     );
 }

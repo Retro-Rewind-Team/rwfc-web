@@ -202,12 +202,12 @@ export default function ServerActivityChart() {
     };
 
     return (
-        <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6">
+        <div class="bg-canvas rounded-lg border border-line p-6">
             {/* Header */}
             <div class="flex items-center justify-between flex-wrap gap-4 mb-6">
                 <div class="flex items-center gap-2">
                     <TrendingUp size={20} class="text-blue-500 dark:text-blue-400" />
-                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">Server Activity</h2>
+                    <h2 class="text-xl font-semibold text-fg">Server Activity</h2>
                 </div>
                 <div class="flex gap-1">
                     <For each={TIME_OPTIONS}>
@@ -217,8 +217,8 @@ export default function ServerActivityChart() {
                                 onClick={() => setSelectedDays(opt.days)}
                                 class={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                                     selectedDays() === opt.days
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                        ? "bg-accent text-accent-fg"
+                                        : "bg-surface text-fg-muted hover:bg-gray-200 dark:hover:bg-gray-600"
                                 }`}
                             >
                                 {opt.label}
@@ -232,27 +232,21 @@ export default function ServerActivityChart() {
             <Show when={statsQuery.data}>
                 {(stats) => (
                     <div class="grid grid-cols-3 gap-4 mb-6">
-                        <div class="bg-gray-50 dark:bg-gray-900/40 rounded-xl p-3 text-center border border-gray-200 dark:border-gray-700">
-                            <div class="text-2xl font-bold text-gray-900 dark:text-white">
-                                {stats().totalPlayers}
-                            </div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">
-                                Current
-                            </div>
+                        <div class="bg-surface/40 rounded-lg p-3 text-center border border-line">
+                            <div class="text-2xl font-semibold text-fg">{stats().totalPlayers}</div>
+                            <div class="text-xs text-fg-subtle font-medium mt-0.5">Current</div>
                         </div>
-                        <div class="bg-gray-50 dark:bg-gray-900/40 rounded-xl p-3 text-center border border-gray-200 dark:border-gray-700">
-                            <div class="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                        <div class="bg-surface/40 rounded-lg p-3 text-center border border-line">
+                            <div class="text-2xl font-semibold text-orange-600 dark:text-orange-400">
                                 {stats().peakPlayersToday}
                             </div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">
-                                Peak Today
-                            </div>
+                            <div class="text-xs text-fg-subtle font-medium mt-0.5">Peak Today</div>
                         </div>
-                        <div class="bg-gray-50 dark:bg-gray-900/40 rounded-xl p-3 text-center border border-gray-200 dark:border-gray-700">
-                            <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                        <div class="bg-surface/40 rounded-lg p-3 text-center border border-line">
+                            <div class="text-2xl font-semibold text-purple-600 dark:text-purple-400">
                                 {stats().peakPlayersAllTime}
                             </div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">
+                            <div class="text-xs text-fg-subtle font-medium mt-0.5">
                                 All-Time Peak
                             </div>
                         </div>
@@ -264,7 +258,7 @@ export default function ServerActivityChart() {
             <Show when={seriesQuery.isLoading}>
                 <div class="h-64 flex items-center justify-center gap-4">
                     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-                    <p class="text-gray-600 dark:text-gray-300 text-sm">Loading activity data...</p>
+                    <p class="text-fg-muted text-sm">Loading activity data…</p>
                 </div>
             </Show>
 
@@ -281,7 +275,7 @@ export default function ServerActivityChart() {
                         <button
                             type="button"
                             onClick={() => seriesQuery.refetch()}
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm"
+                            class="bg-accent hover:bg-accent-hover text-accent-fg font-medium py-2 px-4 rounded-lg transition-colors text-sm"
                         >
                             Try Again
                         </button>
@@ -293,12 +287,10 @@ export default function ServerActivityChart() {
             <Show when={!seriesQuery.isLoading && !seriesQuery.isError && data().length === 0}>
                 <div class="h-64 flex items-center justify-center">
                     <div class="text-center">
-                        <div class="flex justify-center mb-3 text-gray-300 dark:text-gray-600">
+                        <div class="flex justify-center mb-3 text-fg-subtle">
                             <ChartBarBig size={40} />
                         </div>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm">
-                            No data available for this period
-                        </p>
+                        <p class="text-fg-subtle text-sm">No data available for this period</p>
                     </div>
                 </div>
             </Show>
@@ -306,7 +298,7 @@ export default function ServerActivityChart() {
             {/* Chart */}
             <Show when={!seriesQuery.isLoading && !seriesQuery.isError && data().length > 0}>
                 <div
-                    class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 border border-gray-100 dark:border-gray-700"
+                    class="bg-surface/50 rounded-lg p-4 border border-line"
                     onClick={() => {
                         setHoveredPoint(null);
                         setHoveredPos(null);
@@ -331,8 +323,8 @@ export default function ServerActivityChart() {
                                 x2="100%"
                                 y2="0%"
                             >
-                                <stop offset="0%" stop-color="#3B82F6" />
-                                <stop offset="100%" stop-color="#8B5CF6" />
+                                <stop offset="0%" style={{ "stop-color": "var(--accent)" }} />
+                                <stop offset="100%" style={{ "stop-color": "var(--accent)" }} />
                             </linearGradient>
                             <linearGradient
                                 id={`serverAreaGrad-${chartId}`}
@@ -341,8 +333,20 @@ export default function ServerActivityChart() {
                                 x2="0%"
                                 y2="100%"
                             >
-                                <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.25" />
-                                <stop offset="100%" stop-color="#3B82F6" stop-opacity="0.02" />
+                                <stop
+                                    offset="0%"
+                                    style={{
+                                        "stop-color": "var(--accent)",
+                                        "stop-opacity": "0.14",
+                                    }}
+                                />
+                                <stop
+                                    offset="100%"
+                                    style={{
+                                        "stop-color": "var(--accent)",
+                                        "stop-opacity": "0.14",
+                                    }}
+                                />
                             </linearGradient>
                         </defs>
 
@@ -355,7 +359,7 @@ export default function ServerActivityChart() {
                                     x2={CHART_WIDTH - getPad().right}
                                     y2={tick.y}
                                     stroke="currentColor"
-                                    class="text-gray-300 dark:text-gray-600"
+                                    class="text-fg-subtle"
                                     stroke-width="1"
                                     stroke-dasharray="4,4"
                                 />
@@ -369,7 +373,7 @@ export default function ServerActivityChart() {
                             x2={getPad().left}
                             y2={CHART_HEIGHT - getPad().bottom}
                             stroke="currentColor"
-                            class="text-gray-400 dark:text-gray-600"
+                            class="text-fg-subtle"
                             stroke-width="2"
                         />
 
@@ -380,7 +384,7 @@ export default function ServerActivityChart() {
                             x2={CHART_WIDTH - getPad().right}
                             y2={CHART_HEIGHT - getPad().bottom}
                             stroke="currentColor"
-                            class="text-gray-400 dark:text-gray-600"
+                            class="text-fg-subtle"
                             stroke-width="2"
                         />
 
@@ -454,7 +458,7 @@ export default function ServerActivityChart() {
                                 x2={hoveredPos()!.x}
                                 y2={CHART_HEIGHT - getPad().bottom}
                                 stroke="currentColor"
-                                class="text-gray-400 dark:text-gray-500"
+                                class="text-fg-subtle"
                                 stroke-width="1"
                                 stroke-dasharray="4,4"
                                 style="pointer-events: none"
@@ -480,10 +484,8 @@ export default function ServerActivityChart() {
                                         width={TOOLTIP_WIDTH}
                                         height={TOOLTIP_HEIGHT}
                                         rx="6"
-                                        fill="white"
-                                        stroke="#E5E7EB"
-                                        stroke-width="2"
-                                        class="dark:fill-gray-800 dark:stroke-gray-600"
+                                        stroke-width="1"
+                                        class="fill-canvas stroke-line"
                                     />
                                     <text
                                         x={box().x + TOOLTIP_WIDTH / 2}
@@ -497,7 +499,7 @@ export default function ServerActivityChart() {
                                         x={box().x + TOOLTIP_WIDTH / 2}
                                         y={box().y + 34}
                                         text-anchor="middle"
-                                        class="text-sm fill-gray-900 dark:fill-white font-bold"
+                                        class="text-sm fill-gray-900 dark:fill-white font-semibold"
                                     >
                                         {box().point.players} players
                                     </text>

@@ -3,29 +3,37 @@ import { MetaProvider } from "@solidjs/meta";
 import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
 import { ThemeProvider } from "./stores/theme";
 import { ApiError } from "./services/api/client";
+import { lazy } from "solid-js";
 import Layout from "./components/layout/Layout";
-import {
-    DownloadsPage,
-    FontPatcherPage,
-    HomePage,
-    LeaderboardPage,
-    LeaderboardPlayerDetailPage,
-    NotFoundPage,
-    PrivacyPage,
-    RacesPage,
-    RaceStatsPage,
-    RankHelperPage,
-    RatingEditorPage,
-    RoomStatusPage,
-    RulesPage,
-    TeamPage,
-    ToolsPage,
-    TTLeaderboardPage,
-    TTPlayerProfilePage,
-    TTRankingsPage,
-    TTTrackDetailPage,
-    VRCalculatorPage,
-} from "./pages";
+import { HomePage } from "./pages/Home";
+
+/*
+ * Home ships in the main bundle because it is where most visits start. Every other page is its
+ * own chunk, so the landing page no longer downloads the save-file parsers, font patcher and
+ * charts. The router fetches a page's chunk as soon as a link to it is hovered or focused, so on
+ * a click it is usually already there.
+ */
+const LeaderboardPage = lazy(() => import("./pages/Leaderboard/LeaderboardPage"));
+const LeaderboardPlayerDetailPage = lazy(
+    () => import("./pages/Leaderboard/LeaderboardPlayerDetailPage"),
+);
+const TTLeaderboardPage = lazy(() => import("./pages/TTLeaderboard/TTLeaderboardPage"));
+const TTRankingsPage = lazy(() => import("./pages/TTLeaderboard/TTRankingsPage"));
+const TTTrackDetailPage = lazy(() => import("./pages/TTLeaderboard/TTTrackDetailPage"));
+const TTPlayerProfilePage = lazy(() => import("./pages/TTLeaderboard/TTPlayerProfilePage"));
+const RoomStatusPage = lazy(() => import("./pages/RoomStatus/RoomStatusPage"));
+const DownloadsPage = lazy(() => import("./pages/Downloads/DownloadsPage"));
+const RulesPage = lazy(() => import("./pages/Rules/RulesPage"));
+const PrivacyPage = lazy(() => import("./pages/Privacy/PrivacyPage"));
+const TeamPage = lazy(() => import("./pages/Team/TeamPage"));
+const RaceStatsPage = lazy(() => import("./pages/RaceStats/RaceStatsPage"));
+const RacesPage = lazy(() => import("./pages/Races/RacesPage"));
+const ToolsPage = lazy(() => import("./pages/Tools/ToolsPage"));
+const FontPatcherPage = lazy(() => import("./pages/Tools/FontPatcherPage"));
+const RatingEditorPage = lazy(() => import("./pages/Tools/RatingEditorPage"));
+const VRCalculatorPage = lazy(() => import("./pages/Tools/VRCalculatorPage"));
+const RankHelperPage = lazy(() => import("./pages/Tools/RankHelperPage"));
+const NotFoundPage = lazy(() => import("./pages/NotFound/NotFoundPage"));
 
 const queryClient = new QueryClient({
     defaultOptions: {

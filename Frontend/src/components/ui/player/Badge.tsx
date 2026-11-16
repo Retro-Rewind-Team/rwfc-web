@@ -65,9 +65,7 @@ export default function Badge(props: BadgeProps) {
         // it: cursor-pointer, which promised a click nothing handles, and hover:shadow-xl, which
         // drew a rectangular shadow around a transparent square.
         <Tooltip text={info().tooltip}>
-            <div
-                class={`${sizeClass()} flex-shrink-0 transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-0.5`}
-            >
+            <div class={`${sizeClass()} flex-shrink-0 transition-colors duration-300 ease-out`}>
                 <BadgeSVG variant={props.variant} />
             </div>
         </Tooltip>

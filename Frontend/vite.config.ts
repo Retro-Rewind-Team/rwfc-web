@@ -14,6 +14,11 @@ export default defineConfig(({ mode }) => ({
     },
     build: {
         target: "esnext",
+        // Read by scripts/generate-meta.mjs to add per-route modulepreload links, then deleted.
+        manifest: true,
+        // flag-icons ships ~400 small SVGs. Inlined, they put ~220 KB of data URIs into the
+        // render-blocking stylesheet; as files, each flag downloads only when it is shown.
+        assetsInlineLimit: (filePath) => (filePath.includes("flag-icons") ? false : undefined),
     },
     // Solid ships separate server and browser builds; tests need the browser one or reactivity
     // silently does nothing.

@@ -2,6 +2,12 @@ export interface TeamMemberDef {
     name: string;
     discord: string;
     image?: string;
+    /*
+     * Optional animated version of `image`. It is fetched only when someone hovers or focuses the
+     * card, and never under reduced motion: an always-on loop would download on every visit and
+     * moves for longer than 5s with no pause control (WCAG 2.2.2).
+     */
+    animatedImage?: string;
     fc?: string;
 }
 
@@ -11,6 +17,7 @@ export class TeamMember {
     role?: string;
     donation?: string;
     image?: string;
+    animatedImage?: string;
     fc?: string;
     forge?: string;
 
@@ -18,6 +25,7 @@ export class TeamMember {
         this.name = def.name;
         this.discord = def.discord;
         this.image = def.image;
+        this.animatedImage = def.animatedImage;
         this.fc = def.fc;
     }
 

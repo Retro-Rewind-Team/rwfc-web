@@ -1,79 +1,105 @@
-﻿import { createSignal, For, Show } from "solid-js";
+﻿import { createSignal, For, onCleanup, Show } from "solid-js";
 import { Dynamic } from "solid-js/web";
-import { useTheme } from "../../stores/theme";
 import { Check, type LucideIcon, Monitor, Moon, Sun } from "lucide-solid";
+import { type Theme, useTheme } from "../../stores/theme";
 
+const OPTIONS: { value: Theme; label: string; icon: LucideIcon }[] = [
+    { value: "light", label: "Light", icon: Sun },
+    { value: "dark", label: "Dark", icon: Moon },
+    { value: "system", label: "System", icon: Monitor },
+];
+
+/*
+ * A small menu rather than a two-state toggle, because "follow my system" is a real third choice.
+ * Keyboard: Enter/Space opens, arrow keys move, Escape closes and returns focus to the button.
+ */
 export default function ThemeToggle() {
     const { theme, resolvedTheme, setTheme } = useTheme();
     const [isOpen, setIsOpen] = createSignal(false);
+    let root: HTMLDivElement | undefined;
+    let trigger: HTMLButtonElement | undefined;
+    const items: HTMLButtonElement[] = [];
 
-    const themes: { value: "light" | "dark" | "system"; label: string; icon: LucideIcon }[] = [
-        { value: "light", label: "Light", icon: Sun },
-        { value: "dark", label: "Dark", icon: Moon },
-        { value: "system", label: "System", icon: Monitor },
-    ];
+    const currentIcon = () => (resolvedTheme() === "dark" ? Moon : Sun);
 
-    const getCurrentIcon = (): LucideIcon => {
-        const currentTheme = theme();
-        if (currentTheme === "system") {
-            return resolvedTheme() === "dark" ? Moon : Sun;
+    const open = () => {
+        setIsOpen(true);
+        const index = OPTIONS.findIndex((o) => o.value === theme());
+        queueMicrotask(() => items[Math.max(index, 0)]?.focus());
+    };
+
+    const close = (returnFocus = true) => {
+        setIsOpen(false);
+        if (returnFocus) trigger?.focus();
+    };
+
+    const onDocumentClick = (e: MouseEvent) => {
+        if (isOpen() && root && !root.contains(e.target as Node)) close(false);
+    };
+    document.addEventListener("click", onDocumentClick);
+    onCleanup(() => document.removeEventListener("click", onDocumentClick));
+
+    const onMenuKeyDown = (e: KeyboardEvent) => {
+        const index = items.indexOf(document.activeElement as HTMLButtonElement);
+        if (e.key === "Escape") {
+            e.preventDefault();
+            close();
+        } else if (e.key === "ArrowDown") {
+            e.preventDefault();
+            items[(index + 1) % items.length]?.focus();
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            items[(index - 1 + items.length) % items.length]?.focus();
+        } else if (e.key === "Tab") {
+            close(false);
         }
-        return themes.find((t) => t.value === currentTheme)?.icon ?? Sun;
     };
 
     return (
-        <div class="relative">
-            {/* Toggle Button */}
+        <div ref={(el) => (root = el)} class="relative">
             <button
+                ref={(el) => (trigger = el)}
                 type="button"
-                onClick={() => setIsOpen(!isOpen())}
-                class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
-                title="Toggle theme"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg-muted transition-colors duration-150 hover:bg-surface hover:text-fg"
+                aria-haspopup="menu"
+                aria-expanded={isOpen()}
+                aria-controls="theme-menu"
+                onClick={() => (isOpen() ? close() : open())}
             >
-                <Dynamic component={getCurrentIcon()} size={20} />
+                <span class="sr-only">Theme</span>
+                <Dynamic component={currentIcon()} size={18} aria-hidden="true" />
             </button>
 
-            {/* Dropdown Menu */}
             <Show when={isOpen()}>
-                <div class="absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
-                    <div class="py-1">
-                        <For each={themes}>
-                            {(themeOption) => (
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setTheme(themeOption.value);
-                                        setIsOpen(false);
-                                    }}
-                                    class={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2 ${
-                                        theme() === themeOption.value
-                                            ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                                            : "text-gray-700 dark:text-gray-300"
-                                    }`}
-                                >
-                                    <Dynamic component={themeOption.icon} size={14} />
-                                    <span>{themeOption.label}</span>
-                                    <Show when={theme() === themeOption.value}>
-                                        <span class="ml-auto text-blue-600 dark:text-blue-400">
-                                            <Check size={14} />
-                                        </span>
-                                    </Show>
-                                </button>
-                            )}
-                        </For>
-                    </div>
+                <div
+                    id="theme-menu"
+                    role="menu"
+                    aria-label="Theme"
+                    class="absolute right-0 z-50 mt-2 w-36 rounded-lg border border-line bg-canvas p-1"
+                    onKeyDown={onMenuKeyDown}
+                >
+                    <For each={OPTIONS}>
+                        {(option, i) => (
+                            <button
+                                ref={(el) => (items[i()] = el)}
+                                type="button"
+                                role="menuitemradio"
+                                aria-checked={theme() === option.value}
+                                class="flex h-9 w-full items-center gap-2 rounded-md px-2.5 text-left text-sm text-fg-muted transition-colors duration-150 hover:bg-surface hover:text-fg"
+                                onClick={() => {
+                                    setTheme(option.value);
+                                    close();
+                                }}
+                            >
+                                <Dynamic component={option.icon} size={15} aria-hidden="true" />
+                                <span class="flex-1">{option.label}</span>
+                                <Show when={theme() === option.value}>
+                                    <Check size={15} class="text-accent-text" aria-hidden="true" />
+                                </Show>
+                            </button>
+                        )}
+                    </For>
                 </div>
-            </Show>
-
-            {/* Click outside to close */}
-            <Show when={isOpen()}>
-                <button
-                    type="button"
-                    class="fixed inset-0 z-40 bg-transparent border-none cursor-default"
-                    onClick={() => setIsOpen(false)}
-                    onKeyDown={(e) => e.key === "Escape" && setIsOpen(false)}
-                    aria-label="Close theme menu"
-                />
             </Show>
         </div>
     );

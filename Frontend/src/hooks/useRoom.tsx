@@ -1,8 +1,11 @@
-import { createEffect, createMemo, createSignal, onMount } from "solid-js";
+import { createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import { useSearchParams } from "@solidjs/router";
 import { useQuery } from "@tanstack/solid-query";
 import { roomStatusApi } from "../services/api";
 import { queryKeys } from "../constants/queryKeys";
+
+/** How often the live view refetches, in ms. Also how stale data may get before a refocus refetches. */
+export const ROOM_POLL_MS = 10000;
 
 /**
  * Manages room status browsing: live polling, historical snapshot navigation
@@ -14,6 +17,10 @@ import { queryKeys } from "../constants/queryKeys";
  * this while a friend code is highlighted. It exists so there is one timer on this query: the page
  * used to run its own 10s setInterval calling refetch(), on top of this refetchInterval, and so
  * sent twice the requests it needed.
+ *
+ * Polling stops while the tab is hidden (`refetchIntervalInBackground: false`), so a forgotten tab
+ * does not keep hitting the API. When the tab comes back, a live view that has gone stale refetches
+ * at once instead of showing minutes-old rooms until the next tick.
  */
 export function useRoomStatus(options: { pausePolling?: () => boolean } = {}) {
     const [searchParams] = useSearchParams();
@@ -24,10 +31,15 @@ export function useRoomStatus(options: { pausePolling?: () => boolean } = {}) {
     const [maxId, setMaxId] = createSignal<number>(0);
     const [isJumping, setIsJumping] = createSignal(false);
 
+    const [isTabHidden, setIsTabHidden] = createSignal(
+        typeof document !== "undefined" && document.hidden,
+    );
+
     const statsQuery = useQuery(() => ({
         queryKey: queryKeys.roomStats,
         queryFn: () => roomStatusApi.getStats(),
-        refetchInterval: 10000,
+        refetchInterval: ROOM_POLL_MS,
+        refetchIntervalInBackground: false,
     }));
 
     const roomStatusQuery = useQuery(() => ({
@@ -39,8 +51,23 @@ export function useRoomStatus(options: { pausePolling?: () => boolean } = {}) {
                 : roomStatusApi.getRoomStatusById(id);
         },
         refetchInterval: () =>
-            currentId() === undefined && !options.pausePolling?.() ? 10000 : false,
+            currentId() === undefined && !options.pausePolling?.() ? ROOM_POLL_MS : false,
+        refetchIntervalInBackground: false,
     }));
+
+    onMount(() => {
+        const onVisibility = () => {
+            setIsTabHidden(document.hidden);
+            if (document.hidden) return;
+            const live = currentId() === undefined && !options.pausePolling?.();
+            if (live && Date.now() - roomStatusQuery.dataUpdatedAt > ROOM_POLL_MS) {
+                roomStatusQuery.refetch();
+                statsQuery.refetch();
+            }
+        };
+        document.addEventListener("visibilitychange", onVisibility);
+        onCleanup(() => document.removeEventListener("visibilitychange", onVisibility));
+    });
 
     // Tracking the bounds here rather than inside queryFn: a query function runs only when a fetch
     // actually happens, so a cache hit left these stale, and a background refetch or retry wrote to
@@ -192,6 +219,7 @@ export function useRoomStatus(options: { pausePolling?: () => boolean } = {}) {
             currentId,
             isLatest,
             isJumping,
+            isTabHidden,
             canGoForward,
             canGoBackward,
             minId,

@@ -1,33 +1,41 @@
-import { createEffect, createMemo, createSignal } from "solid-js";
+import { createMemo } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 import { timeTrialApi } from "../services/api/timeTrial";
 import { ApiError } from "../services/api/client";
 import { GhostSubmission, ShroomlessFilter, VehicleFilter } from "../types/timeTrial";
 import { ghostFilename, triggerBlobDownload } from "../utils/downloadHelpers";
 import { queryKeys } from "../constants/queryKeys";
-import { usePagination } from "./usePagination";
+import { readEnum, useUrlPagination, useUrlSearch, useUrlState } from "./useUrlState";
+
+export const TT_PLAYER_PAGE_SIZES = [10, 25, 50] as const;
 
 /**
  * Manages filter state, pagination, and data fetching for a time trial player
- * profile page (submissions table + WR history).
+ * profile page (submissions table + WR history). Filters, the track search and the page are URL
+ * params (`cc`, `glitch=yes|no`, `shroomless`, `vehicle`, `q`, `page`, `size`).
  */
 export function useTTPlayer(ttProfileId: () => number) {
-    const { currentPage, setCurrentPage, pageSize, handlePageSizeChange } = usePagination(10);
+    const state = useUrlState();
+    const { currentPage, pageSize, setCurrentPage, handlePageSizeChange, clampTo } =
+        useUrlPagination(state, 10, TT_PLAYER_PAGE_SIZES);
+    const { searchQuery, search, handleSearchInput, clear } = useUrlSearch(state);
 
-    const [selectedCC, setSelectedCC] = createSignal<150 | 200 | undefined>(undefined);
-    const [glitchFilter, setGlitchFilter] = createSignal<boolean | undefined>(undefined);
-    const [shroomlessFilter, setShroomlessFilter] = createSignal<ShroomlessFilter>("all");
-    const [vehicleFilter, setVehicleFilter] = createSignal<VehicleFilter>("all");
-    const [searchQuery, setSearchQuery] = createSignal("");
-
-    // Reset to page 1 when any filter changes
-    createEffect(() => {
-        selectedCC();
-        glitchFilter();
-        shroomlessFilter();
-        vehicleFilter();
-        setCurrentPage(1);
+    const selectedCC = createMemo((): 150 | 200 | undefined => {
+        const cc = state.get("cc");
+        return cc === "150" ? 150 : cc === "200" ? 200 : undefined;
     });
+    const glitchFilter = createMemo((): boolean | undefined => {
+        const glitch = readEnum(state.get("glitch"), ["yes", "no"] as const);
+        return glitch === undefined ? undefined : glitch === "yes";
+    });
+    const shroomlessFilter = createMemo(
+        (): ShroomlessFilter =>
+            readEnum(state.get("shroomless"), ["all", "only", "exclude"] as const) ?? "all",
+    );
+    const vehicleFilter = createMemo(
+        (): VehicleFilter =>
+            readEnum(state.get("vehicle"), ["all", "karts", "bikes"] as const) ?? "all",
+    );
 
     // Fetch player profile
     const profileQuery = useQuery(() => ({
@@ -66,13 +74,15 @@ export function useTTPlayer(ttProfileId: () => number) {
         queryFn: () => timeTrialApi.getPlayerStats(ttProfileId()),
     }));
 
+    clampTo(() => submissionsQuery.data?.totalPages);
+
     // Client-side track name search - applied on top of server results
     // This is lightweight since we're only searching the current page
     const filteredSubmissions = createMemo(() => {
         const submissions = submissionsQuery.data?.submissions ?? [];
-        const search = searchQuery().toLowerCase();
-        if (!search) return submissions;
-        return submissions.filter((sub) => sub.trackName.toLowerCase().includes(search));
+        const needle = search().toLowerCase();
+        if (!needle) return submissions;
+        return submissions.filter((sub) => sub.trackName.toLowerCase().includes(needle));
     });
 
     const worldRecordsHeld = createMemo(() => profileQuery.data?.currentWorldRecords ?? 0);
@@ -88,11 +98,27 @@ export function useTTPlayer(ttProfileId: () => number) {
 
     const totalSubmissions = createMemo(() => submissionsQuery.data?.totalSubmissions ?? 0);
 
-    const handleSearchInput = (value: string) => setSearchQuery(value);
-    const handleCCChange = (cc: 150 | 200 | undefined) => setSelectedCC(cc);
-    const handleGlitchFilterChange = (glitch: boolean | undefined) => setGlitchFilter(glitch);
-    const handleShroomlessFilterChange = (filter: ShroomlessFilter) => setShroomlessFilter(filter);
-    const handleVehicleFilterChange = (filter: VehicleFilter) => setVehicleFilter(filter);
+    const handleCCChange = (cc: 150 | 200 | undefined) => state.update({ cc }, { resetPage: true });
+    const handleGlitchFilterChange = (glitch: boolean | undefined) =>
+        state.update(
+            { glitch: glitch === undefined ? undefined : glitch ? "yes" : "no" },
+            { resetPage: true },
+        );
+    const handleShroomlessFilterChange = (filter: ShroomlessFilter) =>
+        state.update({ shroomless: filter === "all" ? undefined : filter }, { resetPage: true });
+    const handleVehicleFilterChange = (filter: VehicleFilter) =>
+        state.update({ vehicle: filter === "all" ? undefined : filter }, { resetPage: true });
+
+    const hasFilters = createMemo(
+        () =>
+            !!search() ||
+            selectedCC() !== undefined ||
+            glitchFilter() !== undefined ||
+            shroomlessFilter() !== "all" ||
+            vehicleFilter() !== "all",
+    );
+    const clearFilters = () =>
+        clear({ cc: undefined, glitch: undefined, shroomless: undefined, vehicle: undefined });
 
     const handleDownloadGhost = async (submission: GhostSubmission) => {
         try {
@@ -116,6 +142,8 @@ export function useTTPlayer(ttProfileId: () => number) {
             shroomlessFilter,
             vehicleFilter,
             searchQuery,
+            search,
+            hasFilters,
         },
         pagination: {
             currentPage,
@@ -141,6 +169,7 @@ export function useTTPlayer(ttProfileId: () => number) {
             handleGlitchFilterChange,
             handleShroomlessFilterChange,
             handleVehicleFilterChange,
+            clearFilters,
             handleDownloadGhost,
             refreshAll,
         },

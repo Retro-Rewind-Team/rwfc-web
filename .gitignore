@@ -184,3 +184,6 @@ dist
 .yarn/install-state.gz
 .pnp.*
 **/publish
+
+# Claude Code local settings (never commit)
+.claude/

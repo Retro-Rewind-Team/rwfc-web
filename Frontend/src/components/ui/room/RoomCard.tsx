@@ -1,16 +1,12 @@
-import { createMemo, createSignal, For, Show } from "solid-js";
+import { createMemo, createSignal, For, Index, Show } from "solid-js";
 import {
     AlertTriangle,
     ChevronDown,
-    CircleCheck,
-    CirclePause,
-    CircleX,
     Clock,
     Lock,
     LockOpen,
     MapPin,
     TrendingUp,
-    Users,
 } from "lucide-solid";
 import { Room } from "../../../types";
 import { detectSplitGroups } from "../../../utils";
@@ -24,200 +20,224 @@ interface RoomCardProps {
     highlightFc?: string;
 }
 
+/** Rooms hold up to 12 racers; the occupancy strip draws one slot for each. */
+const ROOM_SIZE = 12;
+
+/*
+ * One room in the browser. The header is a single toggle button that summarises the room so
+ * the list scans quickly: name, a 12-slot occupancy strip, status, and race details. Status uses
+ * colour sparingly: the accent for "joinable", the warning tone for voting and split rooms,
+ * neutral for everything else. Empty rooms are dimmed so active ones stand out.
+ */
 export default function RoomCard(props: RoomCardProps) {
     const [isExpanded, setIsExpanded] = createSignal(true);
     const playerCount = () => props.room.players.length;
+    const isEmpty = () => playerCount() === 0;
     const isJoinable = () => props.room.isJoinable;
     const isVoting = () => props.room.isSuspended;
     const splitGroups = createMemo(() => detectSplitGroups(props.room.players));
     const isSplit = () => splitGroups().length > 1;
+    const bodyId = () => `room-${props.room.id}-players`;
 
     const uptime = () => {
         void props.tick;
         return props.getRoomUptime(props.room.created);
     };
 
+    const status = () => {
+        if (isVoting()) return { label: "Voting", tone: "warn" as const };
+        if (isJoinable()) return { label: "Joinable", tone: "accent" as const };
+        return {
+            label: playerCount() >= ROOM_SIZE ? "Full" : "Not joinable",
+            tone: "neutral" as const,
+        };
+    };
+
+    const toneClass = {
+        accent: "border-transparent bg-accent-soft text-accent-text",
+        warn: "border-warn-line bg-warn-bg text-warn-fg",
+        neutral: "border-line text-fg-muted",
+    };
+
+    const Meta = (metaProps: { icon: typeof Clock; children: string | number }) => (
+        <span class="inline-flex items-center gap-1.5 text-sm text-fg-muted">
+            <metaProps.icon size={14} aria-hidden="true" class="shrink-0 text-fg-subtle" />
+            {metaProps.children}
+        </span>
+    );
+
     return (
-        <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
-            {/* Room Header */}
-            <button
-                type="button"
-                onClick={() => setIsExpanded(!isExpanded())}
-                class="w-full p-5 text-left bg-gray-200 dark:bg-gray-900 hover:bg-gray-300 dark:hover:bg-gray-800 transition-colors"
-            >
-                <div class="flex items-start justify-between gap-4">
-                    <div class="flex-1 min-w-0">
-                        <Show when={props.room.roomType}>
-                            <h3 class="text-gray-900 dark:text-white text-2xl sm:text-3xl font-extrabold truncate mb-3">
-                                {props.room.roomType}
-                                <span class="font-mono"> - Room {props.room.id}</span>
-                            </h3>
-                        </Show>
-
-                        <div class="flex flex-wrap items-center gap-2">
-                            {/* Public/Private */}
-                            <div
-                                class={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs ${
-                                    props.room.isPublic
-                                        ? "bg-emerald-500/90 text-white"
-                                        : "bg-red-500/90 text-white"
-                                }`}
-                            >
-                                {props.room.isPublic ? <LockOpen size={12} /> : <Lock size={12} />}
-                                <span>{props.room.isPublic ? "Public" : "Private"}</span>
-                            </div>
-
-                            {/* Joinability */}
-                            <div
-                                class={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs ${
-                                    isVoting()
-                                        ? "bg-purple-500/90 text-white"
-                                        : isJoinable()
-                                          ? "bg-emerald-500/90 text-white"
-                                          : "bg-gray-500/90 text-white"
-                                }`}
-                            >
-                                {isVoting() ? (
-                                    <CirclePause size={12} />
-                                ) : isJoinable() ? (
-                                    <CircleCheck size={12} />
-                                ) : (
-                                    <CircleX size={12} />
-                                )}
-                                <span>
-                                    {isVoting()
-                                        ? "Voting"
-                                        : isJoinable()
-                                          ? "Joinable"
-                                          : playerCount() >= 12
-                                            ? "Full"
-                                            : "Not Joinable"}
+        <article
+            // Empty rooms get a dashed edge rather than reduced opacity, which would also lower
+            // their text contrast.
+            class={`overflow-hidden rounded-lg border bg-canvas transition-colors hover:border-line-strong ${
+                isEmpty() ? "border-dashed border-line-strong" : "border-line"
+            }`}
+            aria-label={`${props.room.roomType || "Room"} ${props.room.id}`}
+        >
+            <h2>
+                <button
+                    type="button"
+                    onClick={() => setIsExpanded(!isExpanded())}
+                    aria-expanded={isExpanded()}
+                    aria-controls={bodyId()}
+                    class="block w-full p-4 text-left transition-colors hover:bg-surface sm:p-5"
+                >
+                    <span class="flex items-start justify-between gap-4">
+                        <span class="block min-w-0 flex-1">
+                            <span class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                                <span class="type-heading text-fg">
+                                    {props.room.roomType || "Room"}
                                 </span>
-                            </div>
+                                <span class="font-mono text-xs text-fg-subtle">
+                                    {props.room.id}
+                                </span>
+                            </span>
 
-                            {/* Player count */}
-                            <div class="flex items-center gap-1.5 px-3 py-1.5 bg-white/60 dark:bg-white/25 rounded-lg font-bold text-xs text-gray-700 dark:text-white">
-                                <Users size={12} />
-                                <span>{playerCount()}/12 Players</span>
-                            </div>
-
-                            {/* Split room indicator */}
-                            <Show when={isSplit()}>
-                                <div class="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/90 rounded-lg font-bold text-xs text-white">
-                                    <AlertTriangle size={12} />
-                                    <span>Split Room ({splitGroups().length} groups)</span>
-                                </div>
-                            </Show>
-
-                            {/* Uptime */}
-                            <Show when={props.isLatest}>
-                                <div class="flex items-center gap-1.5 px-3 py-1.5 bg-white/60 dark:bg-white/25 rounded-lg font-bold text-xs text-gray-700 dark:text-white">
-                                    <Clock size={12} />
-                                    <span>{uptime()}</span>
-                                </div>
-                            </Show>
-
-                            {/* Average VR (hidden when split; per-group averages shown in group headers) */}
-                            <Show when={props.room.averageVR !== null && !isSplit()}>
-                                <div class="flex items-center gap-1.5 px-3 py-1.5 bg-white/60 dark:bg-white/25 rounded-lg font-bold text-xs text-gray-700 dark:text-white">
-                                    <TrendingUp size={12} />
-                                    <span>Avg VR: {Math.round(props.room.averageVR!)}</span>
-                                </div>
-                            </Show>
-
-                            {/* Last Played Track */}
-                            <Show when={props.room.race?.trackName}>
-                                <div class="flex items-center gap-1.5 px-3 py-1.5 bg-white/60 dark:bg-white/25 rounded-lg font-bold text-xs text-gray-700 dark:text-white">
-                                    <MapPin size={12} />
-                                    <span class="truncate max-w-[160px]">
-                                        {props.room.race!.trackName}
+                            <span class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                                <span
+                                    class={`inline-flex items-center rounded-sm border px-1.5 py-0.5 text-xs font-medium ${
+                                        toneClass[status().tone]
+                                    }`}
+                                >
+                                    {status().label}
+                                </span>
+                                <Show when={isSplit()}>
+                                    <span
+                                        class={`inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-xs font-medium ${toneClass.warn}`}
+                                    >
+                                        <AlertTriangle size={12} aria-hidden="true" />
+                                        Split into {splitGroups().length} groups
                                     </span>
-                                </div>
-                            </Show>
-                        </div>
-                    </div>
+                                </Show>
+                                <Meta icon={props.room.isPublic ? LockOpen : Lock}>
+                                    {props.room.isPublic ? "Public" : "Private"}
+                                </Meta>
+                                <Show when={props.room.race?.trackName}>
+                                    <Meta icon={MapPin}>{props.room.race!.trackName!}</Meta>
+                                </Show>
+                                {/* Hidden when split: each group shows its own average below. */}
+                                <Show when={props.room.averageVR !== null && !isSplit()}>
+                                    <Meta icon={TrendingUp}>
+                                        {`${Math.round(props.room.averageVR!).toLocaleString()} avg VR`}
+                                    </Meta>
+                                </Show>
+                                <Show when={props.isLatest}>
+                                    <Meta icon={Clock}>{uptime()}</Meta>
+                                </Show>
+                            </span>
+                        </span>
 
-                    {/* Expand toggle */}
-                    <div class="flex-shrink-0 bg-white/60 dark:bg-white/25 p-2.5 rounded-lg hover:bg-white/80 dark:hover:bg-white/35 transition-colors border border-white/60 dark:border-white/30">
-                        <ChevronDown
-                            size={20}
-                            class={`text-gray-700 dark:text-white transition-transform ${isExpanded() ? "rotate-180" : ""}`}
-                        />
-                    </div>
-                </div>
-            </button>
+                        <span class="flex shrink-0 items-start gap-3">
+                            <span class="block text-right">
+                                <span class="block text-lg font-semibold text-fg tabular-nums">
+                                    {playerCount()}
+                                    <span class="text-sm font-normal text-fg-subtle">
+                                        /{ROOM_SIZE}
+                                    </span>
+                                </span>
+                                <span class="mt-1.5 hidden gap-0.5 sm:flex" aria-hidden="true">
+                                    <Index each={Array.from({ length: ROOM_SIZE })}>
+                                        {(_, i) => (
+                                            <span
+                                                class={`h-2 w-2 ${
+                                                    i < playerCount() ? "bg-accent" : "bg-line"
+                                                }`}
+                                            />
+                                        )}
+                                    </Index>
+                                </span>
+                                <span class="sr-only">players</span>
+                            </span>
+                            <ChevronDown
+                                size={20}
+                                aria-hidden="true"
+                                class={`mt-1 text-fg-subtle transition-transform duration-(--motion-base) ${
+                                    isExpanded() ? "rotate-180" : ""
+                                }`}
+                            />
+                        </span>
+                    </span>
+                </button>
+            </h2>
 
-            {/* Players Grid */}
             <Show when={isExpanded()}>
-                <div class="p-5 bg-gray-50 dark:bg-gray-900/30">
+                <div id={bodyId()} class="border-t border-line p-4 sm:p-5">
                     <Show
-                        when={isSplit()}
+                        when={!isEmpty()}
                         fallback={
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                                <For each={props.room.players}>
-                                    {(player) => (
-                                        <PlayerCard
-                                            player={player}
-                                            showOpenHost={props.room.isPublic}
-                                            highlightFc={props.highlightFc}
-                                        />
-                                    )}
-                                </For>
-                            </div>
+                            <p class="text-sm text-fg-subtle">Nobody is in this room right now.</p>
                         }
                     >
-                        <div class="space-y-5">
-                            <For each={splitGroups()}>
-                                {(group, i) => {
-                                    const withVr = group.filter((p) => p.vr !== null && p.vr! > 0);
-                                    const avgVr =
-                                        withVr.length > 0
-                                            ? Math.round(
-                                                  withVr.reduce((sum, p) => sum + p.vr!, 0) /
-                                                      withVr.length,
-                                              )
-                                            : null;
-                                    return (
-                                        <div>
-                                            <div class="flex items-center gap-2 mb-3">
-                                                <div class="h-px flex-1 bg-orange-200 dark:bg-orange-800/60" />
-                                                {/* Groups label A–Z; clamped defensively (rooms hold max 12 players in practice) */}
-                                                <div class="flex items-center gap-2 flex-wrap justify-center">
-                                                    <span class="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wide">
+                        <Show
+                            when={isSplit()}
+                            fallback={
+                                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                    <For each={props.room.players}>
+                                        {(player) => (
+                                            <PlayerCard
+                                                player={player}
+                                                showOpenHost={props.room.isPublic}
+                                                highlightFc={props.highlightFc}
+                                            />
+                                        )}
+                                    </For>
+                                </div>
+                            }
+                        >
+                            <div class="space-y-5">
+                                <For each={splitGroups()}>
+                                    {(group, i) => {
+                                        const withVr = group.filter(
+                                            (p) => p.vr !== null && p.vr! > 0,
+                                        );
+                                        const avgVr =
+                                            withVr.length > 0
+                                                ? Math.round(
+                                                      withVr.reduce((sum, p) => sum + p.vr!, 0) /
+                                                          withVr.length,
+                                                  )
+                                                : null;
+                                        return (
+                                            <div>
+                                                {/* Groups label A to Z; clamped defensively (rooms hold 12 at most). */}
+                                                <h3 class="mb-3 flex flex-wrap items-baseline gap-x-3 border-b border-line pb-2 text-sm">
+                                                    <span class="font-semibold text-warn-fg">
                                                         Group{" "}
                                                         {String.fromCharCode(
                                                             65 + Math.min(i(), 25),
-                                                        )}{" "}
-                                                        &mdash; {group.length}{" "}
+                                                        )}
+                                                    </span>
+                                                    <span class="text-fg-muted">
+                                                        {group.length}{" "}
                                                         {group.length === 1 ? "player" : "players"}
                                                     </span>
                                                     <Show when={avgVr !== null}>
-                                                        <span class="text-xs font-semibold text-orange-500 dark:text-orange-400">
-                                                            Avg VR: {avgVr}
+                                                        <span class="text-fg-muted tabular-nums">
+                                                            {avgVr!.toLocaleString()} avg VR
                                                         </span>
                                                     </Show>
+                                                </h3>
+                                                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                                    <For each={group}>
+                                                        {(player) => (
+                                                            <PlayerCard
+                                                                player={player}
+                                                                showOpenHost={props.room.isPublic}
+                                                                highlightFc={props.highlightFc}
+                                                            />
+                                                        )}
+                                                    </For>
                                                 </div>
-                                                <div class="h-px flex-1 bg-orange-200 dark:bg-orange-800/60" />
                                             </div>
-                                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                                                <For each={group}>
-                                                    {(player) => (
-                                                        <PlayerCard
-                                                            player={player}
-                                                            showOpenHost={props.room.isPublic}
-                                                            highlightFc={props.highlightFc}
-                                                        />
-                                                    )}
-                                                </For>
-                                            </div>
-                                        </div>
-                                    );
-                                }}
-                            </For>
-                        </div>
+                                        );
+                                    }}
+                                </For>
+                            </div>
+                        </Show>
                     </Show>
                 </div>
             </Show>
-        </div>
+        </article>
     );
 }

@@ -339,6 +339,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                         {(period) => (
                             <button
                                 type="button"
+                                aria-pressed={!customRange() && selectedDays() === period.days}
                                 onClick={() => {
                                     setShowCustomRange(false);
                                     changePeriod(period.days);
@@ -358,6 +359,8 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                     <button
                         type="button"
                         onClick={() => setShowCustomRange((v) => !v)}
+                        aria-expanded={showCustomRange()}
+                        aria-controls="vr-custom-range"
                         class={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
                             customRange()
                                 ? "bg-blue-600 text-white"
@@ -372,7 +375,10 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
 
                 {/* Custom date range picker */}
                 <Show when={showCustomRange()}>
-                    <div class="flex flex-wrap items-end gap-3 p-3 bg-gray-50 dark:bg-gray-900/40 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div
+                        id="vr-custom-range"
+                        class="flex flex-wrap items-end gap-3 p-3 bg-gray-50 dark:bg-gray-900/40 rounded-lg border border-gray-200 dark:border-gray-700"
+                    >
                         <div class="flex flex-col gap-1">
                             <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
                                 From
@@ -382,7 +388,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                                 max={todayString()}
                                 value={rangeFrom()}
                                 onInput={(e) => setRangeFrom(e.currentTarget.value)}
-                                class="px-3 py-2 text-sm rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                                class="px-3 py-2 text-sm rounded-lg border-2 border-line-strong bg-canvas text-fg transition-colors"
                             />
                         </div>
                         <div class="flex flex-col gap-1">
@@ -394,7 +400,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                                 max={todayString()}
                                 value={rangeTo()}
                                 onInput={(e) => setRangeTo(e.currentTarget.value)}
-                                class="px-3 py-2 text-sm rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                                class="px-3 py-2 text-sm rounded-lg border-2 border-line-strong bg-canvas text-fg transition-colors"
                             />
                         </div>
                         <button
@@ -414,7 +420,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                 <div class="h-96 flex items-center justify-center">
                     <div class="text-center">
                         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                        <p class="text-gray-600 dark:text-gray-400">Loading VR history...</p>
+                        <p class="text-gray-600 dark:text-gray-400">Loading VR history…</p>
                     </div>
                 </div>
             </Show>
@@ -451,7 +457,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                         <p class="text-gray-600 dark:text-gray-400 font-medium mb-2">
                             No VR history available
                         </p>
-                        <p class="text-gray-500 dark:text-gray-500 text-sm">
+                        <p class="text-fg-subtle text-sm">
                             No VR changes found for the selected period
                         </p>
                     </div>
@@ -524,15 +530,27 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                         <defs>
                             {/* Gradient for line */}
                             <linearGradient id={lineGradientId} x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stop-color="#3B82F6" />
-                                <stop offset="50%" stop-color="#8B5CF6" />
-                                <stop offset="100%" stop-color="#EC4899" />
+                                <stop offset="0%" style={{ "stop-color": "var(--accent)" }} />
+                                <stop offset="50%" style={{ "stop-color": "var(--accent)" }} />
+                                <stop offset="100%" style={{ "stop-color": "var(--accent)" }} />
                             </linearGradient>
 
                             {/* Gradient for area */}
                             <linearGradient id={areaGradientId} x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.3" />
-                                <stop offset="100%" stop-color="#EC4899" stop-opacity="0.05" />
+                                <stop
+                                    offset="0%"
+                                    style={{
+                                        "stop-color": "var(--accent)",
+                                        "stop-opacity": "0.14",
+                                    }}
+                                />
+                                <stop
+                                    offset="100%"
+                                    style={{
+                                        "stop-color": "var(--accent)",
+                                        "stop-opacity": "0.14",
+                                    }}
+                                />
                             </linearGradient>
                         </defs>
 
@@ -579,7 +597,7 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                             <path
                                 d={generatePath()}
                                 fill="none"
-                                stroke="#3B82F6"
+                                style={{ stroke: "var(--accent)" }}
                                 stroke-width="4"
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
@@ -767,10 +785,8 @@ export default function VRHistoryChart(props: VRHistoryChartProps) {
                                                 width={tooltipWidth}
                                                 height={tooltipHeight}
                                                 rx="6"
-                                                fill="white"
-                                                stroke="#E5E7EB"
-                                                stroke-width="2"
-                                                class="dark:fill-gray-800 dark:stroke-gray-600"
+                                                stroke-width="1"
+                                                class="fill-canvas stroke-line"
                                                 style="pointer-events: none"
                                             />
                                             <text
