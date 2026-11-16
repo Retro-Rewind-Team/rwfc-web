@@ -1,3 +1,4 @@
+using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs.Player;
 using RetroRewindWebsite.Models.Entities.Player;
 
@@ -29,7 +30,9 @@ public static class PlayerMapper
         MiiData: entity.MiiData,
         Badges: entity.Badges,
         VehiclePreference: VehiclePreferenceFor(entity),
-        VehicleRank: VehicleRankFor(entity)
+        VehicleRank: VehicleRankFor(entity),
+        CountryAlpha2: WiiCountryHelper.GetFlag(entity.WiiCountryCode),
+        CountryName: WiiCountryHelper.GetName(entity.WiiCountryCode)
     );
 
     private static int RankFor(PlayerEntity entity, string? vehicleFilter) => vehicleFilter switch

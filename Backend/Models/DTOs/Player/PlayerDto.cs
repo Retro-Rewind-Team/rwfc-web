@@ -13,7 +13,9 @@ public record PlayerDto(
     string? MiiData,
     ICollection<int>? Badges,
     string? VehiclePreference = null,
-    int? VehicleRank = null
+    int? VehicleRank = null,
+    string? CountryAlpha2 = null,
+    string? CountryName = null
 );
 
 public record PlayerMiiDownloadDto(string Name, string? MiiData);

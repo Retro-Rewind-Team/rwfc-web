@@ -186,6 +186,9 @@ namespace RetroRewindWebsite.Migrations
                     b.Property<int?>("VehiclePreference")
                         .HasColumnType("integer");
 
+                    b.Property<byte?>("WiiCountryCode")
+                        .HasColumnType("smallint");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BikeRank");

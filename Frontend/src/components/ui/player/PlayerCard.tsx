@@ -13,6 +13,7 @@ import { Dynamic } from "solid-js/web";
 import { RoomPlayer } from "../../../types";
 import MiiComponent from "./MiiComponent";
 import Tooltip from "../../common/Tooltip";
+import CountryFlag from "../../common/CountryFlag";
 
 interface PlayerCardProps {
     player: RoomPlayer;
@@ -105,8 +106,15 @@ export default function PlayerCard(props: PlayerCardProps) {
 
                 {/* Player Info */}
                 <div class="flex-1 min-w-0">
-                    <div class="font-bold text-gray-900 dark:text-white truncate text-sm">
-                        {props.player.mii?.name || props.player.name}
+                    <div class="flex items-center gap-1.5 min-w-0">
+                        <span class="font-bold text-gray-900 dark:text-white truncate text-sm">
+                            {props.player.mii?.name || props.player.name}
+                        </span>
+                        <CountryFlag
+                            countryAlpha2={props.player.countryAlpha2}
+                            countryName={props.player.countryName}
+                            size="sm"
+                        />
                     </div>
                     <code class="text-xs font-mono text-gray-500 dark:text-gray-400 block mb-1">
                         {props.player.friendCode}

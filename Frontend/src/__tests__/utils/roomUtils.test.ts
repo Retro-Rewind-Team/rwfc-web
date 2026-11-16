@@ -13,6 +13,8 @@ function makePlayer(slotId: string | null, connectionMap: string[]): RoomPlayer 
         isSuspended: false,
         connectionMap,
         slotId,
+        countryAlpha2: null,
+        countryName: null,
         mii: null,
     };
 }

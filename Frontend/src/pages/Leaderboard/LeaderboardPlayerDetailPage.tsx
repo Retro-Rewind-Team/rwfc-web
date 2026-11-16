@@ -17,7 +17,7 @@ import {
     VRTierInfo,
     VRTierNumberPlate,
 } from "../../components/ui";
-import { LoadingSpinner, Tooltip } from "../../components/common";
+import { CountryFlag, LoadingSpinner, Tooltip } from "../../components/common";
 
 export default function PlayerDetailPage() {
     const params = useParams();
@@ -156,6 +156,11 @@ export default function PlayerDetailPage() {
                                             <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
                                                 {player().name}
                                             </h1>
+                                            <CountryFlag
+                                                countryAlpha2={player().countryAlpha2}
+                                                countryName={player().countryName}
+                                                size="lg"
+                                            />
                                             <VehiclePreferenceBadge
                                                 vehiclePreference={player().vehiclePreference}
                                                 vehicleRank={player().vehicleRank}

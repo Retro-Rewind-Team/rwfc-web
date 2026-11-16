@@ -39,6 +39,9 @@ public class PlayerEntity
     public int? KartRank { get; set; }
     public int? BikeRank { get; set; }
 
+    // Last country the console reported (see WiiCountryHelper); null until WFC sends one.
+    public byte? WiiCountryCode { get; set; }
+
     public virtual PlayerMiiCacheEntity? MiiCache { get; set; }
     public virtual ICollection<VRHistoryEntity> VRHistory { get; set; } = [];
 

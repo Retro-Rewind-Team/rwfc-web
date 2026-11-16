@@ -295,6 +295,11 @@ public class LeaderboardSyncService : ILeaderboardSyncService
                 existingPlayer.Name, existingPlayer.Fc);
         }
 
+        // WFC only knows the country once the console has sent its USER packet, so a missing
+        // value means "not yet", not "cleared".
+        if (apiPlayer.WiiCountryCode is { } country)
+            existingPlayer.WiiCountryCode = country;
+
         existingPlayer.LastSeen = now;
         existingPlayer.LastUpdated = now;
 
@@ -348,6 +353,7 @@ public class LeaderboardSyncService : ILeaderboardSyncService
             Fc = apiPlayer.Fc,
             Ev = apiPlayer.VR,
             MiiData = miiData,
+            WiiCountryCode = apiPlayer.WiiCountryCode,
             LastSeen = DateTime.UtcNow,
             LastUpdated = DateTime.UtcNow,
             IsSuspicious = false,
