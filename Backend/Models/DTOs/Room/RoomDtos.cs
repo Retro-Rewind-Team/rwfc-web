@@ -40,7 +40,9 @@ public record RoomPlayerDto(
     bool IsSuspended,
     MiiDto? Mii,
     List<string> ConnectionMap,
-    string? SlotId
+    string? SlotId,
+    string? CountryAlpha2 = null,
+    string? CountryName = null
 );
 
 public record RaceDto(int Num, int Course, int Cc, string? TrackName);

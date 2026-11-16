@@ -1,3 +1,4 @@
+using RetroRewindWebsite.Helpers;
 using RetroRewindWebsite.Models.DTOs.Player;
 using RetroRewindWebsite.Models.DTOs.Room;
 using RetroRewindWebsite.Models.Entities.Room;
@@ -113,7 +114,9 @@ public static class RoomMapper
                 IsSuspended: p.IsSuspended,
                 Mii: p.Mii != null ? new MiiData(p.Mii.Data, p.Mii.Name) : null,
                 ConnectionMap: p.ConnectionMap,
-                SlotId: p.SlotId
+                SlotId: p.SlotId,
+                CountryAlpha2: p.CountryAlpha2,
+                CountryName: p.CountryName
             )).ToList(),
             AverageVR: dto.AverageVR,
             Race: dto.Race != null ? new RaceData(dto.Race.Num, dto.Race.Course, dto.Race.Cc, dto.Race.TrackName) : null,
@@ -140,7 +143,9 @@ public static class RoomMapper
                 IsSuspended: p.IsSuspended,
                 Mii: p.Mii != null ? new MiiDto(p.Mii.Data, p.Mii.Name) : null,
                 ConnectionMap: p.ConnectionMap,
-                SlotId: p.SlotId
+                SlotId: p.SlotId,
+                CountryAlpha2: p.CountryAlpha2,
+                CountryName: p.CountryName
             )).ToList(),
             AverageVR: data.AverageVR,
             Race: data.Race != null ? new RaceDto(data.Race.Num, data.Race.Course, data.Race.Cc, data.Race.TrackName) : null,
@@ -170,7 +175,9 @@ public static class RoomMapper
             IsSuspended: player.IsSuspended,
             Mii: mii,
             ConnectionMap: connectionMap,
-            SlotId: slotId
+            SlotId: slotId,
+            CountryAlpha2: WiiCountryHelper.GetFlag(player.WiiCountryCode),
+            CountryName: WiiCountryHelper.GetName(player.WiiCountryCode)
         );
     }
 }

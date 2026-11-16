@@ -8,6 +8,7 @@ import VRTierNumberPlate from "../vrTier/VRTierNumberplate";
 import { ArrowDown, ArrowUp } from "lucide-solid/icons/index";
 import TriangleAlert from "lucide-solid/icons/triangle-alert";
 import Tooltip from "../../common/Tooltip";
+import CountryFlag from "../../common/CountryFlag";
 
 interface LeaderboardTableProps {
     players: Player[];
@@ -154,12 +155,19 @@ export default function LeaderboardTable(props: LeaderboardTableProps) {
                                             </A>
 
                                             <div class="w-full sm:flex-1 text-center sm:text-left">
-                                                <A
-                                                    href={`/player/${player.friendCode}`}
-                                                    class="block font-bold text-lg text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-400 transition-colors whitespace-normal break-words"
-                                                >
-                                                    {player.name}
-                                                </A>
+                                                <div class="flex items-center justify-center sm:justify-start gap-2">
+                                                    <A
+                                                        href={`/player/${player.friendCode}`}
+                                                        class="block font-bold text-lg text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-400 transition-colors whitespace-normal break-words"
+                                                    >
+                                                        {player.name}
+                                                    </A>
+                                                    <CountryFlag
+                                                        countryAlpha2={player.countryAlpha2}
+                                                        countryName={player.countryName}
+                                                        size="md"
+                                                    />
+                                                </div>
 
                                                 <div class="hidden sm:flex flex-wrap gap-2 mt-1 justify-center sm:justify-start">
                                                     <Show when={player.isSuspicious}>

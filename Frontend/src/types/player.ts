@@ -12,6 +12,8 @@ export interface Player {
     badges: number[] | null;
     vehiclePreference: "kart" | "bike" | null;
     vehicleRank: number | null;
+    countryAlpha2: string | null;
+    countryName: string | null;
 }
 
 export interface VRStats {

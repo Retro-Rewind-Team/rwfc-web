@@ -8,6 +8,8 @@ export interface RoomPlayer {
     isSuspended: boolean;
     connectionMap: string[];
     slotId: string | null;
+    countryAlpha2: string | null;
+    countryName: string | null;
     mii: {
         data: string;
         name: string;

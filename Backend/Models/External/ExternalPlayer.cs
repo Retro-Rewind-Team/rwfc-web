@@ -13,8 +13,10 @@ public class ExternalPlayer
     public string? Eb { get; set; } // BR
     public List<Mii>? Mii { get; set; }
     public string? Openhost { get; set; }
+    public string? Country { get; set; } // Wii country code; absent until WFC has had the console's USER packet
 
     // Helper properties to convert string values to proper types
+    public byte? WiiCountryCode => byte.TryParse(Country, out var country) ? country : null;
     public int VR => int.TryParse(Ev, out var vr) ? vr : 0;
     public int BR => int.TryParse(Eb, out var br) ? br : 5000;
     public bool IsOpenHost => Openhost == "true";

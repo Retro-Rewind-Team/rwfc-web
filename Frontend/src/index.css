@@ -2,6 +2,27 @@
 @custom-variant dark (&:where(.dark, .dark *));
 @import "flag-icons/css/flag-icons.min.css";
 
+/* Regions flag-icons has no flag for: 4:3 redraws of the public domain Wikimedia Commons originals.
+   The codes come from Backend/Helpers/WiiCountryHelper.cs. */
+.fi-abkhazia {
+    background-image: url("/flags/abkhazia.svg");
+}
+.fi-artsakh {
+    background-image: url("/flags/artsakh.svg");
+}
+.fi-northern-cyprus {
+    background-image: url("/flags/northern-cyprus.svg");
+}
+.fi-south-ossetia {
+    background-image: url("/flags/south-ossetia.svg");
+}
+.fi-transnistria {
+    background-image: url("/flags/transnistria.svg");
+}
+.fi-british-antarctic {
+    background-image: url("/flags/british-antarctic.svg");
+}
+
 body {
     margin: 0;
     font-family:
