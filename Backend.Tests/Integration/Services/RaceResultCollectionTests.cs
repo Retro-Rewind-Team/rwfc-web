@@ -176,6 +176,33 @@ public class RaceResultCollectionTests : IAsyncLifetime
             .GetRoomRaceResultsAsync(RoomId, Arg.Any<CancellationToken>());
     }
 
+    [Fact]
+    public async Task ReRanksAResultThatWasStoredBeforeFasterResultsOfItsRaceArrived()
+    {
+        // The slow result reaches the server (and the collector) on its own first, so on that
+        // tick it is ranked against nothing and stored as 1st. Seen live in RHHDOM race 15.
+        StubOpenRoom();
+        StubResults(new() { [1] = [Result(profileId: 801, seconds: 147f, playerCount: 3)] });
+        await CollectAsync();
+        (await StoredRaceAsync(1))[801].FinishPos.ShouldBe((short)1);
+
+        StubResults(new()
+        {
+            [1] =
+            [
+                Result(profileId: 801, seconds: 147f, playerCount: 3),
+                Result(profileId: 802, seconds: 134f, playerCount: 3),
+                Result(profileId: 803, seconds: 140f, playerCount: 3)
+            ]
+        });
+        await CollectAsync();
+
+        var race1 = await StoredRaceAsync(1);
+        race1[802].FinishPos.ShouldBe((short)1);
+        race1[803].FinishPos.ShouldBe((short)2);
+        race1[801].FinishPos.ShouldBe((short)3);
+    }
+
     private void StubOpenRoom() =>
         _apiClient.GetActiveGroupsAsync(Arg.Any<CancellationToken>()).Returns([
             new Group

@@ -19,4 +19,12 @@ public interface IRaceResultRepository
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of race result entities for
     /// the specified room. The list will be empty if no results are found.</returns>
     Task<List<RaceResultEntity>> GetRaceResultsByRoomAsync(string roomId);
+
+    /// <summary>
+    /// Sets the stored finish position of existing race results. Used when results that arrive in a
+    /// later collection tick change the ranking of rows that were stored earlier.
+    /// </summary>
+    /// <param name="finishPosById">Race result id to its new finish position.</param>
+    /// <returns>A task that represents the asynchronous operation, returning the number of rows updated.</returns>
+    Task<int> UpdateFinishPositionsAsync(IReadOnlyDictionary<int, short> finishPosById);
 }

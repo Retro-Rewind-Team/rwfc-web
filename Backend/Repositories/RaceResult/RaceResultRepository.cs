@@ -85,4 +85,22 @@ public class RaceResultRepository : IRaceResultRepository
             .OrderBy(r => r.RaceNumber)
             .ThenBy(r => r.FinishPos)
             .ToListAsync();
+
+    public async Task<int> UpdateFinishPositionsAsync(IReadOnlyDictionary<int, short> finishPosById)
+    {
+        // Re-ranks are rare (a result has to arrive in a later tick than a faster one of the same
+        // race) and touch a handful of rows, so one targeted UPDATE per row is simpler than a batch.
+        var updated = 0;
+        foreach (var (id, finishPos) in finishPosById)
+        {
+            updated += await _context.RaceResults
+                .Where(r => r.Id == id)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.FinishPos, finishPos));
+        }
+
+        if (updated > 0)
+            _logger.LogDebug("Re-ranked {Count} stored race results", updated);
+
+        return updated;
+    }
 }
