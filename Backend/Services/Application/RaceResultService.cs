@@ -89,13 +89,13 @@ public class RaceResultService : IRaceResultService
         if (raceResultsByRace == null || raceResultsByRace.Count == 0)
             return (0, 0);
 
-        var existingResults = await raceResultRepository.GetRaceResultsByRoomAsync(room.Id);
-        var existingKeys = existingResults
-            .Select(r => (r.RoomId, r.RaceNumber, r.ProfileId))
-            .ToHashSet();
+        // Unique per (RoomId, RaceNumber, ProfileId) in the database, and this is a single room.
+        var existingResults = (await raceResultRepository.GetRaceResultsByRoomAsync(room.Id))
+            .ToDictionary(r => (r.RaceNumber, r.ProfileId));
 
         var timestamp = DateTime.UtcNow;
         var allNewResults = new List<RaceResultEntity>();
+        var finishPosUpdates = new Dictionary<int, short>();
         var skipped = 0;
 
         foreach (var (raceNumber, raceResults) in raceResultsByRace)
@@ -124,9 +124,19 @@ public class RaceResultService : IRaceResultService
                     if (result.PlayerID != 0)
                         continue;
 
-                    if (existingKeys.Contains((room.Id, raceNumber, result.ProfileID)))
+                    var newPos = correctedPositions.TryGetValue(result.ProfileID, out var pos) ? pos : (short)0;
+
+                    if (existingResults.TryGetValue((raceNumber, result.ProfileID), out var stored))
                     {
                         skipped++;
+
+                        // A row stored in an earlier tick was ranked only against the results that
+                        // had arrived by then, so a result that arrived before faster ones of its
+                        // race (e.g. a late result ranked alone) can be stored too high. Correct it
+                        // now that the whole race is visible.
+                        if (stored.FinishPos != newPos)
+                            finishPosUpdates[stored.Id] = newPos;
+
                         continue;
                     }
 
@@ -141,7 +151,7 @@ public class RaceResultService : IRaceResultService
                         CharacterId = result.CharacterID,
                         VehicleId = result.VehicleID,
                         PlayerCount = result.PlayerCount,
-                        FinishPos = correctedPositions.TryGetValue(result.ProfileID, out var pos) ? pos : (short)0,
+                        FinishPos = newPos,
                         FramesIn1st = result.FramesIn1st,
                         CourseId = result.CourseID,
                         EngineClassId = result.EngineClassID,
@@ -152,6 +162,9 @@ public class RaceResultService : IRaceResultService
                 }
             }
         }
+
+        if (finishPosUpdates.Count > 0)
+            await raceResultRepository.UpdateFinishPositionsAsync(finishPosUpdates);
 
         if (allNewResults.Count == 0)
             return (0, skipped);
